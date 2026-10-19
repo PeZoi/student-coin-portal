@@ -1,20 +1,26 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Baloo_2, Nunito } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+// Font tiêu đề hoạt hình 3D, hỗ trợ 100% tiếng Việt
+const baloo2 = Baloo_2({
+  subsets: ["vietnamese", "latin"],
+  weight: ["600", "700", "800"],
+  variable: "--font-heading",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+// Font nội dung thân thiện, bo tròn, hỗ trợ 100% tiếng Việt
+const nunito = Nunito({
+  subsets: ["vietnamese", "latin"],
+  weight: ["400", "600", "700", "800", "900"],
+  variable: "--font-sans",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Student Coin Portal",
+  title: "Student Coin Portal - Học Chăm Tích Xu",
   description: "Cổng thông tin đổi thưởng và tích lũy coin sinh viên",
 };
 
@@ -22,9 +28,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="vi"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${baloo2.variable} ${nunito.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col font-sans">
         {children}
         <Toaster richColors position="top-right" />
       </body>
