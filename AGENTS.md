@@ -7,3 +7,122 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+# AGENTS.md - Quy tắc phát triển dự án Student Coin Portal
+
+Tài liệu này là **kim chỉ nam bắt buộc tuân thủ** cho tất cả các AI Agent và Developer khi phát triển hoặc sửa đổi mã nguồn trong dự án **Student Coin Portal** (Next.js App Router, TypeScript, Tailwind CSS v4).
+
+---
+
+## 1. Triết lý thiết kế & Viết code (Code Philosophy)
+* **KISS (Keep It Simple, Stupid):** Viết code thật đơn giản, tường minh và dễ hiểu nhất có thể. Dài dòng một chút cũng được, miễn là dễ đọc, dễ giải thích và dễ debug. Tránh viết code quá "thông minh", lồng ghép trừu tượng hóa quá sớm (No over-engineering).
+* **Định danh rõ ràng (Naming Conventions):** Tên biến, tên hàm, tên component phải rõ nghĩa bằng tiếng Anh (ví dụ: `fetchStudentMissions`, `handleSpinWheel`, `isClaimingCoin`).
+* **Không định nghĩa lại (DRY - Don't Repeat Yourself):** 
+  - Trước khi viết một hàm helper hoặc utility mới, phải kiểm tra các thư viện/helper dùng chung trong `@/lib` hoặc thư mục feature tương ứng.
+  - **Nếu hàm đó đã tồn tại, BẮT BUỘC phải import để tái sử dụng, tuyệt đối không được định nghĩa lại.**
+
+---
+
+## 2. Kiến trúc dự án: Hybrid Feature-based Architecture
+
+Dự án áp dụng mô hình **Hybrid Feature-based**: thư mục `app/` chỉ làm nhiệm vụ Routing và Layout; toàn bộ logic nghiệp vụ, UI component theo tính năng được đưa vào `features/`.
+
+```text
+student-coin-portal/
+├── app/                        # CHỈ CHỨA ROUTING VÀ LAYOUTS
+│   ├── (auth)/                 # Nhóm route xác thực (login, register...)
+│   │   ├── login/page.tsx
+│   │   └── layout.tsx
+│   ├── (student)/              # Nhóm route dành cho học sinh / sinh viên
+│   │   ├── layout.tsx          # Layout riêng (header học sinh, coin bar, nav)
+│   │   ├── wheel/page.tsx      # /wheel (Vòng quay may mắn)
+│   │   ├── missions/page.tsx   # /missions (Danh sách nhiệm vụ)
+│   │   └── page.tsx            # / (Trang chủ học sinh)
+│   ├── (admin)/                # Nhóm route dành cho giáo viên / quản trị viên
+│   │   ├── layout.tsx          # Layout riêng (sidebar quản trị, thống kê)
+│   │   ├── dashboard/page.tsx  # /admin/dashboard
+│   │   └── rewards/page.tsx    # /admin/rewards (Quản lý quà tặng)
+│   ├── globals.css             # CSS toàn cục
+│   └── layout.tsx              # Root Layout chung
+│
+├── features/                   # CHỨA LOGIC & GIAO DIỆN THEO TỪNG TÍNH NĂNG
+│   ├── lucky-wheel/            # Module Vòng quay may mắn
+│   │   ├── components/         # LuckyWheel.tsx, WheelPrizeList.tsx
+│   │   ├── hooks/              # useLuckyWheel.ts
+│   │   ├── types/              # index.ts
+│   │   └── actions/            # spinWheelAction.ts
+│   ├── missions/               # Module Nhiệm vụ & Điểm danh
+│   │   ├── components/         # MissionCard.tsx, SubmitProofModal.tsx
+│   │   ├── types/
+│   │   └── actions/
+│   ├── wallet/                 # Module Ví coin & Lịch sử giao dịch
+│   │   └── components/         # CoinBalance.tsx, TransactionList.tsx
+│   └── auth/                   # Module Đăng nhập / Phân quyền
+│
+├── components/                 # COMPONENT DÙNG CHUNG TOÀN ỨNG DỤNG
+│   └── ui/                     # Button.tsx, Modal.tsx, Card.tsx, Input.tsx...
+│
+├── lib/                        # HÀM TIỆN ÍCH DÙNG CHUNG (UTILITIES)
+│   ├── utils.ts                # cn() (kết hợp clsx và tailwind-merge)
+│   ├── date.ts                 # formatDistanceTime, formatDate bằng date-fns
+│   └── constants.ts            # Hằng số toàn dự án
+│
+└── stores/                     # GLOBAL STATE (ZUSTAND)
+    └── useUserStore.ts         # Quản lý state người dùng, số dư coin
+```
+
+---
+
+## 3. Các quy tắc cốt lõi (Core Rules)
+
+### Quy tắc 1: Giữ file `page.tsx` mỏng nhất có thể (Thin Page Pattern)
+* File `page.tsx` **chỉ được làm đúng 2 nhiệm vụ**:
+  1. Lấy dữ liệu ban đầu (Fetch data trên Server Component hoặc đọc `searchParams` / `params`).
+  2. Truyền dữ liệu đó dưới dạng props vào Feature Component tương ứng.
+* **Nghiêm cấm:** Viết JSX giao diện dài hàng trăm dòng, logic tính toán hay state trực tiếp trong `page.tsx`.
+
+*Ví dụ chuẩn cho `app/(student)/wheel/page.tsx`:*
+```tsx
+// ✅ ĐÚNG: page.tsx cực kỳ ngắn gọn, sạch sẽ
+import { getStudentPrizes } from "@/features/lucky-wheel/actions/getStudentPrizes";
+import { LuckyWheelView } from "@/features/lucky-wheel/components/LuckyWheelView";
+
+export default async function WheelPage() {
+  const prizes = await getStudentPrizes();
+
+  return <LuckyWheelView initialPrizes={prizes} />;
+}
+```
+
+---
+
+### Quy tắc 2: Tách biệt rõ ràng Server Component và Client Component
+* **Mặc định mọi component là Server Component:** Tận dụng Server Component cho các trang/thành phần tĩnh, danh sách nhiệm vụ không cần tương tác động để tối ưu SEO và tốc độ tải trang.
+* **Chỉ thêm `'use client'` khi thực sự cần thiết:**
+  - Component có state (`useState`, `useReducer`, Zustand store).
+  - Component có event listeners (`onClick`, `onChange`, `onSubmit`).
+  - Component có hiệu ứng chuyển động, tương tác trực tiếp: ví dụ `LuckyWheel.tsx` (quay vòng quay), `SubmitProofModal.tsx` (popup nộp bài), component nén ảnh client trước khi upload.
+* **Nguyên tắc "Đẩy Client Component xuống sâu nhất có thể" (Move Client Component to the Leaves):** Không bọc cả trang trong `'use client'`, chỉ bọc đúng phần tử có tương tác.
+
+---
+
+### Quy tắc 3: Tận dụng triệt để Route Groups `(...)`
+* Dùng thư mục ngoặc tròn như `app/(student)` và `app/(admin)` để:
+  - Tách biệt hoàn toàn 2 bộ khung giao diện `layout.tsx` cho giáo viên và học sinh (ví dụ: học sinh có thanh hiển thị Coin ở header, giáo viên có menu quản trị duyệt bài).
+  - Giữ cho URL trên trình duyệt ngắn gọn, tự nhiên: `/wheel` thay vì `/student/wheel`, `/missions` thay vì `/student/missions`.
+
+---
+
+### Quy tắc 4: Thư viện nền tảng & Tái sử dụng (Tech Stack Standards)
+Dự án đã tích hợp sẵn bộ thư viện tiêu chuẩn. Khi triển khai tính năng, **phải dùng đúng các thư viện này**:
+
+| Mục đích | Thư viện tiêu chuẩn | Cách sử dụng / Quy định |
+| :--- | :--- | :--- |
+| **Quản lý State** | `zustand` | Lưu store trong `@/stores/` hoặc trong từng feature. |
+| **Icons** | `lucide-react` | Nhập trực tiếp icon từ `lucide-react`, không dùng svg inline lặp lại. |
+| **Thông báo (Toast)** | `sonner` | Dùng `toast.success()`, `toast.error()` từ `sonner`. Đã có `<Toaster />` tại Root Layout. |
+| **CSS Class Helper** | `clsx` + `tailwind-merge` | Luôn dùng hàm `cn(...)` từ `@/lib/utils` để nối class động. |
+| **Xử lý Form** | `react-hook-form` | Quản lý state của input form, tối ưu render. |
+| **Validation** | `zod` + `@hookform/resolvers` | Định nghĩa schema kiểm tra form và kiểu dữ liệu bằng `zod`. |
+| **Xử lý Ngày tháng** | `date-fns` | Dùng `format`, `formatDistanceToNow` từ `date-fns` (với locale tiếng Việt). |
+
