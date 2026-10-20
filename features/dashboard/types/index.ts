@@ -4,6 +4,9 @@ export interface Mission {
   rewardCoins: number;
   iconSrc: string;
   headerBg: string;
+  borderColor?: string;
+  bodyBg?: string;
+  arcFill?: string;
   buttonText: string;
   buttonVariant: "yellow" | "green";
   status: "available" | "submitted" | "completed";

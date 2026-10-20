@@ -1,24 +1,23 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { Settings } from "lucide-react";
 import { useUserStore } from "@/stores/useUserStore";
+import { Settings } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 export function StudentNavbar() {
   const { student } = useUserStore();
 
   return (
-    <header className="w-full max-w-7xl mx-auto px-4 sm:px-8 py-3 flex items-center justify-between select-none">
+    <header className="w-full max-w-7xl mx-auto px-4 sm:px-8 py-2 sm:py-2.5 flex items-center justify-between select-none">
       {/* Brand Logo: main-icon.png */}
       <Link href="/student" className="flex items-center transition-transform hover:scale-105">
-        <div className="relative w-40 sm:w-52 h-12 sm:h-16 flex-shrink-0">
+        <div className="relative w-36 sm:w-48 h-11 sm:h-13 flex-shrink-0">
           <Image
             src="/main-icon.png"
             alt="Học Chăm Tích Xu"
             fill
-            sizes="(max-width: 640px) 160px, 208px"
+            sizes="(max-width: 640px) 144px, 192px"
             priority
             unoptimized
             className="object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
