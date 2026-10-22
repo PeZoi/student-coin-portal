@@ -22,7 +22,7 @@ export const navigationCards: NavigationItem[] = [
     iconSrc: "/navigation/mission.png",
     buttonText: "Vào làm ngay",
     buttonVariant: "blue",
-    href: "#missions",
+    href: "/student/missions",
     borderColor: "border-[#0091FF]",
     bodyBg: "bg-[#EBF6FF]",
     headerBg: "bg-gradient-to-r from-[#0091FF] via-[#007AE6] to-[#0055CC]",

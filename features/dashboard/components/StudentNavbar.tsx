@@ -4,9 +4,14 @@ import { useUserStore } from "@/stores/useUserStore";
 import { Settings } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function StudentNavbar() {
   const { student } = useUserStore();
+  const pathname = usePathname();
+
+  const isHome = pathname === "/student";
+  const isMissions = pathname.startsWith("/student/missions");
 
   return (
     <header className="w-full max-w-7xl mx-auto px-4 sm:px-8 py-2 sm:py-2.5 flex items-center justify-between select-none">
@@ -29,16 +34,29 @@ export function StudentNavbar() {
       <nav className="hidden md:flex items-center gap-4 lg:gap-6">
         <Link
           href="/student"
-          className="relative text-white font-heading font-black text-sm sm:text-base tracking-wide px-4 py-1.5 rounded-full bg-[#003E8A] border border-sky-300/40 shadow-[inset_0_1px_2px_rgba(255,255,255,0.25)] whitespace-nowrap transition-all"
+          className={
+            isHome
+              ? "relative text-white font-heading font-black text-sm sm:text-base tracking-wide px-4 py-1.5 rounded-full bg-[#003E8A] border border-sky-300/40 shadow-[inset_0_1px_2px_rgba(255,255,255,0.25)] whitespace-nowrap transition-all"
+              : "text-sky-100 hover:text-white font-heading font-bold text-sm sm:text-base tracking-wide px-3 py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105"
+          }
         >
           Trang chủ
-          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-1 bg-yellow-300 rounded-full shadow-sm" />
+          {isHome && (
+            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-1 bg-yellow-300 rounded-full shadow-sm" />
+          )}
         </Link>
         <Link
-          href="#missions"
-          className="text-sky-100 hover:text-white font-heading font-bold text-sm sm:text-base tracking-wide px-3 py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105"
+          href="/student/missions"
+          className={
+            isMissions
+              ? "relative text-white font-heading font-black text-sm sm:text-base tracking-wide px-4 py-1.5 rounded-full bg-[#003E8A] border border-sky-300/40 shadow-[inset_0_1px_2px_rgba(255,255,255,0.25)] whitespace-nowrap transition-all"
+              : "text-sky-100 hover:text-white font-heading font-bold text-sm sm:text-base tracking-wide px-3 py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105"
+          }
         >
           Nhiệm vụ
+          {isMissions && (
+            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-1 bg-yellow-300 rounded-full shadow-sm" />
+          )}
         </Link>
         <Link
           href="#wheel"
