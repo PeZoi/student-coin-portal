@@ -3,14 +3,36 @@
 import { useUserStore } from "@/stores/useUserStore";
 import { Sparkles } from "lucide-react";
 import Image from "next/image";
+import Tilt from "react-parallax-tilt";
 
 export function PiggyBankCard() {
   const { student } = useUserStore();
 
   return (
-    <div className="relative w-full h-full bg-gradient-to-b from-[#FFE853] via-[#FFBE18] to-[#F58700] rounded-[32px] border-4 border-white shadow-[0_18px_40px_rgba(0,30,80,0.2),inset_0_3px_2px_rgba(255,255,255,0.85),inset_0_-4px_6px_rgba(180,80,0,0.2)] p-4 sm:p-5 pt-9 sm:pt-10 pb-5 sm:pb-6 flex flex-col justify-between items-center overflow-visible select-none min-h-[450px] sm:min-h-[480px] lg:min-h-0">
-      {/* Curved Orange Header Banner (Hơi 3D nhẹ nhàng, shadow đen sắc nét, style chữ đẹp mắt) */}
-      <div className="absolute -top-12 sm:-top-12 md:-top-12 left-1/2 -translate-x-1/2 z-30 w-[84%] sm:w-[80%] max-w-[360px] pointer-events-none">
+    <Tilt
+      perspective={1000}
+      tiltMaxAngleX={9}
+      tiltMaxAngleY={9}
+      scale={1.025}
+      transitionSpeed={600}
+      transitionEasing="cubic-bezier(0.23, 1, 0.32, 1)"
+      glareEnable={true}
+      glareMaxOpacity={0.25}
+      glareColor="#ffffff"
+      glarePosition="all"
+      glareBorderRadius="32px"
+      className="w-full h-full flex flex-col items-center select-none"
+      style={{ transformStyle: "preserve-3d" }}
+    >
+      <div
+        className="relative w-full h-full bg-gradient-to-b from-[#FFE853] via-[#FFBE18] to-[#F58700] rounded-[32px] border-4 border-white shadow-[0_18px_40px_rgba(0,30,80,0.2),inset_0_3px_2px_rgba(255,255,255,0.85),inset_0_-4px_6px_rgba(180,80,0,0.2)] p-4 sm:p-5 pt-9 sm:pt-10 pb-5 sm:pb-6 flex flex-col justify-between items-center overflow-visible min-h-[450px] sm:min-h-[480px] lg:min-h-0 cursor-pointer"
+        style={{ transformStyle: "preserve-3d" }}
+      >
+        {/* Curved Orange Header Banner (Luôn căn giữa tuyệt đối) */}
+        <div
+          className="absolute -top-12 sm:-top-12 md:-top-12 inset-x-0 mx-auto z-30 w-[84%] sm:w-[80%] max-w-[360px] pointer-events-none flex justify-center"
+          style={{ transform: "translateZ(30px)" }}
+        >
         <svg
           viewBox="0 0 400 100"
           className="w-full h-auto drop-shadow-[0_8px_16px_rgba(0,0,0,0.22)] drop-shadow-[0_2px_4px_rgba(0,0,0,0.14)]"
@@ -129,27 +151,42 @@ export function PiggyBankCard() {
 
       {/* Floating 3D Gold Coins with Depth of Field & Natural Distribution */}
       {/* Coin 1: Upper Left floating tilted */}
-      <div className="absolute top-[17%] left-[6%] sm:left-[8%] w-8 h-8 sm:w-9 sm:h-9 pointer-events-none select-none drop-shadow-[0_6px_12px_rgba(160,70,0,0.38)] -rotate-12 z-10 transition-transform duration-300 hover:scale-110">
+      <div
+        className="absolute top-[17%] left-[6%] sm:left-[8%] w-8 h-8 sm:w-9 sm:h-9 pointer-events-none select-none drop-shadow-[0_6px_12px_rgba(160,70,0,0.38)] -rotate-12 z-10 transition-transform duration-300 hover:scale-110"
+        style={{ transform: "translateZ(30px)" }}
+      >
         <Image src="/coin.png" alt="Coin" fill sizes="36px" unoptimized className="object-contain" />
       </div>
 
       {/* Coin 2: Mid-Lower Left distant background coin */}
-      <div className="absolute top-[44%] left-[4%] sm:left-[6%] w-5 h-5 sm:w-6 sm:h-6 pointer-events-none select-none drop-shadow-[0_4px_8px_rgba(160,70,0,0.28)] rotate-12 z-10 opacity-95">
+      <div
+        className="absolute top-[44%] left-[4%] sm:left-[6%] w-5 h-5 sm:w-6 sm:h-6 pointer-events-none select-none drop-shadow-[0_4px_8px_rgba(160,70,0,0.28)] rotate-12 z-10 opacity-95"
+        style={{ transform: "translateZ(20px)" }}
+      >
         <Image src="/coin.png" alt="Coin" fill sizes="24px" unoptimized className="object-contain" />
       </div>
 
       {/* Coin 3: Lower Left near cloud podium */}
-      <div className="absolute top-[60%] left-[10%] sm:left-[12%] w-5 h-5 sm:w-5.5 sm:h-5.5 pointer-events-none select-none drop-shadow-[0_3px_6px_rgba(160,70,0,0.28)] -rotate-15 z-10 opacity-90">
+      <div
+        className="absolute top-[60%] left-[10%] sm:left-[12%] w-5 h-5 sm:w-5.5 sm:h-5.5 pointer-events-none select-none drop-shadow-[0_3px_6px_rgba(160,70,0,0.28)] -rotate-15 z-10 opacity-90"
+        style={{ transform: "translateZ(25px)" }}
+      >
         <Image src="/coin.png" alt="Coin" fill sizes="22px" unoptimized className="object-contain" />
       </div>
 
       {/* Coin 4: Upper Right floating hero coin */}
-      <div className="absolute top-[21%] right-[6%] sm:right-[8%] w-8 h-8 sm:w-9 sm:h-9 pointer-events-none select-none drop-shadow-[0_6px_12px_rgba(160,70,0,0.38)] rotate-15 z-10 transition-transform duration-300 hover:scale-110">
+      <div
+        className="absolute top-[21%] right-[6%] sm:right-[8%] w-8 h-8 sm:w-9 sm:h-9 pointer-events-none select-none drop-shadow-[0_6px_12px_rgba(160,70,0,0.38)] rotate-15 z-10 transition-transform duration-300 hover:scale-110"
+        style={{ transform: "translateZ(32px)" }}
+      >
         <Image src="/coin.png" alt="Coin" fill sizes="36px" unoptimized className="object-contain" />
       </div>
 
       {/* Coin 5: Mid Right floating coin */}
-      <div className="absolute top-[45%] right-[5%] sm:right-[7%] w-6 h-6 sm:w-7 sm:h-7 pointer-events-none select-none drop-shadow-[0_4px_8px_rgba(160,70,0,0.32)] -rotate-8 z-10">
+      <div
+        className="absolute top-[45%] right-[5%] sm:right-[7%] w-6 h-6 sm:w-7 sm:h-7 pointer-events-none select-none drop-shadow-[0_4px_8px_rgba(160,70,0,0.32)] -rotate-8 z-10"
+        style={{ transform: "translateZ(24px)" }}
+      >
         <Image src="/coin.png" alt="Coin" fill sizes="28px" unoptimized className="object-contain" />
       </div>
 
@@ -184,11 +221,15 @@ export function PiggyBankCard() {
       </div>
 
       {/* Center Section: Cute Pig Mascot sitting proud on White Cloud Podium */}
-      <div className="flex-1 w-full flex flex-col items-center justify-center relative z-20 pt-2 pb-5 sm:pb-6 lg:pb-2">
+      <div
+        className="flex-1 w-full flex flex-col items-center justify-center relative z-20 pt-2 pb-5 sm:pb-6 lg:pb-2"
+        style={{ transform: "translateZ(44px)", transformStyle: "preserve-3d" }}
+      >
         {/* Cute Pink Piggy Mascot with Cloud Podium */}
         <div className="relative w-44 h-44 sm:w-48 sm:h-48 md:w-52 md:h-52 lg:w-56 lg:h-56 flex-shrink-0">
           {/* Fluffy White Cartoon Cloud Podium beneath Pig */}
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-[110%] h-16 pointer-events-none drop-shadow-[0_8px_16px_rgba(0,35,90,0.18)] z-0">
+          
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[110%] h-16 pointer-events-none drop-shadow-[0_8px_16px_rgba(0,35,90,0.18)] z-0">
             <svg viewBox="0 0 260 70" className="w-full h-full" fill="none">
               <ellipse cx="130" cy="54" rx="112" ry="14" fill="#CDE5FF" />
             </svg>
@@ -210,7 +251,10 @@ export function PiggyBankCard() {
       </div>
 
       {/* Gamified 3D Gold Coin Vault Card at Bottom - cách đều heo đất như màn hình lớn */}
-      <div className="w-full max-w-sm sm:max-w-md relative z-20 mt-5 sm:mt-6 lg:mt-3">
+      <div
+        className="w-full max-w-sm sm:max-w-md relative z-20 mt-5 sm:mt-6 lg:mt-3"
+        style={{ transform: "translateZ(36px)", transformStyle: "preserve-3d" }}
+      >
         {/* Khung Capsule 3D nhẹ nhàng, thanh lịch & cao cấp */}
         <div className="relative w-full bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF7] to-[#FFF4E0] rounded-[26px] border-4 border-white shadow-[0_6px_0_#A84B00,0_14px_26px_rgba(80,25,0,0.22),inset_0_2.5px_0_rgba(255,255,255,1)] px-3.5 sm:px-4 pt-4 sm:pt-5 pb-2.5 sm:pb-3 flex flex-col items-center text-center">
           {/* Orange Pill Tag: "🪙 TỔNG XU TÍCH LŨY 🪙" - 3D 1 chút xíu thanh thoát */}
@@ -253,6 +297,7 @@ export function PiggyBankCard() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </Tilt>
   );
 }
