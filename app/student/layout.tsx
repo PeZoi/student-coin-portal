@@ -8,7 +8,7 @@ export default function StudentLayout({
 }) {
   return (
     <div
-      className="h-screen w-full flex flex-col antialiased selection:bg-yellow-300 selection:text-blue-900 bg-[#1672EA] overflow-hidden"
+      className="h-dvh w-full flex flex-col antialiased selection:bg-yellow-300 selection:text-blue-900 bg-[#1672EA] overflow-hidden"
       style={{
         backgroundImage: `
           radial-gradient(ellipse 130% 70% at 50% 105%, rgba(225, 248, 255, 0.92) 0%, rgba(140, 218, 255, 0.55) 30%, rgba(55, 165, 252, 0.2) 60%, transparent 80%),

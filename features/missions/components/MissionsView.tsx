@@ -8,7 +8,7 @@ import { DashboardBackgroundDecor } from "@/features/dashboard/components/Dashbo
 
 export function MissionsView() {
   return (
-    <div className="relative w-full h-full flex-1 flex flex-col items-center justify-start px-2 sm:px-4 pt-1.5 pb-2 min-h-0 overflow-hidden select-none gap-2.5 lg:gap-0">
+    <div className="relative w-full h-full flex-1 flex flex-col items-center justify-start px-2 sm:px-4 pt-1.5 pb-3.5 sm:pb-4 pb-[max(1rem,env(safe-area-inset-bottom))] min-h-0 overflow-hidden select-none gap-2.5 lg:gap-0">
       {/* Background Decor: Mây thực tế bồng bềnh và ánh sáng bầu trời */}
       <DashboardBackgroundDecor />
 
