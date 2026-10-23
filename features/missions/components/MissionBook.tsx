@@ -40,7 +40,7 @@ export function MissionBook() {
   };
 
   return (
-    <div className="relative w-full max-w-6xl mx-auto my-auto flex flex-col items-center justify-center">
+    <div className="relative w-full max-w-6xl h-full flex flex-col items-center justify-start lg:justify-center min-h-0">
       {/* Trang trí nền */}
       <MissionDecorElements />
 
@@ -77,44 +77,48 @@ export function MissionBook() {
         </div>
       </div>
 
-      {/* MOBILE & TABLET VIEW (< lg): Khung sổ tay ma thuật trang đơn */}
-      <div className="lg:hidden relative w-full max-w-md mx-auto bg-[#f8dea8] rounded-3xl border-4 border-[#783707] shadow-[0_12px_28px_rgba(0,20,60,0.25)] p-3.5 sm:p-4 overflow-hidden">
+      {/* MOBILE & TABLET VIEW (< lg): Khung sổ tay ma thuật trang đơn vừa vặn màn hình */}
+      <div className="lg:hidden relative w-full max-w-md h-full mx-auto bg-[#f8dea8] rounded-3xl border-4 border-[#783707] shadow-[0_12px_28px_rgba(0,20,60,0.25)] p-3 sm:p-3.5 overflow-hidden flex flex-col min-h-0">
         {/* 4 Góc kim loại trang trí cho mobile */}
         <Image
           src="/mission/coner-top-left.svg"
           alt="Góc trên trái"
           width={48}
-          height={48}
+          height={53}
           unoptimized
-          className="absolute top-0 left-0 w-10 sm:w-12 h-auto pointer-events-none select-none z-20 opacity-80"
+          style={{ height: "auto" }}
+          className="absolute top-0 left-0 w-10 sm:w-12 pointer-events-none select-none z-20 opacity-80"
         />
         <Image
           src="/mission/coner-top-right.svg"
           alt="Góc trên phải"
           width={48}
-          height={48}
+          height={53}
           unoptimized
-          className="absolute top-0 right-0 w-10 sm:w-12 h-auto pointer-events-none select-none z-20 opacity-80"
+          style={{ height: "auto" }}
+          className="absolute top-0 right-0 w-10 sm:w-12 pointer-events-none select-none z-20 opacity-80"
         />
         <Image
           src="/mission/coner-bottom-left.svg"
           alt="Góc dưới trái"
           width={48}
-          height={48}
+          height={53}
           unoptimized
-          className="absolute bottom-0 left-0 w-10 sm:w-12 h-auto pointer-events-none select-none z-20 opacity-80"
+          style={{ height: "auto" }}
+          className="absolute bottom-0 left-0 w-10 sm:w-12 pointer-events-none select-none z-20 opacity-80"
         />
         <Image
           src="/mission/coner-bottom-right.svg"
           alt="Góc dưới phải"
           width={48}
-          height={48}
+          height={53}
           unoptimized
-          className="absolute bottom-0 right-0 w-10 sm:w-12 h-auto pointer-events-none select-none z-20 opacity-80"
+          style={{ height: "auto" }}
+          className="absolute bottom-0 right-0 w-10 sm:w-12 pointer-events-none select-none z-20 opacity-80"
         />
 
         {/* Nội dung trang theo tab đang chọn */}
-        <div className="relative z-10 w-full min-h-90">
+        <div className="relative z-10 w-full flex-1 flex flex-col min-h-0 overflow-hidden">
           {mobileTab === "list" ? (
             <MissionListSide
               missions={filteredMissions}

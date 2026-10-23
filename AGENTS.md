@@ -124,5 +124,33 @@ Dự án đã tích hợp sẵn bộ thư viện tiêu chuẩn. Khi triển khai
 | **CSS Class Helper** | `clsx` + `tailwind-merge` | Luôn dùng hàm `cn(...)` từ `@/lib/utils` để nối class động. |
 | **Xử lý Form** | `react-hook-form` | Quản lý state của input form, tối ưu render. |
 | **Validation** | `zod` + `@hookform/resolvers` | Định nghĩa schema kiểm tra form và kiểu dữ liệu bằng `zod`. |
+| **Hiển thị Hình ảnh** | `next/image` | Luôn dùng `<Image />` thay vì thẻ `<img>`. Khi dùng CSS đổi size, kèm `style={{ height: 'auto' }}` hoặc `style={{ width: 'auto' }}`. |
 | **Xử lý Ngày tháng** | `date-fns` | Dùng `format`, `formatDistanceToNow` từ `date-fns` (với locale tiếng Việt). |
+
+---
+
+### Quy tắc 5: Chuẩn mực tối ưu và hiển thị Hình ảnh (`next/image`)
+* **Tuyệt đối không dùng thẻ `<img>` thuần:** Bắt buộc import và dùng `<Image />` từ `next/image` để tối ưu hóa hiệu năng, giảm dung lượng và tránh lỗi ESLint `@next/next/no-img-element`.
+* **Quy chuẩn tránh lỗi Aspect Ratio cảnh báo Console:**
+  - Khi thay đổi kích thước ảnh bằng CSS (ví dụ Tailwind `w-10`, `w-full`), **bắt buộc phải thêm inline style `style={{ height: 'auto' }}`** (hoặc `style={{ width: 'auto' }}` nếu chỉnh chiều cao) để giữ tỉ lệ khung hình chuẩn và không bị lỗi Next.js:
+    > *"Image with src ... has either width or height modified, but not the other."*
+* **Ảnh Vector SVG:**
+  - Đối với các file SVG tĩnh (như khung sách, góc kim loại, icon), luôn thêm thuộc tính `unoptimized` để trình duyệt render trực tiếp vector sắc nét mà không qua pipeline nén ảnh raster của server.
+
+*Ví dụ chuẩn khi hiển thị ảnh/SVG trang trí:*
+```tsx
+// ✅ ĐÚNG: Sử dụng Image kèm style={{ height: 'auto' }} và unoptimized cho SVG
+import Image from "next/image";
+
+<Image
+  src="/mission/coner-top-left.svg"
+  alt="Góc trên trái"
+  width={48}
+  height={53}
+  unoptimized
+  style={{ height: "auto" }}
+  className="w-10 sm:w-12 pointer-events-none select-none"
+/>
+```
+
 

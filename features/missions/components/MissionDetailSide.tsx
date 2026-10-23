@@ -64,20 +64,21 @@ export function MissionDetailSide({ mission, onBack }: MissionDetailSideProps) {
         
 
         {/* Tấm biển gỗ tiêu đề: CHI TIẾT NHIỆM VỤ 📝 */}
-        <div className="-mt-0.5 flex justify-center">
+        <div className="relative -mt-0.5 mb-0.5 flex items-center justify-center min-h-[38px] flex-shrink-0">
           {onBack && (
-          <div className="flex items-center justify-between w-full absolute top-0 left-0 ">
-            <Button3D
-              variant="yellow"
-              size="sm"
-              onClick={onBack}
-              className="gap-1.5 py-1 px-3 text-xs"
-            >
-              <ArrowLeft className="w-3.5 h-3.5 stroke-3" />
-            </Button3D>
-          </div>
-        )}
-          <div><MissionWoodBanner title="CHI TIẾT NHIỆM VỤ" /></div>
+            <div className="absolute left-0 z-20">
+              <Button3D
+                variant="yellow"
+                size="sm"
+                onClick={onBack}
+                className="gap-1 py-1 px-2.5 text-xs font-heading"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 stroke-[3]" />
+                <span className="text-[11px] font-bold">Quay lại</span>
+              </Button3D>
+            </div>
+          )}
+          <MissionWoodBanner title="CHI TIẾT NHIỆM VỤ" />
         </div>
 
         {/* PHẦN 1: THÔNG TIN NHIỆM VỤ & HUY HIỆU THƯỞNG XU */}

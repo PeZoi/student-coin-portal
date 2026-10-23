@@ -8,25 +8,25 @@ import { DashboardBackgroundDecor } from "@/features/dashboard/components/Dashbo
 
 export function MissionsView() {
   return (
-    <div className="relative w-full flex-1 flex flex-col justify-center items-center px-2 sm:px-4 py-1 min-h-0 overflow-hidden select-none">
+    <div className="relative w-full h-full flex-1 flex flex-col items-center justify-start px-2 sm:px-4 pt-1.5 pb-2 min-h-0 overflow-hidden select-none gap-2.5 lg:gap-0">
       {/* Background Decor: Mây thực tế bồng bềnh và ánh sáng bầu trời */}
       <DashboardBackgroundDecor />
 
-      {/* Nút 3D: Quay lại Trang chủ */}
-      <div className="absolute top-2.5 left-3 sm:top-3 sm:left-6 z-30">
+      {/* Nút 3D: Quay lại Trang chủ - Desktop cố định góc trên, Mobile là hàng riêng phía trên sách */}
+      <div className="w-full max-w-md lg:max-w-none flex items-center justify-start lg:absolute lg:top-3 lg:left-6 z-30 flex-shrink-0 px-0.5">
         <Button3D
           href="/student"
           variant="yellow"
           size="sm"
-          className="gap-1.5 py-1.5 px-3.5 text-xs sm:text-sm tracking-wide"
+          className="gap-1.5 py-1 px-3 sm:py-1.5 sm:px-3.5 text-xs sm:text-sm tracking-wide"
         >
           <ArrowLeft className="w-4 h-4 stroke-[3]" />
           <span>Quay lại Trang chủ</span>
         </Button3D>
       </div>
 
-      {/* Khung cuốn sách thần kỳ mở đôi chiếm trọn tỷ lệ 1 trang */}
-      <div className="relative z-10 w-full h-full flex items-center justify-center">
+      {/* Khung cuốn sách thần kỳ: Tự động vừa vặn trọn vẹn 1 trang màn hình */}
+      <div className="relative z-10 w-full flex-1 flex flex-col items-center justify-start lg:justify-center min-h-0 overflow-hidden">
         <MissionBook />
       </div>
     </div>
