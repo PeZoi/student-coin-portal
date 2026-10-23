@@ -153,4 +153,53 @@ import Image from "next/image";
 />
 ```
 
+---
+
+### Quy tắc 6: Tách biệt toàn bộ Logic nghiệp vụ ra Custom Hook (Custom Hook Pattern)
+* **Nguyên tắc phân tách trách nhiệm (Separation of Concerns):**
+  - **Component UI** chỉ làm đúng một việc: Nhận dữ liệu/hàm từ hook và render JSX giao diện (Presentational Component).
+  - **Custom Hook** chịu trách nhiệm toàn bộ phần: Quản lý state (`useState`, `useReducer`), tác vụ phụ (`useEffect`), lắng nghe sự kiện (`window`, cảm biến, resize), tính toán dữ liệu, validate và gọi Server Actions/API.
+* **Cấu trúc lưu trữ:**
+  - Hook của tính năng nào thì đặt ngay trong thư mục `features/<feature-name>/hooks/` của tính năng đó (ví dụ: `useLuckyWheel.ts`, `useMissionList.ts`, `useDeviceMotion.ts`).
+  - Hook dùng chung toàn dự án (nếu có) đặt tại `@/hooks/`.
+* **Tiêu chí nhận diện khi nào PHẢI tách ra Hook:**
+  - Khi một Component có từ 2 `useState` trở lên kèm theo các hàm tính toán xử lý logic, filter, debounce, event listeners.
+  - Khi component bắt đầu xuất hiện các hàm xử lý sự kiện dài hơn 15-20 dòng.
+
+*Ví dụ chuẩn cho việc tách Hook:*
+```tsx
+// ✅ ĐÚNG: Hook quản lý toàn bộ state & logic trong features/missions/hooks/useMissionFilter.ts
+export function useMissionFilter(initialMissions: MissionItem[]) {
+  const [filter, setFilter] = useState<MissionFilter>("all");
+  const [selectedId, setSelectedId] = useState<string>("m1");
+
+  const filteredMissions = useMemo(() => {
+    if (filter === "pending") return initialMissions.filter((m) => !m.isCompleted);
+    if (filter === "completed") return initialMissions.filter((m) => m.isCompleted);
+    return initialMissions;
+  }, [initialMissions, filter]);
+
+  return {
+    filter,
+    setFilter,
+    selectedId,
+    setSelectedId,
+    filteredMissions,
+  };
+}
+
+// ✅ Component UI chỉ việc gọi hook và render, cực kỳ ngắn gọn và dễ bảo trì
+export function MissionListView({ initialMissions }: { initialMissions: MissionItem[] }) {
+  const { filter, setFilter, filteredMissions, selectedId, setSelectedId } = useMissionFilter(initialMissions);
+
+  return (
+    <div>
+      <FilterTabs current={filter} onChange={setFilter} />
+      <MissionList items={filteredMissions} activeId={selectedId} onSelect={setSelectedId} />
+    </div>
+  );
+}
+```
+
+
 

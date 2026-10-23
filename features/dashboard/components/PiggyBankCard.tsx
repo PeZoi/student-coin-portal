@@ -1,15 +1,49 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { useUserStore } from "@/stores/useUserStore";
 import { Sparkles } from "lucide-react";
 import Image from "next/image";
 import Tilt from "react-parallax-tilt";
 
+function subscribeMediaQuery(callback: () => void) {
+  if (typeof window === "undefined") return () => {};
+  const mql = window.matchMedia("(max-width: 1024px)");
+  mql.addEventListener("change", callback);
+  return () => mql.removeEventListener("change", callback);
+}
+
+function getMobileTouchSnapshot() {
+  if (typeof window === "undefined") return false;
+  const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  return isTouch && window.matchMedia("(max-width: 1024px)").matches;
+}
+
+function getServerSnapshot() {
+  return false;
+}
+
 export function PiggyBankCard() {
   const { student } = useUserStore();
+  const isMobileDevice = useSyncExternalStore(subscribeMediaQuery, getMobileTouchSnapshot, getServerSnapshot);
+
+  // Kích hoạt xin quyền con quay hồi chuyển trên iOS 13+ khi người dùng chạm vào thẻ
+  const handleDeviceMotionPermission = async () => {
+    if (
+      typeof window !== "undefined" &&
+      typeof (DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> })?.requestPermission === "function"
+    ) {
+      try {
+        await (DeviceOrientationEvent as unknown as { requestPermission: () => Promise<string> }).requestPermission();
+      } catch {
+        // Người dùng từ chối hoặc đóng popup
+      }
+    }
+  };
 
   return (
     <Tilt
+      gyroscope={isMobileDevice}
       perspective={1000}
       tiltMaxAngleX={9}
       tiltMaxAngleY={9}
@@ -25,6 +59,8 @@ export function PiggyBankCard() {
       style={{ transformStyle: "preserve-3d" }}
     >
       <div
+        onClick={handleDeviceMotionPermission}
+        onTouchStart={handleDeviceMotionPermission}
         className="relative w-full h-full bg-gradient-to-b from-[#FFE853] via-[#FFBE18] to-[#F58700] rounded-[32px] border-4 border-white shadow-[0_18px_40px_rgba(0,30,80,0.2),inset_0_3px_2px_rgba(255,255,255,0.85),inset_0_-4px_6px_rgba(180,80,0,0.2)] p-4 sm:p-5 pt-9 sm:pt-10 pb-5 sm:pb-6 flex flex-col justify-between items-center overflow-visible min-h-[450px] sm:min-h-[480px] lg:min-h-0 cursor-pointer"
         style={{ transformStyle: "preserve-3d" }}
       >
