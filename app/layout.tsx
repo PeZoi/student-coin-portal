@@ -20,7 +20,7 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "Student Coin Portal - Học Chăm Tích Xu",
+  title: "Student Coin Portal",
   description: "Cổng thông tin đổi thưởng và tích lũy coin sinh viên",
 };
 

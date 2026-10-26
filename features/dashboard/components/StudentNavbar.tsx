@@ -15,17 +15,20 @@ export function StudentNavbar() {
 
   return (
     <header className="w-full max-w-7xl mx-auto px-4 sm:px-8 py-2 sm:py-2.5 flex items-center justify-between select-none">
-      {/* Brand Logo: main-icon.png */}
-      <Link href="/student" className="flex items-center transition-transform hover:scale-105">
-        <div className="relative w-36 sm:w-48 h-11 sm:h-13 flex-shrink-0">
+      {/* Brand Logo: Spark the Present */}
+      <Link
+        href="/student"
+        className="group flex items-center flex-shrink-0 transition-transform active:scale-95 py-0.5"
+      >
+        <div className="relative h-12 sm:h-14 md:h-15 lg:h-16 aspect-[897/482] flex-shrink-0 transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-0.5">
           <Image
-            src="/main-icon.png"
-            alt="Học Chăm Tích Xu"
+            src="/logo.png"
+            alt="Spark the Present"
             fill
-            sizes="(max-width: 640px) 144px, 192px"
+            sizes="(max-width: 640px) 110px, 150px"
             priority
             unoptimized
-            className="object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+            className="object-contain drop-shadow-[0_4px_10px_rgba(0,20,60,0.35)] group-hover:drop-shadow-[0_6px_18px_rgba(255,215,0,0.45)] transition-all duration-300"
           />
         </div>
       </Link>

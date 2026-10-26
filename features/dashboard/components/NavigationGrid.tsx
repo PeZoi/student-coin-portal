@@ -6,7 +6,7 @@ import { NavigationCard } from "./NavigationCard";
 export function NavigationGrid() {
   return (
     /* Khung ngoài tạo viền gradient mờ dần từ trên xuống dưới (white/40 -> white/18 -> white/10) */
-    <div className="relative w-full h-full rounded-[28px] sm:rounded-[32px] p-[2px] bg-gradient-to-b from-white/40 via-white/18 to-white/10 shadow-[0_16px_36px_rgba(0,35,90,0.22)] overflow-visible">
+    <div className="relative w-full h-full rounded-[28px] sm:rounded-[32px] p-[2px] bg-gradient-to-b from-white/40 via-white/18 to-white/10 shadow-[0_16px_36px_rgba(0,35,90,0.22)] overflow-visible mb-10 sm:mb-0">
       {/* Huy hiệu Ngôi sao Vàng 3D may mắn góc trên bên trái */}
       <div className="absolute -top-3.5 -left-3.5 sm:-top-4 sm:-left-4 w-10 h-10 sm:w-11 sm:h-11 pointer-events-none select-none z-20 animate-soft-twinkle">
         <svg viewBox="0 0 44 44" className="w-full h-full drop-shadow-[0_4px_10px_rgba(255,160,0,0.5)]">
@@ -66,6 +66,7 @@ export function NavigationGrid() {
         {/* Section Header with 3D text */}
         <div className="relative flex items-center justify-center gap-2 mb-2 sm:mb-2.5 select-none">
           <h2 className="text-2xl sm:text-3xl font-heading font-black uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] [text-shadow:_0_2px_0_#003E8A,_0_4px_6px_rgba(0,0,0,0.3)] flex items-center gap-2.5">
+            <span className="text-2xl sm:text-3xl select-none filter drop-shadow">✨</span>
             <span>TÍNH NĂNG NỔI BẬT</span>
             <span className="text-2xl sm:text-3xl select-none filter drop-shadow">✨</span>
           </h2>

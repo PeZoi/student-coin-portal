@@ -51,7 +51,7 @@ export function MissionBook() {
       <div className="hidden lg:block relative h-[min(840px,calc(100dvh-76px))] max-w-[min(96vw,1040px)] aspect-1153/1040 mx-auto select-none drop-shadow-[0_24px_50px_rgba(0,18,50,0.38)]">
         {/* NỀN CUỐN SÁCH VECTOR SVG CHÍNH XÁC (book.svg) */}
         <Image
-          src="/mission/book.svg"
+          src="/book/book.svg"
           alt="Khung cuốn sách nhiệm vụ"
           fill
           priority
@@ -77,48 +77,21 @@ export function MissionBook() {
         </div>
       </div>
 
-      {/* MOBILE & TABLET VIEW (< lg): Khung sổ tay ma thuật trang đơn vừa vặn màn hình */}
-      <div className="lg:hidden relative w-full max-w-md h-full mx-auto bg-[#f8dea8] rounded-3xl border-4 border-[#783707] shadow-[0_12px_28px_rgba(0,20,60,0.25)] p-3 sm:p-3.5 overflow-hidden flex flex-col min-h-0">
-        {/* 4 Góc kim loại trang trí cho mobile */}
+      {/* MOBILE & TABLET VIEW (< lg): Sổ tay ma thuật trang đơn sử dụng book-mobile.svg */}
+      <div className="lg:hidden relative h-full w-full max-h-[min(680px,calc(100dvh-115px))] max-w-[min(96vw,480px)] aspect-[725/1080] mx-auto select-none drop-shadow-[0_16px_36px_rgba(0,18,50,0.35)] flex flex-col items-center justify-center min-h-0">
+        {/* NỀN SỔ TAY VECTOR SVG CHÍNH XÁC (book-mobile.svg) */}
         <Image
-          src="/mission/coner-top-left.svg"
-          alt="Góc trên trái"
-          width={48}
-          height={53}
+          src="/book/book-mobile.svg"
+          alt="Khung sổ tay nhiệm vụ"
+          fill
+          priority
           unoptimized
-          style={{ height: "auto" }}
-          className="absolute top-0 left-0 w-10 sm:w-12 pointer-events-none select-none z-20 opacity-80"
-        />
-        <Image
-          src="/mission/coner-top-right.svg"
-          alt="Góc trên phải"
-          width={48}
-          height={53}
-          unoptimized
-          style={{ height: "auto" }}
-          className="absolute top-0 right-0 w-10 sm:w-12 pointer-events-none select-none z-20 opacity-80"
-        />
-        <Image
-          src="/mission/coner-bottom-left.svg"
-          alt="Góc dưới trái"
-          width={48}
-          height={53}
-          unoptimized
-          style={{ height: "auto" }}
-          className="absolute bottom-0 left-0 w-10 sm:w-12 pointer-events-none select-none z-20 opacity-80"
-        />
-        <Image
-          src="/mission/coner-bottom-right.svg"
-          alt="Góc dưới phải"
-          width={48}
-          height={53}
-          unoptimized
-          style={{ height: "auto" }}
-          className="absolute bottom-0 right-0 w-10 sm:w-12 pointer-events-none select-none z-20 opacity-80"
+          className="w-full h-full object-contain pointer-events-none select-none z-0"
         />
 
-        {/* Nội dung trang theo tab đang chọn */}
-        <div className="relative z-10 w-full flex-1 flex flex-col min-h-0 overflow-hidden">
+        {/* VÙNG NỘI DUNG TRANG GIẤY BÊN TRONG CUỐN SÁCH:
+            Chiều rộng bung mở vừa bằng với cuốn sách (vừa khít mép viền bìa cuốn sách) */}
+        <div className="absolute top-[16%] bottom-[18%] left-[6%] right-[6%] flex flex-col z-10 px-4 overflow-hidden min-h-0">
           {mobileTab === "list" ? (
             <MissionListSide
               missions={filteredMissions}
