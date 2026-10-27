@@ -1,53 +1,34 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
 import { initialMissions } from "../data/mockMissions";
-import { MissionFilter, MissionItem } from "../types";
+import { useMissionFilter } from "../hooks/useMissionFilter";
 import { MissionDecorElements } from "./MissionDecorElements";
 import { MissionDetailSide } from "./MissionDetailSide";
 import { MissionListSide } from "./MissionListSide";
 
 export function MissionBook() {
-  const missions = initialMissions;
-  const [selectedFilter, setSelectedFilter] = useState<MissionFilter>("all");
-  const [selectedMissionId, setSelectedMissionId] = useState<string>("m1");
-  const [mobileTab, setMobileTab] = useState<"list" | "detail">("list");
-
-  // Lọc nhiệm vụ theo filter: Tất cả | Chưa xong | Đã xong
-  const filteredMissions = missions.filter((m) => {
-    if (selectedFilter === "pending") return !m.isCompleted;
-    if (selectedFilter === "completed") return m.isCompleted;
-    return true;
-  });
-
-  // Số lượng đếm cho từng tab
-  const filterCounts = {
-    all: missions.length,
-    pending: missions.filter((m) => !m.isCompleted).length,
-    completed: missions.filter((m) => m.isCompleted).length,
-  };
-
-  // Nhiệm vụ đang được chọn
-  const activeMission =
-    missions.find((m) => m.id === selectedMissionId) || filteredMissions[0] || missions[0];
-
-  // Khi bấm chọn nhiệm vụ
-  const handleSelectMission = (mission: MissionItem) => {
-    setSelectedMissionId(mission.id);
-    // Trên mobile tự động chuyển sang trang Chi tiết để xem và nộp bài
-    setMobileTab("detail");
-  };
+  const {
+    selectedFilter,
+    setSelectedFilter,
+    selectedMissionId,
+    activeMission,
+    filteredMissions,
+    filterCounts,
+    mobileTab,
+    handleSelectMission,
+    handleBackToMobileList,
+  } = useMissionFilter(initialMissions);
 
   return (
     <div className="relative w-full max-w-6xl h-full flex flex-col items-center justify-start lg:justify-center min-h-0">
-      {/* Trang trí nền */}
+      {/* Trang trí nền ma thuật */}
       <MissionDecorElements />
 
       {/* ======================================================== */}
       {/* KHUNG CUỐN SÁCH THẦN KỲ MỞ ĐÔI (OPEN FANTASY QUEST BOOK) */}
       {/* ======================================================== */}
-      {/* DESKTOP VIEW (lg:): Vector SVG sắc nét, phóng to vừa vặn tỷ lệ 1 trang (Hero Book), không cuộn trang */}
+      {/* DESKTOP VIEW (lg:): Vector SVG sắc nét, vừa vặn tỷ lệ 1 trang (Hero Book), không cuộn trang */}
       <div className="hidden lg:block relative h-[min(840px,calc(100dvh-76px))] max-w-[min(96vw,1040px)] aspect-1153/1040 mx-auto select-none drop-shadow-[0_24px_50px_rgba(0,18,50,0.38)]">
         {/* NỀN CUỐN SÁCH VECTOR SVG CHÍNH XÁC (book.svg) */}
         <Image
@@ -59,14 +40,14 @@ export function MissionBook() {
           className="object-contain pointer-events-none select-none z-0"
         />
 
-        {/* TRANG TRÁI: DANH SÁCH NHIỆM VỤ */}
+        {/* TRANG TRÁI: DANH SÁCH NHIỆM VỤ (3 TAB: CHƯA XONG, ĐÃ XONG, QUÁ HẠN) */}
         <div className="absolute top-[10%] bottom-[17%] left-[8.5%] w-[38.5%] flex flex-col z-10 px-1 py-1">
           <MissionListSide
             missions={filteredMissions}
             selectedFilter={selectedFilter}
             onSelectFilter={setSelectedFilter}
             filterCounts={filterCounts}
-            selectedMissionId={activeMission.id}
+            selectedMissionId={selectedMissionId}
             onSelectMission={handleSelectMission}
           />
         </div>
@@ -89,8 +70,7 @@ export function MissionBook() {
           className="w-full h-full object-contain pointer-events-none select-none z-0"
         />
 
-        {/* VÙNG NỘI DUNG TRANG GIẤY BÊN TRONG CUỐN SÁCH:
-            Chiều rộng bung mở vừa bằng với cuốn sách (vừa khít mép viền bìa cuốn sách) */}
+        {/* VÙNG NỘI DUNG TRANG GIẤY BÊN TRONG CUỐN SÁCH */}
         <div className="absolute top-[16%] bottom-[18%] left-[6%] right-[6%] flex flex-col z-10 px-4 overflow-hidden min-h-0">
           {mobileTab === "list" ? (
             <MissionListSide
@@ -98,13 +78,13 @@ export function MissionBook() {
               selectedFilter={selectedFilter}
               onSelectFilter={setSelectedFilter}
               filterCounts={filterCounts}
-              selectedMissionId={activeMission.id}
+              selectedMissionId={selectedMissionId}
               onSelectMission={handleSelectMission}
             />
           ) : (
             <MissionDetailSide
               mission={activeMission}
-              onBack={() => setMobileTab("list")}
+              onBack={handleBackToMobileList}
             />
           )}
         </div>

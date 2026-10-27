@@ -1,14 +1,16 @@
 import React from "react";
-import { Check, Clock, ChevronRight } from "lucide-react";
+import { Check, Clock, ChevronRight, AlertCircle } from "lucide-react";
 import { MissionFilter, MissionItem } from "../types";
 import { MissionWoodBanner } from "./MissionWoodBanner";
+import { checkIsMissionOverdue } from "../hooks/useMissionFilter";
+import { formatShortDateTime } from "@/lib/date";
 import { cn } from "@/lib/utils";
 
 interface MissionListSideProps {
   missions: MissionItem[];
   selectedFilter: MissionFilter;
   onSelectFilter: (filter: MissionFilter) => void;
-  filterCounts: { all: number; pending: number; completed: number };
+  filterCounts: { pending: number; completed: number; overdue: number };
   selectedMissionId: string;
   onSelectMission: (mission: MissionItem) => void;
 }
@@ -21,14 +23,8 @@ export function MissionListSide({
   selectedMissionId,
   onSelectMission,
 }: MissionListSideProps) {
-  // Bộ lọc tabs 3 mục theo yêu cầu: Tất cả - Chưa xong - Đã xong
+  // Bộ lọc 3 tab: Chưa xong - Đã xong - Quá hạn
   const tabs: { id: MissionFilter; label: string; activeClass: string; inactiveClass: string }[] = [
-    {
-      id: "all",
-      label: `Tất cả (${filterCounts.all})`,
-      activeClass: "bg-[#094E96] text-white border-blue-300 shadow-[0_2px_0_#063261]",
-      inactiveClass: "bg-amber-950/5 text-amber-950/80 hover:bg-amber-950/10 border-transparent",
-    },
     {
       id: "pending",
       label: `Chưa xong (${filterCounts.pending})`,
@@ -39,6 +35,12 @@ export function MissionListSide({
       id: "completed",
       label: `Đã xong (${filterCounts.completed})`,
       activeClass: "bg-[#16A34A] text-white border-emerald-300 shadow-[0_2px_0_#15803D]",
+      inactiveClass: "bg-amber-950/5 text-amber-950/80 hover:bg-amber-950/10 border-transparent",
+    },
+    {
+      id: "overdue",
+      label: `Quá hạn (${filterCounts.overdue})`,
+      activeClass: "bg-[#DC2626] text-white border-rose-300 shadow-[0_2px_0_#B91C1C]",
       inactiveClass: "bg-amber-950/5 text-amber-950/80 hover:bg-amber-950/10 border-transparent",
     },
   ];
@@ -117,14 +119,14 @@ export function MissionListSide({
         <MissionWoodBanner title="DANH SÁCH NHIỆM VỤ" />
       </div>
 
-      {/* Thanh Tabs 3 mục: Tất cả - Chưa xong - Đã xong */}
+      {/* Thanh Tabs 3 mục: Chưa xong - Đã xong - Quá hạn */}
       <div className="flex items-center justify-between gap-1 w-full bg-amber-900/10 p-0.5 rounded-full border border-amber-900/15 flex-shrink-0 mb-1.5 sm:mb-2">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => onSelectFilter(tab.id)}
             className={cn(
-              "flex-1 text-center py-1 lg:py-1.5 px-1 rounded-full font-heading font-black text-[9.5px] sm:text-[10.5px] lg:text-[11px] tracking-tight border transition-all duration-200 active:scale-95 shadow-xs truncate",
+              "flex-1 text-center py-1 lg:py-1.5 px-1 rounded-full font-heading font-black text-[9.5px] sm:text-[10.5px] lg:text-[11px] tracking-tight border transition-all duration-200 active:scale-95 shadow-xs truncate cursor-pointer",
               selectedFilter === tab.id ? tab.activeClass : tab.inactiveClass
             )}
           >
@@ -133,34 +135,50 @@ export function MissionListSide({
         ))}
       </div>
 
-      {/* Danh sách nhiệm vụ dạng card bo tròn với đầy đủ thông tin thời gian */}
+      {/* Danh sách nhiệm vụ dạng card bo tròn với thông tin thời gian ngắn gọn */}
       <div className="flex-1 flex flex-col gap-1 sm:gap-1.5 lg:gap-3 overflow-y-auto pr-1 sm:pr-1.5 min-h-0 pb-0.5 [scrollbar-width:thin] [scrollbar-color:rgba(180,83,9,0.45)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-amber-950/5 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-amber-800/40 hover:[&::-webkit-scrollbar-thumb]:bg-amber-800/70 [&::-webkit-scrollbar-thumb]:rounded-full">
         {missions.length === 0 ? (
           <div className="py-8 text-center text-amber-800/60 font-heading font-medium text-xs">
-            Chưa có nhiệm vụ nào trong mục này.
+            {selectedFilter === "pending" && "Tuyệt vời! Không còn nhiệm vụ nào cần làm."}
+            {selectedFilter === "completed" && "Chưa có nhiệm vụ nào hoàn thành."}
+            {selectedFilter === "overdue" && "Không có nhiệm vụ nào bị quá hạn."}
           </div>
         ) : (
           missions.map((mission) => {
             const isSelected = selectedMissionId === mission.id;
-            const isCompleted = Boolean(mission.isCompleted);
+            const isCompleted = mission.status === "completed" || Boolean(mission.isCompleted);
+            const isOverdueItem = checkIsMissionOverdue(mission);
 
-            // Phân biệt style trạng thái: ĐÃ XONG = Xanh lá | CHƯA XONG = Xanh dương/Vàng ấm
-            const statusStyle = isCompleted
+            // Format thời gian ngắn gọn
+            const assignedText = formatShortDateTime(mission.assignedAt);
+            const dueText = formatShortDateTime(mission.dueAt);
+
+            // Phân biệt style trạng thái 3 nhóm: ĐÃ XONG | QUÁ HẠN | CHƯA XONG
+            const statusConfig = isCompleted
               ? {
                   badgeBox: "bg-gradient-to-b from-[#22C55E] to-[#16A34A] text-white border-emerald-400",
                   textColor: "text-[#15803D]",
+                  dueBadge: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                  cardBase: "bg-[#F0FDF4]/85 hover:bg-white border border-[#86EFAC]/80 hover:border-[#86EFAC]",
+                }
+              : isOverdueItem
+              ? {
+                  badgeBox: "bg-rose-100 border-2 border-rose-500 text-rose-600",
+                  textColor: "text-rose-600",
+                  dueBadge: "bg-rose-100 text-rose-700 border-rose-300 font-extrabold",
+                  cardBase: "bg-[#FFF1F2]/85 hover:bg-white border border-rose-200/80 hover:border-rose-300",
                 }
               : {
                   badgeBox: "bg-white border-2 border-[#0084FF] text-[#0084FF]",
                   textColor: "text-[#0284C7]",
+                  dueBadge: "bg-sky-50 text-sky-700 border-sky-200",
+                  cardBase: "bg-white/85 hover:bg-white border border-amber-950/15 hover:border-amber-900/30",
                 };
 
-            // Style thẻ: Đơn giản & Cực kỳ dễ nhận biết
+            // Style thẻ khi được chọn (Active)
             const cardStyle = isSelected
               ? "bg-[#FFFBEB] border-2 border-[#D97706] shadow-[0_2px_8px_rgba(217,119,6,0.2)]"
-              : isCompleted
-              ? "bg-[#F0FDF4]/85 hover:bg-white border border-[#86EFAC]/80 hover:border-[#86EFAC]"
-              : "bg-white/85 hover:bg-white border border-amber-950/15 hover:border-amber-900/30";
+              : statusConfig.cardBase;
 
             return (
               <div
@@ -174,15 +192,17 @@ export function MissionListSide({
                 {/* HÀNG 1: Checkbox trạng thái + Tên bài tập + Icon minh họa + Mũi tên trỏ Active */}
                 <div className="flex items-center justify-between gap-1.5 min-w-0">
                   <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
-                    {/* Hộp checkbox icon 3D */}
+                    {/* Hộp checkbox / icon trạng thái */}
                     <div
                       className={cn(
                         "w-5 h-5 sm:w-5.5 sm:h-5.5 rounded-md flex items-center justify-center flex-shrink-0 border shadow-inner relative",
-                        statusStyle.badgeBox
+                        statusConfig.badgeBox
                       )}
                     >
                       {isCompleted ? (
                         <Check className="w-3.5 h-3.5 stroke-[3.5] text-white" />
+                      ) : isOverdueItem ? (
+                        <AlertCircle className="w-3.5 h-3.5 stroke-[3] text-rose-600" />
                       ) : (
                         <div className="w-2 h-2 rounded-full bg-[#0084FF]" />
                       )}
@@ -194,6 +214,8 @@ export function MissionListSide({
                         "leading-tight truncate",
                         isSelected
                           ? "font-heading font-black text-[#78350F] text-[11.5px] sm:text-[12.5px]"
+                          : isOverdueItem
+                          ? "font-heading font-bold text-rose-950 text-[11px] sm:text-xs"
                           : "font-heading font-bold text-slate-700 text-[11px] sm:text-xs"
                       )}
                     >
@@ -212,28 +234,26 @@ export function MissionListSide({
 
                 {/* HÀNG 2: Thông tin Thời gian giao, Hạn nộp & Huy hiệu Xu */}
                 <div className="flex items-center justify-between gap-1 text-[9px] sm:text-[9.5px]">
-                  {/* Cụm thời gian: Giao & Hạn nộp */}
+                  {/* Cụm thời gian: Giao & Hạn nộp format ngắn gọn */}
                   <div className="flex items-center gap-1.5 min-w-0 truncate">
                     <span className="text-slate-500 font-medium truncate">
-                      Giao: <span className="text-slate-700 font-bold">{mission.assignedAt}</span>
+                      Giao: <span className="text-slate-700 font-bold">{assignedText}</span>
                     </span>
                     <span className="text-slate-300">•</span>
                     <span
                       className={cn(
                         "inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded font-bold border truncate",
-                        isCompleted
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                          : "bg-rose-50 text-rose-600 border-rose-200"
+                        statusConfig.dueBadge
                       )}
                     >
                       <Clock className="w-2.5 h-2.5 flex-shrink-0 stroke-[2.5]" />
-                      <span>Hạn: {mission.dueAt}</span>
+                      <span>{isOverdueItem ? `Quá hạn: ${dueText}` : `Hạn: ${dueText}`}</span>
                     </span>
                   </div>
 
                   {/* Cụm xu thưởng */}
                   <div className="flex items-center gap-1 flex-shrink-0 ml-1">
-                    <span className={cn("font-heading font-black", statusStyle.textColor)}>
+                    <span className={cn("font-heading font-black", statusConfig.textColor)}>
                       +{mission.rewardCoins} xu
                     </span>
                   </div>
