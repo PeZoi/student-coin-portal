@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { initialMissions } from "../data/mockMissions";
 import { useMissionFilter } from "../hooks/useMissionFilter";
-import { MissionDecorElements } from "./MissionDecorElements";
 import { MissionDetailSide } from "./MissionDetailSide";
 import { MissionListSide } from "./MissionListSide";
 
@@ -22,9 +21,6 @@ export function MissionBook() {
 
   return (
     <div className="relative w-full max-w-6xl h-full flex flex-col items-center justify-start lg:justify-center min-h-0">
-      {/* Trang trí nền ma thuật */}
-      <MissionDecorElements />
-
       {/* ======================================================== */}
       {/* KHUNG CUỐN SÁCH THẦN KỲ MỞ ĐÔI (OPEN FANTASY QUEST BOOK) */}
       {/* ======================================================== */}

@@ -1,10 +1,9 @@
 "use client";
 
-import React from "react";
-import { ArrowLeft } from "lucide-react";
 import { Button3D } from "@/components/ui/Button3D";
-import { MissionBook } from "./MissionBook";
 import { DashboardBackgroundDecor } from "@/features/dashboard/components/DashboardBackgroundDecor";
+import { ArrowLeft } from "lucide-react";
+import { MissionBook } from "./MissionBook";
 
 export function MissionsView() {
   return (

@@ -1,10 +1,9 @@
-import React from "react";
-import { Check, Clock, ChevronRight, AlertCircle } from "lucide-react";
-import { MissionFilter, MissionItem } from "../types";
-import { MissionWoodBanner } from "./MissionWoodBanner";
-import { checkIsMissionOverdue } from "../hooks/useMissionFilter";
 import { formatShortDateTime } from "@/lib/date";
 import { cn } from "@/lib/utils";
+import { AlertCircle, Check, ChevronRight, Clock } from "lucide-react";
+import { checkIsMissionOverdue } from "../hooks/useMissionFilter";
+import { MissionFilter, MissionItem } from "../types";
+import { MissionWoodBanner } from "./MissionWoodBanner";
 
 interface MissionListSideProps {
   missions: MissionItem[];

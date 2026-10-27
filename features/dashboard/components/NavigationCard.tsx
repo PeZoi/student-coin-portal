@@ -1,10 +1,9 @@
 "use client";
 
-import React from "react";
+import { Button3D } from "@/components/ui/Button3D";
+import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { NavigationItem } from "../data/navigationData";
-import { cn } from "@/lib/utils";
-import { Button3D } from "@/components/ui/Button3D";
 
 interface NavigationCardProps {
   item: NavigationItem;

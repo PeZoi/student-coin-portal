@@ -1,9 +1,9 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
 import { useUserStore } from "@/stores/useUserStore";
 import { Sparkles } from "lucide-react";
 import Image from "next/image";
+import { useSyncExternalStore } from "react";
 import Tilt from "react-parallax-tilt";
 
 function subscribeMediaQuery(callback: () => void) {
