@@ -37,7 +37,7 @@ export const navigationCards: NavigationItem[] = [
     iconSrc: "/navigation/spinner.png",
     buttonText: "Quay thưởng ngay",
     buttonVariant: "orange",
-    href: "#wheel",
+    href: "/student/wheel",
     borderColor: "border-[#FF8400]",
     bodyBg: "bg-[#FFF6EB]",
     headerBg: "bg-gradient-to-r from-[#FF8400] via-[#FF6A00] to-[#E64500]",

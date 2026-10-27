@@ -29,7 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="vi"
       suppressHydrationWarning
-      className={`${baloo2.variable} ${nunito.variable} h-full antialiased`}
+      className={`${baloo2.variable} ${nunito.variable} min-h-full antialiased`}
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col font-sans">
         {children}

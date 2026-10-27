@@ -12,20 +12,21 @@ export function StudentNavbar() {
 
   const isHome = pathname === "/student";
   const isMissions = pathname.startsWith("/student/missions");
+  const isWheel = pathname.startsWith("/student/wheel");
 
   return (
-    <header className="w-full max-w-7xl mx-auto px-4 sm:px-8 py-2 sm:py-2.5 flex items-center justify-between select-none">
+    <header className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-5 lg:px-8 py-1.5 sm:py-2 lg:py-2.5 flex items-center justify-between select-none">
       {/* Brand Logo: Spark the Present */}
       <Link
         href="/student"
         className="group flex items-center flex-shrink-0 transition-transform active:scale-95 py-0.5"
       >
-        <div className="relative h-12 sm:h-14 md:h-15 lg:h-16 aspect-[897/482] flex-shrink-0 transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-0.5">
+        <div className="relative h-10 sm:h-11 md:h-12 lg:h-16 aspect-[897/482] flex-shrink-0 transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-0.5">
           <Image
             src="/logo.png"
             alt="Spark the Present"
             fill
-            sizes="(max-width: 640px) 110px, 150px"
+            sizes="(max-width: 640px) 90px, (max-width: 1024px) 110px, 150px"
             priority
             unoptimized
             className="object-contain drop-shadow-[0_4px_10px_rgba(0,20,60,0.35)] group-hover:drop-shadow-[0_6px_18px_rgba(255,215,0,0.45)] transition-all duration-300"
@@ -33,58 +34,67 @@ export function StudentNavbar() {
         </div>
       </Link>
 
-      {/* Navigation links */}
-      <nav className="hidden md:flex items-center gap-4 lg:gap-6">
+      {/* Navigation links - Tối ưu hiển thị responsive trên iPad (md) và Desktop (lg/xl) */}
+      <nav className="hidden md:flex items-center gap-1 md:gap-1.5 lg:gap-4 xl:gap-6 flex-shrink-0">
         <Link
           href="/student"
           className={
             isHome
-              ? "relative text-white font-heading font-black text-sm sm:text-base tracking-wide px-4 py-1.5 rounded-full bg-[#003E8A] border border-sky-300/40 shadow-[inset_0_1px_2px_rgba(255,255,255,0.25)] whitespace-nowrap transition-all"
-              : "text-sky-100 hover:text-white font-heading font-bold text-sm sm:text-base tracking-wide px-3 py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105"
+              ? "relative text-white font-heading font-black text-xs md:text-xs lg:text-base tracking-wide px-2.5 md:px-3 lg:px-4 py-1 lg:py-1.5 rounded-full bg-[#003E8A] border border-sky-300/40 shadow-[inset_0_1px_2px_rgba(255,255,255,0.25)] whitespace-nowrap transition-all"
+              : "text-sky-100 hover:text-white font-heading font-bold text-xs md:text-xs lg:text-base tracking-wide px-2 md:px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105"
           }
         >
           Trang chủ
           {isHome && (
-            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-1 bg-yellow-300 rounded-full shadow-sm" />
+            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 lg:w-6 h-0.5 lg:h-1 bg-yellow-300 rounded-full shadow-sm" />
           )}
         </Link>
         <Link
           href="/student/missions"
           className={
             isMissions
-              ? "relative text-white font-heading font-black text-sm sm:text-base tracking-wide px-4 py-1.5 rounded-full bg-[#003E8A] border border-sky-300/40 shadow-[inset_0_1px_2px_rgba(255,255,255,0.25)] whitespace-nowrap transition-all"
-              : "text-sky-100 hover:text-white font-heading font-bold text-sm sm:text-base tracking-wide px-3 py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105"
+              ? "relative text-white font-heading font-black text-xs md:text-xs lg:text-base tracking-wide px-2.5 md:px-3 lg:px-4 py-1 lg:py-1.5 rounded-full bg-[#003E8A] border border-sky-300/40 shadow-[inset_0_1px_2px_rgba(255,255,255,0.25)] whitespace-nowrap transition-all"
+              : "text-sky-100 hover:text-white font-heading font-bold text-xs md:text-xs lg:text-base tracking-wide px-2 md:px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105"
           }
         >
           Nhiệm vụ
           {isMissions && (
-            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-1 bg-yellow-300 rounded-full shadow-sm" />
+            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 lg:w-6 h-0.5 lg:h-1 bg-yellow-300 rounded-full shadow-sm" />
           )}
         </Link>
         <Link
-          href="#wheel"
-          className="text-sky-100 hover:text-white font-heading font-bold text-sm sm:text-base tracking-wide px-3 py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105"
+          href="/student/wheel"
+          className={
+            isWheel
+              ? "relative text-white font-heading font-black text-xs md:text-xs lg:text-base tracking-wide px-2.5 md:px-3 lg:px-4 py-1 lg:py-1.5 rounded-full bg-[#003E8A] border border-sky-300/40 shadow-[inset_0_1px_2px_rgba(255,255,255,0.25)] whitespace-nowrap transition-all"
+              : "text-sky-100 hover:text-white font-heading font-bold text-xs md:text-xs lg:text-base tracking-wide px-2 md:px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105"
+          }
         >
-          Vòng quay may mắn
+          <span className="md:hidden lg:inline">Vòng quay may mắn</span>
+          <span className="hidden md:inline lg:hidden">Vòng quay</span>
+          {isWheel && (
+            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 lg:w-6 h-0.5 lg:h-1 bg-yellow-300 rounded-full shadow-sm" />
+          )}
         </Link>
         <Link
           href="#rewards"
-          className="text-sky-100 hover:text-white font-heading font-bold text-sm sm:text-base tracking-wide px-3 py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105"
+          className="text-sky-100 hover:text-white font-heading font-bold text-xs md:text-xs lg:text-base tracking-wide px-2 md:px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105"
         >
           Đổi quà
         </Link>
         <Link
           href="#leaderboard"
-          className="text-sky-100 hover:text-white font-heading font-bold text-sm sm:text-base tracking-wide px-3 py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105"
+          className="text-sky-100 hover:text-white font-heading font-bold text-xs md:text-xs lg:text-base tracking-wide px-2 md:px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105"
         >
-          Bảng xếp hạng
+          <span className="md:hidden lg:inline">Bảng xếp hạng</span>
+          <span className="hidden md:inline lg:hidden">Xếp hạng</span>
         </Link>
       </nav>
 
-      {/* User Profile Pill */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        <div className="flex items-center gap-2 sm:gap-2.5 bg-[#003E8A] hover:bg-[#004C9E] pl-1.5 pr-3 sm:pr-4 py-1 rounded-full border border-sky-300/35 shadow-md transition-all cursor-pointer">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border-2 border-yellow-300 relative shadow-sm flex-shrink-0">
+      {/* User Profile Pill - Đảm bảo vừa vặn 100% trên iPad và không bị đẩy tràn mép */}
+      <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 bg-[#003E8A] hover:bg-[#004C9E] pl-1 sm:pl-1.5 pr-2.5 sm:pr-3.5 py-1 rounded-full border border-sky-300/35 shadow-md transition-all cursor-pointer">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-full overflow-hidden border-2 border-yellow-300 relative shadow-sm flex-shrink-0">
             <Image
               src={student.avatarUrl || "/avatar.jpg"}
               alt={student.name}
@@ -94,7 +104,7 @@ export function StudentNavbar() {
               className="object-cover"
             />
           </div>
-          <span className="text-white font-heading font-bold text-xs sm:text-sm tracking-wide drop-shadow-sm whitespace-nowrap">
+          <span className="text-white font-heading font-bold text-xs lg:text-sm tracking-wide drop-shadow-sm truncate max-w-[95px] sm:max-w-[125px] lg:max-w-none">
             {student.name} - {student.classGroup}
           </span>
         </div>
@@ -102,9 +112,9 @@ export function StudentNavbar() {
         {/* Settings button */}
         <button
           aria-label="Cài đặt"
-          className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#003E8A] hover:bg-[#004C9E] border border-sky-300/35 flex items-center justify-center text-white shadow-md active:translate-y-0.5 transition-all cursor-pointer flex-shrink-0"
+          className="w-8 h-8 sm:w-8.5 sm:h-8.5 lg:w-10 lg:h-10 rounded-full bg-[#003E8A] hover:bg-[#004C9E] border border-sky-300/35 flex items-center justify-center text-white shadow-md active:translate-y-0.5 transition-all cursor-pointer flex-shrink-0"
         >
-          <Settings className="w-4 h-4 sm:w-5 sm:h-5 drop-shadow" />
+          <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 drop-shadow" />
         </button>
       </div>
     </header>

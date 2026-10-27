@@ -22,8 +22,8 @@ export default function StudentLayout({
         <StudentNavbar />
       </div>
 
-      {/* Main Content Area - Cho phép cuộn trang mượt mà khi layout xếp dọc hoặc màn hình nhỏ */}
-      <div className="flex-1 w-full overflow-y-auto flex flex-col min-h-0">{children}</div>
+      {/* Main Content Area - Hỗ trợ scroll dọc mượt mà cho Dashboard và các trang dài, ngăn hoàn toàn scroll ngang */}
+      <div className="flex-1 w-full overflow-y-auto overflow-x-hidden flex flex-col min-h-0 [scrollbar-width:thin]">{children}</div>
     </div>
   );
 }
