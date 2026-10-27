@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { AlertCircle, Check, ChevronRight, Clock } from "lucide-react";
 import { checkIsMissionOverdue } from "../hooks/useMissionFilter";
 import { MissionFilter, MissionItem } from "../types";
+import { formatDueLabel, URGENCY_STYLES } from "../utils/formatDueLabel";
 import { MissionWoodBanner } from "./MissionWoodBanner";
 
 interface MissionListSideProps {
@@ -119,13 +120,20 @@ export function MissionListSide({
       </div>
 
       {/* Thanh Tabs 3 mục: Chưa xong - Đã xong - Quá hạn */}
-      <div className="flex items-center justify-between gap-1 w-full bg-amber-900/10 p-0.5 rounded-full border border-amber-900/15 flex-shrink-0 mb-1.5 sm:mb-2">
+      <div
+        role="tablist"
+        aria-label="Bộ lọc trạng thái nhiệm vụ"
+        className="flex items-center justify-between gap-1 w-full bg-amber-900/10 p-0.5 rounded-full border border-amber-900/15 flex-shrink-0 mb-1.5 sm:mb-2"
+      >
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={selectedFilter === tab.id}
             onClick={() => onSelectFilter(tab.id)}
             className={cn(
-              "flex-1 text-center py-1 lg:py-1.5 px-1 rounded-full font-heading font-black text-[9.5px] sm:text-[10.5px] lg:text-[11px] tracking-tight border transition-all duration-200 active:scale-95 shadow-xs truncate cursor-pointer",
+              "flex-1 text-center py-1 lg:py-1.5 px-1 rounded-full font-heading font-black text-[9.5px] sm:text-[10.5px] lg:text-[11px] tracking-tight border transition-all duration-200 motion-reduce:transition-none active:scale-95 shadow-xs truncate cursor-pointer",
               selectedFilter === tab.id ? tab.activeClass : tab.inactiveClass
             )}
           >
@@ -150,27 +158,31 @@ export function MissionListSide({
 
             // Format thời gian ngắn gọn
             const assignedText = formatShortDateTime(mission.assignedAt);
-            const dueText = formatShortDateTime(mission.dueAt);
+            const dueInfo = formatDueLabel(mission.dueAt, {
+              isCompleted,
+              status: mission.status,
+            });
+            const urgencyStyle = URGENCY_STYLES[dueInfo.urgency];
 
             // Phân biệt style trạng thái 3 nhóm: ĐÃ XONG | QUÁ HẠN | CHƯA XONG
             const statusConfig = isCompleted
               ? {
                   badgeBox: "bg-gradient-to-b from-[#22C55E] to-[#16A34A] text-white border-emerald-400",
                   textColor: "text-[#15803D]",
-                  dueBadge: "bg-emerald-50 text-emerald-700 border-emerald-200",
+                  dueBadge: cn(urgencyStyle.bg, urgencyStyle.text, urgencyStyle.border),
                   cardBase: "bg-[#F0FDF4]/85 hover:bg-white border border-[#86EFAC]/80 hover:border-[#86EFAC]",
                 }
               : isOverdueItem
               ? {
                   badgeBox: "bg-rose-100 border-2 border-rose-500 text-rose-600",
                   textColor: "text-rose-600",
-                  dueBadge: "bg-rose-100 text-rose-700 border-rose-300 font-extrabold",
+                  dueBadge: cn(urgencyStyle.bg, urgencyStyle.text, urgencyStyle.border, "font-extrabold"),
                   cardBase: "bg-[#FFF1F2]/85 hover:bg-white border border-rose-200/80 hover:border-rose-300",
                 }
               : {
                   badgeBox: "bg-white border-2 border-[#0084FF] text-[#0084FF]",
                   textColor: "text-[#0284C7]",
-                  dueBadge: "bg-sky-50 text-sky-700 border-sky-200",
+                  dueBadge: cn(urgencyStyle.bg, urgencyStyle.text, urgencyStyle.border),
                   cardBase: "bg-white/85 hover:bg-white border border-amber-950/15 hover:border-amber-900/30",
                 };
 
@@ -180,16 +192,19 @@ export function MissionListSide({
               : statusConfig.cardBase;
 
             return (
-              <div
+              <button
+                type="button"
                 key={mission.id}
                 onClick={() => onSelectMission(mission)}
+                aria-pressed={isSelected}
+                aria-current={isSelected ? "true" : undefined}
                 className={cn(
-                  "relative rounded-[11px] sm:rounded-[12px] p-2 sm:p-2.5 cursor-pointer transition-all duration-150 select-none flex flex-col justify-between gap-1 sm:gap-1.5 flex-shrink-0 min-h-[52px] sm:min-h-[56px]",
+                  "w-full text-left relative rounded-[11px] sm:rounded-[12px] p-2 sm:p-2.5 cursor-pointer transition-all duration-150 motion-reduce:transition-none select-none flex flex-col justify-between gap-1 sm:gap-1.5 flex-shrink-0 min-h-[52px] sm:min-h-[56px] focus-visible:outline-2 focus-visible:outline-amber-600 focus-visible:outline-offset-1",
                   cardStyle
                 )}
               >
                 {/* HÀNG 1: Checkbox trạng thái + Tên bài tập + Icon minh họa + Mũi tên trỏ Active */}
-                <div className="flex items-center justify-between gap-1.5 min-w-0">
+                <div className="flex items-center justify-between gap-1.5 min-w-0 w-full">
                   <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
                     {/* Hộp checkbox / icon trạng thái */}
                     <div
@@ -232,7 +247,7 @@ export function MissionListSide({
                 </div>
 
                 {/* HÀNG 2: Thông tin Thời gian giao, Hạn nộp & Huy hiệu Xu */}
-                <div className="flex items-center justify-between gap-1 text-[9px] sm:text-[9.5px]">
+                <div className="flex items-center justify-between gap-1 text-[9px] sm:text-[9.5px] w-full">
                   {/* Cụm thời gian: Giao & Hạn nộp format ngắn gọn */}
                   <div className="flex items-center gap-1.5 min-w-0 truncate">
                     <span className="text-slate-500 font-medium truncate">
@@ -246,7 +261,7 @@ export function MissionListSide({
                       )}
                     >
                       <Clock className="w-2.5 h-2.5 flex-shrink-0 stroke-[2.5]" />
-                      <span>{isOverdueItem ? `Quá hạn: ${dueText}` : `Hạn: ${dueText}`}</span>
+                      <span>{dueInfo.text}</span>
                     </span>
                   </div>
 
@@ -257,7 +272,7 @@ export function MissionListSide({
                     </span>
                   </div>
                 </div>
-              </div>
+              </button>
             );
           })
         )}

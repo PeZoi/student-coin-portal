@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { checkIsMissionOverdue } from "../hooks/useMissionFilter";
 import { MissionItem } from "../types";
 import { MissionWoodBanner } from "./MissionWoodBanner";
+import { submitMission } from "../actions/submitMission";
 
 interface MissionDetailSideProps {
   mission?: MissionItem;
@@ -74,7 +75,7 @@ export function MissionDetailSide({ mission, onBack }: MissionDetailSideProps) {
   };
 
   // Nộp bài
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedFile) {
       toast.warning("Vui lòng tải lên ảnh chụp bài làm hoặc file bài tập trước khi nộp nhé!");
       fileInputRef.current?.click();
@@ -82,15 +83,23 @@ export function MissionDetailSide({ mission, onBack }: MissionDetailSideProps) {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
+    try {
+      const res = await submitMission(mission.id, [selectedFile]);
+      if (res.success) {
+        toast.success(
+          isOverdue
+            ? "Đã nộp bài bù thành công! Chờ giáo viên duyệt nhé! 🎉"
+            : res.message || "Nộp bài tập thành công! Bạn nhận được lời khen và chờ nhận xu nhé! 🎉"
+        );
+        setSelectedFile(null);
+      } else {
+        toast.error(res.message || "Có lỗi xảy ra khi nộp bài!");
+      }
+    } catch {
+      toast.error("Không thể kết nối đến máy chủ. Vui lòng thử lại sau!");
+    } finally {
       setIsSubmitting(false);
-      toast.success(
-        isOverdue
-          ? "Đã nộp bài bù thành công! Chờ giáo viên duyệt nhé! 🎉"
-          : "Nộp bài tập thành công! Bạn nhận được lời khen và chờ nhận xu nhé! 🎉"
-      );
-      setSelectedFile(null);
-    }, 800);
+    }
   };
 
   return (
@@ -107,6 +116,7 @@ export function MissionDetailSide({ mission, onBack }: MissionDetailSideProps) {
                 variant="yellow"
                 size="sm"
                 onClick={onBack}
+                aria-label="Quay lại danh sách nhiệm vụ"
                 className="py-1 px-2 h-7 gap-1 text-[11px] font-heading"
                 title="Quay lại danh sách"
               >
@@ -164,7 +174,7 @@ export function MissionDetailSide({ mission, onBack }: MissionDetailSideProps) {
 
             {/* Đồng xu vàng 3D tỏa sáng */}
             <div className="relative w-7 h-7 sm:w-8 sm:h-8 lg:w-11 lg:h-11 flex items-center justify-center my-0.5">
-              <div className="absolute inset-0 bg-yellow-300/35 rounded-full blur-xs animate-pulse pointer-events-none" />
+              <div className="absolute inset-0 bg-yellow-300/35 rounded-full blur-xs animate-pulse motion-reduce:animate-none pointer-events-none" />
               <Image
                 src="/coin.png"
                 alt="Coin"
@@ -222,7 +232,8 @@ export function MissionDetailSide({ mission, onBack }: MissionDetailSideProps) {
                   e.stopPropagation();
                   handleCancel();
                 }}
-                className="w-4 h-4 rounded-full bg-slate-200/80 hover:bg-red-100 hover:text-red-600 flex items-center justify-center transition-colors flex-shrink-0"
+                aria-label="Xóa tệp đã chọn"
+                className="w-4 h-4 rounded-full bg-slate-200/80 hover:bg-red-100 hover:text-red-600 flex items-center justify-center transition-colors flex-shrink-0 cursor-pointer"
               >
                 <X className="w-2.5 h-2.5 stroke-[2.5]" />
               </button>
@@ -285,15 +296,17 @@ export function MissionDetailSide({ mission, onBack }: MissionDetailSideProps) {
           </Button3D>
         )}
 
-        {/* Nút nhỏ màu xám tròn 3D: Hủy */}
-        <Button3D
-          variant="slate"
-          size="sm"
-          onClick={handleCancel}
-          className="w-16 sm:w-18 lg:w-20 text-xs sm:text-[13px] lg:text-sm py-2"
-        >
-          Hủy
-        </Button3D>
+        {/* Nút Hủy: chỉ hiển thị khi đã chọn file hoặc có callback onBack */}
+        {(selectedFile || onBack) && (
+          <Button3D
+            variant="slate"
+            size="sm"
+            onClick={handleCancel}
+            className="w-16 sm:w-18 lg:w-20 text-xs sm:text-[13px] lg:text-sm py-2"
+          >
+            {selectedFile ? "Hủy" : "Quay lại"}
+          </Button3D>
+        )}
       </div>
     </div>
   );

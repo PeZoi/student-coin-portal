@@ -7,25 +7,38 @@ import { MissionBook } from "./MissionBook";
 
 export function MissionsView() {
   return (
-    <div className="relative w-full h-full flex-1 flex flex-col items-center justify-start px-2 sm:px-4 pt-1.5 pb-3.5 sm:pb-4 pb-[max(1rem,env(safe-area-inset-bottom))] min-h-0 overflow-hidden select-none gap-2.5 lg:gap-0">
+    <div className="relative w-full h-full flex-1 flex flex-col items-center justify-start px-2 sm:px-4 pt-1 pb-[max(0.75rem,env(safe-area-inset-bottom))] min-h-0 overflow-hidden select-none">
       {/* Background Decor: Mây thực tế bồng bềnh và ánh sáng bầu trời */}
       <DashboardBackgroundDecor />
 
-      {/* Nút 3D: Quay lại Trang chủ - Desktop cố định góc trên, Mobile là hàng riêng phía trên sách */}
-      <div className="w-full max-w-md lg:max-w-none flex items-center justify-start lg:absolute lg:top-3 lg:left-6 z-30 flex-shrink-0 px-0.5">
+      {/* Nút 3D Desktop: Quay lại Trang chủ cố định góc trên bên trái */}
+      <div className="hidden lg:flex items-center justify-start absolute top-3 left-6 z-30">
         <Button3D
           href="/student"
           variant="yellow"
           size="sm"
-          className="gap-1.5 py-1 px-3 sm:py-1.5 sm:px-3.5 text-xs sm:text-sm tracking-wide"
+          className="gap-1.5 py-1.5 px-3.5 text-sm tracking-wide"
         >
           <ArrowLeft className="w-4 h-4 stroke-[3]" />
           <span>Quay lại Trang chủ</span>
         </Button3D>
       </div>
 
-      {/* Khung cuốn sách thần kỳ: Tự động vừa vặn trọn vẹn 1 trang màn hình */}
-      <div className="relative z-10 w-full flex-1 flex flex-col items-center justify-start lg:justify-center min-h-0 overflow-hidden">
+      {/* Nút 3D Mobile: Icon mũi tên gọn gàng (vùng chạm 44x44) nằm ở góc trên bên trái, tiết kiệm ~40px chiều cao */}
+      <div className="lg:hidden absolute top-2 left-2 z-30">
+        <Button3D
+          href="/student"
+          variant="yellow"
+          size="sm"
+          aria-label="Quay lại Trang chủ"
+          className="w-11 h-11 p-0 rounded-full flex items-center justify-center shadow-md cursor-pointer"
+        >
+          <ArrowLeft className="w-5 h-5 stroke-[3]" />
+        </Button3D>
+      </div>
+
+      {/* Khung cuốn sách thần kỳ: Tận dụng tối đa chiều cao màn hình */}
+      <div className="relative z-10 w-full flex-1 flex flex-col items-center justify-center min-h-0 overflow-hidden">
         <MissionBook />
       </div>
     </div>
