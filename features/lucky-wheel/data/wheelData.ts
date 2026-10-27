@@ -32,15 +32,6 @@ export const wheelPrizes: WheelPrize[] = [
     probabilityWeight: 30,
   },
   {
-    id: "p7",
-    label: "+40 Xu Vàng",
-    shortLabel: "+40 Xu",
-    type: "coin",
-    rewardCoins: 40,
-    iconName: "coins",
-    probabilityWeight: 20,
-  },
-  {
     id: "p6",
     label: "+200 Xu Đại Thưởng",
     shortLabel: "+200 Xu!",
@@ -57,6 +48,15 @@ export const wheelPrizes: WheelPrize[] = [
     rewardCoins: 80,
     iconName: "gift",
     probabilityWeight: 10,
+  },
+  {
+    id: "p7",
+    label: "+40 Xu Vàng",
+    shortLabel: "+40 Xu",
+    type: "coin",
+    rewardCoins: 40,
+    iconName: "coins",
+    probabilityWeight: 20,
   },
   {
     id: "p5",

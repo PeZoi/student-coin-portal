@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { ArrowLeft, HelpCircle, History } from "lucide-react";
+import { ArrowLeft, HelpCircle, History, Volume2, VolumeX } from "lucide-react";
 import { Button3D } from "@/components/ui/Button3D";
 import { DashboardBackgroundDecor } from "@/features/dashboard/components/DashboardBackgroundDecor";
 import { WheelSpinner } from "./WheelSpinner";
@@ -11,6 +11,7 @@ import { WheelRulesModal } from "./WheelRulesModal";
 import { WheelHistoryModal } from "./WheelHistoryModal";
 import { useLuckyWheel } from "../hooks/useLuckyWheel";
 import { WheelConfig } from "../types";
+import { useWheelAudio } from "../audio/useWheelAudio";
 
 interface LuckyWheelViewProps {
   initialConfig?: Partial<WheelConfig>;
@@ -33,10 +34,22 @@ export function LuckyWheelView({ initialConfig }: LuckyWheelViewProps = {}) {
     handleClosePrizeModal,
   } = useLuckyWheel(initialConfig);
 
+  const audio = useWheelAudio();
+
   // State mở Modal thể lệ & tỷ lệ phần thưởng (Hướng dẫn)
   const [showRulesModal, setShowRulesModal] = useState<boolean>(false);
   // State mở Modal lịch sử quay (Toàn bộ / Bản thân)
   const [showHistoryModal, setShowHistoryModal] = useState<boolean>(false);
+
+  // Khi modal trúng thưởng xuất hiện: phát âm thanh nhận thưởng duy nhất trễ ~150ms sau khi vòng dừng
+  useEffect(() => {
+    if (showPrizeModal) {
+      const timer = setTimeout(() => {
+        audio.playReward();
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [showPrizeModal, audio]);
 
   return (
     <div className="relative w-full max-w-full h-full flex-1 flex flex-col items-center justify-start px-2 sm:px-6 pt-1 pb-2 sm:pb-3 min-h-0 overflow-hidden select-none">
@@ -44,72 +57,91 @@ export function LuckyWheelView({ initialConfig }: LuckyWheelViewProps = {}) {
       <DashboardBackgroundDecor />
 
       {/* ======================================================== */}
-      {/* THANH ĐỈNH: QUAY LẠI, SỐ DƯ, CHI PHÍ, LỊCH SỬ & HƯỚNG DẪN */}
-      {/* ======================================================== */}
-      {/* ======================================================== */}
-      {/* ======================================================== */}
       {/* THANH ĐỈNH: QUAY LẠI (TRÁI) VÀ SỐ DƯ, LỊCH SỬ, HƯỚNG DẪN (PHẢI) */}
       {/* ======================================================== */}
-      <div className="relative z-30 w-full max-w-5xl flex items-center justify-between gap-2 mb-1 sm:mb-2 flex-shrink-0 pt-0.5">
+      <div className="relative z-30 w-full max-w-5xl flex items-center justify-between gap-2 mb-1 sm:mb-2 flex-shrink-0 pt-0.5 px-1 sm:px-2">
         {/* Nút Quay lại */}
         <Button3D
           href="/student"
           variant="yellow"
           size="sm"
-          className="gap-1 sm:gap-1.5 py-1 px-2.5 sm:py-1.5 sm:px-3.5 text-xs sm:text-sm tracking-wide flex-shrink-0"
+          onClick={() => audio.playClick()}
+          className="h-8 sm:h-9 gap-1 sm:gap-1.5 px-3 sm:px-3.5 text-xs sm:text-sm tracking-wide flex-shrink-0 inline-flex items-center justify-center"
         >
           <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
           <span>Quay lại</span>
         </Button3D>
 
-        {/* Cụm bên phải: Số dư Heo Đất (đặt cạnh Lịch sử) + Nút Lịch sử + Nút Hướng dẫn */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5 flex-wrap sm:flex-nowrap justify-end">
-          {/* Badge Số dư Heo Đất: Màu cam 3D rực rỡ, tương phản tuyệt đối trên nền trời xanh, cực kỳ dễ nhìn */}
-          <div className="flex items-center gap-1.5 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-gradient-to-b from-[#FFA238] via-[#FF6A00] to-[#E04F00] border-2 border-white/95 shadow-[0_4px_12px_rgba(224,79,0,0.35),0_1.5px_0_#8F2800,inset_0_1.5px_2px_rgba(255,255,255,0.85),inset_0_-1.5px_2px_rgba(143,40,0,0.4)] select-none flex-shrink-0">
-            <div className="relative w-5 h-5 sm:w-5.5 sm:h-5.5 flex-shrink-0 drop-shadow-[0_2px_3px_rgba(100,25,0,0.45)]">
+        {/* Cụm bên phải: Số dư Heo Đất + Nút Lịch sử + Nút Hướng dẫn */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 flex-nowrap justify-end">
+          {/* Badge Số dư Heo Đất: Cùng chiều cao h-8 sm:h-9, cùng baseline với các nút */}
+          <div className="h-8 sm:h-9 flex items-center gap-1.5 px-2.5 sm:px-3.5 rounded-full bg-gradient-to-b from-[#FFA238] via-[#FF6A00] to-[#E04F00] border-2 border-white/95 shadow-[0_3px_8px_rgba(224,79,0,0.35),0_1.5px_0_#8F2800,inset_0_1.5px_2px_rgba(255,255,255,0.85),inset_0_-1.5px_2px_rgba(143,40,0,0.4)] select-none flex-shrink-0">
+            <div className="relative w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 drop-shadow-[0_1.5px_2px_rgba(100,25,0,0.45)]">
               <Image
                 src="/coin.png"
                 alt="Xu"
-                width={22}
-                height={22}
+                width={20}
+                height={20}
                 unoptimized
                 style={{ height: "auto" }}
                 className="w-full h-full object-contain"
               />
             </div>
             <div className="flex items-baseline gap-1 font-heading leading-none">
-              <span className="hidden min-[380px]:inline text-xs font-bold text-amber-100 [text-shadow:0_1px_1.5px_rgba(120,30,0,0.8)]">
+              <span className="hidden min-[420px]:inline text-[11px] sm:text-xs font-bold text-amber-100 [text-shadow:0_1px_1.5px_rgba(120,30,0,0.8)]">
                 Số dư:
               </span>
-              <span className="font-heading font-black text-sm sm:text-[15px] text-white tracking-tight drop-shadow-[0_1.5px_2px_rgba(100,20,0,0.8)]">
+              <span className="font-heading font-black text-xs sm:text-sm text-white tracking-tight drop-shadow-[0_1.5px_2px_rgba(100,20,0,0.8)]">
                 {currentCoins.toLocaleString("vi-VN")}
               </span>
-              <span className="text-[11px] font-black text-[#FEF08A] uppercase [text-shadow:0_1px_1.5px_rgba(120,30,0,0.8)]">
+              <span className="text-[10px] sm:text-[11px] font-black text-[#FEF08A] uppercase [text-shadow:0_1px_1.5px_rgba(120,30,0,0.8)]">
                 xu
               </span>
             </div>
           </div>
 
-          {/* Nút Lịch sử */}
+          {/* Nút Lịch sử: Cùng chiều cao h-8 sm:h-9 */}
           <Button3D
             variant="blue"
             size="sm"
-            onClick={() => setShowHistoryModal(true)}
-            className="gap-1 sm:gap-1.5 py-1 px-2.5 sm:py-1.5 sm:px-3.5 text-xs sm:text-sm tracking-wide shadow-sm whitespace-nowrap flex-shrink-0"
+            onClick={() => {
+              audio.playClick();
+              setShowHistoryModal(true);
+            }}
+            className="h-8 sm:h-9 gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 text-xs sm:text-sm tracking-wide shadow-sm whitespace-nowrap flex-shrink-0 inline-flex items-center justify-center"
           >
             <History className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
             <span>Lịch sử</span>
           </Button3D>
 
-          {/* Nút Hướng dẫn */}
+          {/* Nút Hướng dẫn: Cùng chiều cao h-8 sm:h-9 */}
           <Button3D
             variant="purple"
             size="sm"
-            onClick={() => setShowRulesModal(true)}
-            className="gap-1 sm:gap-1.5 py-1 px-2.5 sm:py-1.5 sm:px-3.5 text-xs sm:text-sm tracking-wide shadow-sm whitespace-nowrap flex-shrink-0"
+            onClick={() => {
+              audio.playClick();
+              setShowRulesModal(true);
+            }}
+            className="h-8 sm:h-9 gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 text-xs sm:text-sm tracking-wide shadow-sm whitespace-nowrap flex-shrink-0 inline-flex items-center justify-center"
           >
             <HelpCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
             <span>Hướng dẫn</span>
+          </Button3D>
+
+          {/* Nút Bật/Tắt Âm thanh: Cùng chiều cao h-8 sm:h-9 */}
+          <Button3D
+            variant={audio.muted ? "gray" : "yellow"}
+            size="sm"
+            onClick={audio.toggleMute}
+            aria-label={audio.muted ? "Bật âm thanh" : "Tắt âm thanh"}
+            title={audio.muted ? "Bật âm thanh" : "Tắt âm thanh"}
+            className="h-8 sm:h-9 px-2 sm:px-2.5 text-xs sm:text-sm tracking-wide shadow-sm whitespace-nowrap flex-shrink-0 inline-flex items-center justify-center"
+          >
+            {audio.muted ? (
+              <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
+            ) : (
+              <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
+            )}
           </Button3D>
         </div>
       </div>
@@ -133,7 +165,11 @@ export function LuckyWheelView({ initialConfig }: LuckyWheelViewProps = {}) {
       <WheelPrizeModal
         prize={winningPrize}
         isOpen={showPrizeModal}
-        onClose={handleClosePrizeModal}
+        onClose={() => {
+          audio.stopReward();
+          audio.playClick();
+          handleClosePrizeModal();
+        }}
       />
 
       {/* ======================================================== */}
@@ -141,7 +177,10 @@ export function LuckyWheelView({ initialConfig }: LuckyWheelViewProps = {}) {
       {/* ======================================================== */}
       <WheelRulesModal
         isOpen={showRulesModal}
-        onClose={() => setShowRulesModal(false)}
+        onClose={() => {
+          audio.playClick();
+          setShowRulesModal(false);
+        }}
         config={config}
         rules={rules}
       />
@@ -151,7 +190,10 @@ export function LuckyWheelView({ initialConfig }: LuckyWheelViewProps = {}) {
       {/* ======================================================== */}
       <WheelHistoryModal
         isOpen={showHistoryModal}
-        onClose={() => setShowHistoryModal(false)}
+        onClose={() => {
+          audio.playClick();
+          setShowHistoryModal(false);
+        }}
         allWinners={winners}
         myHistory={myHistory}
       />

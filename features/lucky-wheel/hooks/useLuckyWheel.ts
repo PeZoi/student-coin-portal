@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { useUserStore } from "@/stores/useUserStore";
 import { WheelPrize, WheelWinner, WheelConfig } from "../types";
 import { defaultWheelConfig, initialWinners, initialMyHistory, getWheelRules } from "../data/wheelData";
+import { wheelAudio } from "../audio/wheelAudio";
 
 export function useLuckyWheel(customConfig?: Partial<WheelConfig>) {
   const { student, addCoins, deductCoins } = useUserStore();
@@ -56,6 +57,7 @@ export function useLuckyWheel(customConfig?: Partial<WheelConfig>) {
       setFreeSpinsLeft((prev) => Math.max(0, prev - 1));
     } else {
       if (student.currentCoins < config.spinCost) {
+        wheelAudio.playError();
         toast.error(
           `Bạn cần ít nhất ${config.spinCost.toLocaleString("vi-VN")} xu để quay lượt này! Hãy làm bài tập để tích lũy thêm xu nhé!`
         );
@@ -63,10 +65,15 @@ export function useLuckyWheel(customConfig?: Partial<WheelConfig>) {
       }
       const deducted = deductCoins(config.spinCost);
       if (!deducted) {
+        wheelAudio.playError();
         toast.error("Không đủ xu trong tài khoản Heo Đất!");
         return;
       }
     }
+
+    // Mở khóa AudioContext và phát âm thanh bắt đầu quay đồng bộ trong click handler
+    wheelAudio.unlock();
+    wheelAudio.playSpinStart();
 
     setIsSpinning(true);
     setWinningPrize(null);
@@ -137,8 +144,9 @@ export function useLuckyWheel(customConfig?: Partial<WheelConfig>) {
     getRandomPrizeIndex,
   ]);
 
-  // Đóng modal nhận thưởng
+  // Đóng modal nhận thưởng (dừng âm thanh trúng thưởng)
   const handleClosePrizeModal = useCallback(() => {
+    wheelAudio.stopReward();
     setShowPrizeModal(false);
   }, []);
 

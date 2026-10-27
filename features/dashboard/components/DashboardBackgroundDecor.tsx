@@ -195,10 +195,8 @@ export function DashboardBackgroundDecor() {
           </svg>
         </div>
 
-        {/* Confetti tinh tế nhẹ nhàng */}
-        <div className="absolute top-4 left-6 w-2.5 h-4 bg-gradient-to-br from-amber-300 to-yellow-500 rounded-sm rotate-45 shadow-sm opacity-90" />
-        <div className="absolute top-14 left-3 w-2 h-3 bg-gradient-to-br from-pink-400 to-rose-500 rounded-sm -rotate-12 shadow-sm opacity-85" />
-        <div className="absolute top-16 right-16 w-3 h-2 bg-gradient-to-br from-cyan-300 to-sky-500 rounded-sm rotate-24 shadow-sm opacity-90" />
+        {/* Đốm kim tuyến và confetti nhẹ nhàng (đã dọn dẹp các mảnh vụn va chạm với thanh đỉnh) */}
+        <div className="absolute top-16 right-16 w-3 h-2 bg-gradient-to-br from-cyan-300 to-sky-500 rounded-sm rotate-24 shadow-sm opacity-75" />
         <div className="absolute top-2 right-20 text-yellow-200 text-base font-black drop-shadow-sm animate-pulse">✦</div>
       </div>
 
