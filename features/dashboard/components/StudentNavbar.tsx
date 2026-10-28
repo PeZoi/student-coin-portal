@@ -13,6 +13,14 @@ export function StudentNavbar() {
   const isHome = pathname === "/student";
   const isMissions = pathname.startsWith("/student/missions");
   const isWheel = pathname.startsWith("/student/wheel");
+  const isRewards = pathname.startsWith("/student/rewards");
+  const isLeaderboard = pathname.startsWith("/student/leaderboard");
+
+  const activeMenuClass =
+    "relative text-[#451A03] font-heading font-black text-xs md:text-xs lg:text-base tracking-wide px-3 md:px-3.5 lg:px-4 py-1 lg:py-1.5 rounded-full bg-gradient-to-b from-[#FFE84D] via-[#FFC72C] to-[#FFAA00] shadow-[0_2px_4px_rgba(0,0,0,0.22),inset_0_1px_1px_rgba(255,255,255,0.85)] border border-amber-300 whitespace-nowrap transition-all";
+
+  const inactiveMenuClass =
+    "text-sky-100 hover:text-white font-heading font-bold text-xs md:text-xs lg:text-base tracking-wide px-2 md:px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105";
 
   return (
     <header className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-5 lg:px-8 py-1.5 sm:py-2 lg:py-2.5 flex items-center justify-between select-none">
@@ -38,53 +46,32 @@ export function StudentNavbar() {
       <nav className="hidden md:flex items-center gap-1 md:gap-1.5 lg:gap-4 xl:gap-6 flex-shrink-0">
         <Link
           href="/student"
-          className={
-            isHome
-              ? "relative text-white font-heading font-black text-xs md:text-xs lg:text-base tracking-wide px-2.5 md:px-3 lg:px-4 py-1 lg:py-1.5 rounded-full bg-[#003E8A] border border-sky-300/40 shadow-[inset_0_1px_2px_rgba(255,255,255,0.25)] whitespace-nowrap transition-all"
-              : "text-sky-100 hover:text-white font-heading font-bold text-xs md:text-xs lg:text-base tracking-wide px-2 md:px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105"
-          }
+          className={isHome ? activeMenuClass : inactiveMenuClass}
         >
           Trang chủ
-          {isHome && (
-            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 lg:w-6 h-0.5 lg:h-1 bg-yellow-300 rounded-full shadow-sm" />
-          )}
         </Link>
         <Link
           href="/student/missions"
-          className={
-            isMissions
-              ? "relative text-white font-heading font-black text-xs md:text-xs lg:text-base tracking-wide px-2.5 md:px-3 lg:px-4 py-1 lg:py-1.5 rounded-full bg-[#003E8A] border border-sky-300/40 shadow-[inset_0_1px_2px_rgba(255,255,255,0.25)] whitespace-nowrap transition-all"
-              : "text-sky-100 hover:text-white font-heading font-bold text-xs md:text-xs lg:text-base tracking-wide px-2 md:px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105"
-          }
+          className={isMissions ? activeMenuClass : inactiveMenuClass}
         >
           Nhiệm vụ
-          {isMissions && (
-            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 lg:w-6 h-0.5 lg:h-1 bg-yellow-300 rounded-full shadow-sm" />
-          )}
         </Link>
         <Link
           href="/student/wheel"
-          className={
-            isWheel
-              ? "relative text-white font-heading font-black text-xs md:text-xs lg:text-base tracking-wide px-2.5 md:px-3 lg:px-4 py-1 lg:py-1.5 rounded-full bg-[#003E8A] border border-sky-300/40 shadow-[inset_0_1px_2px_rgba(255,255,255,0.25)] whitespace-nowrap transition-all"
-              : "text-sky-100 hover:text-white font-heading font-bold text-xs md:text-xs lg:text-base tracking-wide px-2 md:px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105"
-          }
+          className={isWheel ? activeMenuClass : inactiveMenuClass}
         >
           <span className="md:hidden lg:inline">Vòng quay may mắn</span>
           <span className="hidden md:inline lg:hidden">Vòng quay</span>
-          {isWheel && (
-            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 lg:w-6 h-0.5 lg:h-1 bg-yellow-300 rounded-full shadow-sm" />
-          )}
         </Link>
         <Link
-          href="#rewards"
-          className="text-sky-100 hover:text-white font-heading font-bold text-xs md:text-xs lg:text-base tracking-wide px-2 md:px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105"
+          href="/student/rewards"
+          className={isRewards ? activeMenuClass : inactiveMenuClass}
         >
           Đổi quà
         </Link>
         <Link
           href="#leaderboard"
-          className="text-sky-100 hover:text-white font-heading font-bold text-xs md:text-xs lg:text-base tracking-wide px-2 md:px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105"
+          className={isLeaderboard ? activeMenuClass : inactiveMenuClass}
         >
           <span className="md:hidden lg:inline">Bảng xếp hạng</span>
           <span className="hidden md:inline lg:hidden">Xếp hạng</span>

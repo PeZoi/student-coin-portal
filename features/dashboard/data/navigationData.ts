@@ -52,7 +52,7 @@ export const navigationCards: NavigationItem[] = [
     iconSrc: "/navigation/reward.png",
     buttonText: "Đổi quà ngay",
     buttonVariant: "green",
-    href: "#rewards",
+    href: "/student/rewards",
     borderColor: "border-[#00C254]",
     bodyBg: "bg-[#EDFDF3]",
     headerBg: "bg-gradient-to-r from-[#00C254] via-[#00A843] to-[#067F33]",

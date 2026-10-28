@@ -4,7 +4,7 @@ export const initialStudent: StudentProfile = {
   name: "Gia Bảo",
   classGroup: "Lớp 5A",
   avatarUrl: "/avatar.jpg",
-  currentCoins: 1760,
+  currentCoins: 53600,
   nextTierCoins: 2000,
   piggyTitle: "HEO ĐẤT CỦA GIA BẢO",
   nextTierTitle: "Heo Vàng béo ú!",

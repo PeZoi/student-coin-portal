@@ -64,11 +64,11 @@ export function NavigationGrid() {
       {/* Thân card bên trong với background mờ dần từ trên xuống dưới (90% -> 45% -> 18%) */}
       <div className="w-full h-full rounded-[26px] sm:rounded-[30px] p-3.5 sm:p-4.5 lg:p-5 pt-3 sm:pt-3.5 bg-gradient-to-b from-[#004DA3]/90 via-[#005ABF]/45 to-[#003B7A]/18 flex flex-col justify-between overflow-visible">
         {/* Section Header with 3D text */}
-        <div className="relative flex items-center justify-center gap-2 mb-2 sm:mb-2.5 select-none">
-          <h2 className="text-2xl sm:text-3xl font-heading font-black uppercase tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] [text-shadow:_0_2px_0_#003E8A,_0_4px_6px_rgba(0,0,0,0.3)] flex items-center gap-2.5">
-            <span className="text-2xl sm:text-3xl select-none filter drop-shadow">✨</span>
-            <span>TÍNH NĂNG NỔI BẬT</span>
-            <span className="text-2xl sm:text-3xl select-none filter drop-shadow">✨</span>
+        <div className="relative flex items-center justify-center gap-1.5 sm:gap-2 mb-2 sm:mb-2.5 select-none w-full">
+          <h2 className="text-lg min-[380px]:text-xl sm:text-2xl lg:text-3xl font-heading font-black uppercase tracking-wide sm:tracking-wider text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] [text-shadow:_0_2px_0_#003E8A,_0_4px_6px_rgba(0,0,0,0.3)] flex items-center justify-center gap-1.5 sm:gap-2.5 whitespace-nowrap">
+            <span className="text-base min-[380px]:text-lg sm:text-2xl lg:text-3xl select-none filter drop-shadow flex-shrink-0">✨</span>
+            <span className="whitespace-nowrap">TÍNH NĂNG NỔI BẬT</span>
+            <span className="text-base min-[380px]:text-lg sm:text-2xl lg:text-3xl select-none filter drop-shadow flex-shrink-0">✨</span>
           </h2>
         </div>
 

@@ -200,7 +200,7 @@ function MissionDetailSheetModal({
             {/* Nội dung mô tả chi tiết bài tập */}
             <div className="pt-2 border-t border-amber-900/10">
               <h3 className="font-heading font-bold text-xs text-amber-900/80 uppercase tracking-wider mb-1">
-                Yêu cầu của thầy cô:
+                Yêu cầu của cô:
               </h3>
               <p className="font-heading font-medium text-[#451A03] text-sm leading-relaxed whitespace-pre-line">
                 {mission.description}
@@ -249,7 +249,7 @@ function MissionDetailSheetModal({
               </div>
 
               <p className="font-heading font-medium text-xs text-amber-900/75">
-                Chụp ảnh bài làm trong vở hoặc chọn ảnh chụp màn hình gửi cho thầy cô chấm nhé!
+                Chụp ảnh bài làm trong vở hoặc chọn ảnh chụp màn hình gửi cho cô chấm nhé!
               </p>
 
               {/* Component Upload ảnh/tệp */}
