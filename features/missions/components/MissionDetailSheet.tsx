@@ -12,16 +12,13 @@ import {
   X,
 } from "lucide-react";
 import Image from "next/image";
-import React, {
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import React, { useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import { toast } from "sonner";
-import { submitMission } from "../actions/submitMission";
 import { checkIsMissionOverdue } from "../hooks/useMissionFilter";
+import {
+  useMissionDetailModal,
+  useMissionDetailSheetLifecycle,
+} from "../hooks/useMissionDetailModal";
 import { MissionItem } from "../types";
 import { formatDueLabel, URGENCY_STYLES } from "../utils/formatDueLabel";
 import { EvidenceUploader } from "./EvidenceUploader";
@@ -38,123 +35,41 @@ const noopSubscribe = () => () => {};
 const getClientMounted = () => true;
 const getServerMounted = () => false;
 
+interface MissionDetailSheetModalProps {
+  mission: MissionItem;
+  isExiting: boolean;
+  onRequestClose: () => void;
+  onSubmittedSuccess?: (missionId: string) => void;
+}
+
 /**
- * Component con quản lý toàn bộ state tương tác khi Sheet hiển thị.
- * Nhờ có key={mission.id}, toàn bộ state (files, dragY, v.v.) tự động reset sạch sẽ
- * khi đổi nhiệm vụ mà không cần gọi setState trong useEffect.
+ * Presentational Component: Render giao diện Bottom Sheet chi tiết nhiệm vụ và nộp bài.
+ * Toàn bộ state và logic kéo vuốt / nộp bài được quản lý bởi hook useMissionDetailModal.
  */
 function MissionDetailSheetModal({
   mission,
-  onClose,
+  isExiting,
+  onRequestClose,
   onSubmittedSuccess,
-}: {
-  mission: MissionItem;
-  onClose: () => void;
-  onSubmittedSuccess?: (missionId: string) => void;
-}) {
-  const [files, setFiles] = useState<File[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Drag-to-dismiss states
-  const [dragY, setDragY] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartYRef = useRef<number | null>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const sheetRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Khóa cuộn trang (body scroll lock) khi Bottom Sheet đang mở
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    const originalTouchAction = document.body.style.touchAction;
-
-    document.body.style.overflow = "hidden";
-    document.body.style.touchAction = "none";
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      document.body.style.touchAction = originalTouchAction;
-    };
-  }, []);
-
-  // Hỗ trợ phím Escape để đóng modal
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
-
-  // ========================================================
-  // XỬ LÝ KÉO VUỐT XUỐNG ĐỂ ĐÓNG (DRAG TO DISMISS)
-  // ========================================================
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    const isAtTop = (scrollContainerRef.current?.scrollTop || 0) <= 0;
-    const target = e.target as HTMLElement;
-    const isDragHandleArea = Boolean(target.closest("[data-drag-handle='true']"));
-
-    if (isDragHandleArea || isAtTop) {
-      dragStartYRef.current = e.clientY;
-      setIsDragging(true);
-    }
-  };
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging || dragStartYRef.current === null) return;
-    const deltaY = e.clientY - dragStartYRef.current;
-
-    if (deltaY > 0) {
-      setDragY(deltaY);
-    } else {
-      setDragY(0);
-    }
-  };
-
-  const handlePointerUp = () => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    dragStartYRef.current = null;
-
-    if (dragY > 90) {
-      onClose();
-    } else {
-      setDragY(0);
-    }
-  };
-
-  // ========================================================
-  // XỬ LÝ NỘP BÀI TẬP
-  // ========================================================
-  const handleSubmit = async () => {
-    if (files.length === 0) {
-      toast.warning("Vui lòng tải lên ít nhất một ảnh chụp bài làm hoặc tệp trước khi nộp nhé!");
-      fileInputRef.current?.click();
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const res = await submitMission(mission.id, files);
-      if (res.success) {
-        toast.success(res.message || "Nộp bài thành công! 🎉");
-        setFiles([]);
-        if (onSubmittedSuccess) {
-          onSubmittedSuccess(mission.id);
-        }
-        onClose();
-      } else {
-        toast.error(res.message || "Có lỗi xảy ra khi nộp bài!");
-      }
-    } catch {
-      toast.error("Không thể kết nối đến máy chủ. Vui lòng thử lại sau!");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+}: MissionDetailSheetModalProps) {
+  const {
+    files,
+    setFiles,
+    isSubmitting,
+    scrollContainerRef,
+    sheetRef,
+    backdropRef,
+    fileInputRef,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    handleSubmit,
+  } = useMissionDetailModal({
+    mission,
+    isExiting,
+    onRequestClose,
+    onSubmittedSuccess,
+  });
 
   const isCompleted = mission.status === "completed" || Boolean(mission.isCompleted);
   const isOverdue = checkIsMissionOverdue(mission);
@@ -170,35 +85,38 @@ function MissionDetailSheetModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="mission-sheet-title"
-      className="fixed inset-0 z-50 flex flex-col justify-end items-center select-none"
+      className={cn(
+        "fixed inset-0 z-50 flex flex-col justify-end items-center select-none",
+        isExiting ? "pointer-events-none" : "pointer-events-auto"
+      )}
     >
       {/* 1. BACKDROP ĐEN MỜ (Click để đóng) */}
       <div
-        onClick={onClose}
+        ref={backdropRef}
+        onClick={onRequestClose}
         aria-hidden="true"
-        className="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300 animate-in fade-in"
+        className={cn(
+          "absolute inset-0 bg-black/60 backdrop-blur-xs",
+          isExiting ? "animate-backdrop-exit" : "animate-backdrop-enter"
+        )}
       />
 
-      {/* 2. KHUNG BOTTOM SHEET (Vuốt xuống đóng) */}
+      {/* 2. KHUNG BOTTOM SHEET (Hardware Accelerated CSS transform translate3d) */}
       <div
         ref={sheetRef}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        style={{
-          transform: `translate3d(0, ${dragY}px, 0)`,
-          transition: isDragging ? "none" : "transform 250ms cubic-bezier(0.16, 1, 0.3, 1)",
-        }}
         className={cn(
           "relative w-full max-w-[480px] h-[85dvh] max-h-[85dvh] bg-[#FDF8EA] rounded-t-[28px]",
           "border-t-2 border-amber-900/20 shadow-[0_-12px_40px_rgba(0,0,0,0.35)]",
-          "flex flex-col min-h-0 overflow-hidden z-10 touch-pan-y"
+          "flex flex-col min-h-0 overflow-hidden z-10 touch-pan-y",
+          "transform-gpu motion-reduce:transition-none",
+          isExiting ? "animate-sheet-exit" : "animate-sheet-enter"
         )}
       >
-        {/* ======================================================== */}
         {/* THANH ĐỈNH (DRAG HANDLE + TIÊU ĐỀ BIỂN GỖ + NÚT ĐÓNG X) */}
-        {/* ======================================================== */}
         <div
           data-drag-handle="true"
           className="w-full shrink-0 pt-2.5 pb-2 px-4 flex flex-col items-center bg-[#FDF8EA] border-b border-amber-900/10 cursor-grab active:cursor-grabbing"
@@ -213,7 +131,7 @@ function MissionDetailSheetModal({
             {/* Nút X đóng to bản (Touch target >= 44x44px) */}
             <button
               type="button"
-              onClick={onClose}
+              onClick={onRequestClose}
               aria-label="Đóng chi tiết nhiệm vụ"
               className="absolute right-0 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center rounded-full bg-amber-200/60 hover:bg-amber-300/80 active:scale-95 text-amber-950 transition-all shadow-xs cursor-pointer"
             >
@@ -222,12 +140,10 @@ function MissionDetailSheetModal({
           </div>
         </div>
 
-        {/* ======================================================== */}
         {/* THÂN BOTTOM SHEET (VÙNG CUỘN NỘI DUNG) */}
-        {/* ======================================================== */}
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto overscroll-contain px-4 py-3 flex flex-col gap-3 min-h-0"
+          className="flex-1 overflow-y-auto overscroll-contain px-4 py-3 flex flex-col gap-3 min-h-0 [scrollbar-width:thin] [scrollbar-color:rgba(180,83,9,0.3)_transparent]"
         >
           {/* 1. KHỐI TIÊU ĐỀ, HẠN NỘP & HUY HIỆU XU */}
           <div className="bg-[#FFFDF7] border border-amber-300/80 rounded-2xl p-3.5 shadow-xs flex flex-col gap-2.5">
@@ -337,7 +253,7 @@ function MissionDetailSheetModal({
               </p>
 
               {/* Component Upload ảnh/tệp */}
-              <div className="mt-1">
+              <div className="mt-1" data-prevent-drag="true">
                 <EvidenceUploader
                   files={files}
                   onFilesChange={setFiles}
@@ -351,15 +267,13 @@ function MissionDetailSheetModal({
           )}
         </div>
 
-        {/* ======================================================== */}
         {/* THANH HÀNH ĐỘNG GHIM ĐÁY (STICKY ACTION BAR) */}
-        {/* ======================================================== */}
         <div className="shrink-0 w-full px-4 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-[#FDF8EA]/98 backdrop-blur-xs border-t border-amber-900/15 flex items-center gap-2.5 shadow-[0_-4px_16px_rgba(78,41,12,0.08)]">
           {isCompleted ? (
             <Button3D
               variant="green"
               size="md"
-              onClick={onClose}
+              onClick={onRequestClose}
               className="w-full text-sm font-heading font-black tracking-wide py-2.5"
             >
               <CheckCircle2 className="w-4 h-4 stroke-[3]" />
@@ -404,7 +318,7 @@ function MissionDetailSheetModal({
                 <Button3D
                   variant="slate"
                   size="md"
-                  onClick={onClose}
+                  onClick={onRequestClose}
                   className="px-4 text-xs font-heading font-bold py-2.5 shrink-0"
                 >
                   <span>Để sau</span>
@@ -420,6 +334,10 @@ function MissionDetailSheetModal({
   return createPortal(sheetContent, document.body);
 }
 
+/**
+ * Bottom Sheet Chi Tiết Nhiệm Vụ & Nộp Bài trên Mobile.
+ * Quản lý vòng đời mount/unmount kèm animation xuất hiện & biến mất mượt mà (60/120 FPS).
+ */
 export function MissionDetailSheet({
   mission,
   isOpen,
@@ -428,15 +346,20 @@ export function MissionDetailSheet({
 }: MissionDetailSheetProps) {
   const isMounted = useSyncExternalStore(noopSubscribe, getClientMounted, getServerMounted);
 
-  if (!isMounted || !isOpen || !mission) {
+  // Custom hook quản lý vòng đời mount/exit animation
+  const { activeMission, shouldRender, isExiting, handleRequestClose } =
+    useMissionDetailSheetLifecycle(isOpen, mission, onClose);
+
+  if (!isMounted || !shouldRender || !activeMission) {
     return null;
   }
 
   return (
     <MissionDetailSheetModal
-      key={mission.id}
-      mission={mission}
-      onClose={onClose}
+      key={activeMission.id}
+      mission={activeMission}
+      isExiting={isExiting}
+      onRequestClose={handleRequestClose}
       onSubmittedSuccess={onSubmittedSuccess}
     />
   );

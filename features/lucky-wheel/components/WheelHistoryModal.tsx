@@ -14,18 +14,44 @@ interface WheelHistoryModalProps {
   myHistory: WheelWinner[];
 }
 
-// Màu chip phần thưởng theo giá trị xu
-function getPrizeChipClass(rewardCoins: number): string {
-  if (rewardCoins >= 200) {
-    return "bg-gradient-to-b from-[#FDE047] to-[#F59E0B] text-amber-950 border-amber-500 shadow-[0_2px_0_#B45309]";
+/**
+ * Component hiển thị Badge phần thưởng đẹp mắt:
+ * - Nếu là phần thưởng xu (rewardCoins > 0): Hiển thị "+ số xu" kèm icon ảnh xu vàng (/coin.png)
+ * - Nếu là vật phẩm đặc biệt: Hiển thị tên vật phẩm kèm icon Sparkles
+ */
+function PrizeBadge({ rewardCoins, prizeLabel }: { rewardCoins: number; prizeLabel: string }) {
+  if (rewardCoins > 0) {
+    return (
+      <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-gradient-to-r from-amber-100 via-amber-100/90 to-amber-200/90 border border-amber-300/90 shadow-2xs font-heading font-black text-xs sm:text-[13px] text-[#D97706] flex-shrink-0 transition-transform hover:scale-105 select-none">
+        <span>+{rewardCoins}</span>
+        <Image
+          src="/coin.png"
+          alt="Xu"
+          width={18}
+          height={18}
+          unoptimized
+          style={{ height: "auto" }}
+          className="w-4 h-4 inline-block object-contain drop-shadow-2xs"
+        />
+      </div>
+    );
   }
-  if (rewardCoins >= 80) {
-    return "bg-gradient-to-b from-[#E879F9] to-[#C026D3] text-white border-fuchsia-600 shadow-[0_2px_0_#86198F]";
-  }
-  if (rewardCoins >= 50) {
-    return "bg-gradient-to-b from-[#7DD3FC] to-[#0284C7] text-white border-sky-600 shadow-[0_2px_0_#075985]";
-  }
-  return "bg-gradient-to-b from-[#86EFAC] to-[#16A34A] text-white border-green-600 shadow-[0_2px_0_#166534]";
+
+  // Đối với thẻ nhân đôi xu hoặc vật phẩm đặc biệt
+  const isCard = prizeLabel.toLowerCase().includes("thẻ");
+  return (
+    <div
+      className={cn(
+        "inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full border shadow-2xs font-heading font-black text-[11px] sm:text-xs flex-shrink-0 transition-transform hover:scale-105 select-none",
+        isCard
+          ? "bg-gradient-to-r from-sky-50 to-blue-100/90 border-sky-300 text-sky-900"
+          : "bg-gradient-to-r from-purple-50 to-fuchsia-100/90 border-purple-300 text-purple-900"
+      )}
+    >
+      <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
+      <span className="truncate max-w-[130px] sm:max-w-[160px]">{prizeLabel || "Quà đặc biệt"}</span>
+    </div>
+  );
 }
 
 export function WheelHistoryModal({
@@ -106,65 +132,43 @@ export function WheelHistoryModal({
                 Chưa có lượt quay nào. Hãy là người đầu tiên thử vận may!
               </div>
             ) : (
-              allWinners.map((winner, index) => {
-                const isNewest = index === 0;
-
-                return (
-                  <div
-                    key={winner.id}
-                    className={cn(
-                      "relative flex items-center gap-2.5 p-2.5 rounded-2xl border-2 transition-transform hover:-translate-y-0.5",
-                      isNewest
-                        ? "bg-gradient-to-r from-[#FFF7D6] to-[#FFEAA0] border-amber-400 shadow-[0_3px_0_#F59E0B]"
-                        : "bg-white border-amber-200/80 shadow-[0_2px_0_#FDE68A]"
-                    )}
-                  >
-                    {isNewest && (
-                      <span className="absolute -top-2 left-3 px-1.5 py-px rounded-md bg-red-500 text-white font-heading font-black text-[9px] tracking-wider shadow-[0_2px_0_#991B1B]">
-                        MỚI
-                      </span>
-                    )}
-
-                    {/* Avatar */}
-                    <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full p-[2px] bg-gradient-to-b from-[#FDE047] to-[#F59E0B] flex-shrink-0 shadow-[0_2px_0_#B45309]">
-                      <div className="relative w-full h-full rounded-full overflow-hidden bg-amber-100">
-                        <Image
-                          src={winner.avatarUrl || "/avatar.jpg"}
-                          alt={winner.studentName}
-                          fill
-                          unoptimized
-                          className="object-cover"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Tên, lớp, thời gian */}
-                    <div className="min-w-0 flex-1">
-                      <div className="font-heading font-black text-slate-800 text-xs sm:text-[13px] leading-tight truncate">
-                        {winner.studentName}
-                      </div>
-                      <div className="flex items-center gap-1.5 font-heading font-bold text-[10.5px] text-slate-500 mt-0.5">
-                        <span className="text-amber-700 whitespace-nowrap">{winner.classGroup}</span>
-                        <span className="text-slate-300">•</span>
-                        <span className="flex items-center gap-0.5 whitespace-nowrap">
-                          <Clock className="w-2.5 h-2.5" />
-                          {winner.wonAt}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Chip phần thưởng */}
-                    <div
-                      className={cn(
-                        "flex-shrink-0 max-w-[45%] px-2.5 py-1 rounded-xl border font-heading font-black text-[11px] truncate",
-                        getPrizeChipClass(winner.rewardCoins)
-                      )}
-                    >
-                      {winner.prizeLabel}
+              allWinners.map((winner) => (
+                <div
+                  key={winner.id}
+                  className="flex items-center gap-2.5 p-2.5 rounded-2xl border-2 bg-white hover:bg-amber-50/60 border-amber-200/80 shadow-[0_2px_0_#FDE68A] transition-all hover:-translate-y-0.5"
+                >
+                  {/* Avatar */}
+                  <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full p-[2px] bg-gradient-to-b from-[#FDE047] to-[#F59E0B] flex-shrink-0 shadow-[0_2px_0_#B45309]">
+                    <div className="relative w-full h-full rounded-full overflow-hidden bg-amber-100">
+                      <Image
+                        src={winner.avatarUrl || "/avatar.jpg"}
+                        alt={winner.studentName}
+                        fill
+                        unoptimized
+                        className="object-cover"
+                      />
                     </div>
                   </div>
-                );
-              })
+
+                  {/* Tên, lớp, thời gian */}
+                  <div className="min-w-0 flex-1">
+                    <div className="font-heading font-black text-slate-800 text-xs sm:text-[13px] leading-tight truncate">
+                      {winner.studentName}
+                    </div>
+                    <div className="flex items-center gap-1.5 font-heading font-bold text-[10.5px] text-slate-500 mt-0.5">
+                      <span className="text-amber-700 whitespace-nowrap">{winner.classGroup}</span>
+                      <span className="text-slate-300">•</span>
+                      <span className="flex items-center gap-0.5 whitespace-nowrap">
+                        <Clock className="w-2.5 h-2.5" />
+                        {winner.wonAt}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Badge phần thưởng style mới */}
+                  <PrizeBadge rewardCoins={winner.rewardCoins} prizeLabel={winner.prizeLabel} />
+                </div>
+              ))
             )
           ) : (
             /* TAB 2: BẢN THÂN */
@@ -181,63 +185,41 @@ export function WheelHistoryModal({
                 </p>
               </div>
             ) : (
-              myHistory.map((item, index) => {
-                const isNewest = index === 0;
-
-                return (
-                  <div
-                    key={item.id}
-                    className={cn(
-                      "relative flex items-center gap-2.5 p-2.5 rounded-2xl border-2 transition-transform hover:-translate-y-0.5",
-                      isNewest
-                        ? "bg-gradient-to-r from-sky-50 to-blue-50 border-sky-300 shadow-[0_3px_0_#0284C7]"
-                        : "bg-white border-amber-200/80 shadow-[0_2px_0_#FDE68A]"
+              myHistory.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center gap-2.5 p-2.5 rounded-2xl border-2 bg-white hover:bg-amber-50/60 border-amber-200/80 shadow-[0_2px_0_#FDE68A] transition-all hover:-translate-y-0.5"
+                >
+                  {/* Icon quà */}
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 flex items-center justify-center shadow-[0_2px_0_#B45309] flex-shrink-0 text-white">
+                    {item.rewardCoins > 0 ? (
+                      <Coins className="w-5 h-5 text-amber-950" />
+                    ) : (
+                      <Gift className="w-5 h-5 text-white" />
                     )}
-                  >
-                    {isNewest && (
-                      <span className="absolute -top-2 left-3 px-1.5 py-px rounded-md bg-blue-600 text-white font-heading font-black text-[9px] tracking-wider shadow-[0_2px_0_#0369A1]">
-                        VỪA QUAY
+                  </div>
+
+                  {/* Chi tiết phần thưởng */}
+                  <div className="min-w-0 flex-1">
+                    <div className="font-heading font-black text-slate-800 text-xs sm:text-[13px] leading-tight truncate">
+                      {item.prizeLabel}
+                    </div>
+                    <div className="flex items-center gap-1.5 font-heading font-bold text-[10.5px] text-slate-500 mt-0.5">
+                      <span className="text-emerald-600 flex items-center gap-0.5 whitespace-nowrap">
+                        ✓ Đã nhận thưởng
                       </span>
-                    )}
-
-                    {/* Icon quà */}
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 flex items-center justify-center shadow-[0_2px_0_#B45309] flex-shrink-0 text-white">
-                      {item.rewardCoins > 0 ? (
-                        <Coins className="w-5 h-5 text-amber-950" />
-                      ) : (
-                        <Gift className="w-5 h-5 text-white" />
-                      )}
-                    </div>
-
-                    {/* Chi tiết phần thưởng */}
-                    <div className="min-w-0 flex-1">
-                      <div className="font-heading font-black text-slate-800 text-xs sm:text-[13px] leading-tight truncate">
-                        {item.prizeLabel}
-                      </div>
-                      <div className="flex items-center gap-1.5 font-heading font-bold text-[10.5px] text-slate-500 mt-0.5">
-                        <span className="text-emerald-600 flex items-center gap-0.5 whitespace-nowrap">
-                          ✓ Đã nhận thưởng
-                        </span>
-                        <span className="text-slate-300">•</span>
-                        <span className="flex items-center gap-0.5 whitespace-nowrap">
-                          <Clock className="w-2.5 h-2.5" />
-                          {item.wonAt}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Chip giá trị */}
-                    <div
-                      className={cn(
-                        "flex-shrink-0 px-2.5 py-1 rounded-xl border font-heading font-black text-[11px]",
-                        getPrizeChipClass(item.rewardCoins)
-                      )}
-                    >
-                      {item.rewardCoins > 0 ? `+${item.rewardCoins} Xu` : "Quà tặng"}
+                      <span className="text-slate-300">•</span>
+                      <span className="flex items-center gap-0.5 whitespace-nowrap">
+                        <Clock className="w-2.5 h-2.5" />
+                        {item.wonAt}
+                      </span>
                     </div>
                   </div>
-                );
-              })
+
+                  {/* Badge phần thưởng style mới */}
+                  <PrizeBadge rewardCoins={item.rewardCoins} prizeLabel={item.prizeLabel} />
+                </div>
+              ))
             )
           )}
         </div>

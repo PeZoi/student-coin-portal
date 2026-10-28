@@ -1,6 +1,7 @@
 import { formatShortDateTime } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import { AlertCircle, Check, ChevronRight, Clock } from "lucide-react";
+import Image from "next/image";
 import { checkIsMissionOverdue } from "../hooks/useMissionFilter";
 import { MissionFilter, MissionItem } from "../types";
 import { formatDueLabel, URGENCY_STYLES } from "../utils/formatDueLabel";
@@ -167,28 +168,22 @@ export function MissionListSide({
             // Phân biệt style trạng thái 3 nhóm: ĐÃ XONG | QUÁ HẠN | CHƯA XONG
             const statusConfig = isCompleted
               ? {
-                  badgeBox: "bg-gradient-to-b from-[#22C55E] to-[#16A34A] text-white border-emerald-400",
-                  textColor: "text-[#15803D]",
                   dueBadge: cn(urgencyStyle.bg, urgencyStyle.text, urgencyStyle.border),
-                  cardBase: "bg-[#F0FDF4]/85 hover:bg-white border border-[#86EFAC]/80 hover:border-[#86EFAC]",
+                  cardBase: "bg-[#F0FDF4]/90 hover:bg-white border border-[#86EFAC]/85",
                 }
               : isOverdueItem
               ? {
-                  badgeBox: "bg-rose-100 border-2 border-rose-500 text-rose-600",
-                  textColor: "text-rose-600",
                   dueBadge: cn(urgencyStyle.bg, urgencyStyle.text, urgencyStyle.border, "font-extrabold"),
-                  cardBase: "bg-[#FFF1F2]/85 hover:bg-white border border-rose-200/80 hover:border-rose-300",
+                  cardBase: "bg-[#FFF1F2]/90 hover:bg-white border border-rose-300/85",
                 }
               : {
-                  badgeBox: "bg-white border-2 border-[#0084FF] text-[#0084FF]",
-                  textColor: "text-[#0284C7]",
                   dueBadge: cn(urgencyStyle.bg, urgencyStyle.text, urgencyStyle.border),
-                  cardBase: "bg-white/85 hover:bg-white border border-amber-950/15 hover:border-amber-900/30",
+                  cardBase: "bg-white/90 hover:bg-white border border-amber-950/15",
                 };
 
             // Style thẻ khi được chọn (Active)
             const cardStyle = isSelected
-              ? "bg-[#FFFBEB] border-2 border-[#D97706] shadow-[0_2px_8px_rgba(217,119,6,0.2)]"
+              ? "bg-[#FFFBEB] border-2 border-amber-600 shadow-[0_2px_8px_rgba(217,119,6,0.22)]"
               : statusConfig.cardBase;
 
             return (
@@ -199,56 +194,62 @@ export function MissionListSide({
                 aria-pressed={isSelected}
                 aria-current={isSelected ? "true" : undefined}
                 className={cn(
-                  "w-full text-left relative rounded-[11px] sm:rounded-[12px] p-2 sm:p-2.5 cursor-pointer transition-all duration-150 motion-reduce:transition-none select-none flex flex-col justify-between gap-1 sm:gap-1.5 flex-shrink-0 min-h-[52px] sm:min-h-[56px] focus-visible:outline-2 focus-visible:outline-amber-600 focus-visible:outline-offset-1",
+                  "w-full text-left relative rounded-xl p-2 sm:p-2.5 cursor-pointer transition-all duration-150 motion-reduce:transition-none select-none flex flex-col justify-between gap-1.5 flex-shrink-0 min-h-[58px] sm:min-h-[62px] focus-visible:outline-2 focus-visible:outline-amber-600 focus-visible:outline-offset-1 active:scale-[0.99] shadow-xs",
                   cardStyle
                 )}
               >
-                {/* HÀNG 1: Checkbox trạng thái + Tên bài tập + Icon minh họa + Mũi tên trỏ Active */}
-                <div className="flex items-center justify-between gap-1.5 min-w-0 w-full">
-                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1">
-                    {/* Hộp checkbox / icon trạng thái */}
-                    <div
-                      className={cn(
-                        "w-5 h-5 sm:w-5.5 sm:h-5.5 rounded-md flex items-center justify-center flex-shrink-0 border shadow-inner relative",
-                        statusConfig.badgeBox
-                      )}
-                    >
+                {/* HÀNG 1: Icon minh họa (có badge đã xong/quá hạn) + Tên bài tập + Chevron */}
+                <div className="flex items-center justify-between gap-2 min-w-0 w-full">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    {/* Cụm Icon minh họa có huy hiệu trạng thái nhỏ trên góc giống Mobile */}
+                    <div className="relative w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-lg bg-amber-50/90 border border-amber-200/80 flex items-center justify-center flex-shrink-0 shadow-2xs">
+                      {renderMissionIcon(mission.iconType)}
+
+                      {/* Huy hiệu trạng thái nhỏ gắn trên góc icon: Đã xong (✓ xanh) hoặc Quá hạn (! đỏ) */}
                       {isCompleted ? (
-                        <Check className="w-3.5 h-3.5 stroke-[3.5] text-white" />
+                        <div
+                          aria-label="Đã hoàn thành"
+                          className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-600 text-white flex items-center justify-center border border-white shadow-xs"
+                        >
+                          <Check className="w-2.5 h-2.5 stroke-[3.5]" />
+                        </div>
                       ) : isOverdueItem ? (
-                        <AlertCircle className="w-3.5 h-3.5 stroke-[3] text-rose-600" />
-                      ) : (
-                        <div className="w-2 h-2 rounded-full bg-[#0084FF]" />
-                      )}
+                        <div
+                          aria-label="Đã quá hạn"
+                          className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-rose-600 text-white flex items-center justify-center border border-white shadow-xs"
+                        >
+                          <AlertCircle className="w-2.5 h-2.5 stroke-[3]" />
+                        </div>
+                      ) : null}
                     </div>
 
                     {/* Tên nhiệm vụ */}
-                    <div
+                    <span
                       className={cn(
-                        "leading-tight truncate",
+                        "font-heading font-black leading-tight line-clamp-1 sm:line-clamp-2 min-w-0 flex-1",
                         isSelected
-                          ? "font-heading font-black text-[#78350F] text-[11.5px] sm:text-[12.5px]"
+                          ? "text-[#78350F] text-[12px] sm:text-[13px]"
                           : isOverdueItem
-                          ? "font-heading font-bold text-rose-950 text-[11px] sm:text-xs"
-                          : "font-heading font-bold text-slate-700 text-[11px] sm:text-xs"
+                          ? "text-rose-950 text-[11.5px] sm:text-[12.5px]"
+                          : "text-amber-950 text-[11.5px] sm:text-[12.5px]"
                       )}
                     >
                       {mission.title}
-                    </div>
+                    </span>
                   </div>
 
-                  {/* Icon minh họa & Mũi tên chỉ thị active */}
-                  <div className="flex items-center gap-1 flex-shrink-0 pl-1">
-                    {renderMissionIcon(mission.iconType)}
-                    {isSelected && (
-                      <ChevronRight className="w-4 h-4 stroke-[3] text-[#D97706] flex-shrink-0" />
+                  {/* Mũi tên Chevron mép phải */}
+                  <ChevronRight
+                    className={cn(
+                      "w-4 h-4 flex-shrink-0 transition-colors",
+                      isSelected ? "stroke-[2.5] text-[#D97706]" : "text-amber-800/40"
                     )}
-                  </div>
+                  />
                 </div>
 
-                {/* HÀNG 2: Thông tin Thời gian giao, Hạn nộp & Huy hiệu Xu */}
-                <div className="flex items-center justify-between gap-1 text-[9px] sm:text-[9.5px] w-full">
-                  {/* Cụm thời gian: Giao & Hạn nộp format ngắn gọn */}
+                {/* HÀNG 2: Thông tin Thời gian giao, Hạn nộp & Cụm Xu style mobile */}
+                <div className="flex items-center justify-between gap-1 text-[9.5px] sm:text-[10px] w-full pt-0.5">
+                  {/* Cụm thời gian: Giao & Hạn nộp format ngắn gọn (giữ nguyên cho Desktop) */}
                   <div className="flex items-center gap-1.5 min-w-0 truncate">
                     <span className="text-slate-500 font-medium truncate">
                       Giao: <span className="text-slate-700 font-bold">{assignedText}</span>
@@ -256,20 +257,27 @@ export function MissionListSide({
                     <span className="text-slate-300">•</span>
                     <span
                       className={cn(
-                        "inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded font-bold border truncate",
+                        "inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded font-heading font-bold border truncate",
                         statusConfig.dueBadge
                       )}
                     >
                       <Clock className="w-2.5 h-2.5 flex-shrink-0 stroke-[2.5]" />
-                      <span>{dueInfo.text}</span>
+                      <span className="truncate">{dueInfo.text}</span>
                     </span>
                   </div>
 
-                  {/* Cụm xu thưởng */}
-                  <div className="flex items-center gap-1 flex-shrink-0 ml-1">
-                    <span className={cn("font-heading font-black", statusConfig.textColor)}>
-                      +{mission.rewardCoins} xu
-                    </span>
+                  {/* Chip Xu: Icon /coin.png + số xu thưởng giống Mobile */}
+                  <div className="inline-flex items-center gap-1 flex-shrink-0 font-heading font-black text-[11.5px] sm:text-[12.5px] text-[#D97706] ml-1">
+                    <span>+{mission.rewardCoins}</span>
+                    <Image
+                      src="/coin.png"
+                      alt="Xu"
+                      width={16}
+                      height={16}
+                      unoptimized
+                      style={{ height: "auto" }}
+                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline-block object-contain drop-shadow-2xs"
+                    />
                   </div>
                 </div>
               </button>

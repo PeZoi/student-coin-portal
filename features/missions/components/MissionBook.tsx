@@ -99,7 +99,7 @@ export function MissionBook() {
           />
 
           {/* VÙNG NỘI DUNG TRANG GIẤY BÊN TRONG CUỐN SÁCH: DANH SÁCH NHIỆM VỤ TỐI GIẢN */}
-          <div className="absolute top-[16%] bottom-[18%] left-[6%] right-[6%] flex flex-col z-10 px-3.5 overflow-hidden min-h-0">
+          <div className="absolute top-[16%] bottom-[22%] left-[6%] right-[6%] flex flex-col z-10 px-3.5 overflow-hidden min-h-0">
             <MissionListMobile
               missions={filteredMissions}
               selectedFilter={selectedFilter}
