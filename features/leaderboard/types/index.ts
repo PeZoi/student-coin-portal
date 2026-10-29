@@ -28,5 +28,7 @@ export interface MonthlyLeaderboardData {
   topCoins: TopCoinStudent[];
   topProgress: TopProgressStudent[];
   footerNote: string;
+  cutoffTime?: string;
+  isClosed?: boolean;
 }
 

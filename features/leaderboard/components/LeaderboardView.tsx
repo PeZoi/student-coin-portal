@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Clock } from "lucide-react";
 import { Button3D } from "@/components/ui/Button3D";
 import { DashboardBackgroundDecor } from "@/features/dashboard/components/DashboardBackgroundDecor";
 import { useLeaderboard } from "../hooks/useLeaderboard";
@@ -39,7 +39,7 @@ export function LeaderboardView() {
 
       {/* Main Container - Chiếm trọn không gian vừa vặn trên Desktop, triệt tiêu scroll Y bên ngoài */}
       <main className="relative z-10 w-full max-w-5xl h-full flex-1 min-h-0 flex flex-col items-center justify-between">
-        {/* Bộ chuyển đổi Tab tháng & Bộ lọc Lớp học */}
+        {/* Bộ chuyển đổi Tab tháng & Bộ lọc Lớp học & Thông báo chốt top */}
         <div className="flex-shrink-0 mb-2 sm:mb-2.5 flex flex-wrap items-center justify-center gap-2 sm:gap-3 w-full z-20 relative">
           <LeaderboardPeriodTabs
             activePeriod={activePeriod}
@@ -50,6 +50,19 @@ export function LeaderboardView() {
             onChangeClass={setSelectedClass}
             classes={availableClasses}
           />
+
+          {/* Badge thông báo ngày giờ cụ thể để chốt top */}
+          {data.cutoffTime && (
+            <div className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-[#0B4899]/85 backdrop-blur-md border border-amber-300/40 shadow-[0_8px_20px_rgba(0,25,75,0.35)] text-xs sm:text-sm font-heading select-none">
+              <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 flex-shrink-0 animate-pulse" />
+              <span className="text-sky-200/90 font-bold">
+                {data.isClosed ? "Đã chốt:" : "Chốt top:"}
+              </span>
+              <span className="text-amber-300 font-black">
+                {data.cutoffTime}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Khung Bảng Xếp Hạng Lớn Bo Tròn Kính Mờ (Glassmorphism Outer Box) */}
@@ -77,10 +90,13 @@ export function LeaderboardView() {
           </div>
         </div>
 
-        {/* Ghi chú chân trang */}
-        <p className="flex-shrink-0 text-center font-heading font-black text-xs sm:text-sm text-[#00224D] mt-1.5 sm:mt-2 drop-shadow-[0_1px_1px_rgba(255,255,255,0.7)] tracking-wide px-2 select-none">
-          {data.footerNote}
-        </p>
+        {/* Ghi chú chân trang thông báo chốt top */}
+        <div className="flex-shrink-0 text-center mt-1.5 sm:mt-2 px-2 select-none">
+          <p className="inline-flex items-center justify-center gap-1.5 font-heading font-black text-xs sm:text-sm text-[#00224D] drop-shadow-[0_1px_1px_rgba(255,255,255,0.7)] tracking-wide">
+            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 flex-shrink-0 inline-block" />
+            <span>{data.footerNote}</span>
+          </p>
+        </div>
       </main>
     </div>
   );

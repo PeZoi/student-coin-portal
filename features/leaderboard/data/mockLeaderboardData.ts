@@ -3,7 +3,9 @@ import { MonthlyLeaderboardData } from "../types";
 export const currentMonthLeaderboard: MonthlyLeaderboardData = {
   period: "current_month",
   periodLabel: "Tháng Hiện Tại",
-  footerNote: "*Thưởng xu sẽ được tự động cộng vào tài khoản của các bạn vào đêm cuối cùng của tháng!",
+  cutoffTime: "23:59 ngày 31/10/2026",
+  isClosed: false,
+  footerNote: "Bảng xếp hạng sẽ chính thức chốt top vào lúc 23:59 ngày 31/10/2026. Thưởng xu sẽ được tự động cộng vào tài khoản của các bạn!",
   topCoins: [
     {
       id: "coin-1",
@@ -277,7 +279,9 @@ export const currentMonthLeaderboard: MonthlyLeaderboardData = {
 export const previousMonthLeaderboard: MonthlyLeaderboardData = {
   period: "previous_month",
   periodLabel: "Tháng Trước",
-  footerNote: "*Thưởng xu của tháng trước đã được cộng đầy đủ vào Heo Đất của các bạn vào đêm cuối tháng!",
+  cutoffTime: "23:59 ngày 30/09/2026",
+  isClosed: true,
+  footerNote: "Đã chốt top vào lúc 23:59 ngày 30/09/2026. Thưởng xu đã được cộng đầy đủ vào tài khoản của các bạn!",
   topCoins: [
     {
       id: "prev-coin-1",
