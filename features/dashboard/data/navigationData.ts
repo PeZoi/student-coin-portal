@@ -67,7 +67,7 @@ export const navigationCards: NavigationItem[] = [
     iconSrc: "/navigation/rank.png",
     buttonText: "Xem bảng vàng",
     buttonVariant: "purple",
-    href: "#leaderboard",
+    href: "/student/leaderboard",
     borderColor: "border-[#9333EA]",
     bodyBg: "bg-[#FBF5FF]",
     headerBg: "bg-gradient-to-r from-[#A855F7] via-[#9333EA] to-[#7E22CE]",

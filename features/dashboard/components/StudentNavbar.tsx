@@ -70,7 +70,7 @@ export function StudentNavbar() {
           Đổi quà
         </Link>
         <Link
-          href="#leaderboard"
+          href="/student/leaderboard"
           className={isLeaderboard ? activeMenuClass : inactiveMenuClass}
         >
           <span className="md:hidden lg:inline">Bảng xếp hạng</span>
