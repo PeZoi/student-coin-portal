@@ -48,8 +48,9 @@ export function AiConfigPanel({ config, onUpdateConfig }: AiConfigPanelProps) {
           data.error || "Không thể tải danh sách model. Hãy kiểm tra lại API Key hoặc Endpoint."
         );
       }
-    } catch (err: any) {
-      toast.error("Lỗi khi kết nối lấy model: " + err.message);
+    } catch (err: unknown) {
+      const errorObj = err instanceof Error ? err : new Error(String(err));
+      toast.error("Lỗi khi kết nối lấy model: " + errorObj.message);
     } finally {
       setIsLoadingModels(false);
     }
@@ -135,48 +136,6 @@ export function AiConfigPanel({ config, onUpdateConfig }: AiConfigPanelProps) {
                 <LinkIcon className="w-3.5 h-3.5 text-sky-300" />
                 <span>Đường link API AI (Endpoint URL):</span>
               </label>
-              {/* Nút chọn nhanh URL chuẩn */}
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    onUpdateConfig({
-                      apiUrl: "https://oxionai.com/v1",
-                      model: "gemini-3.7-flash",
-                    });
-                    toast.success("Đã chọn cấu hình Oxion AI (Gemini 3.7 Flash)");
-                  }}
-                  className="cursor-pointer text-[10px] bg-purple-500/25 hover:bg-purple-500/40 border border-purple-300/50 text-purple-200 px-2 py-0.5 rounded-lg font-bold"
-                >
-                  Oxion AI
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onUpdateConfig({
-                      apiUrl: "https://api.openai.com/v1/chat/completions",
-                      model: "gpt-4o",
-                    });
-                    toast.success("Đã chọn cấu hình OpenAI (GPT-4o Vision)");
-                  }}
-                  className="cursor-pointer text-[10px] bg-sky-500/20 hover:bg-sky-500/35 border border-sky-300/40 text-sky-200 px-2 py-0.5 rounded-lg font-bold"
-                >
-                  OpenAI
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onUpdateConfig({
-                      apiUrl: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-                      model: "gemini-1.5-flash",
-                    });
-                    toast.success("Đã chọn cấu hình Google Gemini (Flash Vision)");
-                  }}
-                  className="cursor-pointer text-[10px] bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-300/40 text-emerald-200 px-2 py-0.5 rounded-lg font-bold"
-                >
-                  Gemini
-                </button>
-              </div>
             </div>
             <input
               type="text"
@@ -185,9 +144,6 @@ export function AiConfigPanel({ config, onUpdateConfig }: AiConfigPanelProps) {
               placeholder="https://oxionai.com/v1"
               className="w-full bg-[#042555] text-white placeholder:text-slate-400 px-3 py-2 rounded-xl border border-sky-400/30 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 text-xs font-mono"
             />
-            <p className="text-[10px] text-sky-200/70 italic">
-              *Hệ thống đã tự động tích hợp trọn vẹn cho <strong>Oxion AI (https://oxionai.com/v1)</strong> với model <code>gemini-3.7-flash</code>. Server Proxy sẽ tự động định dạng ảnh Vision gửi sang để AI đọc bài và chấm điểm.
-            </p>
           </div>
 
           {/* 3. API Key */}
@@ -227,91 +183,6 @@ export function AiConfigPanel({ config, onUpdateConfig }: AiConfigPanelProps) {
                   <Cpu className="w-3.5 h-3.5 text-emerald-300" />
                   <span>Model AI:</span>
                 </label>
-                {/* Gợi ý các model thịnh hành trên Oxion AI */}
-                <div className="flex items-center gap-1 flex-wrap">
-                  {config.apiUrl.includes("xah.io") ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onUpdateConfig({ model: "gemini-2.0-flash" });
-                          toast.info("Đã chọn model gemini-2.0-flash (Không suy luận, phản hồi siêu tốc 3-5s)");
-                        }}
-                        className="cursor-pointer text-[10px] bg-emerald-500/25 hover:bg-emerald-500/40 text-emerald-300 border border-emerald-400/40 px-1.5 py-0.5 rounded font-bold"
-                        title="Model Gemini 2.0 Flash siêu tốc (3-5s)"
-                      >
-                        ⚡ 2.0-flash (3s)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onUpdateConfig({ model: "thanhnhan9023/gemini-3.7-flash-high" });
-                          toast.info("Đã chọn model thanhnhan9023/gemini-3.7-flash-high (Gemini 3.7 Flash High)");
-                        }}
-                        className="cursor-pointer text-[10px] bg-amber-500/25 hover:bg-amber-500/40 text-amber-300 border border-amber-400/40 px-1.5 py-0.5 rounded font-bold"
-                        title="Model Gemini 3.7 Flash High của thanhnhan9023 trên Ckey"
-                      >
-                        3.7-flash-high
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onUpdateConfig({ model: "gemini-3.7-flash" });
-                          toast.info("Đã chọn model gemini-3.7-flash");
-                        }}
-                        className="cursor-pointer text-[10px] bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 px-1.5 py-0.5 rounded font-bold"
-                      >
-                        3.7-flash
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onUpdateConfig({ model: "gemini-3.7-flash" });
-                          toast.info("Đã chọn model gemini-3.7-flash");
-                        }}
-                        className="cursor-pointer text-[10px] bg-amber-500/25 hover:bg-amber-500/40 text-amber-300 border border-amber-400/40 px-1.5 py-0.5 rounded font-bold"
-                        title="Model Gemini 3.7 Flash mới nhất trên Oxion AI"
-                      >
-                        3.7-flash ⭐
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onUpdateConfig({ model: "gemini-3.6-flash" });
-                          toast.info("Đã chọn model gemini-3.6-flash");
-                        }}
-                        className="cursor-pointer text-[10px] bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-1.5 py-0.5 rounded font-bold"
-                        title="Gemini 3.6 Flash trên Oxion AI"
-                      >
-                        3.6-flash
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onUpdateConfig({ model: "gpt-5.6-luna" });
-                          toast.info("Đã chọn model gpt-5.6-luna");
-                        }}
-                        className="cursor-pointer text-[10px] bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 px-1.5 py-0.5 rounded font-bold"
-                        title="GPT-5.6 Luna trên Oxion AI"
-                      >
-                        5.6-luna
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onUpdateConfig({ model: "gemini-1.5-flash" });
-                          toast.info("Đã chọn model gemini-1.5-flash");
-                        }}
-                        className="cursor-pointer text-[10px] bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 px-1.5 py-0.5 rounded font-bold"
-                      >
-                        1.5-flash
-                      </button>
-                    </>
-                  )}
-                </div>
               </div>
               <div className="relative">
                 <input

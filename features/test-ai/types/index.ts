@@ -107,7 +107,11 @@ export interface AiGradingResult {
   _meta?: {
     attempt?: number;
     ms?: number;
-    usage?: any;
+    usage?: {
+      prompt_tokens?: number;
+      completion_tokens?: number;
+      total_tokens?: number;
+    } | null;
     model?: string;
   };
 }

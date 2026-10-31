@@ -305,7 +305,7 @@ export async function gradeHomeworkWithAi(
       gradedAt: new Date().toLocaleTimeString("vi-VN"),
       _meta: data._meta,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Nếu gọi endpoint thật thất bại và có cấu hình fallback, thông báo và trả mock
     console.warn("AI API request failed, falling back to mock response:", error);
     throw error;

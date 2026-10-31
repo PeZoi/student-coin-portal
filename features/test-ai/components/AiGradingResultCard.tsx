@@ -41,6 +41,8 @@ export function AiGradingResultCard({
     setTimeout(() => setCopiedTranscript(false), 2000);
   };
 
+  const isPlatformProof = result.coinRewardMode === "platform_proof";
+
   // 1. Trường hợp ảnh bài làm mờ hoặc không thể đọc được
   if (result.readable === false) {
     return (
@@ -51,32 +53,46 @@ export function AiGradingResultCard({
           </div>
           <div>
             <h3 className="font-heading font-black text-lg text-rose-700">
-              ẢNH BÀI LÀM KHÔNG THỂ ĐỌC ĐƯỢC
+              {isPlatformProof
+                ? "ẢNH MINH CHỨNG KHÔNG THỂ NHẬN DIỆN"
+                : "ẢNH BÀI LÀM KHÔNG THỂ ĐỌC ĐƯỢC"}
             </h3>
             <p className="text-xs text-slate-500 font-heading">
-              AI không thể nhận diện chữ viết tay từ ảnh này
+              {isPlatformProof
+                ? "AI không thể nhận diện được điểm số từ ảnh chụp màn hình này"
+                : "AI không thể nhận diện chữ viết tay từ ảnh này"}
             </p>
           </div>
         </div>
 
         <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex flex-col gap-1.5">
           <span className="font-heading font-bold text-xs text-rose-800">
-            Lý do không chấm được:
+            Lý do không nhận diện được:
           </span>
           <p className="text-sm font-heading text-slate-800 leading-relaxed font-medium">
             {result.unreadableReason ||
               result.overallComment ||
-              "Ảnh bài làm bị mờ, lóa sáng, thiếu chữ hoặc không phải bài viết tiếng Anh."}
+              (isPlatformProof
+                ? "Ảnh chụp màn hình bị mờ hoặc không hiển thị rõ phần điểm số/kết quả làm bài."
+                : "Ảnh bài làm bị mờ, lóa sáng, thiếu chữ hoặc không phải bài viết tiếng Anh.")}
           </p>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs font-heading text-amber-900 leading-relaxed">
           <p className="font-bold mb-1">💡 Hướng dẫn chụp ảnh đạt chuẩn:</p>
-          <ul className="list-disc pl-4 space-y-1 text-slate-700">
-            <li>Chụp vuông góc từ trên xuống, đủ ánh sáng, không bị bóng tay che khuất.</li>
-            <li>Đặt trang vở ngay ngắn, lấy đủ 4 góc của trang giấy.</li>
-            <li>Đảm bảo các chữ viết bằng bút mực rõ nét, không bị nhòe.</li>
-          </ul>
+          {isPlatformProof ? (
+            <ul className="list-disc pl-4 space-y-1 text-slate-700">
+              <li>Chụp rõ phần hiển thị kết quả hoặc điểm số (ví dụ: 15/15 points, 18/20, 100%).</li>
+              <li>Đảm bảo ảnh chụp không bị chói sáng, bóng lóa hoặc che khuất con số kết quả.</li>
+              <li>Chụp trực diện màn hình máy tính hoặc điện thoại để các con số hiển thị rõ nét nhất.</li>
+            </ul>
+          ) : (
+            <ul className="list-disc pl-4 space-y-1 text-slate-700">
+              <li>Chụp vuông góc từ trên xuống, đủ ánh sáng, không bị bóng tay che khuất.</li>
+              <li>Đặt trang vở ngay ngắn, lấy đủ 4 góc của trang giấy.</li>
+              <li>Đảm bảo các chữ viết bằng bút mực rõ nét, không bị nhòe.</li>
+            </ul>
+          )}
         </div>
 
         <div className="pt-2 flex justify-center">
@@ -103,7 +119,7 @@ export function AiGradingResultCard({
           </div>
           <div>
             <h3 className="font-heading font-black text-lg sm:text-xl text-slate-800">
-              KẾT QUẢ CHẤM ĐIỂM CỦA AI
+              {isPlatformProof ? "KẾT QUẢ XÁC THỰC MINH CHỨNG" : "KẾT QUẢ CHẤM ĐIỂM CỦA AI"}
             </h3>
             <p className="text-xs text-slate-500 font-heading">
               Đã chấm lúc: {result.gradedAt}
@@ -113,14 +129,25 @@ export function AiGradingResultCard({
 
         {/* Cụm Điểm số & Xu thưởng */}
         <div className="flex items-center gap-2">
-          {/* Huy hiệu điểm số */}
-          <div className="px-4 py-2 rounded-2xl bg-gradient-to-b from-[#FFFBE8] to-[#FFF0B8] border-2 border-[#F59E0B] shadow-sm flex flex-col items-center justify-center">
+          {/* Huy hiệu điểm số / số câu đúng */}
+          <div className="px-4 py-2 rounded-2xl bg-gradient-to-b from-[#FFFBE8] to-[#FFF0B8] border-2 border-[#F59E0B] shadow-sm flex flex-col items-center justify-center min-w-[90px]">
             <span className="text-[10px] font-heading font-black text-amber-800 uppercase tracking-wider">
-              Điểm số
+              {isPlatformProof ? "Số câu đúng" : "Điểm số"}
             </span>
             <span className="font-heading font-black text-2xl sm:text-3xl text-[#D97706] leading-none">
-              {result.score !== null ? result.score : "--"}
-              <span className="text-sm text-amber-700">/10</span>
+              {isPlatformProof && result.totalQuestions > 0 ? (
+                <>
+                  {result.correctCount}/{result.totalQuestions}
+                  <span className="text-xs text-amber-700 block font-bold mt-0.5">
+                    ({result.score}/10đ)
+                  </span>
+                </>
+              ) : (
+                <>
+                  {result.score !== null ? result.score : "--"}
+                  <span className="text-sm text-amber-700">/10</span>
+                </>
+              )}
             </span>
           </div>
 
@@ -172,7 +199,7 @@ export function AiGradingResultCard({
       {teacherAssignment && (
         <div className="p-3 rounded-2xl bg-sky-50 border border-sky-200 flex flex-col gap-1 text-xs font-heading">
           <span className="font-black text-sky-800 flex items-center gap-1">
-            <span>📌 Đề bài cô giáo giao (AI đã đối chiếu):</span>
+            <span>📌 Yêu cầu cô giáo giao (AI đã đối chiếu):</span>
           </span>
           <p className="text-slate-700 font-medium italic leading-relaxed">
             &ldquo;{teacherAssignment}&rdquo;
@@ -186,13 +213,17 @@ export function AiGradingResultCard({
           <div className="flex items-center justify-between">
             <span className="font-heading font-black text-xs sm:text-sm text-slate-800 flex items-center gap-1.5">
               <FileText className="w-4 h-4 text-sky-600" />
-              <span>📝 Văn bản bài làm học sinh (AI đọc từ ảnh):</span>
+              <span>
+                {isPlatformProof
+                  ? "📊 Thông tin ghi nhận từ ảnh minh chứng:"
+                  : "📝 Văn bản bài làm học sinh (AI đọc từ ảnh):"}
+              </span>
             </span>
             <button
               type="button"
               onClick={handleCopyTranscript}
               className="cursor-pointer text-[11px] font-heading font-bold text-sky-700 hover:text-sky-900 bg-sky-100/70 hover:bg-sky-200/70 border border-sky-300/60 px-2 py-0.5 rounded-lg flex items-center gap-1 transition-colors"
-              title="Sao chép đoạn văn bản bài làm"
+              title="Sao chép nội dung"
             >
               {copiedTranscript ? (
                 <>
@@ -226,7 +257,9 @@ export function AiGradingResultCard({
           )}
 
           <p className="text-[10px] text-slate-500 font-heading italic">
-            *Chép nguyên văn 100% giữ nguyên từ viết sai của học sinh để giáo viên đối chiếu trực tiếp.
+            {isPlatformProof
+              ? "*AI tự động nhận diện số câu đúng, tổng điểm và trạng thái từ ảnh chụp màn hình."
+              : "*Chép nguyên văn 100% giữ nguyên từ viết sai của học sinh để giáo viên đối chiếu trực tiếp."}
           </p>
         </div>
       )}
@@ -398,7 +431,11 @@ export function AiGradingResultCard({
         <div className="flex flex-col gap-2">
           <h5 className="font-heading font-black text-xs sm:text-sm text-slate-800 flex items-center gap-1.5">
             <BookOpen className="w-4 h-4 text-sky-600" />
-            <span>Chi tiết từng câu trong bài làm:</span>
+            <span>
+              {isPlatformProof
+                ? "Chi tiết kết quả minh chứng:"
+                : "Chi tiết từng câu trong bài làm:"}
+            </span>
           </h5>
 
           <div className="space-y-2">

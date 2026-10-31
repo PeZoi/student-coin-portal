@@ -201,5 +201,53 @@ export function MissionListView({ initialMissions }: { initialMissions: MissionI
 }
 ```
 
+---
+
+### Quy tắc 7: Tuyệt đối không sử dụng kiểu `any` (No Explicit `any`)
+* **Lý do nghiêm cấm:** 
+  - Kiểu `any` phá vỡ hoàn toàn cơ chế kiểm tra kiểu (Type Safety) của TypeScript, che giấu lỗi lúc biên dịch và dễ gây crash ứng dụng khi chạy thực tế (Runtime Crash).
+  - Vi phạm quy tắc nghiêm ngặt của ESLint (`@typescript-eslint/no-explicit-any`).
+* **Quy chuẩn thay thế bắt buộc:**
+  1. **Khi chưa biết rõ cấu trúc dữ liệu (Dynamic API Response, JSON.parse):**
+     - Bắt buộc sử dụng `unknown` thay vì `any`.
+     - Sử dụng Type Narrowing (`typeof`, `instanceof`, Type Guard, hoặc Zod schema) trước khi truy cập thuộc tính của `unknown`.
+     - Với object động, sử dụng `Record<string, unknown>`.
+  2. **Bắt lỗi trong khối `catch`:**
+     - Sử dụng `catch (error: unknown)` hoặc `catch (error)`.
+     - Trích xuất thông điệp lỗi an toàn:
+       ```ts
+       const err = error instanceof Error ? error : new Error(String(error));
+       console.error(err.message);
+       ```
+  3. **Hàm nhận thuộc tính form / dynamic:**
+     - Sử dụng Generic Type (ví dụ `<K extends keyof T>(field: K, value: T[K])`) thay vì `(field: string, value: any)`.
+  4. **Payload và Dữ liệu API:**
+     - Bắt buộc định nghĩa interface/type cụ thể (ví dụ: `OpenAiResponse`, `AiGradingRawResponse`, `ChatCompletionPayload`) cho toàn bộ request payload và response.
+
+*Ví dụ chuẩn khi xử lý dữ liệu động & lỗi:*
+```ts
+// ❌ SAI: Dùng any vô tội vạ, dễ dính lỗi ESLint @typescript-eslint/no-explicit-any
+let json: any = null;
+try {
+  json = JSON.parse(responseText);
+} catch (err: any) {
+  console.error(err.message);
+}
+
+// ✅ ĐÚNG: Khai báo type rõ ràng, dùng unknown cho dữ liệu chưa xác thực
+interface ApiResponse {
+  choices?: { message?: { content?: string } }[];
+}
+
+let json: ApiResponse | null = null;
+try {
+  json = JSON.parse(responseText) as ApiResponse;
+} catch (error: unknown) {
+  const err = error instanceof Error ? error : new Error(String(error));
+  console.error(err.message);
+}
+```
+
+
 
 

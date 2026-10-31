@@ -5,7 +5,10 @@ import { toast } from "sonner";
 import {
   AiConfig,
   AiGradingResult,
+  CoinRewardMode,
   HomeworkSubmissionData,
+  PlatformProofCoinPolicy,
+  SubjectiveWritingCoinPolicy,
   SubmissionImageItem
 } from "../types";
 import { gradeHomeworkWithAi } from "../utils/aiGradingService";
@@ -160,9 +163,10 @@ export function useTestAiSubmission() {
         toast.success(
           `Đã nén tối ưu xong ${compressedResults.length} ảnh bài làm!`
         );
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const err = error instanceof Error ? error : new Error(String(error));
         toast.dismiss(toastId);
-        toast.error("Lỗi khi nén ảnh: " + (error.message || "Không xác định"));
+        toast.error("Lỗi khi nén ảnh: " + (err.message || "Không xác định"));
       } finally {
         setIsCompressing(false);
       }
@@ -201,32 +205,41 @@ export function useTestAiSubmission() {
 
   // Cập nhật các trường form bài tập
   const updateFormField = useCallback(
-    (field: keyof HomeworkSubmissionData, value: any) => {
+    <K extends keyof HomeworkSubmissionData>(
+      field: K,
+      value: HomeworkSubmissionData[K]
+    ) => {
       setSubmission((prev) => ({ ...prev, [field]: value }));
     },
     []
   );
 
   // Cấu hình cô giáo: Đổi chế độ xu (minh chứng nền tảng khác vs bài tự luận)
-  const setCoinRewardMode = useCallback((mode: any) => {
+  const setCoinRewardMode = useCallback((mode: CoinRewardMode) => {
     setSubmission((prev) => ({ ...prev, coinRewardMode: mode }));
   }, []);
 
   // Cấu hình cô giáo: Cập nhật xu bài minh chứng
-  const updatePlatformProofCoins = useCallback((updates: any) => {
-    setSubmission((prev) => ({
-      ...prev,
-      platformProofCoins: { ...prev.platformProofCoins, ...updates },
-    }));
-  }, []);
+  const updatePlatformProofCoins = useCallback(
+    (updates: Partial<PlatformProofCoinPolicy>) => {
+      setSubmission((prev) => ({
+        ...prev,
+        platformProofCoins: { ...prev.platformProofCoins, ...updates },
+      }));
+    },
+    []
+  );
 
   // Cấu hình cô giáo: Cập nhật xu bài tự luận
-  const updateSubjectiveCoins = useCallback((updates: any) => {
-    setSubmission((prev) => ({
-      ...prev,
-      subjectiveCoins: { ...prev.subjectiveCoins, ...updates },
-    }));
-  }, []);
+  const updateSubjectiveCoins = useCallback(
+    (updates: Partial<SubjectiveWritingCoinPolicy>) => {
+      setSubmission((prev) => ({
+        ...prev,
+        subjectiveCoins: { ...prev.subjectiveCoins, ...updates },
+      }));
+    },
+    []
+  );
 
   // Cấu hình cô giáo: Bật/tắt tiêu chí mục đích chấm
   const toggleGradingFocus = useCallback((focusId: string) => {
@@ -251,33 +264,58 @@ export function useTestAiSubmission() {
       return;
     }
 
-    if (!submission.homeworkTitle.trim()) {
-      toast.error("Vui lòng nhập tên bài tập!");
-      return;
+    const isPlatformProof = submission.coinRewardMode === "platform_proof";
+
+    // Đối với bài viết tự luận trong vở thì bắt buộc cần đề bài để AI đối chiếu
+    if (!isPlatformProof) {
+      if (!submission.homeworkTitle.trim()) {
+        toast.error("Vui lòng nhập tên bài tập!");
+        return;
+      }
+
+      if (!submission.teacherAssignment.trim()) {
+        toast.error(
+          "Vui lòng nhập hoặc chọn đề bài cô giáo giao để AI đối chiếu!"
+        );
+        return;
+      }
     }
 
-    if (!submission.teacherAssignment.trim()) {
-      toast.error(
-        "Vui lòng nhập hoặc chọn đề bài cô giáo giao để AI đối chiếu!"
-      );
-      return;
-    }
+    // Chuẩn bị submission đã chuẩn hóa tiêu đề và yêu cầu đề bài
+    const finalSubmission: HomeworkSubmissionData = {
+      ...submission,
+      homeworkTitle:
+        submission.homeworkTitle.trim() ||
+        (isPlatformProof
+          ? "Minh chứng kết quả trắc nghiệm online"
+          : "Bài tập Tiếng Anh"),
+      teacherAssignment:
+        submission.teacherAssignment.trim() ||
+        (isPlatformProof
+          ? "Hoàn thành bài tập trắc nghiệm trên hệ thống học tập"
+          : ""),
+    };
 
     setIsSubmitting(true);
     const submitToastId = toast.loading(
-      `AI đang đọc và chấm ${submission.images.length} trang bài làm...`
+      isPlatformProof
+        ? "AI đang đọc kết quả từ ảnh chụp màn hình..."
+        : `AI đang đọc và chấm ${submission.images.length} trang bài làm...`
     );
 
     try {
-      const result = await gradeHomeworkWithAi(submission, aiConfig);
+      const result = await gradeHomeworkWithAi(finalSubmission, aiConfig);
       setGradingResult(result);
       toast.dismiss(submitToastId);
       toast.success(
-        `AI đã chấm xong bài! Bạn đạt ${result.score}/10 điểm (+${result.coinReward} xu)`
+        isPlatformProof
+          ? `Đã nhận diện xong kết quả! Bạn đạt ${result.correctCount}/${result.totalQuestions} (+${result.coinReward} xu)`
+          : `AI đã chấm xong bài! Bạn đạt ${result.score}/10 điểm (+${result.coinReward} xu)`
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(String(error));
       toast.dismiss(submitToastId);
-      toast.error("Không thể kết nối đến AI API: " + error.message);
+      toast.error("Không thể kết nối đến AI API: " + err.message);
     } finally {
       setIsSubmitting(false);
     }
