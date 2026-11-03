@@ -76,6 +76,7 @@
 | `deleted_by` | UUID | FK -> users.id, NULL | Người thực hiện xóa mềm |
 | `failed_login_attempts` | INTEGER | DEFAULT 0, CHECK >= 0 | Số lần nhập sai mã PIN liên tiếp (Khóa sau 5 lần) |
 | `locked_until` | TIMESTAMP | NULL | Thời điểm hết hạn khóa tài khoản |
+| `updated_by` | UUID | FK -> users.id, NULL | Người cập nhật thông tin tài khoản gần nhất |
 | `created_at` | TIMESTAMP | DEFAULT now() | Ngày tạo |
 | `updated_at` | TIMESTAMP | DEFAULT now() | Ngày cập nhật |
 
@@ -120,6 +121,8 @@
 | `deleted_at` | TIMESTAMP | NULL | Thời điểm xóa mềm nhiệm vụ |
 | `deleted_by` | UUID | FK -> users.id, NULL | Người thực hiện xóa mềm |
 | `created_at` | TIMESTAMP | DEFAULT now() | Thời gian tạo |
+| `updated_by` | UUID | FK -> users.id, NULL | Người cập nhật bài tập gần nhất |
+| `updated_at` | TIMESTAMP | DEFAULT now() | Thời điểm cập nhật bài tập gần nhất |
 
 ### 3.3. Bảng Phân Công Nhiệm Vụ Cho Các Lớp (`mission_classes`)
 Cho phép 1 nhiệm vụ có thể giao cùng lúc cho 1 lớp hoặc **NHIỀU lớp cụ thể** (Quan hệ N-N). Học sinh thuộc các lớp được tích chọn sẽ nhìn thấy nhiệm vụ:
@@ -202,6 +205,8 @@ Phân định rõ vai trò hai lớp dữ liệu:
 | `is_media_purged`| BOOLEAN | NOT NULL, DEFAULT false | Cờ đánh dấu file ảnh đã được dọn dẹp khỏi Cloud Storage sau 60 ngày |
 | `media_purged_at`| TIMESTAMP | NULL | Thời điểm dọn dẹp file ảnh vật lý trên Cloud Storage |
 | `created_at` | TIMESTAMP | DEFAULT now() | Thời điểm học sinh nộp bài |
+| `updated_by` | UUID | FK -> users.id, NULL | Người cập nhật bài nộp gần nhất (Giáo viên duyệt/chấm lại hoặc Học sinh hủy) |
+| `updated_at` | TIMESTAMP | DEFAULT now() | Thời điểm cập nhật bài nộp gần nhất |
 
 > **Cơ chế chống nộp trùng lặp (Idempotency):**
 > Chỉ mục `uq_submissions_single_active` (`UNIQUE (mission_id, student_id) WHERE approval_status IN ('pending_approval', 'approved')`) đảm bảo mỗi học sinh chỉ có duy nhất 1 bài nộp đang chờ duyệt hoặc đã duyệt cho 1 nhiệm vụ. Học sinh chỉ được phép nộp lại nếu bài làm trước đó bị cô giáo từ chối (`rejected`) hoặc chính học sinh đã chủ động hủy bài trước hạn (`cancelled`).
@@ -234,7 +239,8 @@ Quản lý tập trung các bộ System Prompt chuyên biệt cho từng cơ ch�
 | `is_active` | BOOLEAN | DEFAULT true | Trạng thái kích hoạt |
 | `created_by` | UUID | FK -> users.id, NULL | Giáo viên/Admin tạo mẫu prompt |
 | `created_at` | TIMESTAMP | DEFAULT now() | Thời gian tạo |
-| `updated_at` | TIMESTAMP | DEFAULT now() | Thời điểm cập nhật |
+| `updated_by` | UUID | FK -> users.id, NULL | Người cập nhật mẫu prompt gần nhất |
+| `updated_at` | TIMESTAMP | DEFAULT now() | Thời điểm cập nhật lần cuối |
 
 ---
 
@@ -280,6 +286,9 @@ Quản lý tập trung các bộ System Prompt chuyên biệt cho từng cơ ch�
 | `slot_order` | INTEGER | NOT NULL | Vị trí nan quay từ 0 đến 7 (45 độ/nan) |
 | `created_by` | UUID | FK -> users.id, NULL | Giáo viên/Admin cấu hình |
 | `is_active` | BOOLEAN | DEFAULT true | Trạng thái hiển thị |
+| `created_at` | TIMESTAMP | DEFAULT now() | Thời điểm tạo giải thưởng |
+| `updated_by` | UUID | FK -> users.id, NULL | Người cập nhật giải thưởng gần nhất |
+| `updated_at` | TIMESTAMP | DEFAULT now() | Thời điểm cập nhật giải thưởng gần nhất |
 
 #### Bảng `wheel_spins` (Lịch sử từng lượt quay thưởng)
 | Tên cột | Kiểu dữ liệu | Thuộc tính | Diễn giải |
@@ -351,6 +360,8 @@ Vào đúng **23:59 ngày cuối cùng của tháng**, hệ thống tự động
 | `bonus_progress_coins`| INTEGER | DEFAULT 0 | Xu thưởng nỗ lực (Lấy từ `monthly_reward_configs`, giáo viên có thể chỉnh) |
 | `is_rewarded` | BOOLEAN | DEFAULT false | Đã tự động cộng xu vào Heo Đất chưa |
 | `closed_at` | TIMESTAMP | DEFAULT now() | Thời điểm chốt sổ |
+| `updated_by` | UUID | FK -> users.id, NULL | Giáo viên điều chỉnh mức thưởng xếp hạng / nỗ lực |
+| `updated_at` | TIMESTAMP | DEFAULT now() | Thời điểm cập nhật mức thưởng gần nhất |
 
 > **Cơ chế chống cộng thưởng trùng lặp (Idempotency):**
 > Ràng buộc `CONSTRAINT uq_monthly_leaderboard_entry UNIQUE (month, year, class_id, student_id)` đảm bảo mỗi học sinh chỉ có DUY NHẤT một dòng xếp hạng mỗi tháng. Ngay cả khi Cron Job cuối tháng chạy nhiều lần, DB sẽ ngăn chặn 100% việc tạo trùng và cộng xu lần 2.
@@ -408,6 +419,8 @@ Vào cuối tháng, học sinh đạt từ 5.000 xu trở lên được mở for
 | `processed_by` | UUID | FK -> users.id, NULL | Giáo viên trao quà/tiền |
 | `processed_at` | TIMESTAMP | NULL | Thời điểm hoàn tất trao |
 | `created_at` | TIMESTAMP | DEFAULT now() | Thời điểm gửi yêu cầu |
+| `updated_by` | UUID | FK -> users.id, NULL | Người cập nhật yêu cầu đổi quà gần nhất (Giáo viên duyệt/từ chối hoặc Học sinh hủy) |
+| `updated_at` | TIMESTAMP | DEFAULT now() | Thời điểm cập nhật yêu cầu gần nhất |
 
 #### Bảng `monthly_class_reports` (Lưu vết file Excel xuất cho Giáo viên)
 | Tên cột | Kiểu dữ liệu | Thuộc tính | Diễn giải |
@@ -421,6 +434,8 @@ Vào cuối tháng, học sinh đạt từ 5.000 xu trở lên được mở for
 | `sent_to_email` | VARCHAR(100) | NOT NULL | Email giáo viên nhận file |
 | `email_sent_status`| VARCHAR(20) | DEFAULT 'sent' | `sent`, `failed`, `pending` |
 | `generated_at` | TIMESTAMP | DEFAULT now() | Thời điểm xuất file |
+| `updated_by` | UUID | FK -> users.id, NULL | Người yêu cầu gửi lại / xuất lại báo cáo |
+| `updated_at` | TIMESTAMP | DEFAULT now() | Thời điểm cập nhật trạng thái báo cáo gần nhất |
 
 ---
 
@@ -516,6 +531,7 @@ Gửi thông báo tức thì đến Học sinh (bài tập được duyệt, nh�
 | `read_at` | TIMESTAMP | NULL | Thời điểm mở xem thông báo |
 | `created_by` | UUID | FK -> users.id, NULL | Người gửi (NULL nếu do hệ thống tự sinh) |
 | `created_at` | TIMESTAMP | DEFAULT now() | Thời điểm gửi thông báo |
+| `updated_at` | TIMESTAMP | DEFAULT now() | Thời điểm cập nhật trạng thái thông báo gần nhất |
 
 ### 8.5. Chính Sách Lưu Trữ Dữ Liệu & Dọn Dẹp Tự Động (Data Retention & Storage Purge Policy)
 Nhằm tối ưu hóa chi phí lưu trữ Cloud Storage (AWS S3, Supabase Storage, Google Cloud Storage, Cloudinary, ổ cứng máy chủ) và ngăn ngừa việc phình to cơ sở dữ liệu sau nhiều học kỳ, hệ thống áp dụng chiến lược **Lưu trữ 2 tầng (Two-Tier Storage Architecture)**:

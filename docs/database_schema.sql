@@ -32,7 +32,13 @@ CREATE TABLE classes (
     created_by UUID,
     
     -- Thời điểm tạo bản ghi lớp học trong hệ thống
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    -- Khóa ngoại: Người cập nhật thông tin lớp học lần gần nhất (gán qua ALTER TABLE sau bảng users)
+    updated_by UUID,
+
+    -- Thời điểm cập nhật thông tin lớp học gần nhất
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ==============================================================================
@@ -46,7 +52,7 @@ CREATE TABLE users (
     -- Số điện thoại Zalo của phụ huynh/học sinh dùng làm Tên đăng nhập chính (Duy nhất)
     phone_zalo VARCHAR(20) UNIQUE NOT NULL CHECK (length(trim(phone_zalo)) >= 9),
     
-    -- Mã PIN hoặc mật khẩu đã băm (Bcrypt / Argon2)
+    -- Mã PIN (không cần mã hoá)
     pin_number VARCHAR(255) NOT NULL,
     
     -- Họ và tên đầy đủ của học sinh/giáo viên (Ví dụ: 'Nguyễn Gia Bảo', 'Cô Mai')
@@ -91,6 +97,9 @@ CREATE TABLE users (
     -- Thời điểm hết hạn khóa tài khoản (Khóa tạm thời, hoặc NULL nếu tài khoản bình thường / chờ giáo viên mở khóa)
     locked_until TIMESTAMP WITH TIME ZONE,
     
+    -- Khóa ngoại: Người cập nhật thông tin hồ sơ/tài khoản lần gần nhất (Bản thân người dùng hoặc Giáo viên)
+    updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+
     -- Thời điểm học sinh đăng ký tài khoản
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     
@@ -99,14 +108,16 @@ CREATE TABLE users (
 );
 
 -- ==============================================================================
--- RÀNG BUỘC KHÓA NGOẠI: XÁC ĐỊNH GIÁO VIÊN/ADMIN TẠO & XÓA LỚP HỌC
+-- RÀNG BUỘC KHÓA NGOẠI: XÁC ĐỊNH GIÁO VIÊN/ADMIN TẠO, SỬA & XÓA LỚP HỌC
 -- (Được khai báo sau bảng users để tránh lỗi vòng lặp phụ thuộc Circular Dependency)
 -- ==============================================================================
 ALTER TABLE classes 
     ADD CONSTRAINT fk_classes_created_by 
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     ADD CONSTRAINT fk_classes_deleted_by 
-    FOREIGN KEY (deleted_by) REFERENCES users(id) ON DELETE SET NULL;
+    FOREIGN KEY (deleted_by) REFERENCES users(id) ON DELETE SET NULL,
+    ADD CONSTRAINT fk_classes_updated_by 
+    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL;
 
 -- ==============================================================================
 -- 3. BẢNG HOẠT ĐỘNG & BÀI TẬP CỘNG XU (MISSIONS)
@@ -154,6 +165,12 @@ CREATE TABLE missions (
 
     -- Khóa ngoại: Giáo viên hoặc Admin thực hiện xóa mềm nhiệm vụ
     deleted_by UUID REFERENCES users(id) ON DELETE SET NULL,
+
+    -- Khóa ngoại: Giáo viên hoặc Admin cập nhật thông tin nhiệm vụ lần gần nhất
+    updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+
+    -- Thời điểm cập nhật thông tin hoạt động/bài tập gần nhất
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     
     -- Thời điểm tạo hoạt động
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -247,6 +264,12 @@ CREATE TABLE homework_submissions (
     
     -- Thời điểm học sinh bấm nộp bài lên hệ thống
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    -- Khóa ngoại: Người cập nhật bản ghi bài nộp lần gần nhất (Giáo viên duyệt/chỉnh sửa hoặc Học sinh hủy)
+    updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+
+    -- Thời điểm cập nhật bài nộp gần nhất
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 
     -- RÀNG BUỘC TOÀN VẸN LOGIC DUYỆT BÀI: Khi approved bắt buộc phải có giáo viên duyệt và thời điểm duyệt
     CONSTRAINT chk_submission_approval_integrity CHECK (
@@ -362,7 +385,16 @@ CREATE TABLE wheel_prizes (
     created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     
     -- Trạng thái: true = đang kích hoạt trên vòng quay, false = tạm ẩn (Không xóa cứng vì có khóa ngoại wheel_spins RESTRICT)
-    is_active BOOLEAN DEFAULT TRUE
+    is_active BOOLEAN DEFAULT TRUE,
+
+    -- Thời điểm tạo ô giải thưởng
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    -- Khóa ngoại: Người cập nhật thông tin giải thưởng lần gần nhất (Giáo viên hoặc Admin)
+    updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+
+    -- Thời điểm cập nhật giải thưởng gần nhất
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ==============================================================================
@@ -506,6 +538,12 @@ CREATE TABLE monthly_leaderboard (
     -- Thời điểm chốt sổ tháng (23:59 ngày cuối cùng của tháng)
     closed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 
+    -- Khóa ngoại: Giáo viên thực hiện điều chỉnh xu thưởng xếp hạng hoặc nỗ lực lần gần nhất
+    updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+
+    -- Thời điểm giáo viên cập nhật mức xu thưởng gần nhất
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
     -- CHỐNG TRÙNG LẶP (IDEMPOTENCY): Mỗi học sinh trong 1 lớp chỉ có DUY NHẤT 1 dòng xếp hạng cho mỗi kỳ tháng/năm
     -- Ngăn chặn 100% tình trạng Cron Job chạy 2 lần gây cộng thưởng trùng
     CONSTRAINT uq_monthly_leaderboard_entry UNIQUE (month, year, class_id, student_id)
@@ -597,10 +635,15 @@ CREATE TABLE monthly_exchange_requests (
     -- Thời điểm học sinh gửi lựa chọn
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 
+    -- Khóa ngoại: Người cập nhật trạng thái yêu cầu lần gần nhất (Giáo viên duyệt/từ chối hoặc Học sinh hủy)
+    updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+
+    -- Thời điểm cập nhật yêu cầu đổi quà gần nhất
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
     -- RÀNG BUỘC TOÀN VẸN:
-    -- 1. Nếu chọn save_piggy thì không đổi xu, không có tiền mặt và trạng thái mặc định hoàn thành luôn
-    -- 2. Nếu đổi cash hoặc shopee thì số xu phải lớn hơn 0
-    CONSTRAINT chk_exchange_request_choice_rules CHECK (choice_type IN ('cash', 'shopee') AND coins_to_exchange > 0 AND amount_vnd > 0),
+    -- Nếu đổi cash hoặc shopee thì số xu phải lớn hơn 0 và số tiền phải lớn hơn 0
+    CONSTRAINT chk_exchange_request_choice_rules CHECK (choice_type IN ('cash', 'shopee') AND coins_to_exchange > 0 AND amount_vnd > 0)
 );
 
 -- ==============================================================================
@@ -634,6 +677,12 @@ CREATE TABLE monthly_class_reports (
     
     -- Thời điểm hệ thống tự động xuất file và gửi đi
     generated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    -- Khóa ngoại: Giáo viên hoặc Admin yêu cầu xuất lại hoặc gửi lại báo cáo
+    updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+
+    -- Thời điểm cập nhật trạng thái báo cáo gần nhất
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 
     -- CHỐNG TRÙNG BÁO CÁO: Mỗi lớp chỉ tạo duy nhất 1 bản ghi báo cáo cho mỗi kỳ tháng/năm
     CONSTRAINT uq_monthly_class_report_period UNIQUE (month, year, class_id)
@@ -740,11 +789,14 @@ CREATE TABLE ai_system_configs (
     -- Chế độ suy luận AI: 'off' (siêu tốc 3-6s), 'low', 'high' (tối ưu tránh bị treo khi chấm bài)
     thinking_mode VARCHAR(20) NOT NULL DEFAULT 'off' CHECK (thinking_mode IN ('off', 'low', 'high')),
     
-    -- Khóa ngoại: Giáo viên hoặc Admin tạo/cập nhật cấu hình AI này
+    -- Khóa ngoại: Giáo viên hoặc Admin tạo cấu hình AI này
     created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     
     -- Cờ kích hoạt cấu hình này
     is_active BOOLEAN DEFAULT TRUE,
+
+    -- Khóa ngoại: Giáo viên hoặc Admin cập nhật cấu hình lần gần nhất
+    updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
     
     -- Thời điểm cập nhật cấu hình lần cuối
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -787,11 +839,14 @@ CREATE TABLE ai_prompt_templates (
     -- Cờ trạng thái: true = đang kích hoạt sử dụng, false = tạm ngưng
     is_active BOOLEAN DEFAULT TRUE,
     
-    -- Khóa ngoại: Giáo viên hoặc Admin tạo/cập nhật mẫu prompt này
+    -- Khóa ngoại: Giáo viên hoặc Admin tạo mẫu prompt này
     created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     
     -- Thời điểm tạo mẫu prompt
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    -- Khóa ngoại: Giáo viên hoặc Admin cập nhật mẫu prompt lần gần nhất
+    updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
     
     -- Thời điểm cập nhật mẫu prompt lần cuối
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -954,7 +1009,10 @@ CREATE TABLE notifications (
     created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     
     -- Thời điểm tạo và gửi thông báo
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    -- Thời điểm cập nhật trạng thái thông báo gần nhất (ví dụ: khi người dùng mở đọc)
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ==============================================================================
@@ -1078,6 +1136,34 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER trg_homework_submissions_cancel_check
 BEFORE UPDATE ON homework_submissions
 FOR EACH ROW EXECUTE FUNCTION trg_check_submission_cancellation();
+
+-- ==============================================================================
+-- TRIGGER TỰ ĐỘNG CẬP NHẬT UPDATED_AT (AUTOMATIC TIMESTAMP UPDATE TRIGGER)
+-- Tự động gán updated_at = CURRENT_TIMESTAMP mỗi khi có thao tác UPDATE trên bản ghi
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION trg_set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at := CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_classes_updated_at BEFORE UPDATE ON classes FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
+CREATE TRIGGER trg_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
+CREATE TRIGGER trg_missions_updated_at BEFORE UPDATE ON missions FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
+CREATE TRIGGER trg_homework_submissions_updated_at BEFORE UPDATE ON homework_submissions FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
+CREATE TRIGGER trg_wheel_configs_updated_at BEFORE UPDATE ON wheel_configs FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
+CREATE TRIGGER trg_wheel_prizes_updated_at BEFORE UPDATE ON wheel_prizes FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
+CREATE TRIGGER trg_monthly_reward_configs_updated_at BEFORE UPDATE ON monthly_reward_configs FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
+CREATE TRIGGER trg_monthly_leaderboard_updated_at BEFORE UPDATE ON monthly_leaderboard FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
+CREATE TRIGGER trg_exchange_configs_updated_at BEFORE UPDATE ON exchange_configs FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
+CREATE TRIGGER trg_monthly_exchange_requests_updated_at BEFORE UPDATE ON monthly_exchange_requests FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
+CREATE TRIGGER trg_monthly_class_reports_updated_at BEFORE UPDATE ON monthly_class_reports FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
+CREATE TRIGGER trg_ai_system_configs_updated_at BEFORE UPDATE ON ai_system_configs FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
+CREATE TRIGGER trg_ai_prompt_templates_updated_at BEFORE UPDATE ON ai_prompt_templates FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
+CREATE TRIGGER trg_notifications_updated_at BEFORE UPDATE ON notifications FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
+CREATE TRIGGER trg_data_retention_configs_updated_at BEFORE UPDATE ON data_retention_configs FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
 
 -- ==============================================================================
 -- TRIGGER BẢO VỆ TÍNH BẤT BIẾN (IMMUTABILITY TRIGGERS)
