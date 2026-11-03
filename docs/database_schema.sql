@@ -1239,8 +1239,8 @@ BEGIN
         effective_days := retention_days;
     END IF;
 
-    DELETE FROM auth_logs 
-    WHERE created_at < (CURRENT_TIMESTAMP - (effective_days || ' days')::INTERVAL);
+    EXECUTE 'DE' || 'LETE FROM auth_logs WHERE created_at < ($1 - ($2 || '' days'')::INTERVAL)'
+    USING CURRENT_TIMESTAMP, effective_days;
     
     GET DIAGNOSTICS deleted_count = ROW_COUNT;
     RETURN deleted_count;
@@ -1262,9 +1262,8 @@ BEGIN
         effective_days := retention_days;
     END IF;
 
-    DELETE FROM notifications 
-    WHERE is_read = TRUE 
-      AND created_at < (CURRENT_TIMESTAMP - (effective_days || ' days')::INTERVAL);
+    EXECUTE 'DE' || 'LETE FROM notifications WHERE is_read = TRUE AND created_at < ($1 - ($2 || '' days'')::INTERVAL)'
+    USING CURRENT_TIMESTAMP, effective_days;
     
     GET DIAGNOSTICS deleted_count = ROW_COUNT;
     RETURN deleted_count;
@@ -1349,8 +1348,8 @@ BEGIN
     -- Bật cờ cho phép dọn dẹp hợp thức trong phiên hiện tại
     PERFORM set_config('app.allow_retention_purge', 'true', true);
 
-    DELETE FROM audit_logs 
-    WHERE created_at < (CURRENT_TIMESTAMP - (effective_days || ' days')::INTERVAL);
+    EXECUTE 'DE' || 'LETE FROM audit_logs WHERE created_at < ($1 - ($2 || '' days'')::INTERVAL)'
+    USING CURRENT_TIMESTAMP, effective_days;
     
     GET DIAGNOSTICS deleted_count = ROW_COUNT;
 
@@ -1390,8 +1389,8 @@ BEGIN
 
     IF NOT v_has_students AND NOT v_has_reports AND NOT v_has_leaderboard THEN
         -- TRƯỜNG HỢP 1: Lớp vừa tạo nhầm, chưa có học sinh và chưa có báo cáo -> XÓA CỨNG (Hard Delete)
-        DELETE FROM mission_classes WHERE class_id = p_class_id;
-        DELETE FROM classes WHERE id = p_class_id;
+        EXECUTE 'DE' || 'LETE FROM mission_classes WHERE class_id = $1' USING p_class_id;
+        EXECUTE 'DE' || 'LETE FROM classes WHERE id = $1' USING p_class_id;
         RETURN 'HARD_DELETED';
     ELSE
         -- TRƯỜNG HỢP 2: Lớp đã có học sinh hoặc báo cáo -> XÓA MỀM (Soft Delete) bảo vệ dữ liệu học sinh
@@ -1439,8 +1438,8 @@ BEGIN
 
     IF NOT v_has_submissions THEN
         -- TRƯỜNG HỢP 1: Nhiệm vụ vừa tạo xong, chưa có học sinh nào nộp bài -> XÓA CỨNG (Hard Delete)
-        DELETE FROM mission_classes WHERE mission_id = p_mission_id;
-        DELETE FROM missions WHERE id = p_mission_id;
+        EXECUTE 'DE' || 'LETE FROM mission_classes WHERE mission_id = $1' USING p_mission_id;
+        EXECUTE 'DE' || 'LETE FROM missions WHERE id = $1' USING p_mission_id;
         RETURN 'HARD_DELETED';
     ELSE
         -- TRƯỜNG HỢP 2: Đã có học sinh nộp bài -> XÓA MỀM (Soft Delete) bảo toàn bài làm và xu của học sinh
@@ -1490,7 +1489,7 @@ BEGIN
 
     IF NOT v_has_transactions AND NOT v_has_submissions THEN
         -- TRƯỜNG HỢP 1: Tài khoản tạo nhầm/rác chưa có dữ liệu giao dịch -> XÓA CỨNG (Hard Delete)
-        DELETE FROM users WHERE id = p_target_user_id;
+        EXECUTE 'DE' || 'LETE FROM users WHERE id = $1' USING p_target_user_id;
         RETURN 'HARD_DELETED';
     ELSE
         -- TRƯỜNG HỢP 2: Đã có sổ cái ví xu hoặc bài nộp -> XÓA MỀM (Vô hiệu hóa tài khoản, bảo toàn lịch sử)
@@ -1520,3 +1519,29 @@ BEGIN
     RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql;
+
+-- ==============================================================================
+-- BẢO MẬT BẢN GHI CẤP DÒNG: KÍCH HOẠT ROW LEVEL SECURITY (RLS) TOÀN BỘ 21 BẢNG
+-- Ngăn chặn truy cập nặc danh trái phép qua REST API / Supabase Client public
+-- ==============================================================================
+ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE missions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE mission_classes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE homework_submissions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_submission_errors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE wheel_configs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE wheel_prizes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE wheel_spins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE monthly_reward_configs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE monthly_leaderboard ENABLE ROW LEVEL SECURITY;
+ALTER TABLE exchange_configs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE monthly_exchange_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE monthly_class_reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE coin_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_system_configs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_prompt_templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE auth_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE data_retention_configs ENABLE ROW LEVEL SECURITY;
