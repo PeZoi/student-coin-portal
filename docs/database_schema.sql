@@ -50,10 +50,19 @@ CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     
     -- Số điện thoại Zalo của phụ huynh/học sinh dùng làm Tên đăng nhập chính (Duy nhất)
-    phone_zalo VARCHAR(20) UNIQUE NOT NULL CHECK (length(trim(phone_zalo)) >= 9),
+    phone_zalo VARCHAR(20) UNIQUE CHECK (phone_zalo IS NULL OR length(trim(phone_zalo)) >= 9),
     
-    -- Mã PIN (không cần mã hoá)
-    pin_number VARCHAR(255) NOT NULL,
+    -- Mã PIN (dành cho học sinh đăng nhập 4 số)
+    pin_number VARCHAR(255),
+
+    -- Tên đăng nhập (username) dành cho Giáo viên & Quản trị viên (Duy nhất)
+    username VARCHAR(50) UNIQUE CHECK (username IS NULL OR length(trim(username)) >= 3),
+
+    -- Địa chỉ Email (tùy chọn liên hệ hoặc nhận báo cáo)
+    email VARCHAR(255) UNIQUE CHECK (email IS NULL OR length(trim(email)) > 0),
+
+    -- Mật khẩu bảo mật (dành riêng cho Giáo viên & Quản trị viên)
+    password VARCHAR(255),
     
     -- Họ và tên đầy đủ của học sinh/giáo viên (Ví dụ: 'Nguyễn Gia Bảo', 'Cô Mai')
     full_name VARCHAR(100) NOT NULL CHECK (length(trim(full_name)) > 0),
@@ -104,7 +113,10 @@ CREATE TABLE users (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     
     -- Thời điểm cập nhật thông tin hồ sơ gần nhất
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    -- Ràng buộc toàn vẹn định danh: Bắt buộc phải có phone_zalo, username HOẶC email
+    CONSTRAINT chk_user_identifier CHECK (phone_zalo IS NOT NULL OR username IS NOT NULL OR email IS NOT NULL)
 );
 
 -- ==============================================================================
@@ -1069,6 +1081,8 @@ CREATE INDEX idx_missions_due ON missions(due_at, is_active);
 CREATE INDEX idx_mission_classes_class ON mission_classes(class_id);
 CREATE INDEX idx_mission_classes_mission ON mission_classes(mission_id);
 CREATE INDEX idx_users_phone ON users(phone_zalo);
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_class ON users(class_id);
 CREATE INDEX idx_submissions_student ON homework_submissions(student_id);
 CREATE INDEX idx_submissions_status ON homework_submissions(approval_status);

@@ -7,6 +7,9 @@ interface UserState {
   missions: Mission[];
   addCoins: (amount: number) => void;
   deductCoins: (amount: number) => boolean;
+  setStudent: (student: Partial<StudentProfile>) => void;
+  loginStudent: (phone_zalo: string, pin_number: string) => boolean;
+  registerStudent: (data: { full_name: string; class_id: string; phone_zalo: string; pin_number: string }) => boolean;
 }
 
 export const useUserStore = create<UserState>((set, get) => ({
@@ -27,6 +30,35 @@ export const useUserStore = create<UserState>((set, get) => ({
       student: {
         ...state.student,
         currentCoins: state.student.currentCoins - amount,
+      },
+    }));
+    return true;
+  },
+  setStudent: (updatedProfile) => {
+    set((state) => ({
+      student: {
+        ...state.student,
+        ...updatedProfile,
+      },
+    }));
+  },
+  loginStudent: (phone_zalo, _pin_number) => {
+    set((state) => ({
+      student: {
+        ...state.student,
+        name: phone_zalo.trim() ? `Bé (${phone_zalo.slice(-4)})` : state.student.name,
+      },
+    }));
+    return true;
+  },
+  registerStudent: (data) => {
+    set((state) => ({
+      student: {
+        ...state.student,
+        name: data.full_name,
+        classGroup: data.class_id,
+        piggyTitle: `HEO ĐẤT CỦA ${data.full_name.toUpperCase()}`,
+        currentCoins: 50,
       },
     }));
     return true;

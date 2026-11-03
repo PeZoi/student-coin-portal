@@ -1,7 +1,7 @@
 "use client";
 
 import { useUserStore } from "@/stores/useUserStore";
-import { Settings } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -103,6 +103,16 @@ export function StudentNavbar() {
         >
           <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 drop-shadow" />
         </button>
+
+        {/* Nút Đổi tài khoản / Đăng nhập */}
+        <Link
+          href="/login"
+          title="Đổi tài khoản / Đăng nhập"
+          aria-label="Đổi tài khoản"
+          className="w-8 h-8 sm:w-8.5 sm:h-8.5 lg:w-10 lg:h-10 rounded-full bg-[#003E8A] hover:bg-rose-600/90 border border-sky-300/35 flex items-center justify-center text-white shadow-md active:translate-y-0.5 transition-all cursor-pointer flex-shrink-0"
+        >
+          <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 drop-shadow" />
+        </Link>
       </div>
     </header>
   );
