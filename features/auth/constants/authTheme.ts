@@ -12,10 +12,10 @@ export const AUTH_THEME = {
     rounded: "rounded-[32px] sm:rounded-[36px]",
   },
 
-  // 4 đinh tán tròn bằng đồng/vàng ở 4 góc khung gỗ
+  // Đinh tán tròn đồng/vàng ~8px (w-2 h-2) đặt trong phần đệm khung gỗ, không đè lên tab/ruột thẻ
   rivet: {
     wrapper:
-      "w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-gradient-to-br from-[#FFEBA0] via-[#FFD76A] to-[#B38012] border-2 border-[#8A5A00] shadow-[0_2px_4px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.8)]",
+      "w-3 h-3 rounded-full bg-gradient-to-br from-[#FFEBA0] via-[#FFD76A] to-[#B38012] border border-[#8A5A00] shadow-[0_1px_2px_rgba(0,0,0,0.5),inset_0_0.5px_0.5px_rgba(255,255,255,0.8)] pointer-events-none",
   },
 
   // Tab chuyển đổi vai trò (Học sinh vs Giáo viên)

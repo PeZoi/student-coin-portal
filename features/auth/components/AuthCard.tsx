@@ -61,18 +61,14 @@ export function AuthCard({
           AUTH_THEME.board.rounded
         )}
       >
-        {/* 4 ĐINH TÁN TRÒN VÀNG ĐỒNG Ở 4 GÓC (CSS THUẦN) */}
+        {/* ĐINH TÁN VÀNG ĐỒNG ~8PX Ở 2 GÓC DƯỚI (CÁCH MÉP ~5-6PX, KHÔNG ĐÈ TAB/THẺ Ở 320–480PX) */}
         <div
-          className={cn("absolute top-2.5 left-2.5 pointer-events-none", AUTH_THEME.rivet.wrapper)}
+          className={cn("absolute bottom-1.5 left-2.5 pointer-events-none", AUTH_THEME.rivet.wrapper)}
+          aria-hidden="true"
         />
         <div
-          className={cn("absolute top-2.5 right-2.5 pointer-events-none", AUTH_THEME.rivet.wrapper)}
-        />
-        <div
-          className={cn("absolute bottom-2.5 left-2.5 pointer-events-none", AUTH_THEME.rivet.wrapper)}
-        />
-        <div
-          className={cn("absolute bottom-2.5 right-2.5 pointer-events-none", AUTH_THEME.rivet.wrapper)}
+          className={cn("absolute bottom-1.5 right-2.5 pointer-events-none", AUTH_THEME.rivet.wrapper)}
+          aria-hidden="true"
         />
 
         {/* ========================================================================= */}

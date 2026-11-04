@@ -13,7 +13,7 @@ interface AuthViewProps {
 
 export function AuthView({ initialRole = "student", initialMode = "login" }: AuthViewProps) {
   return (
-    <div className="relative min-h-dvh w-full flex flex-col items-center justify-center px-4 py-8 sm:py-12 antialiased selection:bg-yellow-300 selection:text-blue-900 bg-[#1672EA] overflow-x-hidden">
+    <div className="relative min-h-dvh w-full flex flex-col items-center justify-center px-3 sm:px-4 py-4 sm:py-8 md:py-12 antialiased selection:bg-yellow-300 selection:text-blue-900 bg-[#1672EA] overflow-x-hidden">
       {/* Nền Gradient cố định an toàn cho iOS Safari (tránh lỗi giật lag của backgroundAttachment: fixed) */}
       <div
         className="fixed inset-0 -z-10 pointer-events-none"
@@ -30,14 +30,14 @@ export function AuthView({ initialRole = "student", initialMode = "login" }: Aut
 
       {/* Main Content Area */}
       <main className="relative z-10 w-full max-w-lg flex flex-col items-center my-auto">
-        {/* Brand Logo tĩnh */}
-        <div className="mb-3 sm:mb-4 drop-shadow-[0_10px_25px_rgba(0,35,100,0.4)] select-none">
-          <div className="relative h-16 sm:h-20 md:h-24 aspect-[897/482]">
+        {/* Brand Logo tĩnh - Tăng kích thước 15-20% theo tỉ lệ 897/482, không gây tràn màn hình 360x640 */}
+        <div className="mb-2 sm:mb-3 drop-shadow-[0_10px_25px_rgba(0,35,100,0.4)] select-none">
+          <div className="relative h-20 sm:h-24 md:h-28 aspect-[897/482]">
             <Image
               src="/logo.png"
               alt="Spark the Present Logo"
               fill
-              sizes="(max-width: 640px) 180px, (max-width: 1024px) 220px, 260px"
+              sizes="(max-width: 640px) 210px, (max-width: 1024px) 260px, 300px"
               priority
               unoptimized
               className="object-contain"

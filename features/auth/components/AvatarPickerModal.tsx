@@ -172,7 +172,7 @@ export function AvatarPickerModal({
                     : "text-[#7A4E26] hover:text-[#421D05] hover:bg-white/40"
                 )}
               >
-                <span className="text-base select-none" aria-hidden="true">👦</span>
+                <span className="text-base select-none" aria-hidden="true">👨🏻‍🦰</span>
                 <span>Bé Trai</span>
               </button>
 
@@ -188,7 +188,7 @@ export function AvatarPickerModal({
                     : "text-[#7A4E26] hover:text-[#421D05] hover:bg-white/40"
                 )}
               >
-                <span className="text-base select-none" aria-hidden="true">👧</span>
+                <span className="text-base select-none" aria-hidden="true">👩🏻‍🦰</span>
                 <span>Bé Gái</span>
               </button>
             </div>
@@ -214,7 +214,7 @@ export function AvatarPickerModal({
                       currentChibi.gender === "female" ? "bg-pink-500" : "bg-sky-600"
                     )}
                   >
-                    {currentChibi.gender === "female" ? "👧 BÉ GÁI" : "👦 BÉ TRAI"}
+                    {currentChibi.gender === "female" ? "👩🏻‍🦰 BÉ GÁI" : "👨🏻‍🦰 BÉ TRAI"}
                   </span>
                   <span className="inline-block px-2 py-0.5 rounded-full text-[11px] font-heading font-black bg-amber-500 text-white">
                     ĐANG CHỌN
