@@ -34,3 +34,12 @@ export interface AuthStateProps {
   initialRole?: UserRole;
   initialMode?: AuthMode;
 }
+
+/**
+ * Thông tin lớp học lấy từ cơ sở dữ liệu (bảng `classes`)
+ */
+export interface ClassItem {
+  id: string;
+  class_name: string;
+}
+

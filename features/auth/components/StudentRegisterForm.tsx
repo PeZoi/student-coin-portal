@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { cn, onlyNumberKeyDown } from "@/lib/utils";
 import { DEFAULT_CHIBI_AVATAR } from "../constants/chibiAvatars";
-import { CLASS_OPTIONS } from "../constants/classOptions";
+import { useClasses } from "../hooks/useClasses";
 import { AvatarPickerModal } from "./AvatarPickerModal";
 import { StudentRegisterFormValues } from "../types";
 
@@ -36,6 +36,8 @@ export function StudentRegisterForm({
   // Công tắc hiển thị cả hai ô mã PIN cùng lúc
   const [showPins, setShowPins] = useState(false);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+
+  const { classOptions, isLoading: isLoadingClasses } = useClasses();
 
   const currentAvatarUrl = watch("avatar_url") || DEFAULT_CHIBI_AVATAR;
   const currentPin = watch("pin_number");
@@ -125,16 +127,16 @@ export function StudentRegisterForm({
         id="class_id"
         label="Lớp học của con"
         icon="🎓"
-        placeholder="Chọn lớp của con"
+        placeholder={isLoadingClasses ? "Đang tải lớp học..." : "Chọn lớp của con"}
         sheetTitle="Chọn lớp học của con"
         sheetTone="orange"
         searchable={true}
         searchPlaceholder="Tìm lớp (vd: 1A, 2B)..."
         optionLayout="grid"
         gridCols={3}
-        options={CLASS_OPTIONS.map((c) => ({ label: c, value: c }))}
+        options={classOptions}
         value={selectedClass}
-        disabled={isSubmitting}
+        disabled={isSubmitting || isLoadingClasses}
         error={errors.class_id?.message}
         {...register("class_id")}
       />
