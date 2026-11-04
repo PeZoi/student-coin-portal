@@ -21,6 +21,7 @@ export interface Button3DProps
   fullWidth?: boolean;
   gloss?: boolean;
   href?: string;
+  loading?: boolean;
   children?: React.ReactNode;
 }
 
@@ -32,6 +33,7 @@ export const Button3D = React.forwardRef<HTMLButtonElement, Button3DProps>(
       fullWidth = false,
       gloss = true,
       disabled = false,
+      loading = false,
       href,
       className,
       children,
@@ -40,21 +42,21 @@ export const Button3D = React.forwardRef<HTMLButtonElement, Button3DProps>(
     },
     ref
   ) => {
-    // Determine effective variant: if disabled prop is true, force disabled styling
+    // Xác định màu sắc: nếu disabled thì đổi sang xám, nếu loading thì giữ màu gốc
     const effectiveVariant = disabled ? "disabled" : variant;
 
-    // Base structural classes
+    // Lớp css cơ bản
     const baseClasses =
       "relative inline-flex items-center justify-center font-heading font-black select-none rounded-full transition-all duration-150";
 
-    // Size variants
+    // Kích thước nút bấm
     const sizeClasses: Record<Button3DSize, string> = {
       sm: "py-1.5 px-3 text-xs tracking-wide",
       md: "py-2.5 px-4 text-sm sm:text-[15px] tracking-wide",
       lg: "py-3 sm:py-3.5 px-6 text-base sm:text-lg lg:text-xl tracking-wider",
     };
 
-    // Color and 3D extrusion variants
+    // Bảng màu 3D dập nổi
     const variantClasses: Record<Button3DVariant, string> = {
       yellow:
         "bg-gradient-to-b from-[#FFE84D] via-[#FFBA08] to-[#F48C06] " +
@@ -72,7 +74,7 @@ export const Button3D = React.forwardRef<HTMLButtonElement, Button3DProps>(
         "bg-gradient-to-b from-[#FF7A00] via-[#FF6000] to-[#E64500] " +
         "shadow-[inset_0_2px_0_rgba(255,255,255,0.7),inset_0_-2px_0_rgba(0,0,0,0.2),0_6px_0_#8F1F00,0_10px_20px_rgba(0,0,0,0.25)] " +
         "active:translate-y-[4px] active:shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_2px_0_#8F1F00,0_4px_6px_rgba(0,0,0,0.2)] " +
-        "hover:brightness-105 text-white [text-shadow:_0_1.5px_0_#9E3500,_0_2px_4px_rgba(100,20,0,0.25)] cursor-pointer",
+        "hover:brightness-105 text-white [text-shadow:_0_1.5px_0_#9E3500,_0_2px_4px_rgba(100,20,0,0.25)] cursor-pointer overflow-hidden",
 
       blue:
         "bg-gradient-to-b from-[#38BDF8] via-[#0284C7] to-[#0369A1] " +
@@ -98,7 +100,7 @@ export const Button3D = React.forwardRef<HTMLButtonElement, Button3DProps>(
         "bg-slate-200 shadow-[0_3px_0_#CBD5E1] text-slate-500 font-bold cursor-default opacity-85",
     };
 
-    // Gloss sheen gradient (only applied if gloss is enabled and not disabled/slate)
+    // Lớp phủ bóng gradient
     const showGloss =
       gloss &&
       effectiveVariant !== "disabled" &&
@@ -110,18 +112,23 @@ export const Button3D = React.forwardRef<HTMLButtonElement, Button3DProps>(
       sizeClasses[size],
       variantClasses[effectiveVariant],
       fullWidth && "w-full",
+      loading &&
+        "cursor-wait brightness-95 pointer-events-none active:translate-y-0 active:shadow-none",
       className
     );
 
-    // If href is provided, render as next/link
-    if (href && !disabled && effectiveVariant !== "disabled") {
+    // Nếu có href thì render thẻ Link
+    if (href && !disabled && effectiveVariant !== "disabled" && !loading) {
       return (
-        <Link href={href} className={commonClasses}>
+        <Link
+          href={href}
+          className={commonClasses}
+          onClick={props.onClick as unknown as React.MouseEventHandler<HTMLAnchorElement>}
+          id={props.id}
+          title={props.title}
+        >
           {showGloss && (
-            <div
-              aria-hidden="true"
-              className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent rounded-t-full pointer-events-none z-0"
-            />
+            <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent rounded-t-full pointer-events-none z-0" />
           )}
           {children}
         </Link>
@@ -136,12 +143,9 @@ export const Button3D = React.forwardRef<HTMLButtonElement, Button3DProps>(
         className={commonClasses}
         {...props}
       >
-        {/* Top Gloss Sheen Layer */}
+        {/* Lớp phủ bóng trên */}
         {showGloss && (
-          <div
-            aria-hidden="true"
-            className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent rounded-t-full pointer-events-none z-0"
-          />
+          <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent rounded-t-full pointer-events-none z-0" />
         )}
 
         {children}

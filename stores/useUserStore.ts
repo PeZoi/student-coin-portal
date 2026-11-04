@@ -9,7 +9,7 @@ interface UserState {
   deductCoins: (amount: number) => boolean;
   setStudent: (student: Partial<StudentProfile>) => void;
   loginStudent: (phone_zalo: string, pin_number: string) => boolean;
-  registerStudent: (data: { full_name: string; class_id: string; phone_zalo: string; pin_number: string }) => boolean;
+  registerStudent: (data: { full_name: string; class_id: string; phone_zalo: string; pin_number: string; avatar_url?: string }) => boolean;
 }
 
 export const useUserStore = create<UserState>((set, get) => ({
@@ -57,6 +57,7 @@ export const useUserStore = create<UserState>((set, get) => ({
         ...state.student,
         name: data.full_name,
         classGroup: data.class_id,
+        avatarUrl: data.avatar_url || state.student.avatarUrl,
         piggyTitle: `HEO ĐẤT CỦA ${data.full_name.toUpperCase()}`,
         currentCoins: 50,
       },

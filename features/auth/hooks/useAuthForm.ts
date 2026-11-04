@@ -11,6 +11,7 @@ import {
   studentRegisterSchema,
   teacherLoginSchema,
 } from "../schemas/authSchemas";
+import { DEFAULT_CHIBI_AVATAR } from "../constants/chibiAvatars";
 import {
   AuthMode,
   StudentLoginFormValues,
@@ -43,7 +44,8 @@ export function useAuthForm(initialRole: UserRole = "student", initialMode: Auth
       phone_zalo: "",
       pin_number: "",
     },
-    mode: "onTouched",
+    mode: "onSubmit",
+    reValidateMode: "onChange",
   });
 
   // Form Đăng ký học sinh (bảng `users` & `classes`)
@@ -52,11 +54,13 @@ export function useAuthForm(initialRole: UserRole = "student", initialMode: Auth
     defaultValues: {
       full_name: "",
       phone_zalo: "",
-      class_id: "class-3a",
+      class_id: "",
       pin_number: "",
       confirm_pin_number: "",
+      avatar_url: DEFAULT_CHIBI_AVATAR,
     },
-    mode: "onTouched",
+    mode: "onSubmit",
+    reValidateMode: "onChange",
   });
 
   // Form Đăng nhập giáo viên (bảng `users.username` và `users.password`)
@@ -65,9 +69,9 @@ export function useAuthForm(initialRole: UserRole = "student", initialMode: Auth
     defaultValues: {
       username: "",
       password: "",
-      remember_me: true,
     },
-    mode: "onTouched",
+    mode: "onSubmit",
+    reValidateMode: "onChange",
   });
 
   // Xử lý nộp form đăng nhập học sinh
@@ -98,20 +102,23 @@ export function useAuthForm(initialRole: UserRole = "student", initialMode: Auth
   const handleStudentRegister = async (values: StudentRegisterFormValues) => {
     setIsSubmitting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 600));
+
+      console.log({ values });
 
       const success = registerStudent({
         full_name: values.full_name,
         class_id: values.class_id,
         phone_zalo: values.phone_zalo,
         pin_number: values.pin_number,
+        avatar_url: values.avatar_url,
       });
 
       if (success) {
-        toast.success(`Chúc mừng bé ${values.full_name} đã đăng ký thành công! ✨`, {
-          description: "Tặng bé 50 xu thưởng chào mừng thành viên mới!",
+        toast.success(`Chúc mừng bé đã đăng ký thành công! ✨`, {
+          description: "Hãy đăng nhập vào hệ thống nhé",
         });
-        router.push("/student");
+        studentRegisterForm.reset();
+        setMode("login");
       }
     } catch (error: unknown) {
       const err = error instanceof Error ? error : new Error(String(error));

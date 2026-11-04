@@ -19,6 +19,7 @@ export interface StudentRegisterFormValues {
   class_id: string;
   pin_number: string;
   confirm_pin_number: string;
+  avatar_url?: string;
 }
 
 /**
@@ -27,7 +28,6 @@ export interface StudentRegisterFormValues {
 export interface TeacherLoginFormValues {
   username: string;
   password: string;
-  remember_me?: boolean;
 }
 
 export interface AuthStateProps {

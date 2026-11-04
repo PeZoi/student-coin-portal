@@ -19,8 +19,12 @@ export const studentLoginSchema = z.object({
     .trim()
     .min(1, "Bé hoặc phụ huynh hãy nhập Số điện thoại Zalo nhé!")
     .regex(
-      /^[0-9]{9,15}$/,
-      "Số điện thoại Zalo chưa đúng định dạng (gồm từ 9 - 15 chữ số)."
+      /^[0-9]+$/,
+      "Số điện thoại chỉ được chứa chữ số, không được nhập chữ cái."
+    )
+    .regex(
+      /^0[0-9]{9}$/,
+      "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng số 0."
     ),
   pin_number: z
     .string()
@@ -43,14 +47,18 @@ export const studentRegisterSchema = z
       .string()
       .trim()
       .min(2, "Bé hãy nhập đầy đủ họ và tên nhé!")
-      .max(100, "Họ và tên không vượt quá 100 ký tự (theo chuẩn CSDL)."),
+      .max(100, "Họ và tên không vượt quá 100 ký tự ."),
     phone_zalo: z
       .string()
       .trim()
       .min(1, "Vui lòng nhập Số điện thoại Zalo của bố mẹ hoặc bé!")
       .regex(
-        /^[0-9]{9,15}$/,
-        "Số điện thoại Zalo phải gồm từ 9 đến 15 chữ số."
+        /^[0-9]+$/,
+        "Số điện thoại chỉ được chứa chữ số, không được nhập chữ cái."
+      )
+      .regex(
+        /^0[0-9]{9}$/,
+        "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng số 0."
       ),
     class_id: z
       .string()
@@ -64,6 +72,7 @@ export const studentRegisterSchema = z
       .string()
       .trim()
       .min(1, "Bé hãy nhập lại mã PIN một lần nữa nhé!"),
+    avatar_url: z.string().optional(),
   })
   .refine((data) => data.pin_number === data.confirm_pin_number, {
     message: "Mã PIN xác nhận chưa trùng khớp, bé kiểm tra lại nhé!",
@@ -74,7 +83,6 @@ export const studentRegisterSchema = z
  * Schema đăng nhập Giáo viên & Quản trị viên (bảng `users.username` và `users.password`)
  * - username: Tên đăng nhập của giáo viên / admin (tối thiểu 3 ký tự)
  * - password: Mật khẩu đăng nhập quản trị (tối thiểu 6 ký tự)
- * - remember_me: Ghi nhớ phiên đăng nhập trên thiết bị
  */
 export const teacherLoginSchema = z.object({
   username: z
@@ -87,5 +95,4 @@ export const teacherLoginSchema = z.object({
     .string()
     .min(1, "Thầy cô hãy nhập Mật khẩu nhé!")
     .min(6, "Mật khẩu quản trị phải có ít nhất 6 ký tự."),
-  remember_me: z.boolean().optional(),
 });

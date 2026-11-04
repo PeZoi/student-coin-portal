@@ -1,8 +1,32 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useImperativeHandle } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import React, {
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { AlertCircle, Check, ChevronDown, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import {
+  FIELD_BASE_BORDER,
+  FIELD_DISABLED,
+  FIELD_ERROR_BORDER,
+  FIELD_FOCUS_RING,
+  FIELD_LABEL,
+  FIELD_PLAIN_ICON,
+  FIELD_SIZES,
+  FIELD_TILE_ICON,
+  FIELD_VALUE_TEXT,
+  FIELD_VARIANTS,
+  FieldIconStyle,
+  FieldSize,
+  FieldVariant,
+} from "./fieldStyles";
+import { SelectSheet } from "./select/SelectSheet";
+import { SelectSheetTone } from "./select/selectTheme";
 
 export interface SelectOption {
   label: string;
@@ -10,8 +34,8 @@ export interface SelectOption {
   disabled?: boolean;
 }
 
-export type SelectSize = "sm" | "md" | "lg";
-export type SelectVariant = "default" | "cream" | "white";
+export type SelectSize = FieldSize;
+export type SelectVariant = FieldVariant;
 
 export interface SelectProps
   extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "size" | "onChange"> {
@@ -19,6 +43,8 @@ export interface SelectProps
   label?: string;
   /** Biểu tượng hoặc emoji hiển thị ở phía trước ô chọn */
   icon?: React.ReactNode;
+  /** Kiểu hiển thị icon: dạng ô vuông tile hoặc plain */
+  iconStyle?: FieldIconStyle;
   /** Danh sách các options */
   options: SelectOption[];
   /** Thông báo lỗi kiểm tra form */
@@ -27,7 +53,7 @@ export interface SelectProps
   helperText?: string;
   /** Placeholder hiển thị khi chưa có giá trị được chọn */
   placeholder?: string;
-  /** Kích thước của ô chọn */
+  /** Kích thước của ô chọn (sm: 40px, md: 48px, lg: 56px) */
   selectSize?: SelectSize;
   /** Biến thể màu sắc nền */
   variant?: SelectVariant;
@@ -39,6 +65,22 @@ export interface SelectProps
   wrapperClassName?: string;
   /** Callback khi thay đổi giá trị */
   onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+
+  // =========================================================================
+  // CÁC PROP TÙY CHỌN BỔ SUNG CHO BOTTOM SHEET TRÊN MOBILE & TÌM KIẾM
+  // =========================================================================
+  /** Tiêu đề của Bottom Sheet trên mobile (mặc định lấy từ label hoặc placeholder) */
+  sheetTitle?: string;
+  /** Tone màu của Header Bottom Sheet ("orange" | "blue" | "green" | "purple", mặc định "orange") */
+  sheetTone?: SelectSheetTone;
+  /** Kiểu bố trí các mục trong sheet ("auto" | "list" | "grid", mặc định "auto") */
+  optionLayout?: "auto" | "list" | "grid";
+  /** Số cột trong Grid Layout của sheet (mặc định: 3, tự co về 2 nếu nhãn dài) */
+  gridCols?: 2 | 3 | 4;
+  /** Cho phép tìm kiếm theo tên mục (mặc định: true) */
+  searchable?: boolean;
+  /** Placeholder cho ô tìm kiếm */
+  searchPlaceholder?: string;
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
@@ -46,10 +88,11 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     {
       label,
       icon,
+      iconStyle = "tile",
       options,
       error,
       helperText,
-      placeholder = "-- Chọn một mục --",
+      placeholder = "Chọn một mục",
       selectSize = "md",
       variant = "default",
       className,
@@ -62,18 +105,38 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       defaultValue,
       onChange,
       onBlur,
+      sheetTitle,
+      sheetTone = "orange",
+      optionLayout = "auto",
+      gridCols = 3,
+      searchable = true,
+      searchPlaceholder = "Tìm kiếm...",
       ...props
     },
     ref
   ) => {
-    // Quản lý trạng thái mở/đóng menu custom
-    const [isOpen, setIsOpen] = useState(false);
+    // Trạng thái mở/đóng dropdown trên desktop
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    // Trạng thái mở/đóng sheet trên mobile/cảm ứng
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
+    // Hướng mở dropdown: true là mở lên trên (flip-up), false là mở xuống dưới
+    const [openUpward, setOpenUpward] = useState(false);
+    // Chiều cao tối đa tính động cho dropdown trên desktop để không tràn viewport
+    const [dropdownMaxHeight, setDropdownMaxHeight] = useState<number>(240);
+    // Vị trí mục đang được focus qua phím mũi tên trên desktop dropdown
+    const [focusedIndex, setFocusedIndex] = useState<number>(-1);
+    // Từ khóa tìm kiếm trên Desktop Dropdown
+    const [desktopSearchQuery, setDesktopSearchQuery] = useState("");
 
-    // Giá trị hiện tại (hỗ trợ cả controlled và uncontrolled từ react-hook-form)
-    const initialVal = (controlledValue ?? defaultValue ?? (options.length > 0 ? options[0].value : "")) as string | number;
+    // Xác định kiểu hiển thị: Mobile/Touch dùng Sheet, Desktop dùng Dropdown
+    const isMobileOrTouch = useMediaQuery("(max-width: 639px), (pointer: coarse)");
+    const presentation: "sheet" | "dropdown" = isMobileOrTouch ? "sheet" : "dropdown";
+
+    // Giá trị hiện tại: Hỗ trợ controlled và uncontrolled từ react-hook-form
+    const initialVal = (controlledValue ?? defaultValue ?? "") as string | number;
     const [selectedValue, setSelectedValue] = useState<string | number>(initialVal);
 
-    // Đồng bộ khi controlledValue thay đổi từ bên ngoài (reset form, v.v.)
+    // Đồng bộ khi controlledValue từ react-hook-form thay đổi (form.reset(), form.setValue())
     useEffect(() => {
       if (controlledValue !== undefined) {
         setSelectedValue(controlledValue as string | number);
@@ -82,57 +145,78 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
 
     // DOM Refs
     const containerRef = useRef<HTMLDivElement | null>(null);
+    const triggerRef = useRef<HTMLButtonElement | null>(null);
+    const listboxRef = useRef<HTMLDivElement | null>(null);
+    const selectedItemRef = useRef<HTMLButtonElement | null>(null);
     const hiddenSelectRef = useRef<HTMLSelectElement | null>(null);
+    const typeaheadTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const typeaheadQueryRef = useRef<string>("");
 
-    // Forward ref cho hidden select để tương thích 100% với react-hook-form
+    // LUÔN LUÔN trỏ ref tới hidden native select ở MỌI thiết bị
     useImperativeHandle(ref, () => hiddenSelectRef.current as HTMLSelectElement);
 
-    // Tìm option đang được chọn để hiển thị nhãn
+    const sizeConfig = FIELD_SIZES[selectSize];
+
+    // Tìm option đang được chọn
     const selectedOption = options.find(
       (opt) => String(opt.value) === String(selectedValue)
     );
 
-    // Tự động sinh ID hỗ trợ Accessibility
-    const selectId = id || (label ? `select-${label.toLowerCase().replace(/\s+/g, "-")}` : undefined);
-    const errorId = selectId ? `${selectId}-error` : undefined;
-    const helperId = selectId ? `${selectId}-helper` : undefined;
-    const listboxId = selectId ? `${selectId}-listbox` : undefined;
+    // Lọc options trên Desktop Dropdown khi có tìm kiếm
+    const filteredDesktopOptions = useMemo(() => {
+      if (!searchable || !desktopSearchQuery.trim()) return options;
+      const q = desktopSearchQuery.trim().toLowerCase();
+      return options.filter((opt) => opt.label.toLowerCase().includes(q));
+    }, [options, searchable, desktopSearchQuery]);
 
-    // Kích thước chiều cao, padding và font chữ
-    const sizeConfig: Record<SelectSize, { container: string; text: string; icon: string; item: string }> = {
-      sm: {
-        container: "px-2.5 py-1.5 rounded-xl",
-        text: "text-xs",
-        icon: "w-5 h-5 text-base mr-1.5",
-        item: "px-2.5 py-1.5 text-xs",
-      },
-      md: {
-        container: "px-2.5 sm:px-3 py-2 transition-all rounded-2xl",
-        text: "text-xs sm:text-sm",
-        icon: "w-5 h-5 sm:w-6 sm:h-6 text-base sm:text-lg mr-1.5 sm:mr-2",
-        item: "px-3 py-2 text-xs sm:text-sm",
-      },
-      lg: {
-        container: "px-3.5 py-2.5 sm:py-3 rounded-2xl",
-        text: "text-sm sm:text-base",
-        icon: "w-7 h-7 text-xl sm:text-2xl mr-2.5",
-        item: "px-3.5 py-2.5 text-sm sm:text-base",
-      },
+    // Tính toán hướng mở (Flip-up) và max-height cho Desktop Dropdown
+    const calculateDirection = () => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const spaceBelow = viewportHeight - rect.bottom;
+      const spaceAbove = rect.top;
+
+      if (spaceBelow < 220 && spaceAbove > spaceBelow) {
+        setOpenUpward(true);
+        const maxH = Math.min(280, Math.max(160, spaceAbove - 16));
+        setDropdownMaxHeight(maxH);
+      } else {
+        setOpenUpward(false);
+        const maxH = Math.min(280, Math.max(160, spaceBelow - 16));
+        setDropdownMaxHeight(maxH);
+      }
     };
 
-    // Biến thể màu nền
-    const variantClasses: Record<SelectVariant, string> = {
-      default: "bg-white",
-      white: "bg-white",
-      cream: "bg-[#FFF9EA]",
+    const handleOpenDropdown = () => {
+      if (disabled) return;
+      setDesktopSearchQuery("");
+      calculateDirection();
+      setIsDropdownOpen(true);
+      const currentIndex = options.findIndex(
+        (opt) => String(opt.value) === String(selectedValue)
+      );
+      setFocusedIndex(currentIndex >= 0 ? currentIndex : 0);
+
+      // Tự động cuộn tới item đang chọn trong dropdown
+      setTimeout(() => {
+        selectedItemRef.current?.scrollIntoView({ block: "nearest" });
+      }, 50);
+    };
+
+    const handleCloseDropdown = () => {
+      setIsDropdownOpen(false);
+      setFocusedIndex(-1);
     };
 
     // Đóng dropdown khi click ra ngoài
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent | TouchEvent) => {
-        if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-          setIsOpen(false);
-          // Kích hoạt onBlur cho react-hook-form
+        if (
+          containerRef.current &&
+          !containerRef.current.contains(event.target as Node)
+        ) {
+          handleCloseDropdown();
           if (onBlur && hiddenSelectRef.current) {
             const blurEvent = new FocusEvent("blur");
             onBlur(blurEvent as unknown as React.FocusEvent<HTMLSelectElement>);
@@ -140,37 +224,29 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         }
       };
 
-      const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.key === "Escape") {
-          setIsOpen(false);
-        }
-      };
-
-      if (isOpen) {
+      if (isDropdownOpen) {
         document.addEventListener("mousedown", handleClickOutside);
         document.addEventListener("touchstart", handleClickOutside);
-        document.addEventListener("keydown", handleKeyDown);
       }
 
       return () => {
         document.removeEventListener("mousedown", handleClickOutside);
         document.removeEventListener("touchstart", handleClickOutside);
-        document.removeEventListener("keydown", handleKeyDown);
       };
-    }, [isOpen, onBlur]);
+    }, [isDropdownOpen, onBlur]);
 
-    // Xử lý khi chọn một mục
+    // Xử lý khi chọn một Option (dùng chung cho cả Dropdown và Bottom Sheet)
     const handleSelectOption = (option: SelectOption) => {
       if (option.disabled || disabled) return;
 
       setSelectedValue(option.value);
-      setIsOpen(false);
+      handleCloseDropdown();
+      setIsSheetOpen(false);
+      triggerRef.current?.focus();
 
-      // Cập nhật giá trị vào hidden select & kích hoạt sự kiện change cho react-hook-form
+      // Cập nhật giá trị vào hidden native select & dispatch change event cho react-hook-form
       if (hiddenSelectRef.current) {
         hiddenSelectRef.current.value = String(option.value);
-
-        // Tạo Synthetic event để truyền cho callback onChange
         const event = new Event("change", { bubbles: true });
         hiddenSelectRef.current.dispatchEvent(event);
 
@@ -184,14 +260,127 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       }
     };
 
+    // Xử lý khi click vào Trigger Button
+    const handleTriggerClick = () => {
+      if (disabled) return;
+
+      if (presentation === "sheet") {
+        setIsSheetOpen(true);
+      } else {
+        if (isDropdownOpen) {
+          handleCloseDropdown();
+        } else {
+          handleOpenDropdown();
+        }
+      }
+    };
+
+    // Xử lý bàn phím trên Desktop Trigger
+    const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+      if (disabled) return;
+
+      if (presentation === "sheet") {
+        if (
+          e.key === "Enter" ||
+          e.key === " " ||
+          e.key === "ArrowDown" ||
+          e.key === "ArrowUp"
+        ) {
+          e.preventDefault();
+          setIsSheetOpen(true);
+        }
+        return;
+      }
+
+      // Xử lý bàn phím cho Desktop Dropdown
+      if (!isDropdownOpen) {
+        if (
+          e.key === "ArrowDown" ||
+          e.key === "ArrowUp" ||
+          e.key === "Enter" ||
+          e.key === " "
+        ) {
+          e.preventDefault();
+          handleOpenDropdown();
+        }
+        return;
+      }
+
+      switch (e.key) {
+        case "ArrowDown": {
+          e.preventDefault();
+          setFocusedIndex((prev) =>
+            prev < filteredDesktopOptions.length - 1 ? prev + 1 : 0
+          );
+          break;
+        }
+        case "ArrowUp": {
+          e.preventDefault();
+          setFocusedIndex((prev) =>
+            prev > 0 ? prev - 1 : filteredDesktopOptions.length - 1
+          );
+          break;
+        }
+        case "Home": {
+          e.preventDefault();
+          setFocusedIndex(0);
+          break;
+        }
+        case "End": {
+          e.preventDefault();
+          setFocusedIndex(filteredDesktopOptions.length - 1);
+          break;
+        }
+        case "Enter":
+        case " ": {
+          e.preventDefault();
+          if (focusedIndex >= 0 && focusedIndex < filteredDesktopOptions.length) {
+            handleSelectOption(filteredDesktopOptions[focusedIndex]);
+          }
+          break;
+        }
+        case "Escape": {
+          e.preventDefault();
+          handleCloseDropdown();
+          triggerRef.current?.focus();
+          break;
+        }
+        case "Tab": {
+          handleCloseDropdown();
+          break;
+        }
+        default: {
+          // Typeahead search
+          if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault();
+            if (typeaheadTimerRef.current) {
+              clearTimeout(typeaheadTimerRef.current);
+            }
+            typeaheadQueryRef.current += e.key.toLowerCase();
+            typeaheadTimerRef.current = setTimeout(() => {
+              typeaheadQueryRef.current = "";
+            }, 500);
+
+            const matchIndex = filteredDesktopOptions.findIndex((opt) =>
+              opt.label.toLowerCase().startsWith(typeaheadQueryRef.current)
+            );
+            if (matchIndex >= 0) {
+              setFocusedIndex(matchIndex);
+            }
+          }
+          break;
+        }
+      }
+    };
+
     return (
-      <div className={cn("w-full flex flex-col", wrapperClassName)} ref={containerRef}>
+      <div
+        className={cn("w-full flex flex-col", wrapperClassName)}
+        ref={containerRef}
+      >
         {/* Label hoạt hình đồng bộ hệ thống */}
         {label && (
-          <label
-            htmlFor={selectId}
-            className="block font-heading font-extrabold text-xs sm:text-sm text-[#4A2307] mb-1 select-none"
-          >
+          <label htmlFor={id} className={FIELD_LABEL}>
             {label}
           </label>
         )}
@@ -199,26 +388,22 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         {/* Khung ô chọn (Custom Trigger) */}
         <div className="relative w-full">
           <button
+            ref={triggerRef}
             type="button"
-            role="combobox"
-            id={selectId}
+            id={id}
             disabled={disabled}
-            aria-haspopup="listbox"
-            aria-expanded={isOpen}
-            aria-controls={isOpen ? listboxId : undefined}
-            aria-invalid={!!error}
-            aria-describedby={error ? errorId : helperText ? helperId : undefined}
-            onClick={() => !disabled && setIsOpen((prev) => !prev)}
+            onClick={handleTriggerClick}
+            onKeyDown={handleTriggerKeyDown}
             className={cn(
-              "relative w-full flex items-center justify-between border-2 transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.06)] cursor-pointer select-none text-left",
-              variantClasses[variant],
-              sizeConfig[selectSize].container,
-              isOpen
-                ? "border-[#F59E0B] ring-2 ring-amber-400/30 scale-[1.005]"
+              "relative w-full flex items-center justify-between transition-all select-none text-left cursor-pointer",
+              FIELD_VARIANTS[variant],
+              sizeConfig.container,
+              isDropdownOpen || isSheetOpen
+                ? "border-2 border-[#D97706] ring-4 ring-amber-500/30"
                 : error
-                ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-400/30"
-                : "border-[#D8C7B0] hover:border-[#C4B097] focus:border-[#F59E0B] focus:ring-2 focus:ring-amber-400/30",
-              disabled && "opacity-60 bg-stone-100 cursor-not-allowed",
+                ? FIELD_ERROR_BORDER
+                : cn(FIELD_BASE_BORDER, FIELD_FOCUS_RING),
+              disabled && FIELD_DISABLED,
               containerClassName
             )}
           >
@@ -227,21 +412,24 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
               {icon && (
                 <div
                   className={cn(
-                    "flex-shrink-0 flex items-center justify-center select-none leading-none",
-                    sizeConfig[selectSize].icon
+                    iconStyle === "tile"
+                      ? cn(FIELD_TILE_ICON, sizeConfig.tileIcon)
+                      : cn(FIELD_PLAIN_ICON, sizeConfig.plainIcon)
                   )}
-                  aria-hidden="true"
                 >
                   {icon}
                 </div>
               )}
 
-              {/* Nhãn hiển thị của Option đang chọn */}
+              {/* Nhãn hiển thị của Option đang chọn hoặc Placeholder */}
               <span
                 className={cn(
-                  "font-sans font-bold truncate",
-                  sizeConfig[selectSize].text,
-                  selectedOption ? "text-[#3B1902]" : "text-[#A38E7D] font-normal",
+                  "truncate",
+                  FIELD_VALUE_TEXT,
+                  sizeConfig.text,
+                  selectedOption
+                    ? "text-[#3B1902]"
+                    : "text-[#A68A70] font-heading font-semibold",
                   className
                 )}
               >
@@ -249,71 +437,136 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
               </span>
             </div>
 
-            {/* Mũi tên xổ xuống tùy biến sinh động */}
+            {/* Mũi tên xổ xuống cố định 20px, màu #8C6D53 */}
             <div
               className={cn(
                 "flex-shrink-0 flex items-center justify-center text-[#8C6D53] transition-transform duration-200",
-                isOpen && "rotate-180 text-amber-600"
+                (isDropdownOpen || isSheetOpen) && "rotate-180 text-[#D97706]"
               )}
-              aria-hidden="true"
             >
-              <ChevronDown className="w-4 h-4" />
+              <ChevronDown className="w-5 h-5" />
             </div>
           </button>
 
           {/* ========================================================================= */}
-          {/* MENU DANH SÁCH OPTIONS TÙY BIẾN HOẠT HÌNH 3D (CUSTOM DROPDOWN LIST) */}
+          {/* MENU DROPDOWN TÙY BIẾN 3D CHO DESKTOP */}
           {/* ========================================================================= */}
-          {isOpen && (
+          {isDropdownOpen && presentation === "dropdown" && (
             <div
-              id={listboxId}
-              role="listbox"
+              ref={listboxRef}
               tabIndex={-1}
-              aria-label={label || placeholder}
-              className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-[#FFFDF7] border-2 border-[#D8C7B0] rounded-2xl shadow-[0_12px_28px_rgba(40,15,0,0.18),0_2px_6px_rgba(0,0,0,0.06)] p-1.5 max-h-56 overflow-y-auto animate-in fade-in zoom-in-95 duration-150"
+              style={{ maxHeight: `${dropdownMaxHeight}px` }}
+              className={cn(
+                "absolute left-0 right-0 z-50 bg-[#FFFDF7] border-2 border-[#B08A52] rounded-2xl shadow-[0_12px_28px_rgba(40,15,0,0.22),0_2px_6px_rgba(0,0,0,0.06)] p-1.5 overflow-y-auto scrollbar-thin animate-in fade-in duration-150",
+                openUpward ? "bottom-full mb-1.5" : "top-full mt-1.5"
+              )}
             >
-              {options.map((option) => {
-                const isSelected = String(option.value) === String(selectedValue);
-                return (
-                  <button
-                    type="button"
-                    key={String(option.value)}
-                    role="option"
-                    aria-selected={isSelected}
-                    disabled={option.disabled}
-                    onClick={() => handleSelectOption(option)}
-                    className={cn(
-                      "w-full flex items-center justify-between rounded-xl font-sans font-bold transition-all cursor-pointer mb-0.5 last:mb-0 text-left",
-                      sizeConfig[selectSize].item,
-                      option.disabled
-                        ? "opacity-40 cursor-not-allowed text-stone-400"
-                        : isSelected
-                        ? "bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]/80 shadow-sm"
-                        : "text-[#4A2307] hover:bg-[#FDF2D6] hover:text-[#78350F]"
+              {/* Ô tìm kiếm nhanh trên Desktop Dropdown nếu searchable được bật */}
+              {searchable && options.length > 5 && (
+                <div className="p-1 border-b border-[#E3D2B3]/60 mb-1 sticky top-0 bg-[#FFFDF7] z-10">
+                  <div className="relative flex items-center">
+                    <Search className="w-3.5 h-3.5 text-[#8C6D53] absolute left-2 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={desktopSearchQuery}
+                      onChange={(e) => setDesktopSearchQuery(e.target.value)}
+                      placeholder={searchPlaceholder}
+                      className="w-full h-8 pl-7 pr-6 bg-white border border-[#E3D2B3] focus:border-[#D97706] rounded-lg font-heading font-bold text-xs text-[#4A2307] placeholder:text-[#A68A70] outline-none"
+                    />
+                    {desktopSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setDesktopSearchQuery("")}
+                        className="absolute right-1.5 p-0.5 text-stone-400 hover:text-stone-600 rounded-full cursor-pointer"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     )}
-                  >
-                    <span className="truncate">{option.label}</span>
-                    {isSelected && (
-                      <Check className="w-4 h-4 text-amber-600 flex-shrink-0 ml-2 drop-shadow-sm" />
-                    )}
-                  </button>
-                );
-              })}
+                  </div>
+                </div>
+              )}
+
+              {filteredDesktopOptions.length === 0 ? (
+                <div className="py-4 text-center text-xs font-heading font-bold text-[#7A4E26]">
+                  Không tìm thấy kết quả nào
+                </div>
+              ) : (
+                filteredDesktopOptions.map((option, index) => {
+                  const isSelected =
+                    String(option.value) === String(selectedValue);
+                  const isFocused = index === focusedIndex;
+
+                  return (
+                    <button
+                      type="button"
+                      key={String(option.value)}
+                      ref={isSelected ? selectedItemRef : null}
+                      disabled={option.disabled}
+                      onClick={() => handleSelectOption(option)}
+                      onMouseEnter={() => setFocusedIndex(index)}
+                      className={cn(
+                        "w-full flex items-center justify-between rounded-xl font-heading font-black transition-all cursor-pointer mb-1 last:mb-0 text-left min-h-11 px-3 py-2 text-base",
+                        option.disabled
+                          ? "opacity-40 cursor-not-allowed text-stone-400"
+                          : isSelected
+                          ? "bg-[#FEF3C7] text-[#78350F] border border-[#F4C56A] shadow-xs"
+                          : isFocused
+                          ? "bg-[#FDF2D6] text-[#78350F]"
+                          : "text-[#4A2307] hover:bg-[#FDF2D6] hover:text-[#78350F]"
+                      )}
+                    >
+                      <span className="truncate">{option.label}</span>
+                      {/* Huy hiệu tích tròn xanh lá 20px đồng bộ với Sheet */}
+                      {isSelected && (
+                        <div className="w-5 h-5 rounded-full bg-[#16A34A] border-2 border-white shadow-[0_2px_4px_rgba(0,0,0,0.2)] flex items-center justify-center text-white flex-shrink-0 ml-2">
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })
+              )}
             </div>
           )}
         </div>
 
-        {/* Hidden Native Select để tương thích 100% với React Hook Form và HTML Form Submit */}
+        {/* ========================================================================= */}
+        {/* BOTTOM SHEET TỰ VẼ TRÊN MOBILE / THIẾT BỊ CẢM ỨNG (RENDER QUA PORTAL) */}
+        {/* ========================================================================= */}
+        {presentation === "sheet" && isSheetOpen && (
+          <SelectSheet
+            isOpen={isSheetOpen}
+            onClose={() => {
+              setIsSheetOpen(false);
+              triggerRef.current?.focus();
+            }}
+            title={sheetTitle || label || placeholder}
+            icon={icon}
+            tone={sheetTone}
+            options={options}
+            selectedValue={selectedValue}
+            onSelect={handleSelectOption}
+            optionLayout={optionLayout}
+            gridCols={gridCols}
+            searchable={searchable}
+            searchPlaceholder={searchPlaceholder}
+          />
+        )}
+
+        {/* ========================================================================= */}
+        {/* DUY NHẤT 1 NATIVE HIDDEN SELECT PHỤC VỤ 100% CHO REACT-HOOK-FORM & SUBMIT */}
+        {/* ========================================================================= */}
         <select
           ref={hiddenSelectRef}
+          id={id ? `${id}-hidden` : undefined}
           name={name}
           value={String(selectedValue)}
           onChange={() => {}}
           tabIndex={-1}
-          aria-hidden="true"
           className="sr-only"
           {...props}
         >
+          <option value="">{placeholder}</option>
           {options.map((opt) => (
             <option key={String(opt.value)} value={opt.value}>
               {opt.label}
@@ -321,16 +574,17 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           ))}
         </select>
 
-        {/* Thông báo lỗi validation */}
+        {/* Thông báo lỗi validation kèm icon cảnh báo */}
         {error && (
-          <p id={errorId} className="mt-1 text-xs font-bold text-red-600 pl-1.5 animate-fadeIn">
-            {error}
-          </p>
+          <div className="flex items-center gap-1.5 mt-1.5 pl-1 text-[13px] font-bold text-[#DC2626] animate-in fade-in duration-150">
+            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 text-[#DC2626]" />
+            <span>{error}</span>
+          </div>
         )}
 
         {/* Chú thích trợ giúp */}
         {!error && helperText && (
-          <p id={helperId} className="mt-0.5 text-xs text-[#7A5433] pl-1.5">
+          <p className="mt-1 text-[13px] text-[#7A5433] pl-1 font-medium">
             {helperText}
           </p>
         )}
