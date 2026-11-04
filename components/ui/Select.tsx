@@ -1,6 +1,7 @@
 "use client";
 
 import React, {
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -209,6 +210,24 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       setFocusedIndex(-1);
     };
 
+    // Kích hoạt onBlur an toàn cho react-hook-form (tránh lỗi null.name khi blurEvent.target là null)
+    const triggerBlur = useCallback(() => {
+      if (hiddenSelectRef.current) {
+        // Dispatch native blur event lên thẻ select ẩn
+        const blurEvent = new Event("blur", { bubbles: true });
+        hiddenSelectRef.current.dispatchEvent(blurEvent);
+
+        // Gọi callback onBlur của react-hook-form với SyntheticEvent có target đầy đủ
+        if (onBlur) {
+          const syntheticBlurEvent = {
+            target: hiddenSelectRef.current,
+            currentTarget: hiddenSelectRef.current,
+          } as unknown as React.FocusEvent<HTMLSelectElement>;
+          onBlur(syntheticBlurEvent);
+        }
+      }
+    }, [onBlur]);
+
     // Đóng dropdown khi click ra ngoài
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent | TouchEvent) => {
@@ -217,10 +236,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           !containerRef.current.contains(event.target as Node)
         ) {
           handleCloseDropdown();
-          if (onBlur && hiddenSelectRef.current) {
-            const blurEvent = new FocusEvent("blur");
-            onBlur(blurEvent as unknown as React.FocusEvent<HTMLSelectElement>);
-          }
+          triggerBlur();
         }
       };
 
@@ -233,7 +249,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         document.removeEventListener("mousedown", handleClickOutside);
         document.removeEventListener("touchstart", handleClickOutside);
       };
-    }, [isDropdownOpen, onBlur]);
+    }, [isDropdownOpen, triggerBlur]);
 
     // Xử lý khi chọn một Option (dùng chung cho cả Dropdown và Bottom Sheet)
     const handleSelectOption = (option: SelectOption) => {
@@ -342,11 +358,13 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         case "Escape": {
           e.preventDefault();
           handleCloseDropdown();
+          triggerBlur();
           triggerRef.current?.focus();
           break;
         }
         case "Tab": {
           handleCloseDropdown();
+          triggerBlur();
           break;
         }
         default: {
@@ -538,6 +556,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             isOpen={isSheetOpen}
             onClose={() => {
               setIsSheetOpen(false);
+              triggerBlur();
               triggerRef.current?.focus();
             }}
             title={sheetTitle || label || placeholder}

@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useUserStore } from "@/stores/useUserStore";
+import { getErrorMessage } from "@/lib/http/httpClient";
+import { authService } from "../services/authService";
 import {
   studentLoginSchema,
   studentRegisterSchema,
@@ -23,7 +25,7 @@ import {
 export function useAuthForm(initialRole: UserRole = "student", initialMode: AuthMode = "login") {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { loginStudent, registerStudent } = useUserStore();
+  const { loginStudent } = useUserStore();
 
   const roleParam = searchParams?.get("role");
   const modeParam = searchParams?.get("mode");
@@ -102,28 +104,22 @@ export function useAuthForm(initialRole: UserRole = "student", initialMode: Auth
   const handleStudentRegister = async (values: StudentRegisterFormValues) => {
     setIsSubmitting(true);
     try {
+      // 1. Gọi Service Layer để gửi dữ liệu lên POST /api/auth/register
+      await authService.registerStudent(values);
 
-      console.log({ values });
-
-      const success = registerStudent({
-        full_name: values.full_name,
-        class_id: values.class_id,
-        phone_zalo: values.phone_zalo,
-        pin_number: values.pin_number,
-        avatar_url: values.avatar_url,
+      // 2. Thông báo thành công và chuyển hướng sang chế độ đăng nhập
+      toast.success("Chúc mừng bé đã tạo tài khoản thành công! 🎉", {
+        description: "Bé hãy đăng nhập để bắt đầu hành trình học tập nhé!",
       });
 
-      if (success) {
-        toast.success(`Chúc mừng bé đã đăng ký thành công! ✨`, {
-          description: "Hãy đăng nhập vào hệ thống nhé",
-        });
-        studentRegisterForm.reset();
-        setMode("login");
-      }
+      // Tự động điền số điện thoại Zalo vừa đăng ký vào form đăng nhập để bé tiện đăng nhập
+      studentLoginForm.setValue("phone_zalo", values.phone_zalo);
+      studentRegisterForm.reset();
+      setMode("login");
     } catch (error: unknown) {
-      const err = error instanceof Error ? error : new Error(String(error));
+      const message = getErrorMessage(error);
       toast.error("Đăng ký tài khoản chưa thành công!", {
-        description: err.message || "Vui lòng thử lại sau ít phút.",
+        description: message,
       });
     } finally {
       setIsSubmitting(false);

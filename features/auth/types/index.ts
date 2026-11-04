@@ -43,3 +43,16 @@ export interface ClassItem {
   class_name: string;
 }
 
+/**
+ * Thông tin học sinh trả về sau khi đăng ký thành công
+ */
+export interface RegisteredStudentData {
+  id: string;
+  full_name: string;
+  phone_zalo: string;
+  class_id: string;
+  avatar_url: string;
+  current_coins: number;
+  role: string;
+}
+
