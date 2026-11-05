@@ -40,10 +40,10 @@ export const ROLE_PERMISSIONS: Record<string, RoleAccessRule> = {
     defaultHome: "/student",
   },
 
-  // Giáo viên: Truy cập khu vực quản trị /admin
+  // Giáo viên: Truy cập khu vực quản trị /teacher
   teacher: {
-    allowedPrefixes: ["/admin"],
-    defaultHome: "/admin/dashboard",
+    allowedPrefixes: ["/teacher"],
+    defaultHome: "/teacher/dashboard",
   },
 
   // Quản trị viên (Admin): Toàn quyền truy cập cả /admin và /student

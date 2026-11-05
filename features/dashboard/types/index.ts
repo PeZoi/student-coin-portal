@@ -17,7 +17,7 @@ export interface StudentProfile {
   // Chuẩn hóa theo Database Schema và Module Auth
   id?: string;
   full_name: string;
-  displayName: string;
+  display_name: string;
   phone_zalo?: string;
   avatar_url: string;
   current_coins: number;
@@ -26,13 +26,4 @@ export interface StudentProfile {
   piggy_title: string;
   next_tier_coins?: number;
   next_tier_title?: string;
-
-  // Thuộc tính tương thích ngược (Aliases)
-  name: string;
-  avatarUrl: string;
-  currentCoins: number;
-  classGroup: string;
-  piggyTitle: string;
-  nextTierCoins?: number;
-  nextTierTitle?: string;
 }

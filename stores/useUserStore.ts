@@ -28,7 +28,7 @@ export function buildStudentProfile(payload: StudentSessionPayload): StudentProf
   return {
     id: payload.id,
     full_name: payload.full_name,
-    displayName,
+    display_name: displayName,
     phone_zalo: payload.phone_zalo,
     avatar_url: avatar,
     current_coins: coins,
@@ -37,15 +37,6 @@ export function buildStudentProfile(payload: StudentSessionPayload): StudentProf
     piggy_title: piggyTitle,
     next_tier_coins: 100,
     next_tier_title: "Heo Đất Nhỏ",
-
-    // Thuộc tính tương thích ngược (Aliases)
-    name: displayName,
-    avatarUrl: avatar,
-    currentCoins: coins,
-    classGroup: className,
-    piggyTitle,
-    nextTierCoins: 100,
-    nextTierTitle: "Heo Đất Nhỏ",
   };
 }
 
@@ -71,12 +62,11 @@ export const useUserStore = create<UserState>()(
       addCoins: (amount: number) => {
         set((state) => {
           if (!state.student) return state;
-          const nextCoins = (state.student.current_coins ?? state.student.currentCoins ?? 0) + amount;
+          const nextCoins = (state.student.current_coins ?? 0) + amount;
           return {
             student: {
               ...state.student,
               current_coins: nextCoins,
-              currentCoins: nextCoins,
             },
           };
         });
@@ -86,7 +76,7 @@ export const useUserStore = create<UserState>()(
         const currentStudent = get().student;
         if (!currentStudent) return false;
 
-        const current = currentStudent.current_coins ?? currentStudent.currentCoins ?? 0;
+        const current = currentStudent.current_coins ?? 0;
         if (current < amount) return false;
 
         const nextCoins = current - amount;
@@ -96,7 +86,6 @@ export const useUserStore = create<UserState>()(
             student: {
               ...state.student,
               current_coins: nextCoins,
-              currentCoins: nextCoins,
             },
           };
         });

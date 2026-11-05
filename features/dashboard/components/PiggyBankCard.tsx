@@ -30,8 +30,8 @@ export interface PiggyBankCardProps {
 
 export function PiggyBankCard({ className }: PiggyBankCardProps = {}) {
   const { student } = useUserStore();
-  const piggyTitle = student?.piggy_title || student?.piggyTitle || "HEO ĐẤT CỦA BẠN";
-  const currentCoins = student?.current_coins ?? student?.currentCoins ?? 0;
+  const piggyTitle = student?.piggy_title || "HEO ĐẤT CỦA BẠN";
+  const currentCoins = student?.current_coins ?? 0;
   const isMobileDevice = useSyncExternalStore(subscribeMediaQuery, getMobileTouchSnapshot, getServerSnapshot);
 
   // Kích hoạt xin quyền con quay hồi chuyển trên iOS 13+ khi người dùng chạm vào thẻ

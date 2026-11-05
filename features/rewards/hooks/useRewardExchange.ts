@@ -18,7 +18,7 @@ export function useRewardExchange() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Học sinh có ít nhất 5.000 xu không
-  const currentCoins = student?.currentCoins ?? 0;
+  const currentCoins = student?.current_coins ?? 0;
   const canExchange = currentCoins >= COIN_STEP;
 
   // Xác nhận đổi tiền mặt trong popup
