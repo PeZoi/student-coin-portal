@@ -147,7 +147,7 @@ export async function httpClient<T = unknown>(
     body: customBody,
     params,
     headers: rawHeaders,
-    timeoutMs = 15000,
+    timeoutMs = 60000,
     skipUnauthorizedHandler = false,
     parse,
     baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "",

@@ -12,12 +12,6 @@ export const AUTH_THEME = {
     rounded: "rounded-[32px] sm:rounded-[36px]",
   },
 
-  // Đinh tán tròn đồng/vàng ~8px (w-2 h-2) đặt trong phần đệm khung gỗ, không đè lên tab/ruột thẻ
-  rivet: {
-    wrapper:
-      "w-3 h-3 rounded-full bg-gradient-to-br from-[#FFEBA0] via-[#FFD76A] to-[#B38012] border border-[#8A5A00] shadow-[0_1px_2px_rgba(0,0,0,0.5),inset_0_0.5px_0.5px_rgba(255,255,255,0.8)] pointer-events-none",
-  },
-
   // Tab chuyển đổi vai trò (Học sinh vs Giáo viên)
   roleTab: {
     active:
@@ -26,9 +20,9 @@ export const AUTH_THEME = {
       "bg-[#6B3510] text-[#FFE9CC] hover:bg-[#7D3E13] border-2 border-[#4A2208] shadow-inner",
   },
 
-  // Ruột thẻ giấy kem vàng (Inner Vanilla Card)
+  // Ruột thẻ giấy kem vàng (Inner Vanilla Card - Gradient kem ấm áp có chiều sâu 3D)
   card: {
-    bg: "bg-[#FFF8E6]",
+    bg: "bg-gradient-to-b from-[#FFFDF8] via-[#FFF8E7] to-[#FFF0D4]",
     border: "border-[3px] border-[#E8D2A8]",
     shadow:
       "shadow-[inset_0_2px_4px_rgba(0,0,0,0.06),0_6px_12px_rgba(0,0,0,0.15)]",

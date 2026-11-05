@@ -141,3 +141,54 @@ h1, h2, h3, h4, h5, h6 {
   will-change: opacity;
 }
 
+/* Hiệu ứng rung nhẹ khi nhập sai mã PIN hoặc có lỗi form */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-6px);
+  }
+  40%, 80% {
+    transform: translateX(6px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* Hiệu ứng loang màu thở chậm mờ ảo hiện đại (Ambient Aura Breathing Glow) */
+@keyframes ambientGlow1 {
+  0%, 100% {
+    opacity: 0.25;
+    transform: translate3d(0, 0, 0) scale(0.92);
+  }
+  50% {
+    opacity: 0.85;
+    transform: translate3d(12px, -8px, 0) scale(1.18);
+  }
+}
+
+@keyframes ambientGlow2 {
+  0%, 100% {
+    opacity: 0.2;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate3d(-10px, 12px, 0) scale(1.2);
+  }
+}
+
+.animate-ambient-glow-1 {
+  animation: ambientGlow1 8s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.animate-ambient-glow-2 {
+  animation: ambientGlow2 9s ease-in-out infinite 2.5s;
+  will-change: transform, opacity;
+}
+
+

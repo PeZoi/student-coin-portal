@@ -34,3 +34,18 @@ export function onlyNumberKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
   }
 }
 
+/**
+ * Trích xuất tên gọi ngắn gọn từ họ và tên đầy đủ của học sinh
+ * - Ví dụ: "Phạm Ngọc Viễn Đông" -> "Đông"
+ * - "Nguyễn Văn A" -> "A"
+ * - Nếu không có tên hoặc rỗng, trả về "Học sinh"
+ */
+export function getDisplayName(fullName?: string | null): string {
+  if (!fullName || typeof fullName !== "string") return "Học sinh";
+  const trimmed = fullName.trim();
+  if (!trimmed) return "Học sinh";
+  const words = trimmed.split(/\s+/);
+  return words[words.length - 1] || "Học sinh";
+}
+
+

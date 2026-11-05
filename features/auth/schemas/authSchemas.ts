@@ -9,15 +9,16 @@ import { z } from "zod";
  */
 
 /**
- * Schema đăng nhập học sinh
- * - phone_zalo: Số điện thoại Zalo của phụ huynh/học sinh dùng làm Tên đăng nhập chính (Duy nhất, length >= 9)
- * - pin_number: Mã PIN (4 số bí mật)
+ * Schema đăng nhập học sinh (bước 1: nhập Số điện thoại Zalo để tra cứu hồ sơ)
+ * - phone_zalo: Đúng 10 chữ số, bắt đầu bằng số 0
  */
 export const studentLoginSchema = z.object({
   phone_zalo: z
-    .string()
+    .string({
+      error: "Bé hãy nhập Số điện thoại nhé!",
+    })
     .trim()
-    .min(1, "Bé hoặc phụ huynh hãy nhập Số điện thoại Zalo nhé!")
+    .min(1, "Bé hãy nhập Số điện thoại nhé!")
     .regex(
       /^[0-9]+$/,
       "Số điện thoại chỉ được chứa chữ số, không được nhập chữ cái."
@@ -26,10 +27,25 @@ export const studentLoginSchema = z.object({
       /^0[0-9]{9}$/,
       "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng số 0."
     ),
-  pin_number: z
-    .string()
+});
+
+/**
+ * Schema xác thực mã PIN học sinh (bước 2: nhập mã PIN OTP trong popup)
+ */
+export const studentPinVerificationSchema = z.object({
+  phone_zalo: z
+    .string({
+      error: "Thiếu số điện thoại.",
+    })
     .trim()
-    .min(1, "Bé hãy nhập mã PIN gồm 4 số nhé!")
+    .min(1, "Thiếu số điện thoại.")
+    .regex(/^0[0-9]{9}$/, "Số điện thoại không đúng định dạng."),
+  pin_number: z
+    .string({
+      error: "Bé hãy nhập đủ 4 số PIN nhé!",
+    })
+    .trim()
+    .min(1, "Bé hãy nhập đủ 4 số PIN nhé!")
     .regex(/^\d{4}$/, "Mã PIN phải gồm đúng 4 chữ số bí mật (ví dụ: 1234)."),
 });
 

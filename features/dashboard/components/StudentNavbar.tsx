@@ -83,16 +83,16 @@ export function StudentNavbar() {
         <div className="flex items-center gap-1.5 sm:gap-2 bg-[#003E8A] hover:bg-[#004C9E] pl-1 sm:pl-1.5 pr-2.5 sm:pr-3.5 py-1 rounded-full border border-sky-300/35 shadow-md transition-all cursor-pointer">
           <div className="w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-full overflow-hidden border-2 border-yellow-300 relative shadow-sm flex-shrink-0">
             <Image
-              src={student.avatarUrl || "/avatar.jpg"}
-              alt={student.name}
+              src={student.avatar_url || student.avatarUrl || "/avatar.jpg"}
+              alt={student.full_name || student.name}
               fill
               sizes="36px"
               unoptimized
               className="object-cover"
             />
           </div>
-          <span className="text-white font-heading font-bold text-xs lg:text-sm tracking-wide drop-shadow-sm truncate max-w-[95px] sm:max-w-[125px] lg:max-w-none">
-            {student.name} - {student.classGroup}
+          <span className="text-white font-heading font-bold text-xs lg:text-sm tracking-wide drop-shadow-sm whitespace-nowrap">
+            {student.displayName || student.name} - {student.class_name || student.classGroup}
           </span>
         </div>
 

@@ -17,6 +17,7 @@ import { DEFAULT_CHIBI_AVATAR } from "../constants/chibiAvatars";
 import {
   AuthMode,
   StudentLoginFormValues,
+  StudentLookupData,
   StudentRegisterFormValues,
   TeacherLoginFormValues,
   UserRole,
@@ -35,16 +36,19 @@ export function useAuthForm(initialRole: UserRole = "student", initialMode: Auth
 
   const [role, setRole] = useState<UserRole>(effectiveRole);
   const [mode, setMode] = useState<AuthMode>(effectiveMode);
-  const [showPin, setShowPin] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  // Form Đăng nhập học sinh (bảng `users`)
+  // Trạng thái Popup OTP nhập mã PIN
+  const [foundStudent, setFoundStudent] = useState<StudentLookupData | null>(null);
+  const [isPinModalOpen, setIsPinModalOpen] = useState<boolean>(false);
+  const [isVerifyingPin, setIsVerifyingPin] = useState<boolean>(false);
+
+  // Form Đăng nhập học sinh (bước 1: chỉ nhập Số điện thoại Zalo)
   const studentLoginForm = useForm<StudentLoginFormValues>({
     resolver: zodResolver(studentLoginSchema),
     defaultValues: {
       phone_zalo: "",
-      pin_number: "",
     },
     mode: "onSubmit",
     reValidateMode: "onChange",
@@ -76,27 +80,91 @@ export function useAuthForm(initialRole: UserRole = "student", initialMode: Auth
     reValidateMode: "onChange",
   });
 
-  // Xử lý nộp form đăng nhập học sinh
-  const handleStudentLogin = async (values: StudentLoginFormValues) => {
+  // Reset tất cả form liên quan đến đăng nhập về trạng thái ban đầu
+  const resetAllForms = () => {
+    studentLoginForm.reset({ phone_zalo: "" });
+    studentRegisterForm.reset({
+      full_name: "",
+      phone_zalo: "",
+      class_id: "",
+      pin_number: "",
+      confirm_pin_number: "",
+      avatar_url: DEFAULT_CHIBI_AVATAR,
+    });
+    teacherLoginForm.reset({
+      username: "",
+      password: "",
+    });
+    setFoundStudent(null);
+    setIsPinModalOpen(false);
+  };
+
+  // Bước 1: Tra cứu học sinh theo Số điện thoại Zalo
+  const handleStudentPhoneSubmit = async (values: StudentLoginFormValues) => {
     setIsSubmitting(true);
     try {
-      // Giả lập network delay ngắn cho trải nghiệm mượt mà
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const success = loginStudent(values.phone_zalo, values.pin_number);
-      if (success) {
-        toast.success(`Chào mừng bé đã quay lại lớp! 🎉`, {
-          description: "Chúc bé có một buổi học thật nhiều niềm vui và tích lũy được nhiều xu!",
-        });
-        router.push("/student");
-      }
+      const student = await authService.lookupStudent(values.phone_zalo);
+      setFoundStudent(student);
+      setIsPinModalOpen(true);
     } catch (error: unknown) {
-      const err = error instanceof Error ? error : new Error(String(error));
-      toast.error("Đăng nhập chưa thành công!", {
-        description: err.message || "Bé kiểm tra lại số điện thoại Zalo hoặc mã PIN nhé!",
+      const message = getErrorMessage(error);
+      toast.error("Chưa tìm thấy tài khoản!", {
+        description: message,
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Bước 2: Xác thực mã PIN dạng OTP trong Popup Modal
+  const handleStudentPinConfirm = async (pin: string) => {
+    if (!foundStudent) return;
+    setIsVerifyingPin(true);
+    try {
+      const session = await authService.loginStudent({
+        phone_zalo: foundStudent.phone_zalo,
+        pin_number: pin,
+      });
+
+      // Lưu phiên học sinh vào Zustand Store
+      loginStudent(session);
+
+      toast.success(`Chào mừng con ${session.full_name} đã vào lớp học! 🎉`, {
+        description: "Chúc con học tập chăm chỉ và tích lũy được thật nhiều xu nhé!",
+      });
+
+      // Reset tất cả form liên quan đến đăng nhập
+      resetAllForms();
+      router.push("/student");
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
+      // Ném lỗi để modal hiển thị dòng báo đỏ trực tiếp dưới 4 ô OTP
+      throw new Error(message);
+    } finally {
+      setIsVerifyingPin(false);
+    }
+  };
+
+  // Đóng modal nhập PIN -> reset toàn bộ trạng thái về ban đầu
+  const closePinModal = () => {
+    if (!isVerifyingPin) {
+      setIsPinModalOpen(false);
+      setFoundStudent(null);
+      setTimeout(() => {
+        document.getElementById("phone_zalo")?.focus();
+      }, 50);
+    }
+  };
+
+  // Bấm đổi số điện thoại khác -> reset toàn bộ trạng thái về ban đầu
+  const changePhone = () => {
+    if (!isVerifyingPin) {
+      setIsPinModalOpen(false);
+      setFoundStudent(null);
+      studentLoginForm.reset({ phone_zalo: "" });
+      setTimeout(() => {
+        document.getElementById("phone_zalo")?.focus();
+      }, 50);
     }
   };
 
@@ -135,7 +203,7 @@ export function useAuthForm(initialRole: UserRole = "student", initialMode: Auth
       toast.success("Đăng nhập giáo viên thành công! 📚", {
         description: `Chào mừng thầy/cô (${values.username}) đến với Cổng quản lý!`,
       });
-      // Điều hướng về trang admin nếu có, hoặc trang student
+      resetAllForms();
       router.push("/student");
     } catch (error: unknown) {
       const err = error instanceof Error ? error : new Error(String(error));
@@ -147,7 +215,6 @@ export function useAuthForm(initialRole: UserRole = "student", initialMode: Auth
     }
   };
 
-  const togglePinVisibility = () => setShowPin((prev) => !prev);
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 
   const switchRole = (newRole: UserRole) => {
@@ -161,19 +228,22 @@ export function useAuthForm(initialRole: UserRole = "student", initialMode: Auth
   return {
     role,
     mode,
-    showPin,
     showPassword,
     isSubmitting,
+    foundStudent,
+    isPinModalOpen,
+    isVerifyingPin,
     switchRole,
     switchMode,
-    togglePinVisibility,
     togglePasswordVisibility,
     studentLoginForm,
     studentRegisterForm,
     teacherLoginForm,
-    handleStudentLogin,
+    handleStudentPhoneSubmit,
+    handleStudentPinConfirm,
+    closePinModal,
+    changePhone,
     handleStudentRegister,
     handleTeacherLogin,
   };
 }
-

@@ -1,14 +1,30 @@
 import { Mission, StudentProfile } from "../types";
 
-export const initialStudent: StudentProfile = {
-  name: "Gia Bảo",
-  classGroup: "Lớp 5A",
+export const defaultStudentProfile: StudentProfile = {
+  id: "",
+  full_name: "Học sinh",
+  displayName: "Học sinh",
+  phone_zalo: "",
+  avatar_url: "/avatar.jpg",
+  current_coins: 0,
+  class_name: "Lớp học",
+  role: "student",
+  piggy_title: "HEO ĐẤT CỦA BẠN",
+  next_tier_coins: 100,
+  next_tier_title: "Heo Đất Nhỏ",
+
+  // Thuộc tính tương thích ngược (Aliases)
+  name: "Học sinh",
+  classGroup: "Lớp học",
   avatarUrl: "/avatar.jpg",
-  currentCoins: 53600,
-  nextTierCoins: 2000,
-  piggyTitle: "HEO ĐẤT CỦA GIA BẢO",
-  nextTierTitle: "Heo Vàng béo ú!",
+  currentCoins: 0,
+  piggyTitle: "HEO ĐẤT CỦA BẠN",
+  nextTierCoins: 100,
+  nextTierTitle: "Heo Đất Nhỏ",
 };
+
+// Alias export cho initialStudent
+export const initialStudent: StudentProfile = defaultStudentProfile;
 
 export const initialMissions: Mission[] = [
   {

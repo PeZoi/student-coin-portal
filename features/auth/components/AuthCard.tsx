@@ -6,6 +6,7 @@ import { useAuthForm } from "../hooks/useAuthForm";
 import { AuthMode, UserRole } from "../types";
 import { BottomPlaque } from "./BottomPlaque";
 import { StudentLoginForm } from "./StudentLoginForm";
+import { StudentPinModal } from "./StudentPinModal";
 import { StudentRegisterForm } from "./StudentRegisterForm";
 import { TeacherLoginForm } from "./TeacherLoginForm";
 
@@ -32,17 +33,21 @@ export function AuthCard({
   const {
     role,
     mode,
-    showPin,
     showPassword,
     isSubmitting,
+    foundStudent,
+    isPinModalOpen,
+    isVerifyingPin,
     switchRole,
     switchMode,
-    togglePinVisibility,
     togglePasswordVisibility,
     studentLoginForm,
     studentRegisterForm,
     teacherLoginForm,
-    handleStudentLogin,
+    handleStudentPhoneSubmit,
+    handleStudentPinConfirm,
+    closePinModal,
+    changePhone,
     handleStudentRegister,
     handleTeacherLogin,
   } = useAuthForm(initialRole, initialMode);
@@ -61,15 +66,6 @@ export function AuthCard({
           AUTH_THEME.board.rounded
         )}
       >
-        {/* ĐINH TÁN VÀNG ĐỒNG ~8PX Ở 2 GÓC DƯỚI (CÁCH MÉP ~5-6PX, KHÔNG ĐÈ TAB/THẺ Ở 320–480PX) */}
-        <div
-          className={cn("absolute bottom-1.5 left-2.5 pointer-events-none", AUTH_THEME.rivet.wrapper)}
-          aria-hidden="true"
-        />
-        <div
-          className={cn("absolute bottom-1.5 right-2.5 pointer-events-none", AUTH_THEME.rivet.wrapper)}
-          aria-hidden="true"
-        />
 
         {/* ========================================================================= */}
         {/* HEADER TABS VAI TRÒ (HỌC SINH VS GIÁO VIÊN) */}
@@ -147,11 +143,8 @@ export function AuthCard({
             mode === "login" ? (
               <StudentLoginForm
                 form={studentLoginForm}
-                onSubmit={handleStudentLogin}
+                onSubmit={handleStudentPhoneSubmit}
                 isSubmitting={isSubmitting}
-                showPin={showPin}
-                onTogglePin={togglePinVisibility}
-                onSwitchToRegister={() => switchMode("register")}
               />
             ) : (
               <StudentRegisterForm
@@ -177,6 +170,19 @@ export function AuthCard({
       {/* TẤM BIỂN GỖ PHỤ PHÍA DƯỚI (BOTTOM PLAQUE) */}
       {/* ========================================================================= */}
       <BottomPlaque role={role} mode={mode} onSwitchMode={switchMode} />
+
+      {/* ========================================================================= */}
+      {/* POPUP XÁC NHẬN HỌC SINH VÀ NHẬP MÃ PIN OTP */}
+      {/* ========================================================================= */}
+      <StudentPinModal
+        key={foundStudent?.id ?? "pin-modal"}
+        isOpen={isPinModalOpen}
+        onClose={closePinModal}
+        student={foundStudent}
+        onConfirmPin={handleStudentPinConfirm}
+        isVerifying={isVerifyingPin}
+        onChangePhone={changePhone}
+      />
     </div>
   );
 }
