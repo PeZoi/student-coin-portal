@@ -100,10 +100,11 @@ export async function POST(
       );
     }
 
-    // 5. Tạo JWT Token (chỉ chứa userId và phone_zalo) và lưu vào httpOnly Cookie
+    // 5. Tạo JWT Token (chứa userId, phone_zalo và role) và lưu vào httpOnly Cookie
     const token = await signAuthToken({
       userId: userRow.id,
       phone_zalo: userRow.phone_zalo,
+      role: userRow.role,
     });
 
     await setAuthCookie(token);

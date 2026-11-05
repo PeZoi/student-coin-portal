@@ -18,7 +18,8 @@ export function useRewardExchange() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Học sinh có ít nhất 5.000 xu không
-  const canExchange = student.currentCoins >= COIN_STEP;
+  const currentCoins = student?.currentCoins ?? 0;
+  const canExchange = currentCoins >= COIN_STEP;
 
   // Xác nhận đổi tiền mặt trong popup
   const handleConfirmCashExchange = useCallback(
@@ -28,9 +29,9 @@ export function useRewardExchange() {
         return false;
       }
 
-      if (student.currentCoins < coinsToExchange) {
+      if (currentCoins < coinsToExchange) {
         toast.error(
-          `Con không đủ ${coinsToExchange.toLocaleString("vi-VN")} xu. Hiện tại con đang có ${student.currentCoins.toLocaleString("vi-VN")} xu!`
+          `Con không đủ ${coinsToExchange.toLocaleString("vi-VN")} xu. Hiện tại con đang có ${currentCoins.toLocaleString("vi-VN")} xu!`
         );
         return false;
       }
@@ -58,7 +59,7 @@ export function useRewardExchange() {
         setIsSubmitting(false);
       }
     },
-    [student.currentCoins, deductCoins]
+    [currentCoins, deductCoins]
   );
 
   // Xác nhận đổi quà tự chọn trong popup

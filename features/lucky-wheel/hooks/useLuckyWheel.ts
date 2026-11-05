@@ -56,7 +56,7 @@ export function useLuckyWheel(customConfig?: Partial<WheelConfig>) {
     if (isFree) {
       setFreeSpinsLeft((prev) => Math.max(0, prev - 1));
     } else {
-      if (student.currentCoins < config.spinCost) {
+      if ((student?.currentCoins ?? 0) < config.spinCost) {
         wheelAudio.playError();
         toast.error(
           `Bạn cần ít nhất ${config.spinCost.toLocaleString("vi-VN")} xu để quay lượt này! Hãy làm bài tập để tích lũy thêm xu nhé!`
@@ -123,9 +123,9 @@ export function useLuckyWheel(customConfig?: Partial<WheelConfig>) {
       // Thêm học sinh hiện tại vào danh sách người vừa trúng
       const newWinner: WheelWinner = {
         id: `win-${Date.now()}`,
-        studentName: student.name || "Bạn",
-        classGroup: student.classGroup || "Lớp 5A",
-        avatarUrl: student.avatarUrl || "/avatar.jpg",
+        studentName: student?.displayName || student?.name || "Bạn",
+        classGroup: student?.class_name || student?.classGroup || "Lớp học",
+        avatarUrl: student?.avatar_url || student?.avatarUrl || "/avatar.jpg",
         prizeLabel: selectedPrize.label,
         rewardCoins: selectedPrize.rewardCoins,
         wonAt: "Vừa xong",
@@ -163,7 +163,7 @@ export function useLuckyWheel(customConfig?: Partial<WheelConfig>) {
     freeSpinsLeft,
     winners,
     myHistory,
-    currentCoins: student.currentCoins,
+    currentCoins: student?.currentCoins ?? 0,
     handleSpin,
     handleClosePrizeModal,
   };

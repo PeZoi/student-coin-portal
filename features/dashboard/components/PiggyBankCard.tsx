@@ -30,6 +30,8 @@ export interface PiggyBankCardProps {
 
 export function PiggyBankCard({ className }: PiggyBankCardProps = {}) {
   const { student } = useUserStore();
+  const piggyTitle = student?.piggy_title || student?.piggyTitle || "HEO ĐẤT CỦA BẠN";
+  const currentCoins = student?.current_coins ?? student?.currentCoins ?? 0;
   const isMobileDevice = useSyncExternalStore(subscribeMediaQuery, getMobileTouchSnapshot, getServerSnapshot);
 
   // Kích hoạt xin quyền con quay hồi chuyển trên iOS 13+ khi người dùng chạm vào thẻ
@@ -134,7 +136,7 @@ export function PiggyBankCard({ className }: PiggyBankCardProps = {}) {
               strokeLinejoin="round"
               dy="3"
             >
-              {student.piggy_title || student.piggyTitle}
+              {piggyTitle}
             </textPath>
           </text>
 
@@ -155,7 +157,7 @@ export function PiggyBankCard({ className }: PiggyBankCardProps = {}) {
               strokeLinejoin="round"
               dy="1"
             >
-              {student.piggy_title || student.piggyTitle}
+              {piggyTitle}
             </textPath>
           </text>
 
@@ -172,7 +174,7 @@ export function PiggyBankCard({ className }: PiggyBankCardProps = {}) {
               textAnchor="middle"
               fill="white"
             >
-              {student.piggy_title || student.piggyTitle}
+              {piggyTitle}
             </textPath>
           </text>
         </svg>
@@ -328,7 +330,7 @@ export function PiggyBankCard({ className }: PiggyBankCardProps = {}) {
             <div className="flex items-baseline gap-1.5 select-none font-heading font-black">
               {/* Số xu: cam rực rỡ, đậm nét, cực kỳ dễ đọc */}
               <span className="text-4xl sm:text-[44px] tracking-tight leading-none bg-gradient-to-b from-[#FF7A00] via-[#F05500] to-[#CC3300] bg-clip-text text-transparent filter drop-shadow-[0_2px_0_#7A1C00] drop-shadow-[0_3px_3px_rgba(122,28,0,0.2)]">
-                {(student.current_coins ?? student.currentCoins ?? 0).toLocaleString("vi-VN")}
+                {currentCoins.toLocaleString("vi-VN")}
               </span>
               {/* Chữ xu: cùng style, cùng gradient đậm đà, cùng độ nổi 3D nhẹ */}
               <span className="text-2xl sm:text-[28px] tracking-wide leading-none bg-gradient-to-b from-[#FF7A00] via-[#F05500] to-[#CC3300] bg-clip-text text-transparent filter drop-shadow-[0_2px_0_#7A1C00] drop-shadow-[0_3px_3px_rgba(122,28,0,0.2)]">

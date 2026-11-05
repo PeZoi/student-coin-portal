@@ -7,7 +7,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export function StudentNavbar() {
-  const { student } = useUserStore();
+  const { student, isLoading, logout } = useUserStore();
   const pathname = usePathname();
 
   const isHome = pathname === "/student";
@@ -21,6 +21,15 @@ export function StudentNavbar() {
 
   const inactiveMenuClass =
     "text-sky-100 hover:text-white font-heading font-bold text-xs md:text-xs lg:text-base tracking-wide px-2 md:px-2.5 lg:px-3 py-1 lg:py-1.5 rounded-full hover:bg-white/15 whitespace-nowrap transition-all hover:scale-105";
+
+  const studentDisplayName = student
+    ? `${student.displayName || student.name || "Bé"} - ${student.class_name || student.classGroup || "Lớp"}`
+    : isLoading
+    ? "Đang tải..."
+    : "Chưa đăng nhập";
+
+  const avatarSrc = student?.avatar_url || student?.avatarUrl || "/avatar.jpg";
+  const avatarAlt = student?.full_name || student?.name || "Học sinh";
 
   return (
     <header className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-5 lg:px-8 py-1.5 sm:py-2 lg:py-2.5 flex items-center justify-between select-none">
@@ -83,8 +92,8 @@ export function StudentNavbar() {
         <div className="flex items-center gap-1.5 sm:gap-2 bg-[#003E8A] hover:bg-[#004C9E] pl-1 sm:pl-1.5 pr-2.5 sm:pr-3.5 py-1 rounded-full border border-sky-300/35 shadow-md transition-all cursor-pointer">
           <div className="w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-full overflow-hidden border-2 border-yellow-300 relative shadow-sm flex-shrink-0">
             <Image
-              src={student.avatar_url || student.avatarUrl || "/avatar.jpg"}
-              alt={student.full_name || student.name}
+              src={avatarSrc}
+              alt={avatarAlt}
               fill
               sizes="36px"
               unoptimized
@@ -92,7 +101,7 @@ export function StudentNavbar() {
             />
           </div>
           <span className="text-white font-heading font-bold text-xs lg:text-sm tracking-wide drop-shadow-sm whitespace-nowrap">
-            {student.displayName || student.name} - {student.class_name || student.classGroup}
+            {studentDisplayName}
           </span>
         </div>
 
@@ -104,15 +113,15 @@ export function StudentNavbar() {
           <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 drop-shadow" />
         </button>
 
-        {/* Nút Đổi tài khoản / Đăng nhập */}
-        <Link
-          href="/login"
-          title="Đổi tài khoản / Đăng nhập"
-          aria-label="Đổi tài khoản"
+        {/* Nút Đăng xuất */}
+        <button
+          onClick={() => logout()}
+          title="Đăng xuất khỏi tài khoản"
+          aria-label="Đăng xuất"
           className="w-8 h-8 sm:w-8.5 sm:h-8.5 lg:w-10 lg:h-10 rounded-full bg-[#003E8A] hover:bg-rose-600/90 border border-sky-300/35 flex items-center justify-center text-white shadow-md active:translate-y-0.5 transition-all cursor-pointer flex-shrink-0"
         >
           <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 drop-shadow" />
-        </Link>
+        </button>
       </div>
     </header>
   );

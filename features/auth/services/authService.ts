@@ -85,5 +85,38 @@ export const authService = {
 
     return response.data;
   },
+
+  /**
+   * Lấy thông tin phiên người dùng hiện tại từ API GET /api/auth/me
+   * Dùng khi khởi động ứng dụng hoặc khi người dùng F5 trang
+   */
+  async getCurrentUser(): Promise<StudentSessionData | null> {
+    try {
+      const response = await http.get<ApiResponse<StudentSessionData>>(
+        "/api/auth/me",
+        {
+          skipUnauthorizedHandler: true, // Tránh gọi logout lặp khi chưa có session
+        }
+      );
+
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * Đăng xuất và xóa phiên làm việc
+   */
+  async logout(): Promise<void> {
+    try {
+      await http.post("/api/auth/logout", {}, { skipUnauthorizedHandler: true });
+    } catch {
+      // Bỏ qua lỗi mạng khi logout
+    }
+  },
 };
 

@@ -181,7 +181,7 @@ export function WheelSpinner({
 	onSpin,
 	currentCoins: propCoins,
 }: WheelSpinnerProps) {
-	const storeCoins = useUserStore((state) => state.student.currentCoins);
+	const storeCoins = useUserStore((state) => state.student?.currentCoins ?? 0);
 	const actualCoins = propCoins !== undefined ? propCoins : storeCoins;
 	const isOutOfCoins = actualCoins < spinCost;
 

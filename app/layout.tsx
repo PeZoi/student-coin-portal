@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Baloo_2, Nunito } from "next/font/google";
 import { Toaster } from "sonner";
+import { UserInitializer } from "@/features/auth/components/UserInitializer";
 import "./globals.css";
 
 // Font tiêu đề hoạt hình 3D, hỗ trợ 100% tiếng Việt
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${baloo2.variable} ${nunito.variable} min-h-full antialiased`}
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col font-sans">
+        <UserInitializer />
         {children}
         <Toaster richColors position="top-right" />
       </body>

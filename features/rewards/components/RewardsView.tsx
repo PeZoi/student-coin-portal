@@ -137,7 +137,7 @@ export function RewardsView() {
         <CashExchangeModal
           isOpen={isCashModalOpen}
           onClose={() => setIsCashModalOpen(false)}
-          currentCoins={student.currentCoins}
+          currentCoins={student?.currentCoins ?? 0}
           isSubmitting={isSubmitting}
           onConfirm={handleConfirmCashExchange}
         />
@@ -148,7 +148,7 @@ export function RewardsView() {
         <ShopeeExchangeModal
           isOpen={isShopeeModalOpen}
           onClose={() => setIsShopeeModalOpen(false)}
-          currentCoins={student.currentCoins}
+          currentCoins={student?.currentCoins ?? 0}
           isSubmitting={isSubmitting}
           onConfirm={handleConfirmShopeeExchange}
         />

@@ -8,11 +8,12 @@ export const AUTH_COOKIE_NAME = "auth_token";
 
 /**
  * Payload chứa trong JWT Token
- * - Tối giản theo yêu cầu: chỉ chứa userId và phone_zalo để nhận biết chủ sở hữu token
+ * - Gồm userId, phone_zalo và role để phục vụ Authentication & Authorization
  */
 export interface AuthTokenPayload {
   userId: string;
   phone_zalo: string;
+  role: string;
 }
 
 // Khóa bí mật dùng để ký và xác thực token (HS256)
@@ -35,6 +36,7 @@ export async function signAuthToken(payload: AuthTokenPayload): Promise<string> 
   return await new SignJWT({
     userId: payload.userId,
     phone_zalo: payload.phone_zalo,
+    role: payload.role,
   })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -61,6 +63,7 @@ export async function verifyAuthToken(token: string): Promise<AuthTokenPayload |
       return {
         userId: payload.userId,
         phone_zalo: payload.phone_zalo,
+        role: typeof payload.role === "string" ? payload.role : "student",
       };
     }
 
