@@ -4,6 +4,7 @@ import { Mission, StudentProfile } from "@/features/dashboard/types";
 import { initialMissions } from "@/features/dashboard/data/initialData";
 import { getDisplayName } from "@/lib/utils";
 import { authService } from "@/features/auth/services/authService";
+import { useConfigStore } from "./useConfigStore";
 
 export interface StudentSessionPayload {
   id?: string;
@@ -135,6 +136,7 @@ export const useUserStore = create<UserState>()(
           }
           set({ student: null, isLoading: false });
           useUserStore.persist?.clearStorage();
+          useConfigStore.getState().clearConfigs();
           return false;
         } catch {
           // Nếu lỗi mạng tạm thời mà đang có cached student thì vẫn giữ cached student
@@ -149,6 +151,7 @@ export const useUserStore = create<UserState>()(
         } finally {
           set({ student: null, isLoading: false });
           useUserStore.persist?.clearStorage();
+          useConfigStore.getState().clearConfigs();
           if (typeof window !== "undefined") {
             window.location.href = "/login";
           }

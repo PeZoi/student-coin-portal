@@ -335,31 +335,6 @@ CREATE TABLE ai_submission_errors (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- ==============================================================================
--- 7. BẢNG CẤU HÌNH VÒNG QUAY MAY MẮN (WHEEL_CONFIGS)
--- Cho phép Giáo viên toàn quyền thay đổi chi phí quay xu (spin_cost) và chế độ quay miễn phí
--- ==============================================================================
-CREATE TABLE wheel_configs (
-    -- Khóa chính cấu hình
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
-    -- Mức phí xu cho 1 lượt quay do Giáo viên tự do thay đổi (Mặc định: 500 xu; cô có thể đổi thành 100, 200, 300 xu...)
-    spin_cost INTEGER NOT NULL DEFAULT 500 CHECK (spin_cost >= 0),
-    
-    -- Cờ trạng thái: true = cấu hình đang áp dụng
-    is_active BOOLEAN DEFAULT TRUE,
-    
-    -- Khóa ngoại: Giáo viên hoặc Admin thực hiện thay đổi cấu hình vòng quay
-    updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
-    
-    -- Thời điểm cập nhật cấu hình lần cuối
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- RÀNG BUỘC SINGLETON: Đảm bảo tại một thời điểm chỉ có DUY NHẤT 1 cấu hình Vòng quay đang Active
-CREATE UNIQUE INDEX uq_wheel_configs_single_active 
-    ON wheel_configs (is_active) 
-    WHERE is_active = TRUE;
 
 -- ==============================================================================
 -- 8. BẢNG GIẢI THƯỞNG VÒNG QUAY MAY MẮN (WHEEL_PRIZES)
@@ -447,64 +422,6 @@ CREATE TABLE wheel_spins (
     )
 );
 
--- ==============================================================================
--- 10. BẢNG CẤU HÌNH XU THƯỞNG CUỐI THÁNG (MONTHLY_REWARD_CONFIGS)
--- Lưu mức xu thưởng Top 3 tổng xu và thưởng nỗ lực do Giáo viên tự do thay đổi theo từng kỳ
--- ==============================================================================
-CREATE TABLE monthly_reward_configs (
-    -- Khóa chính: Mã định danh cấu hình thưởng
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
-    -- Xu thưởng Top 1 Tổng Xu mỗi lớp do giáo viên cấu hình (Mặc định: 150 xu; giáo viên có thể thay đổi)
-    top1_bonus_coins INTEGER NOT NULL DEFAULT 150 CHECK (top1_bonus_coins >= 0),
-    
-    -- Xu thưởng Top 2 Tổng Xu mỗi lớp do giáo viên cấu hình (Mặc định: 100 xu; giáo viên có thể thay đổi)
-    top2_bonus_coins INTEGER NOT NULL DEFAULT 100 CHECK (top2_bonus_coins >= 0),
-    
-    -- Xu thưởng Top 3 Tổng Xu mỗi lớp do giáo viên cấu hình (Mặc định: 50 xu; giáo viên có thể thay đổi)
-    top3_bonus_coins INTEGER NOT NULL DEFAULT 50 CHECK (top3_bonus_coins >= 0),
-    
-    -- Chế độ xét thưởng nỗ lực/tiến bộ do giáo viên linh hoạt lựa chọn:
-    -- 'all_qualifying': Tất cả học sinh có % tăng trưởng vượt mốc đều được nhận thưởng (không giới hạn số lượng, khuyến khích mọi em tiến bộ)
-    -- 'top_rank_only': Chỉ trao thưởng cho Top học sinh có % tăng trưởng cao nhất lớp (Top 1, Top 2, Top 3 tiến bộ nhất)
-    progress_reward_mode VARCHAR(30) NOT NULL DEFAULT 'all_qualifying' 
-        CHECK (progress_reward_mode IN ('all_qualifying', 'top_rank_only')),
-    
-    -- Giới hạn số lượng học sinh được nhận thưởng tiến bộ khi chọn chế độ 'top_rank_only' (Mặc định: Top 3 bạn tiến bộ nhất)
-    progress_top_limit INTEGER DEFAULT 3 CHECK (progress_top_limit >= 1),
-
-    -- Mức phần trăm tăng trưởng bậc 1 do giáo viên tự do cấu hình/thay đổi (Mặc định: 30.00%; cô có thể đổi thành 15%, 20%, 25%...)
-    progress_tier1_percent DECIMAL(5,2) NOT NULL DEFAULT 30.00 CHECK (progress_tier1_percent >= 0),
-    
-    -- Xu thưởng bậc 1 do giáo viên cấu hình/thay đổi (Mặc định: 100 xu; giáo viên có thể thay đổi)
-    progress_tier1_coins INTEGER NOT NULL DEFAULT 100 CHECK (progress_tier1_coins >= 0),
-    
-    -- Mức phần trăm tăng trưởng bậc 2 do giáo viên tự do cấu hình/thay đổi (Mặc định: 50.00%; cô có thể đổi thành 40%, 45%...)
-    progress_tier2_percent DECIMAL(5,2) NOT NULL DEFAULT 50.00 CHECK (progress_tier2_percent >= 0),
-    
-    -- Xu thưởng bậc 2 do giáo viên cấu hình/thay đổi (Mặc định: 200 xu; giáo viên có thể thay đổi)
-    progress_tier2_coins INTEGER NOT NULL DEFAULT 200 CHECK (progress_tier2_coins >= 0),
-    
-    -- Mức phần trăm tăng trưởng bậc 3 do giáo viên tự do cấu hình/thay đổi (Mặc định: 70.00%; cô có thể đổi thành 60%, 80%...)
-    progress_tier3_percent DECIMAL(5,2) NOT NULL DEFAULT 70.00 CHECK (progress_tier3_percent >= 0),
-    
-    -- Xu thưởng bậc 3 do giáo viên cấu hình/thay đổi (Mặc định: 300 xu; giáo viên có thể thay đổi)
-    progress_tier3_coins INTEGER NOT NULL DEFAULT 300 CHECK (progress_tier3_coins >= 0),
-    
-    -- Cờ trạng thái áp dụng cấu hình này
-    is_active BOOLEAN DEFAULT TRUE,
-    
-    -- Khóa ngoại: Giáo viên hoặc Admin thay đổi cấu hình thưởng
-    updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
-    
-    -- Thời điểm cập nhật cấu hình lần cuối
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- RÀNG BUỘC SINGLETON: Đảm bảo tại một thời điểm chỉ có DUY NHẤT 1 cấu hình Xu thưởng cuối tháng Active
-CREATE UNIQUE INDEX uq_monthly_reward_configs_single_active 
-    ON monthly_reward_configs (is_active) 
-    WHERE is_active = TRUE;
 
 -- ==============================================================================
 -- 11. BẢNG XẾP HẠNG THÁNG & WALL OF FAME (MONTHLY_LEADERBOARD)
@@ -562,36 +479,6 @@ CREATE TABLE monthly_leaderboard (
 );
 
 -- ==============================================================================
--- 12. BẢNG CẤU HÌNH TỶ LỆ QUY ĐỔI XU RA TIỀN MẶT / QUÀ (EXCHANGE_CONFIGS)
--- Quản lý động quy tắc quy đổi (5.000 xu = 25.000 VNĐ) để giáo viên/admin đổi mà không sửa code
--- ==============================================================================
-CREATE TABLE exchange_configs (
-    -- Khóa chính cấu hình
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
-    -- Mốc xu tối thiểu bắt đầu được phép đổi (Mặc định: 5.000 xu)
-    min_exchange_coins INTEGER NOT NULL DEFAULT 5000 CHECK (min_exchange_coins > 0),
-    
-    -- Bước nhảy số xu đổi (Bắt buộc bội số của mốc này, Mặc định: 5.000 xu)
-    step_coins INTEGER NOT NULL DEFAULT 5000 CHECK (step_coins > 0),
-    
-    -- Số tiền mặt VNĐ nhận được cho mỗi bước nhảy (Mặc định: 25.000 VNĐ cho mỗi 5.000 xu)
-    vnd_per_step INTEGER NOT NULL DEFAULT 25000 CHECK (vnd_per_step > 0),
-    
-    -- Cờ kích hoạt cấu hình
-    is_active BOOLEAN DEFAULT TRUE,
-    
-    -- Khóa ngoại: Người cập nhật cấu hình
-    updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
-    
-    -- Thời điểm cập nhật
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- RÀNG BUỘC SINGLETON: Chỉ có DUY NHẤT 1 cấu hình quy đổi xu Active
-CREATE UNIQUE INDEX uq_exchange_configs_single_active 
-    ON exchange_configs (is_active) 
-    WHERE is_active = TRUE;
 
 -- ==============================================================================
 -- 13. BẢNG YÊU CẦU QUY ĐỔI XU CUỐI THÁNG (MONTHLY_EXCHANGE_REQUESTS)
@@ -781,43 +668,6 @@ ALTER TABLE monthly_exchange_requests
     ADD CONSTRAINT fk_exchange_requests_hold_tx 
     FOREIGN KEY (hold_tx_id) REFERENCES coin_transactions(id) ON DELETE SET NULL;
 
--- ==============================================================================
--- 16. BẢNG CẤU HÌNH HỆ THỐNG AI (AI_SYSTEM_CONFIGS)
--- Cấu hình Gateway kết nối AI Vision (GPT-4o, Gemini 1.5/2.0 Flash) chấm bài tự động
--- ==============================================================================
-CREATE TABLE ai_system_configs (
-    -- Khóa chính cấu hình
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
-    -- Đường dẫn Endpoint API AI (Ví dụ: 'https://api.oxionai.com/v1' hoặc OpenAI endpoint)
-    api_url VARCHAR(255) NOT NULL CHECK (length(trim(api_url)) > 0),
-    
-    -- Khóa bảo mật API Key để gọi dịch vụ AI Vision
-    api_key VARCHAR(255) NOT NULL CHECK (length(trim(api_key)) > 0),
-    
-    -- Tên Model Vision được chỉ định (Mặc định: 'gpt-4o' hoặc 'gemini-1.5-flash')
-    model_name VARCHAR(100) NOT NULL,
-    
-    -- Chế độ suy luận AI: 'off' (siêu tốc 3-6s), 'low', 'high' (tối ưu tránh bị treo khi chấm bài)
-    thinking_mode VARCHAR(20) NOT NULL DEFAULT 'off' CHECK (thinking_mode IN ('off', 'low', 'high')),
-    
-    -- Khóa ngoại: Giáo viên hoặc Admin tạo cấu hình AI này
-    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
-    
-    -- Cờ kích hoạt cấu hình này
-    is_active BOOLEAN DEFAULT TRUE,
-
-    -- Khóa ngoại: Giáo viên hoặc Admin cập nhật cấu hình lần gần nhất
-    updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
-    
-    -- Thời điểm cập nhật cấu hình lần cuối
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- RÀNG BUỘC SINGLETON: Chỉ cho phép duy nhất 1 cấu hình AI Gateway hoạt động tại một thời điểm
-CREATE UNIQUE INDEX uq_ai_system_configs_single_active 
-    ON ai_system_configs (is_active) 
-    WHERE is_active = TRUE;
 
 -- ==============================================================================
 -- 17. BẢNG MẪU PROMPT CHẤM BÀI AI (AI_PROMPT_TEMPLATES)
@@ -934,16 +784,12 @@ CREATE TABLE audit_logs (
             'monthly_exchange_requests', 
             'users', 
             'wheel_spins', 
-            'wheel_configs', 
             'wheel_prizes', 
-            'monthly_reward_configs', 
             'monthly_leaderboard', 
-            'exchange_configs', 
             'coin_transactions', 
-            'ai_system_configs', 
             'ai_prompt_templates', 
             'notifications',
-            'data_retention_configs'
+            'system_settings'
         )
     ),
     
@@ -1027,50 +873,19 @@ CREATE TABLE notifications (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- ==============================================================================
--- 21. BẢNG CẤU HÌNH THỜI GIAN LƯU TRỮ VÀ DỌN DẸP DỮ LIỆU (DATA_RETENTION_CONFIGS)
--- Cho phép Giáo viên/Admin cấu hình thời hạn tự động dọn dẹp ảnh bài nộp, log và thông báo cũ
--- ==============================================================================
-CREATE TABLE data_retention_configs (
-    -- Khóa chính: Mã định danh cấu hình
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    
-    -- Số ngày lưu trữ file ảnh bài nộp trên Cloud Storage sau khi duyệt (Mặc định: 60 ngày, tối thiểu 7 ngày)
-    -- Khi hết hạn: Xóa file ảnh vật lý trên Cloud Storage (S3/Supabase), giữ nguyên text/điểm/nhận xét/xu trong DB
-    submission_media_days INTEGER NOT NULL DEFAULT 60 CHECK (submission_media_days >= 7),
-    
-    -- Số ngày lưu trữ nhật ký đăng nhập auth_logs (Mặc định: 90 ngày, tối thiểu 14 ngày)
-    auth_logs_days INTEGER NOT NULL DEFAULT 90 CHECK (auth_logs_days >= 14),
-    
-    -- Số ngày lưu trữ thông báo đã đọc notifications (Mặc định: 60 ngày, tối thiểu 7 ngày)
-    read_notifications_days INTEGER NOT NULL DEFAULT 60 CHECK (read_notifications_days >= 7),
-    
-    -- Số ngày lưu trữ nhật ký kiểm toán audit_logs (Mặc định: 365 ngày = 1 năm học, tối thiểu 90 ngày)
-    audit_logs_days INTEGER NOT NULL DEFAULT 365 CHECK (audit_logs_days >= 90),
-    
-    -- Cờ kích hoạt tiến trình tự động dọn dẹp định kỳ hàng đêm (true = bật, false = tạm dừng)
-    auto_cleanup_enabled BOOLEAN NOT NULL DEFAULT TRUE,
-    
-    -- Thời điểm tiến trình dọn dẹp tự động chạy thành công gần nhất
-    last_cleaned_at TIMESTAMP WITH TIME ZONE,
-    
-    -- Báo cáo tóm tắt đợt dọn dẹp gần nhất dạng JSONB (Số ảnh đã dọn, dung lượng giải phóng, số log đã purge)
-    last_cleanup_summary JSONB,
-    
-    -- Cờ trạng thái cấu hình đang áp dụng: Chỉ DUY NHẤT 1 dòng có is_active = true
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    
-    -- Khóa ngoại: Giáo viên hoặc Admin cập nhật cấu hình lần gần nhất
-    updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
-    
-    -- Thời điểm cập nhật cấu hình
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
 
--- RÀNG BUỘC SINGLETON: Chỉ có duy nhất 1 cấu hình dọn dẹp hoạt động tại một thời điểm
-CREATE UNIQUE INDEX uq_data_retention_single_active 
-    ON data_retention_configs (is_active) 
-    WHERE is_active = TRUE;
+-- ==============================================================================
+-- 22. BẢNG CẤU HÌNH HỆ THỐNG TẬP TRUNG (SYSTEM SETTINGS)
+-- Gom nhóm toàn bộ cấu hình hệ thống: bảo mật, vòng quay, đổi thưởng... dạng JSONB
+-- ==============================================================================
+CREATE TABLE system_settings (
+    key VARCHAR(50) PRIMARY KEY,
+    value JSONB NOT NULL,
+    description TEXT,
+    is_public BOOLEAN NOT NULL DEFAULT FALSE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_by UUID REFERENCES users(id) ON DELETE SET NULL
+);
 
 -- ==============================================================================
 -- CÁC CHỈ MỤC TỐI ƯU HIỆU NĂNG TÌM KIẾM (INDEXES)
@@ -1104,7 +919,6 @@ CREATE INDEX idx_notifications_user_read ON notifications(user_id, is_read);
 CREATE INDEX idx_notifications_created ON notifications(created_at);
 CREATE INDEX idx_submissions_media_retention ON homework_submissions(is_media_purged, approval_status, reviewed_at);
 CREATE INDEX idx_submissions_cancelled ON homework_submissions(student_id, mission_id, approval_status);
-CREATE INDEX idx_data_retention_active ON data_retention_configs(is_active);
 CREATE INDEX idx_classes_active ON classes(is_deleted, is_active);
 CREATE INDEX idx_missions_active_filter ON missions(is_deleted, is_active, due_at);
 CREATE INDEX idx_users_active_filter ON users(is_deleted, is_active);
@@ -1167,17 +981,13 @@ CREATE TRIGGER trg_classes_updated_at BEFORE UPDATE ON classes FOR EACH ROW EXEC
 CREATE TRIGGER trg_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
 CREATE TRIGGER trg_missions_updated_at BEFORE UPDATE ON missions FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
 CREATE TRIGGER trg_homework_submissions_updated_at BEFORE UPDATE ON homework_submissions FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
-CREATE TRIGGER trg_wheel_configs_updated_at BEFORE UPDATE ON wheel_configs FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
 CREATE TRIGGER trg_wheel_prizes_updated_at BEFORE UPDATE ON wheel_prizes FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
-CREATE TRIGGER trg_monthly_reward_configs_updated_at BEFORE UPDATE ON monthly_reward_configs FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
 CREATE TRIGGER trg_monthly_leaderboard_updated_at BEFORE UPDATE ON monthly_leaderboard FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
-CREATE TRIGGER trg_exchange_configs_updated_at BEFORE UPDATE ON exchange_configs FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
 CREATE TRIGGER trg_monthly_exchange_requests_updated_at BEFORE UPDATE ON monthly_exchange_requests FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
 CREATE TRIGGER trg_monthly_class_reports_updated_at BEFORE UPDATE ON monthly_class_reports FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
-CREATE TRIGGER trg_ai_system_configs_updated_at BEFORE UPDATE ON ai_system_configs FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
 CREATE TRIGGER trg_ai_prompt_templates_updated_at BEFORE UPDATE ON ai_prompt_templates FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
 CREATE TRIGGER trg_notifications_updated_at BEFORE UPDATE ON notifications FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
-CREATE TRIGGER trg_data_retention_configs_updated_at BEFORE UPDATE ON data_retention_configs FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
+CREATE TRIGGER trg_system_settings_updated_at BEFORE UPDATE ON system_settings FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
 
 -- ==============================================================================
 -- TRIGGER BẢO VỆ TÍNH BẤT BIẾN (IMMUTABILITY TRIGGERS)
@@ -1235,7 +1045,7 @@ $$ LANGUAGE plpgsql;
 
 -- ==============================================================================
 -- CÁC HÀM TỰ ĐỘNG DỌN DẸP DỮ LIỆU ĐỊNH KỲ (DATA RETENTION CLEANUP PROCEDURES)
--- Tự động giải phóng dung lượng đĩa và Cloud Storage dựa trên cấu hình bảng data_retention_configs
+-- Tự động giải phóng dung lượng đĩa và Cloud Storage dựa trên cấu hình bảng system_settings (key: data_retention_setting)
 -- ==============================================================================
 
 -- 1. Hàm dọn dẹp nhật ký đăng nhập hết hạn (Mặc định 90 ngày)
@@ -1246,8 +1056,8 @@ DECLARE
     deleted_count INTEGER;
 BEGIN
     IF retention_days IS NULL THEN
-        SELECT auth_logs_days INTO effective_days 
-        FROM data_retention_configs WHERE is_active = TRUE LIMIT 1;
+        SELECT (value->>'auth_logs_days')::INTEGER INTO effective_days 
+        FROM system_settings WHERE key = 'data_retention_setting' LIMIT 1;
         effective_days := COALESCE(effective_days, 90);
     ELSE
         effective_days := retention_days;
@@ -1269,8 +1079,8 @@ DECLARE
     deleted_count INTEGER;
 BEGIN
     IF retention_days IS NULL THEN
-        SELECT read_notifications_days INTO effective_days 
-        FROM data_retention_configs WHERE is_active = TRUE LIMIT 1;
+        SELECT (value->>'read_notifications_days')::INTEGER INTO effective_days 
+        FROM system_settings WHERE key = 'data_retention_setting' LIMIT 1;
         effective_days := COALESCE(effective_days, 60);
     ELSE
         effective_days := retention_days;
@@ -1297,8 +1107,8 @@ DECLARE
     effective_days INTEGER;
 BEGIN
     IF retention_days IS NULL THEN
-        SELECT submission_media_days INTO effective_days 
-        FROM data_retention_configs WHERE is_active = TRUE LIMIT 1;
+        SELECT (value->>'submission_media_days')::INTEGER INTO effective_days 
+        FROM system_settings WHERE key = 'data_retention_setting' LIMIT 1;
         effective_days := COALESCE(effective_days, 60);
     ELSE
         effective_days := retention_days;
@@ -1352,8 +1162,8 @@ DECLARE
     deleted_count INTEGER;
 BEGIN
     IF retention_days IS NULL THEN
-        SELECT audit_logs_days INTO effective_days 
-        FROM data_retention_configs WHERE is_active = TRUE LIMIT 1;
+        SELECT (value->>'audit_logs_days')::INTEGER INTO effective_days 
+        FROM system_settings WHERE key = 'data_retention_setting' LIMIT 1;
         effective_days := COALESCE(effective_days, 365);
     ELSE
         effective_days := retention_days;
@@ -1544,18 +1354,14 @@ ALTER TABLE missions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mission_classes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE homework_submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_submission_errors ENABLE ROW LEVEL SECURITY;
-ALTER TABLE wheel_configs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wheel_prizes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wheel_spins ENABLE ROW LEVEL SECURITY;
-ALTER TABLE monthly_reward_configs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE monthly_leaderboard ENABLE ROW LEVEL SECURITY;
-ALTER TABLE exchange_configs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE monthly_exchange_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE monthly_class_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE coin_transactions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ai_system_configs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_prompt_templates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE auth_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE data_retention_configs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE system_settings ENABLE ROW LEVEL SECURITY;

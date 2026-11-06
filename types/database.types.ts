@@ -7,6 +7,8 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.18"
   }
@@ -112,57 +114,6 @@ export type Database = {
             columns: ["submission_id"]
             isOneToOne: false
             referencedRelation: "homework_submissions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ai_system_configs: {
-        Row: {
-          api_key: string
-          api_url: string
-          created_by: string | null
-          id: string
-          is_active: boolean | null
-          model_name: string
-          thinking_mode: string
-          updated_at: string | null
-          updated_by: string | null
-        }
-        Insert: {
-          api_key: string
-          api_url: string
-          created_by?: string | null
-          id?: string
-          is_active?: boolean | null
-          model_name: string
-          thinking_mode?: string
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Update: {
-          api_key?: string
-          api_url?: string
-          created_by?: string | null
-          id?: string
-          is_active?: boolean | null
-          model_name?: string
-          thinking_mode?: string
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ai_system_configs_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ai_system_configs_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -375,94 +326,6 @@ export type Database = {
           {
             foreignKeyName: "coin_transactions_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      data_retention_configs: {
-        Row: {
-          audit_logs_days: number
-          auth_logs_days: number
-          auto_cleanup_enabled: boolean
-          id: string
-          is_active: boolean
-          last_cleaned_at: string | null
-          last_cleanup_summary: Json | null
-          read_notifications_days: number
-          submission_media_days: number
-          updated_at: string | null
-          updated_by: string | null
-        }
-        Insert: {
-          audit_logs_days?: number
-          auth_logs_days?: number
-          auto_cleanup_enabled?: boolean
-          id?: string
-          is_active?: boolean
-          last_cleaned_at?: string | null
-          last_cleanup_summary?: Json | null
-          read_notifications_days?: number
-          submission_media_days?: number
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Update: {
-          audit_logs_days?: number
-          auth_logs_days?: number
-          auto_cleanup_enabled?: boolean
-          id?: string
-          is_active?: boolean
-          last_cleaned_at?: string | null
-          last_cleanup_summary?: Json | null
-          read_notifications_days?: number
-          submission_media_days?: number
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "data_retention_configs_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      exchange_configs: {
-        Row: {
-          id: string
-          is_active: boolean | null
-          min_exchange_coins: number
-          step_coins: number
-          updated_at: string | null
-          updated_by: string | null
-          vnd_per_step: number
-        }
-        Insert: {
-          id?: string
-          is_active?: boolean | null
-          min_exchange_coins?: number
-          step_coins?: number
-          updated_at?: string | null
-          updated_by?: string | null
-          vnd_per_step?: number
-        }
-        Update: {
-          id?: string
-          is_active?: boolean | null
-          min_exchange_coins?: number
-          step_coins?: number
-          updated_at?: string | null
-          updated_by?: string | null
-          vnd_per_step?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "exchange_configs_updated_by_fkey"
-            columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -914,68 +777,6 @@ export type Database = {
           },
         ]
       }
-      monthly_reward_configs: {
-        Row: {
-          id: string
-          is_active: boolean | null
-          progress_reward_mode: string
-          progress_tier1_coins: number
-          progress_tier1_percent: number
-          progress_tier2_coins: number
-          progress_tier2_percent: number
-          progress_tier3_coins: number
-          progress_tier3_percent: number
-          progress_top_limit: number | null
-          top1_bonus_coins: number
-          top2_bonus_coins: number
-          top3_bonus_coins: number
-          updated_at: string | null
-          updated_by: string | null
-        }
-        Insert: {
-          id?: string
-          is_active?: boolean | null
-          progress_reward_mode?: string
-          progress_tier1_coins?: number
-          progress_tier1_percent?: number
-          progress_tier2_coins?: number
-          progress_tier2_percent?: number
-          progress_tier3_coins?: number
-          progress_tier3_percent?: number
-          progress_top_limit?: number | null
-          top1_bonus_coins?: number
-          top2_bonus_coins?: number
-          top3_bonus_coins?: number
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Update: {
-          id?: string
-          is_active?: boolean | null
-          progress_reward_mode?: string
-          progress_tier1_coins?: number
-          progress_tier1_percent?: number
-          progress_tier2_coins?: number
-          progress_tier2_percent?: number
-          progress_tier3_coins?: number
-          progress_tier3_percent?: number
-          progress_top_limit?: number | null
-          top1_bonus_coins?: number
-          top2_bonus_coins?: number
-          top3_bonus_coins?: number
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "monthly_reward_configs_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       notifications: {
         Row: {
           content: string
@@ -1039,6 +840,41 @@ export type Database = {
           },
         ]
       }
+      system_settings: {
+        Row: {
+          description: string | null
+          is_public: boolean
+          key: string
+          updated_at: string | null
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          is_public?: boolean
+          key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          is_public?: boolean
+          key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null
@@ -1047,6 +883,7 @@ export type Database = {
           current_coins: number
           deleted_at: string | null
           deleted_by: string | null
+          email: string | null
           failed_login_attempts: number | null
           free_spins: number
           full_name: string
@@ -1055,12 +892,14 @@ export type Database = {
           is_active: boolean | null
           is_deleted: boolean
           locked_until: string | null
-          phone_zalo: string
-          pin_number: string
+          password: string | null
+          phone_zalo: string | null
+          pin_number: string | null
           role: string
           total_earned_coins: number
           updated_at: string | null
           updated_by: string | null
+          username: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -1069,6 +908,7 @@ export type Database = {
           current_coins?: number
           deleted_at?: string | null
           deleted_by?: string | null
+          email?: string | null
           failed_login_attempts?: number | null
           free_spins?: number
           full_name: string
@@ -1077,12 +917,14 @@ export type Database = {
           is_active?: boolean | null
           is_deleted?: boolean
           locked_until?: string | null
-          phone_zalo: string
-          pin_number: string
+          password?: string | null
+          phone_zalo?: string | null
+          pin_number?: string | null
           role?: string
           total_earned_coins?: number
           updated_at?: string | null
           updated_by?: string | null
+          username?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -1091,6 +933,7 @@ export type Database = {
           current_coins?: number
           deleted_at?: string | null
           deleted_by?: string | null
+          email?: string | null
           failed_login_attempts?: number | null
           free_spins?: number
           full_name?: string
@@ -1099,12 +942,14 @@ export type Database = {
           is_active?: boolean | null
           is_deleted?: boolean
           locked_until?: string | null
-          phone_zalo?: string
-          pin_number?: string
+          password?: string | null
+          phone_zalo?: string | null
+          pin_number?: string | null
           role?: string
           total_earned_coins?: number
           updated_at?: string | null
           updated_by?: string | null
+          username?: string | null
         }
         Relationships: [
           {
@@ -1123,38 +968,6 @@ export type Database = {
           },
           {
             foreignKeyName: "users_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      wheel_configs: {
-        Row: {
-          id: string
-          is_active: boolean | null
-          spin_cost: number
-          updated_at: string | null
-          updated_by: string | null
-        }
-        Insert: {
-          id?: string
-          is_active?: boolean | null
-          spin_cost?: number
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Update: {
-          id?: string
-          is_active?: boolean | null
-          spin_cost?: number
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "wheel_configs_updated_by_fkey"
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "users"
@@ -1466,4 +1279,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
