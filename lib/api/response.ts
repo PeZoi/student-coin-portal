@@ -31,16 +31,19 @@ export function apiSuccess<T>(
  *
  * @param error Thông điệp lỗi
  * @param statusCode Mã trạng thái HTTP lỗi (mặc định 500)
+ * @param data Dữ liệu bổ sung kèm theo lỗi (nếu có, ví dụ trạng thái khóa, số lần thử...)
  */
-export function apiError(
+export function apiError<T = never>(
   error: string,
-  statusCode: HttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR
-): NextResponse<ApiResponse<never>> {
+  statusCode: HttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR,
+  data?: T
+): NextResponse<ApiResponse<T>> {
   return NextResponse.json(
     {
       success: false,
       statusCode,
       error,
+      ...(data !== undefined ? { data } : {}),
     },
     { status: statusCode }
   );

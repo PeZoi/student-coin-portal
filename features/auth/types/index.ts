@@ -10,6 +10,43 @@ export interface StudentLoginFormValues {
 }
 
 /**
+ * Thông tin trạng thái khóa bảo mật tài khoản
+ */
+export interface AuthLockInfo {
+  is_locked: boolean;
+  locked_until?: string | null;
+  remaining_minutes?: number;
+  remaining_attempts?: number;
+}
+
+/**
+ * Lỗi đặc thù khi xác thực mã PIN thất bại (chứa trạng thái khóa và số lần còn lại)
+ */
+export class PinVerificationError extends Error {
+  isLocked: boolean;
+  remainingMinutes: number;
+  remainingAttempts: number;
+  lockedUntil: string | null;
+
+  constructor(
+    message: string,
+    options?: {
+      isLocked?: boolean;
+      remainingMinutes?: number;
+      remainingAttempts?: number;
+      lockedUntil?: string | null;
+    }
+  ) {
+    super(message);
+    this.name = "PinVerificationError";
+    this.isLocked = options?.isLocked ?? false;
+    this.remainingMinutes = options?.remainingMinutes ?? 0;
+    this.remainingAttempts = options?.remainingAttempts ?? 0;
+    this.lockedUntil = options?.lockedUntil ?? null;
+  }
+}
+
+/**
  * Thông tin học sinh tìm thấy từ số điện thoại (dùng để hiển thị Popup xác nhận)
  */
 export interface StudentLookupData {
@@ -19,6 +56,10 @@ export interface StudentLookupData {
   avatar_url: string;
   current_coins: number;
   class_name: string | null;
+  is_locked?: boolean;
+  locked_until?: string | null;
+  remaining_minutes?: number;
+  remaining_attempts?: number;
 }
 
 /**
@@ -42,6 +83,13 @@ export interface StudentSessionData {
   class_name?: string | null;
   token?: string;
 }
+
+/**
+ * Kiểu dữ liệu trả về từ API đăng nhập học sinh (thành công hoặc thông tin khóa/lỗi thử)
+ */
+export type StudentLoginResponseData =
+  | StudentSessionData
+  | AuthLockInfo;
 
 /**
  * Dữ liệu Form đăng ký học sinh (bảng `users` & `classes` trong database_schema.sql)

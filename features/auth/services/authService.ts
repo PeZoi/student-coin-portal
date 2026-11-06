@@ -1,6 +1,8 @@
-import { http } from "@/lib/http/httpClient";
+import { http, isHttpError } from "@/lib/http/httpClient";
 import { ApiResponse } from "@/types/api";
 import {
+  AuthLockInfo,
+  PinVerificationError,
   RegisteredStudentData,
   StudentLoginPayload,
   StudentLookupData,
@@ -71,19 +73,35 @@ export const authService = {
    * @returns Thông tin phiên học sinh thành công
    */
   async loginStudent(payload: StudentLoginPayload): Promise<StudentSessionData> {
-    const response = await http.post<ApiResponse<StudentSessionData>>(
-      "/api/auth/login",
-      payload,
-      {
-        skipUnauthorizedHandler: true,
+    try {
+      const response = await http.post<ApiResponse<StudentSessionData>>(
+        "/api/auth/login",
+        payload,
+        {
+          skipUnauthorizedHandler: true,
+        }
+      );
+
+      if (!response.success || !response.data) {
+        throw new Error(response.error || "Mã PIN không chính xác.");
       }
-    );
 
-    if (!response.success || !response.data) {
-      throw new Error(response.error || "Mã PIN không chính xác.");
+      return response.data;
+    } catch (err: unknown) {
+      if (isHttpError(err) && typeof err.data === "object" && err.data !== null) {
+        const errorBody = err.data as { data?: AuthLockInfo };
+        const lockInfo = errorBody.data;
+        if (lockInfo) {
+          throw new PinVerificationError(err.message, {
+            isLocked: lockInfo.is_locked,
+            remainingMinutes: lockInfo.remaining_minutes,
+            remainingAttempts: lockInfo.remaining_attempts,
+            lockedUntil: lockInfo.locked_until,
+          });
+        }
+      }
+      throw err;
     }
-
-    return response.data;
   },
 
   /**

@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ArrowLeft, Loader2, X } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Loader2, Lock, X } from "lucide-react";
 import { Button3D } from "@/components/ui/Button3D";
 import { cn } from "@/lib/utils";
 import { AUTH_THEME } from "../constants/authTheme";
-import { StudentLookupData } from "../types";
+import { PinVerificationError, StudentLookupData } from "../types";
 
 interface StudentPinModalProps {
   isOpen: boolean;
@@ -29,10 +29,49 @@ export function StudentPinModal({
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [focusedIndex, setFocusedIndex] = useState<number>(0);
 
+  // Quản lý trạng thái khóa tài khoản và số lần thử còn lại
+  const [isLocked, setIsLocked] = useState<boolean>(student?.is_locked ?? false);
+  const [lockRemainingMinutes, setLockRemainingMinutes] = useState<number>(student?.remaining_minutes ?? 0);
+  const [remainingAttempts, setRemainingAttempts] = useState<number | null>(student?.remaining_attempts ?? null);
+
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const modalRef = useRef<HTMLDivElement | null>(null);
 
-  // Khóa cuộn trang nền và tự động focus vào ô OTP đầu tiên khi mở modal
+  // Đồng bộ trạng thái khóa từ dữ liệu học sinh khi mở modal
+  useEffect(() => {
+    if (student) {
+      const locked = student.is_locked ?? false;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsLocked(locked);
+      setLockRemainingMinutes(student.remaining_minutes ?? 0);
+      setRemainingAttempts(student.remaining_attempts ?? null);
+      if (locked) {
+        setErrorMessage(
+          `Tài khoản của con đang bị tạm khóa. Vui lòng thử lại sau ${student.remaining_minutes || 15} phút nữa nhé!`
+        );
+      } else {
+        setErrorMessage("");
+      }
+    }
+  }, [student, isOpen]);
+
+  // Bộ đếm ngược tự động giảm số phút khóa theo thời gian thực
+  useEffect(() => {
+    if (!isLocked || lockRemainingMinutes <= 0) return;
+    const interval = setInterval(() => {
+      setLockRemainingMinutes((prev) => {
+        if (prev <= 1) {
+          setIsLocked(false);
+          setErrorMessage("");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [isLocked, lockRemainingMinutes]);
+
+  // Khóa cuộn trang nền và tự động focus vào ô OTP đầu tiên nếu chưa bị khóa
   useEffect(() => {
     if (!isOpen) return;
 
@@ -40,15 +79,17 @@ export function StudentPinModal({
     document.body.style.overflow = "hidden";
 
     const timer = setTimeout(() => {
-      inputRefs.current[0]?.focus();
-      setFocusedIndex(0);
+      if (!isLocked) {
+        inputRefs.current[0]?.focus();
+        setFocusedIndex(0);
+      }
     }, 120);
 
     return () => {
       document.body.style.overflow = originalOverflow;
       clearTimeout(timer);
     };
-  }, [isOpen]);
+  }, [isOpen, isLocked]);
 
   // Lắng nghe phím ESC để đóng modal
   useEffect(() => {
@@ -86,8 +127,38 @@ export function StudentPinModal({
 
   if (!isOpen || !student) return null;
 
+  // Xử lý gửi mã PIN lên hệ thống và bắt thông tin lỗi/khóa tài khoản
+  const handlePinSubmit = async (fullPin: string) => {
+    if (isLocked) return;
+
+    try {
+      setErrorMessage("");
+      await onConfirmPin(fullPin);
+    } catch (err: unknown) {
+      if (err instanceof PinVerificationError) {
+        setErrorMessage(err.message);
+        if (err.isLocked) {
+          setIsLocked(true);
+          setLockRemainingMinutes(err.remainingMinutes || 15);
+          setRemainingAttempts(0);
+        } else {
+          setRemainingAttempts(err.remainingAttempts);
+        }
+      } else {
+        const error = err instanceof Error ? err : new Error(String(err));
+        setErrorMessage(error.message);
+      }
+      setPinDigits(["", "", "", ""]);
+      if (!isLocked) {
+        inputRefs.current[0]?.focus();
+        setFocusedIndex(0);
+      }
+    }
+  };
+
   // Hàm áp dụng chữ số tại ô index, cập nhật state và tự động chuyển sang ô kế tiếp
   const applyDigit = (index: number, digit: string) => {
+    if (isLocked) return;
     setErrorMessage("");
     const newDigits = [...pinDigits];
     newDigits[index] = digit;
@@ -104,13 +175,7 @@ export function StudentPinModal({
     // Nếu đã nhập đủ 4 số, tự động kích hoạt xác nhận
     const fullPin = newDigits.join("");
     if (fullPin.length === 4 && !newDigits.includes("")) {
-      onConfirmPin(fullPin).catch((err: unknown) => {
-        const error = err instanceof Error ? err : new Error(String(err));
-        setErrorMessage(error.message);
-        setPinDigits(["", "", "", ""]);
-        inputRefs.current[0]?.focus();
-        setFocusedIndex(0);
-      });
+      handlePinSubmit(fullPin);
     }
   };
 
@@ -200,13 +265,7 @@ export function StudentPinModal({
       setFocusedIndex(nextIndex);
 
       if (pastedText.length === 4) {
-        onConfirmPin(pastedText).catch((err: unknown) => {
-          const error = err instanceof Error ? err : new Error(String(err));
-          setErrorMessage(error.message);
-          setPinDigits(["", "", "", ""]);
-          inputRefs.current[0]?.focus();
-          setFocusedIndex(0);
-        });
+        handlePinSubmit(pastedText);
       }
     }
   };
@@ -214,6 +273,8 @@ export function StudentPinModal({
   // Submit thủ công khi bấm nút "VÀO LỚP NGAY"
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLocked) return;
+
     const fullPin = pinDigits.join("");
     if (fullPin.length < 4) {
       setErrorMessage("Con hãy nhập đủ 4 số PIN nhé!");
@@ -225,13 +286,7 @@ export function StudentPinModal({
       return;
     }
 
-    onConfirmPin(fullPin).catch((err: unknown) => {
-      const error = err instanceof Error ? err : new Error(String(err));
-      setErrorMessage(error.message);
-      setPinDigits(["", "", "", ""]);
-      inputRefs.current[0]?.focus();
-      setFocusedIndex(0);
-    });
+    handlePinSubmit(fullPin);
   };
 
   return (
@@ -395,34 +450,43 @@ export function StudentPinModal({
                       pattern="[0-9]*"
                       maxLength={2}
                       value={digit}
-                      disabled={isVerifying}
+                      disabled={isVerifying || isLocked}
                       onFocus={(e) => {
-                        setFocusedIndex(index);
-                        e.target.select();
+                        if (!isLocked) {
+                          setFocusedIndex(index);
+                          e.target.select();
+                        }
                       }}
                       onClick={(e) => {
-                        e.currentTarget.select();
+                        if (!isLocked) {
+                          e.currentTarget.select();
+                        }
                       }}
                       onChange={(e) => handleDigitChange(index, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
                       onPaste={handlePaste}
                       aria-label={`Số PIN thứ ${index + 1}`}
                       className={cn(
-                        "w-full h-14 sm:h-16 [@media(max-height:700px)]:h-11 text-3xl sm:text-4xl [@media(max-height:700px)]:text-2xl text-[#3D1A04] font-heading font-black text-center rounded-2xl [@media(max-height:700px)]:rounded-xl select-none cursor-text disabled:opacity-50 transition-all duration-150 outline-none",
-                        hasError
-                          ? "border-2 sm:border-[2.5px] border-[#DC2626] bg-[#FFF5F5] ring-2 ring-red-500/20"
+                        "w-full h-14 sm:h-16 [@media(max-height:700px)]:h-11 text-3xl sm:text-4xl [@media(max-height:700px)]:text-2xl text-[#3D1A04] font-heading font-black text-center rounded-2xl [@media(max-height:700px)]:rounded-xl select-none transition-all duration-150 outline-none",
+                        isLocked
+                          ? "bg-slate-100/90 border-2 sm:border-[2.5px] border-slate-300 text-slate-400 opacity-60 cursor-not-allowed shadow-none"
+                          : hasError
+                          ? "border-2 sm:border-[2.5px] border-[#DC2626] bg-[#FFF5F5] ring-2 ring-red-500/20 cursor-text"
                           : isCurrent
-                          ? "bg-white border-2 sm:border-[2.5px] border-[#D97706] ring-4 ring-amber-500/30 scale-105 shadow-[0_4px_12px_rgba(217,119,6,0.25)]"
+                          ? "bg-white border-2 sm:border-[2.5px] border-[#D97706] ring-4 ring-amber-500/30 scale-105 shadow-[0_4px_12px_rgba(217,119,6,0.25)] cursor-text"
                           : hasValue
-                          ? "bg-white border-2 sm:border-[2.5px] border-[#B08A52] shadow-[inset_0_2px_4px_rgba(0,0,0,0.06)]"
-                          : "bg-[#FFFDF7] border-2 sm:border-[2.5px] border-[#B08A52] shadow-[inset_0_2px_4px_rgba(0,0,0,0.06)]"
+                          ? "bg-white border-2 sm:border-[2.5px] border-[#B08A52] shadow-[inset_0_2px_4px_rgba(0,0,0,0.06)] cursor-text"
+                          : "bg-[#FFFDF7] border-2 sm:border-[2.5px] border-[#B08A52] shadow-[inset_0_2px_4px_rgba(0,0,0,0.06)] cursor-text"
                       )}
                     />
 
                     {/* Dấu chấm tròn placeholder khi ô trống và không được focus */}
                     {!hasValue && !isCurrent && (
                       <span
-                        className="absolute pointer-events-none h-2 w-2 rounded-full bg-[#B08A52]/40"
+                        className={cn(
+                          "absolute pointer-events-none h-2 w-2 rounded-full",
+                          isLocked ? "bg-slate-400/30" : "bg-[#B08A52]/40"
+                        )}
                         aria-hidden="true"
                       />
                     )}
@@ -431,25 +495,67 @@ export function StudentPinModal({
               })}
             </div>
 
-            {/* Thông báo lỗi nếu sai PIN */}
-            {errorMessage && (
-              <div className="w-full bg-red-50 border border-red-300 text-red-700 text-sm font-bold rounded-xl px-3 py-2 [@media(max-height:700px)]:py-1 text-center mt-2 [@media(max-height:700px)]:mt-1 animate-shake motion-reduce:animate-none shadow-xs flex items-center justify-center gap-1.5">
-                <span>⚠️</span>
-                <span>{errorMessage}</span>
+            {/* ========================================================================= */}
+            {/* THÔNG BÁO TRỰC TIẾP TRÊN GIAO DIỆN (KHÔNG DÙNG TOAST) */}
+            {/* ========================================================================= */}
+            {isLocked ? (
+              /* Hộp thông báo tài khoản đang bị tạm khóa */
+              <div className="w-full bg-rose-50 border-2 border-rose-300 text-rose-900 rounded-2xl p-3 sm:p-3.5 my-2 text-center animate-shake motion-reduce:animate-none shadow-sm flex flex-col items-center select-none">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-rose-100 border-2 border-rose-300 flex items-center justify-center text-rose-600 mb-1.5 shadow-xs">
+                  <Lock className="w-5 h-5 stroke-[2.5]" />
+                </div>
+                <h4 className="font-heading font-black text-sm sm:text-base text-rose-800 leading-tight">
+                  Tài khoản đang bị tạm khóa!
+                </h4>
+                <p className="text-xs sm:text-sm text-rose-700 font-bold mt-1 leading-snug">
+                  Con đã nhập sai mã PIN nhiều lần. Vui lòng thử lại sau{" "}
+                  <span className="font-heading font-black text-rose-950 text-sm sm:text-base underline underline-offset-2">
+                    {lockRemainingMinutes} phút
+                  </span>{" "}
+                  nữa nhé!
+                </p>
+                <span className="text-[11px] sm:text-xs text-rose-500 font-semibold mt-1">
+                  (Hoặc con có thể nhờ thầy cô giáo mở khóa giúp nhé)
+                </span>
               </div>
-            )}
+            ) : errorMessage ? (
+              /* Hộp thông báo sai mã PIN và hiển thị số lần thử còn lại */
+              <div className="w-full bg-amber-50 border-2 border-amber-300 text-amber-900 rounded-2xl p-2.5 sm:p-3 my-2 text-center animate-shake motion-reduce:animate-none shadow-xs flex items-center justify-center gap-2 select-none">
+                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                <div className="flex flex-col text-left">
+                  <span className="text-xs sm:text-sm font-bold text-amber-900 leading-tight">
+                    {errorMessage}
+                  </span>
+                  {typeof remainingAttempts === "number" && remainingAttempts > 0 && (
+                    <span className="text-[11px] sm:text-xs text-amber-800 font-semibold mt-0.5">
+                      Bé còn{" "}
+                      <strong className="text-amber-950 font-black text-xs sm:text-sm">
+                        {remainingAttempts} lần thử
+                      </strong>{" "}
+                      trước khi tài khoản bị tạm khóa.
+                    </span>
+                  )}
+                </div>
+              </div>
+            ) : null}
 
             {/* Nút Đăng nhập 3D */}
-            <div className="w-full mt-4 [@media(max-height:700px)]:mt-1.5">
+            <div className="w-full mt-3 [@media(max-height:700px)]:mt-1.5">
               <Button3D
                 type="submit"
-                variant="green"
+                variant={isLocked ? "disabled" : "green"}
                 size="lg"
                 fullWidth
+                disabled={isVerifying || isLocked}
                 loading={isVerifying}
                 className="rounded-2xl gap-2 tracking-wider uppercase text-base sm:text-lg [@media(max-height:700px)]:py-2 [@media(max-height:700px)]:text-base"
               >
-                {isVerifying ? (
+                {isLocked ? (
+                  <span className="flex items-center justify-center gap-1.5 opacity-80">
+                    <Lock className="w-4 h-4 stroke-[2.5]" />
+                    <span>ĐANG TẠM KHÓA ({lockRemainingMinutes} PHÚT)</span>
+                  </span>
+                ) : isVerifying ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin motion-reduce:animate-none" />
                     <span>Đang vào lớp...</span>

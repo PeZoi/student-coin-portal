@@ -4,6 +4,7 @@ import { apiError, apiSuccess } from "@/lib/api/response";
 import { HttpStatus, ApiResponse } from "@/types/api";
 import { studentLoginSchema } from "@/features/auth/schemas/authSchemas";
 import { StudentLookupData } from "@/features/auth/types";
+import { getAuthSecurityConfig } from "@/lib/system/serverConfig";
 
 interface UserLookupDbRow {
   id: string;
@@ -11,6 +12,8 @@ interface UserLookupDbRow {
   phone_zalo: string;
   avatar_url: string | null;
   current_coins: number | null;
+  failed_login_attempts: number | null;
+  locked_until: string | null;
   classes: { class_name: string } | null;
 }
 
@@ -42,7 +45,7 @@ export async function POST(
     const normalizedPhone = phone_zalo.trim();
 
     // 2. Tra cứu học sinh trong bảng `users` kèm thông tin lớp học từ bảng `classes`
-    const { data, error } = await supabase
+    let queryResult = await supabase
       .from("users")
       .select(
         `
@@ -51,6 +54,8 @@ export async function POST(
         phone_zalo,
         avatar_url,
         current_coins,
+        failed_login_attempts,
+        locked_until,
         classes!users_class_id_fkey (
           class_name
         )
@@ -61,6 +66,34 @@ export async function POST(
       .eq("is_active", true)
       .eq("is_deleted", false)
       .maybeSingle();
+
+    // Tự động thử lại 1 lần nếu mạng chập chờn (DNS timeout hoặc fetch failed)
+    if (queryResult.error && (queryResult.error.message.includes("fetch failed") || queryResult.error.message.includes("ENOTFOUND"))) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      queryResult = await supabase
+        .from("users")
+        .select(
+          `
+          id,
+          full_name,
+          phone_zalo,
+          avatar_url,
+          current_coins,
+          failed_login_attempts,
+          locked_until,
+          classes!users_class_id_fkey (
+            class_name
+          )
+        `
+        )
+        .eq("phone_zalo", normalizedPhone)
+        .eq("role", "student")
+        .eq("is_active", true)
+        .eq("is_deleted", false)
+        .maybeSingle();
+    }
+
+    const { data, error } = queryResult;
 
     if (error) {
       console.error("Lỗi khi tra cứu học sinh theo SĐT:", error.message);
@@ -76,6 +109,27 @@ export async function POST(
 
     const userRow = data as unknown as UserLookupDbRow;
 
+    // 3. Đọc cấu hình bảo mật từ Server In-Memory Cache (0ms, không tốn query Supabase)
+    const { max_failed_attempts: maxFailedAttempts } = await getAuthSecurityConfig();
+
+    // 4. Kiểm tra trạng thái khóa tài khoản hiện tại
+    let isLocked = false;
+    let remainingMinutes = 0;
+    const now = new Date();
+
+    if (userRow.locked_until) {
+      const lockUntilDate = new Date(userRow.locked_until);
+      if (lockUntilDate > now) {
+        isLocked = true;
+        const diffMs = lockUntilDate.getTime() - now.getTime();
+        remainingMinutes = Math.max(1, Math.ceil(diffMs / (60 * 1000)));
+      }
+    }
+
+    const remainingAttempts = isLocked
+      ? 0
+      : Math.max(0, maxFailedAttempts - (userRow.failed_login_attempts ?? 0));
+
     const studentInfo: StudentLookupData = {
       id: userRow.id,
       full_name: userRow.full_name,
@@ -83,6 +137,10 @@ export async function POST(
       avatar_url: userRow.avatar_url || "/avatar.jpg",
       current_coins: userRow.current_coins ?? 0,
       class_name: userRow.classes?.class_name ?? null,
+      is_locked: isLocked,
+      locked_until: userRow.locked_until,
+      remaining_minutes: remainingMinutes,
+      remaining_attempts: remainingAttempts,
     };
 
     return apiSuccess<StudentLookupData>(

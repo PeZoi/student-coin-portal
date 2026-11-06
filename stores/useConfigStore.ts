@@ -2,11 +2,12 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { SystemPublicConfigs } from "@/types/systemConfig";
 import { systemConfigService } from "@/features/system/services/systemConfigService";
+import { isPublicPage } from "@/lib/auth/routes";
 
 interface ConfigState {
   configs: SystemPublicConfigs | null;
   isLoading: boolean;
-  fetchConfigs: () => Promise<SystemPublicConfigs | null>;
+  fetchConfigs: (force?: boolean) => Promise<SystemPublicConfigs | null>;
   clearConfigs: () => void;
 }
 
@@ -16,7 +17,13 @@ export const useConfigStore = create<ConfigState>()(
       configs: null,
       isLoading: true,
 
-      fetchConfigs: async () => {
+      fetchConfigs: async (force: boolean = false) => {
+        // Nếu đang ở màn hình công khai (chưa đăng nhập, ví dụ /login) và không ép buộc -> Tuyệt đối không gọi API
+        if (!force && typeof window !== "undefined" && isPublicPage(window.location.pathname)) {
+          set({ isLoading: false });
+          return null;
+        }
+
         // Nếu đã có cache trong store/localStorage, không kích hoạt layout loading spinner
         if (!get().configs) {
           set({ isLoading: true });

@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useUserStore } from "@/stores/useUserStore";
+import { useConfigStore } from "@/stores/useConfigStore";
 import { getErrorMessage } from "@/lib/http/httpClient";
 import { authService } from "../services/authService";
 import {
@@ -137,9 +138,8 @@ export function useAuthForm(initialRole: UserRole = "student", initialMode: Auth
       resetAllForms();
       router.push("/student");
     } catch (error: unknown) {
-      const message = getErrorMessage(error);
-      // Ném lỗi để modal hiển thị dòng báo đỏ trực tiếp dưới 4 ô OTP
-      throw new Error(message);
+      // Ném nguyên vẹn lỗi để StudentPinModal bắt và hiển thị trực tiếp lên UI (không dùng toast)
+      throw error;
     } finally {
       setIsVerifyingPin(false);
     }

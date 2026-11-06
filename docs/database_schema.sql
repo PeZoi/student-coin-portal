@@ -1365,3 +1365,13 @@ ALTER TABLE auth_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE system_settings ENABLE ROW LEVEL SECURITY;
+
+-- ==============================================================================
+-- CÁC CHÍNH SÁCH BẢO MẬT (POLICIES) CƠ BẢN
+-- ==============================================================================
+CREATE POLICY "Cho phép xem danh sách lớp học đang hoạt động" ON classes FOR SELECT TO public USING (is_active = true);
+CREATE POLICY "Cho phép xem người dùng đang hoạt động" ON users FOR SELECT TO public USING (is_active = true AND is_deleted = false);
+CREATE POLICY "Cho phép học sinh tự đăng ký tài khoản" ON users FOR INSERT TO public WITH CHECK (role = 'student' AND phone_zalo IS NOT NULL AND pin_number IS NOT NULL);
+CREATE POLICY "Cho phép cập nhật trạng thái người dùng" ON users FOR UPDATE TO public USING (true) WITH CHECK (true);
+CREATE POLICY "system_settings_public_select" ON system_settings FOR SELECT TO public USING (is_public = true);
+CREATE POLICY "system_settings_admin_all" ON system_settings FOR ALL TO public USING (true) WITH CHECK (true);

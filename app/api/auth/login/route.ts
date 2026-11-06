@@ -3,8 +3,9 @@ import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { HttpStatus, ApiResponse } from "@/types/api";
 import { studentPinVerificationSchema } from "@/features/auth/schemas/authSchemas";
-import { StudentSessionData } from "@/features/auth/types";
+import { StudentLoginResponseData, StudentSessionData } from "@/features/auth/types";
 import { setAuthCookie, signAuthToken } from "@/lib/auth/jwt";
+import { getAuthSecurityConfig } from "@/lib/system/serverConfig";
 
 interface UserLoginDbRow {
   id: string;
@@ -16,12 +17,14 @@ interface UserLoginDbRow {
   role: string;
   is_active: boolean;
   is_deleted: boolean;
+  failed_login_attempts: number | null;
+  locked_until: string | null;
   classes: { class_name: string } | null;
 }
 
 export async function POST(
   req: Request
-): Promise<NextResponse<ApiResponse<StudentSessionData>>> {
+): Promise<NextResponse<ApiResponse<StudentLoginResponseData>>> {
   try {
     let body: unknown = null;
     try {
@@ -48,7 +51,7 @@ export async function POST(
     const normalizedPin = pin_number.trim();
 
     // 2. Lấy thông tin tài khoản học sinh và mã PIN lưu trong DB
-    const { data, error } = await supabase
+    let queryResult = await supabase
       .from("users")
       .select(
         `
@@ -61,6 +64,8 @@ export async function POST(
         role,
         is_active,
         is_deleted,
+        failed_login_attempts,
+        locked_until,
         classes!users_class_id_fkey (
           class_name
         )
@@ -69,6 +74,36 @@ export async function POST(
       .eq("phone_zalo", normalizedPhone)
       .eq("role", "student")
       .maybeSingle();
+
+    // Tự động thử lại 1 lần nếu mạng chập chờn (DNS timeout hoặc fetch failed)
+    if (queryResult.error && (queryResult.error.message.includes("fetch failed") || queryResult.error.message.includes("ENOTFOUND"))) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      queryResult = await supabase
+        .from("users")
+        .select(
+          `
+          id,
+          full_name,
+          phone_zalo,
+          pin_number,
+          avatar_url,
+          current_coins,
+          role,
+          is_active,
+          is_deleted,
+          failed_login_attempts,
+          locked_until,
+          classes!users_class_id_fkey (
+            class_name
+          )
+        `
+        )
+        .eq("phone_zalo", normalizedPhone)
+        .eq("role", "student")
+        .maybeSingle();
+    }
+
+    const { data, error } = queryResult;
 
     if (error) {
       console.error("Lỗi khi xác thực đăng nhập:", error.message);
@@ -92,12 +127,95 @@ export async function POST(
       );
     }
 
-    // 4. Đối soát mã PIN
+    // 4. Đọc cấu hình bảo mật từ Server In-Memory Cache (0ms, không tốn query Supabase)
+    const { max_failed_attempts: maxFailedAttempts, lockout_minutes: lockoutMinutes } =
+      await getAuthSecurityConfig();
+
+    // 5. Kiểm tra xem tài khoản có đang bị tạm khóa không
+    const now = new Date();
+    if (userRow.locked_until) {
+      const lockUntilDate = new Date(userRow.locked_until);
+      if (lockUntilDate > now) {
+        const diffMs = lockUntilDate.getTime() - now.getTime();
+        const remainingMinutes = Math.max(1, Math.ceil(diffMs / (60 * 1000)));
+        return apiError(
+          `Tài khoản của con đang bị tạm khóa do nhập sai mã PIN nhiều lần. Vui lòng thử lại sau ${remainingMinutes} phút nữa (hoặc nhờ cô giáo mở khóa nhé)!`,
+          HttpStatus.UNAUTHORIZED,
+          {
+            is_locked: true,
+            locked_until: userRow.locked_until,
+            remaining_minutes: remainingMinutes,
+            remaining_attempts: 0,
+          }
+        );
+      }
+    }
+
+    // 6. Đối soát mã PIN
     if (userRow.pin_number !== normalizedPin) {
+      const newFailed = (userRow.failed_login_attempts ?? 0) + 1;
+
+      // Nếu nhập sai đạt ngưỡng giới hạn -> Tạm khóa tài khoản
+      if (newFailed >= maxFailedAttempts) {
+        const lockedUntil = new Date(
+          Date.now() + lockoutMinutes * 60 * 1000
+        ).toISOString();
+
+        await supabase
+          .from("users")
+          .update({
+            failed_login_attempts: newFailed,
+            locked_until: lockedUntil,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", userRow.id);
+
+        return apiError(
+          `Con đã nhập sai mã PIN ${maxFailedAttempts} lần! Tài khoản của con tạm thời bị khóa trong ${lockoutMinutes} phút. Con hãy nhờ cô giáo hoặc bố mẹ mở khóa nhé!`,
+          HttpStatus.UNAUTHORIZED,
+          {
+            is_locked: true,
+            locked_until: lockedUntil,
+            remaining_minutes: lockoutMinutes,
+            remaining_attempts: 0,
+          }
+        );
+      }
+
+      // Chưa đạt ngưỡng -> Ghi nhận số lần sai và báo số lần còn lại
+      await supabase
+        .from("users")
+        .update({
+          failed_login_attempts: newFailed,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userRow.id);
+
+      const remainingAttempts = maxFailedAttempts - newFailed;
       return apiError(
-        "Mã PIN chưa đúng rồi! Bé thử nhớ lại hoặc hỏi bố mẹ xem sao nhé.",
-        HttpStatus.UNAUTHORIZED
+        "Mã PIN chưa chính xác rồi con ơi!",
+        HttpStatus.UNAUTHORIZED,
+        {
+          is_locked: false,
+          remaining_attempts: remainingAttempts,
+          failed_attempts: newFailed,
+        }
       );
+    }
+
+    // 7. Nhập ĐÚNG PIN -> Reset số lần nhập sai và trạng thái khóa nếu có
+    if (
+      (userRow.failed_login_attempts && userRow.failed_login_attempts > 0) ||
+      userRow.locked_until
+    ) {
+      await supabase
+        .from("users")
+        .update({
+          failed_login_attempts: 0,
+          locked_until: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userRow.id);
     }
 
     // 5. Tạo JWT Token (chứa userId, phone_zalo và role) và lưu vào httpOnly Cookie

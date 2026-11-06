@@ -4,6 +4,7 @@ import { Mission, StudentProfile } from "@/features/dashboard/types";
 import { initialMissions } from "@/features/dashboard/data/initialData";
 import { getDisplayName } from "@/lib/utils";
 import { authService } from "@/features/auth/services/authService";
+import { isPublicPage } from "@/lib/auth/routes";
 import { useConfigStore } from "./useConfigStore";
 
 export interface StudentSessionPayload {
@@ -123,6 +124,12 @@ export const useUserStore = create<UserState>()(
       },
 
       fetchCurrentUser: async () => {
+        // Nếu đang ở màn hình công khai (chưa đăng nhập, ví dụ /login) -> Tuyệt đối không gọi API /me
+        if (typeof window !== "undefined" && isPublicPage(window.location.pathname)) {
+          set({ isLoading: false });
+          return false;
+        }
+
         // Không set isLoading = true nếu đã có student trong cache để tránh layout shift
         if (!get().student) {
           set({ isLoading: true });
