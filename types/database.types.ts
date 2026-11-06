@@ -182,6 +182,7 @@ export type Database = {
           failure_reason: string | null
           id: string
           ip_address: string
+          location: string | null
           phone_zalo: string
           role: string
           status: string
@@ -195,6 +196,7 @@ export type Database = {
           failure_reason?: string | null
           id?: string
           ip_address: string
+          location?: string | null
           phone_zalo: string
           role?: string
           status: string
@@ -208,6 +210,7 @@ export type Database = {
           failure_reason?: string | null
           id?: string
           ip_address?: string
+          location?: string | null
           phone_zalo?: string
           role?: string
           status?: string

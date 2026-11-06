@@ -1,56 +1,26 @@
 /**
  * ==============================================================================
- * CẤU HÌNH PHÂN QUYỀN VÀ ĐIỀU HƯỚNG HỆ THỐNG (AUTH & ROLE PERMISSIONS CONFIG)
+ * CẤU HÌNH PHÂN QUYỀN VÀ ĐIỀU HƯỚNG HỆ THỐNG (AUTH & ROLE PERMISSIONS)
  * ==============================================================================
- * Dễ dàng tinh chỉnh, thêm bớt route hoặc phân quyền vai trò về sau tại đây.
+ * - Hằng số routes & quyền hạn được quản lý tập trung tại @/constants/routes
+ * - File này cung cấp các helper functions kiểm tra quyền hạn cho proxy / middleware
+ * ==============================================================================
  */
 
-/**
- * Danh sách các đường dẫn giao diện (Pages) công khai.
- * Người dùng chưa đăng nhập có thể truy cập mà không bị chuyển hướng.
- */
-export const PUBLIC_PAGES: readonly string[] = [
-  "/login",
-];
+import {
+  AppRoutes,
+  PUBLIC_PAGES,
+  PUBLIC_API_PREFIXES,
+  ROLE_PERMISSIONS,
+  type RoleAccessRule,
+} from "@/constants/routes";
 
-/**
- * Danh sách các tiền tố API công khai (không yêu cầu token xác thực).
- */
-export const PUBLIC_API_PREFIXES: readonly string[] = [
-  "/api/auth/login",
-  "/api/auth/lookup",
-  "/api/auth/register",
-  "/api/classes",
-];
-
-/**
- * Cấu hình quyền hạn truy cập theo từng vai trò (Role-Based Access Control).
- */
-export interface RoleAccessRule {
-  /** Các tiền tố route mà vai trò này được phép truy cập */
-  allowedPrefixes: readonly string[];
-  /** Trang chủ mặc định khi đăng nhập thành công hoặc khi truy cập sai quyền */
-  defaultHome: string;
-}
-
-export const ROLE_PERMISSIONS: Record<string, RoleAccessRule> = {
-  // Học sinh: Chỉ được truy cập khu vực /student
-  student: {
-    allowedPrefixes: ["/student"],
-    defaultHome: "/student",
-  },
-
-  // Giáo viên: Truy cập khu vực quản trị /teacher
-  teacher: {
-    allowedPrefixes: ["/teacher"],
-    defaultHome: "/teacher/dashboard",
-  },
-
-  // Quản trị viên (Admin): Toàn quyền truy cập cả /admin và /student
-  admin: {
-    allowedPrefixes: ["/admin", "/student"],
-    defaultHome: "/admin/dashboard",
-  },
+export {
+  AppRoutes,
+  PUBLIC_PAGES,
+  PUBLIC_API_PREFIXES,
+  ROLE_PERMISSIONS,
+  type RoleAccessRule,
 };
 
 /**
@@ -74,7 +44,7 @@ export function getRoleDefaultHome(role?: string): string {
   if (role && ROLE_PERMISSIONS[role]) {
     return ROLE_PERMISSIONS[role].defaultHome;
   }
-  return "/student";
+  return AppRoutes.STUDENT.DASHBOARD;
 }
 
 /**

@@ -1,3 +1,5 @@
+import { AppRoutes } from "@/constants";
+
 export interface NavigationItem {
   id: string;
   title: string;
@@ -22,7 +24,7 @@ export const navigationCards: NavigationItem[] = [
     iconSrc: "/navigation/mission.png",
     buttonText: "Vào làm ngay",
     buttonVariant: "blue",
-    href: "/student/missions",
+    href: AppRoutes.STUDENT.MISSIONS,
     borderColor: "border-[#0091FF]",
     bodyBg: "bg-[#EBF6FF]",
     headerBg: "bg-gradient-to-r from-[#0091FF] via-[#007AE6] to-[#0055CC]",
@@ -37,7 +39,7 @@ export const navigationCards: NavigationItem[] = [
     iconSrc: "/navigation/spinner.png",
     buttonText: "Quay thưởng ngay",
     buttonVariant: "orange",
-    href: "/student/wheel",
+    href: AppRoutes.STUDENT.WHEEL,
     borderColor: "border-[#FF8400]",
     bodyBg: "bg-[#FFF6EB]",
     headerBg: "bg-gradient-to-r from-[#FF8400] via-[#FF6A00] to-[#E64500]",
@@ -52,7 +54,7 @@ export const navigationCards: NavigationItem[] = [
     iconSrc: "/navigation/reward.png",
     buttonText: "Đổi quà ngay",
     buttonVariant: "green",
-    href: "/student/rewards",
+    href: AppRoutes.STUDENT.REWARDS,
     borderColor: "border-[#00C254]",
     bodyBg: "bg-[#EDFDF3]",
     headerBg: "bg-gradient-to-r from-[#00C254] via-[#00A843] to-[#067F33]",
@@ -67,7 +69,7 @@ export const navigationCards: NavigationItem[] = [
     iconSrc: "/navigation/rank.png",
     buttonText: "Xem bảng vàng",
     buttonVariant: "purple",
-    href: "/student/leaderboard",
+    href: AppRoutes.STUDENT.LEADERBOARD,
     borderColor: "border-[#9333EA]",
     bodyBg: "bg-[#FBF5FF]",
     headerBg: "bg-gradient-to-r from-[#A855F7] via-[#9333EA] to-[#7E22CE]",

@@ -5,16 +5,17 @@ import { LogOut, Settings } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { AppRoutes } from "@/constants";
 
 export function StudentNavbar() {
 	const { student, isLoading, logout } = useUserStore();
 	const pathname = usePathname();
 
-	const isHome = pathname === "/student";
-	const isMissions = pathname.startsWith("/student/missions");
-	const isWheel = pathname.startsWith("/student/wheel");
-	const isRewards = pathname.startsWith("/student/rewards");
-	const isLeaderboard = pathname.startsWith("/student/leaderboard");
+	const isHome = pathname === AppRoutes.STUDENT.DASHBOARD;
+	const isMissions = pathname.startsWith(AppRoutes.STUDENT.MISSIONS);
+	const isWheel = pathname.startsWith(AppRoutes.STUDENT.WHEEL);
+	const isRewards = pathname.startsWith(AppRoutes.STUDENT.REWARDS);
+	const isLeaderboard = pathname.startsWith(AppRoutes.STUDENT.LEADERBOARD);
 
 	const activeMenuClass =
 		"relative text-[#451A03] font-heading font-black text-xs md:text-xs lg:text-base tracking-wide px-3 md:px-3.5 lg:px-4 py-1 lg:py-1.5 rounded-full bg-gradient-to-b from-[#FFE84D] via-[#FFC72C] to-[#FFAA00] shadow-[0_2px_4px_rgba(0,0,0,0.22),inset_0_1px_1px_rgba(255,255,255,0.85)] border border-amber-300 whitespace-nowrap transition-all";
@@ -35,7 +36,7 @@ export function StudentNavbar() {
 		<header className='w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-5 lg:px-8 py-1.5 sm:py-2 lg:py-2.5 flex items-center justify-between select-none'>
 			{/* Brand Logo: Spark the Present */}
 			<Link
-				href='/student'
+				href={AppRoutes.STUDENT.DASHBOARD}
 				className='group flex items-center flex-shrink-0 transition-transform active:scale-95 py-0.5'
 			>
 				<div className='relative h-10 sm:h-11 md:h-12 lg:h-16 aspect-[897/482] flex-shrink-0 transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-0.5'>
@@ -54,32 +55,32 @@ export function StudentNavbar() {
 			{/* Navigation links - Tối ưu hiển thị responsive trên iPad (md) và Desktop (lg/xl) */}
 			<nav className='hidden md:flex items-center gap-1 md:gap-1.5 lg:gap-4 xl:gap-6 flex-shrink-0'>
 				<Link
-					href='/student'
+					href={AppRoutes.STUDENT.DASHBOARD}
 					className={isHome ? activeMenuClass : inactiveMenuClass}
 				>
 					Trang chủ
 				</Link>
 				<Link
-					href='/student/missions'
+					href={AppRoutes.STUDENT.MISSIONS}
 					className={isMissions ? activeMenuClass : inactiveMenuClass}
 				>
 					Nhiệm vụ
 				</Link>
 				<Link
-					href='/student/wheel'
+					href={AppRoutes.STUDENT.WHEEL}
 					className={isWheel ? activeMenuClass : inactiveMenuClass}
 				>
 					<span className='md:hidden lg:inline'>Vòng quay may mắn</span>
 					<span className='hidden md:inline lg:hidden'>Vòng quay</span>
 				</Link>
 				<Link
-					href='/student/rewards'
+					href={AppRoutes.STUDENT.REWARDS}
 					className={isRewards ? activeMenuClass : inactiveMenuClass}
 				>
 					Đổi quà
 				</Link>
 				<Link
-					href='/student/leaderboard'
+					href={AppRoutes.STUDENT.LEADERBOARD}
 					className={isLeaderboard ? activeMenuClass : inactiveMenuClass}
 				>
 					<span className='md:hidden lg:inline'>Bảng xếp hạng</span>
@@ -100,27 +101,28 @@ export function StudentNavbar() {
 							className='object-cover'
 						/>
 					</div>
-					<span className='text-white font-heading font-bold text-xs lg:text-sm tracking-wide drop-shadow-sm whitespace-nowrap'>
-						{studentDisplayName}
-					</span>
+					<div className='flex flex-col text-left justify-center pr-0.5'>
+						<span className='text-[10px] sm:text-xs lg:text-sm font-black text-white font-heading leading-tight truncate max-w-[85px] sm:max-w-[125px] md:max-w-[145px] lg:max-w-[185px] drop-shadow-sm'>
+							{studentDisplayName}
+						</span>
+					</div>
 				</div>
 
-				{/* Settings button */}
+				{/* Cài đặt & Đăng xuất */}
 				<button
+					type='button'
 					aria-label='Cài đặt'
-					className='w-8 h-8 sm:w-8.5 sm:h-8.5 lg:w-10 lg:h-10 rounded-full bg-[#003E8A] hover:bg-[#004C9E] border border-sky-300/35 flex items-center justify-center text-white shadow-md active:translate-y-0.5 transition-all cursor-pointer flex-shrink-0'
+					className='w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-white/80 hover:text-white transition-all cursor-pointer'
 				>
-					<Settings className='w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 drop-shadow' />
+					<Settings className='w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-4.5 lg:h-4.5' />
 				</button>
-
-				{/* Nút Đăng xuất */}
 				<button
-					onClick={() => logout()}
-					title='Đăng xuất khỏi tài khoản'
+					type='button'
+					onClick={logout}
 					aria-label='Đăng xuất'
-					className='w-8 h-8 sm:w-8.5 sm:h-8.5 lg:w-10 lg:h-10 rounded-full bg-[#003E8A] hover:bg-rose-600/90 border border-sky-300/35 flex items-center justify-center text-white shadow-md active:translate-y-0.5 transition-all cursor-pointer flex-shrink-0'
+					className='w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9 rounded-full bg-red-500/20 hover:bg-red-500/40 border border-red-400/30 flex items-center justify-center text-red-200 hover:text-white transition-all cursor-pointer'
 				>
-					<LogOut className='w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 drop-shadow' />
+					<LogOut className='w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-4.5 lg:h-4.5' />
 				</button>
 			</div>
 		</header>

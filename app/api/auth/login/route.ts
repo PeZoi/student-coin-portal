@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
-import { HttpStatus, ApiResponse } from "@/types/api";
+import { ApiResponse } from "@/types/api";
+import {
+  HttpStatus,
+  AuthAction,
+  AuthStatus,
+  AuthFailureReason,
+  type AuthFailureReasonType,
+  type UserRoleType,
+} from "@/constants";
 import { studentPinVerificationSchema } from "@/features/auth/schemas/authSchemas";
 import { StudentLoginResponseData, StudentSessionData } from "@/features/auth/types";
 import { setAuthCookie, signAuthToken } from "@/lib/auth/jwt";
 import { getAuthSecurityConfig } from "@/lib/system/serverConfig";
+import { logAuthEvent } from "@/lib/auth/authLogger";
 
 interface UserLoginDbRow {
   id: string;
@@ -49,6 +58,19 @@ export async function POST(
     const { phone_zalo, pin_number } = validationResult.data;
     const normalizedPhone = phone_zalo.trim();
     const normalizedPin = pin_number.trim();
+
+    // Helper DRY ghi log lỗi đăng nhập gọn gàng (1 dòng)
+    const logFail = (reason: AuthFailureReasonType, user?: UserLoginDbRow | null) => {
+      void logAuthEvent({
+        userId: user?.id || null,
+        phoneZalo: user?.phone_zalo || normalizedPhone,
+        role: (user?.role as UserRoleType) || "student",
+        authAction: AuthAction.LOGIN,
+        status: AuthStatus.FAILED,
+        failureReason: reason,
+        req,
+      });
+    };
 
     // 2. Lấy thông tin tài khoản học sinh và mã PIN lưu trong DB
     let queryResult = await supabase
@@ -111,6 +133,7 @@ export async function POST(
     }
 
     if (!data) {
+      logFail(AuthFailureReason.USER_NOT_FOUND);
       return apiError(
         "Không tìm thấy tài khoản học sinh với số điện thoại này.",
         HttpStatus.NOT_FOUND
@@ -121,6 +144,7 @@ export async function POST(
 
     // 3. Kiểm tra trạng thái tài khoản
     if (!userRow.is_active || userRow.is_deleted) {
+      logFail(AuthFailureReason.ACCOUNT_INACTIVE, userRow);
       return apiError(
         "Tài khoản của bé hiện đang tạm đóng. Bé hãy liên hệ cô giáo hoặc phụ huynh để mở lại nhé!",
         HttpStatus.FORBIDDEN
@@ -138,6 +162,7 @@ export async function POST(
       if (lockUntilDate > now) {
         const diffMs = lockUntilDate.getTime() - now.getTime();
         const remainingMinutes = Math.max(1, Math.ceil(diffMs / (60 * 1000)));
+        logFail(AuthFailureReason.ACCOUNT_LOCKED, userRow);
         return apiError(
           `Tài khoản của con đang bị tạm khóa do nhập sai mã PIN nhiều lần. Vui lòng thử lại sau ${remainingMinutes} phút nữa (hoặc nhờ cô giáo mở khóa nhé)!`,
           HttpStatus.UNAUTHORIZED,
@@ -170,6 +195,8 @@ export async function POST(
           })
           .eq("id", userRow.id);
 
+        logFail(AuthFailureReason.ACCOUNT_LOCKED, userRow);
+
         return apiError(
           `Con đã nhập sai mã PIN ${maxFailedAttempts} lần! Tài khoản của con tạm thời bị khóa trong ${lockoutMinutes} phút. Con hãy nhờ cô giáo hoặc bố mẹ mở khóa nhé!`,
           HttpStatus.UNAUTHORIZED,
@@ -190,6 +217,8 @@ export async function POST(
           updated_at: new Date().toISOString(),
         })
         .eq("id", userRow.id);
+
+      logFail(AuthFailureReason.WRONG_PIN, userRow);
 
       const remainingAttempts = maxFailedAttempts - newFailed;
       return apiError(
@@ -218,7 +247,7 @@ export async function POST(
         .eq("id", userRow.id);
     }
 
-    // 5. Tạo JWT Token (chứa userId, phone_zalo và role) và lưu vào httpOnly Cookie
+    // 8. Tạo JWT Token (chứa userId, phone_zalo và role) và lưu vào httpOnly Cookie
     const token = await signAuthToken({
       userId: userRow.id,
       phone_zalo: userRow.phone_zalo,
@@ -227,7 +256,7 @@ export async function POST(
 
     await setAuthCookie(token);
 
-    // 6. Trả về phiên đăng nhập thành công kèm token
+    // 9. Trả về phiên đăng nhập thành công kèm token
     const sessionData: StudentSessionData = {
       id: userRow.id,
       full_name: userRow.full_name,
@@ -239,6 +268,15 @@ export async function POST(
       token,
     };
 
+    void logAuthEvent({
+      userId: userRow.id,
+      phoneZalo: userRow.phone_zalo,
+      role: (userRow.role as UserRoleType) || "student",
+      authAction: AuthAction.LOGIN,
+      status: AuthStatus.SUCCESS,
+      req,
+    });
+
     return apiSuccess<StudentSessionData>(
       sessionData,
       `Chào mừng con ${userRow.full_name} đã vào lớp học! 🎉`
@@ -249,4 +287,3 @@ export async function POST(
     return apiError("Đã xảy ra lỗi máy chủ trong quá trình xác thực mã PIN.");
   }
 }
-

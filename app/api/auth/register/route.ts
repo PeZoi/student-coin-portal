@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
-import { HttpStatus, ApiResponse } from "@/types/api";
+import { ApiResponse } from "@/types/api";
+import {
+  HttpStatus,
+  AuthAction,
+  AuthStatus,
+  AuthFailureReason,
+  UserRole,
+} from "@/constants";
 import { studentRegisterSchema } from "@/features/auth/schemas/authSchemas";
 import { RegisteredStudentData } from "@/features/auth/types";
+import { logAuthEvent } from "@/lib/auth/authLogger";
 
 export async function POST(
   req: Request
@@ -56,7 +64,7 @@ export async function POST(
         class_id,
         pin_number,
         avatar_url: avatar_url,
-        role: "student",
+        role: UserRole.STUDENT,
         has_completed_onboarding: false,
         is_active: true,
         is_deleted: false,
@@ -67,6 +75,15 @@ export async function POST(
     if (insertError) {
       // Mã lỗi 23505: Vi phạm ràng buộc UNIQUE trong PostgreSQL (trùng phone_zalo)
       if (insertError.code === "23505") {
+        void logAuthEvent({
+          phoneZalo: normalizedPhone,
+          role: UserRole.STUDENT,
+          authAction: AuthAction.REGISTER,
+          status: AuthStatus.FAILED,
+          failureReason: AuthFailureReason.PHONE_ALREADY_EXISTS,
+          req,
+        });
+
         return apiError(
           "Số điện thoại Zalo này đã được đăng ký tài khoản. Bé hãy chuyển sang tab Đăng nhập nhé!",
           HttpStatus.CONFLICT
@@ -86,6 +103,15 @@ export async function POST(
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
+
+    void logAuthEvent({
+      userId: newUser.id,
+      phoneZalo: newUser.phone_zalo,
+      role: UserRole.STUDENT,
+      authAction: AuthAction.REGISTER,
+      status: AuthStatus.SUCCESS,
+      req,
+    });
 
     // 4. Trả về thông tin đăng ký thành công kèm mã 201 Created
     return apiSuccess<RegisteredStudentData>(

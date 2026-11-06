@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { AUTH_COOKIE_NAME, verifyAuthToken } from "@/lib/auth/jwt";
+import { AUTH_COOKIE_NAME } from "@/constants/auth";
+import { verifyAuthToken } from "@/lib/auth/jwt";
 import {
+  AppRoutes,
   getRoleDefaultHome,
   hasPermission,
   isPublicApi,
@@ -31,13 +33,13 @@ export async function proxy(request: NextRequest) {
   const isAuthenticated = Boolean(session && session.userId);
 
   // 3. Xử lý đường dẫn gốc "/"
-  if (pathname === "/") {
+  if (pathname === AppRoutes.HOME) {
     if (isAuthenticated && session) {
       return NextResponse.redirect(
         new URL(getRoleDefaultHome(session.role), request.url)
       );
     }
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL(AppRoutes.LOGIN, request.url));
   }
 
   // 4. Xử lý các trang công khai (hiện tại chỉ có /login)
@@ -66,8 +68,8 @@ export async function proxy(request: NextRequest) {
     }
 
     // Nếu là giao diện trang web -> Chuyển hướng người dùng về /login
-    const loginUrl = new URL("/login", request.url);
-    if (pathname !== "/login") {
+    const loginUrl = new URL(AppRoutes.LOGIN, request.url);
+    if (pathname !== AppRoutes.LOGIN) {
       loginUrl.searchParams.set("callbackUrl", pathname);
     }
     return NextResponse.redirect(loginUrl);
@@ -77,7 +79,7 @@ export async function proxy(request: NextRequest) {
   if (!pathname.startsWith("/api/")) {
     const isAllowed = hasPermission(session.role, pathname);
     if (!isAllowed) {
-      // Cố tình truy cập trang ngoài quyền hạn (VD: học sinh gõ /admin) -> Chuyển về đúng trang của họ
+      // Cố tình truy cập trang ngoài quyền hạn (VD: học sinh gõ trang khác) -> Chuyển về đúng trang của họ
       return NextResponse.redirect(
         new URL(getRoleDefaultHome(session.role), request.url)
       );

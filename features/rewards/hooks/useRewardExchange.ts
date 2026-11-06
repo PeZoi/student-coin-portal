@@ -3,9 +3,9 @@
 import { useUserStore } from "@/stores/useUserStore";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
+import { COIN_STEP, VND_PER_STEP } from "@/constants/rewards";
 
-export const COIN_STEP = 5000;
-export const VND_PER_STEP = 25000;
+export { COIN_STEP, VND_PER_STEP };
 
 export function useRewardExchange() {
   const { student, deductCoins } = useUserStore();

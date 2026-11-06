@@ -1,23 +1,6 @@
-/**
- * ==============================================================================
- * HTTP STATUS CODES CONSTANTS (TRÁNH MAGIC NUMBERS)
- * - Tự động autocomplete qua TypeScript, không cần nhớ mã số
- * - Tránh lỗi gõ nhầm mã HTTP trong toàn bộ dự án
- * ==============================================================================
- */
-export const HttpStatus = {
-  OK: 200,
-  CREATED: 201,
-  NO_CONTENT: 204,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  CONFLICT: 409,
-  INTERNAL_SERVER_ERROR: 500,
-} as const;
+import { HttpStatus, HttpStatusCode } from "@/constants/http";
 
-export type HttpStatusCode = (typeof HttpStatus)[keyof typeof HttpStatus];
+export { HttpStatus, type HttpStatusCode };
 
 /**
  * Cấu trúc Response chuẩn mực chung cho toàn bộ API trong dự án

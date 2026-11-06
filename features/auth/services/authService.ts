@@ -1,5 +1,6 @@
 import { http, isHttpError } from "@/lib/http/httpClient";
 import { ApiResponse } from "@/types/api";
+import { AppRoutes } from "@/constants/routes";
 import {
   AuthLockInfo,
   PinVerificationError,
@@ -28,7 +29,7 @@ export const authService = {
    */
   async registerStudent(payload: StudentRegisterFormValues): Promise<RegisteredStudentData> {
     const response = await http.post<ApiResponse<RegisteredStudentData>>(
-      "/api/auth/register",
+      AppRoutes.API.AUTH.REGISTER,
       payload,
       {
         skipUnauthorizedHandler: true, // Không trigger logout handler với auth endpoint
@@ -51,7 +52,7 @@ export const authService = {
    */
   async lookupStudent(phone_zalo: string): Promise<StudentLookupData> {
     const response = await http.post<ApiResponse<StudentLookupData>>(
-      "/api/auth/lookup",
+      AppRoutes.API.AUTH.LOOKUP,
       { phone_zalo },
       {
         skipUnauthorizedHandler: true,
@@ -75,7 +76,7 @@ export const authService = {
   async loginStudent(payload: StudentLoginPayload): Promise<StudentSessionData> {
     try {
       const response = await http.post<ApiResponse<StudentSessionData>>(
-        "/api/auth/login",
+        AppRoutes.API.AUTH.LOGIN,
         payload,
         {
           skipUnauthorizedHandler: true,
@@ -111,7 +112,7 @@ export const authService = {
   async getCurrentUser(): Promise<StudentSessionData | null> {
     try {
       const response = await http.get<ApiResponse<StudentSessionData>>(
-        "/api/auth/me",
+        AppRoutes.API.AUTH.ME,
         {
           skipUnauthorizedHandler: true, // Tránh gọi logout lặp khi chưa có session
         }
@@ -131,10 +132,9 @@ export const authService = {
    */
   async logout(): Promise<void> {
     try {
-      await http.post("/api/auth/logout", {}, { skipUnauthorizedHandler: true });
+      await http.post(AppRoutes.API.AUTH.LOGOUT, {}, { skipUnauthorizedHandler: true });
     } catch {
       // Bỏ qua lỗi mạng khi logout
     }
   },
 };
-

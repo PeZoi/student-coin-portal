@@ -5,6 +5,7 @@ import { initialMissions } from "@/features/dashboard/data/initialData";
 import { getDisplayName } from "@/lib/utils";
 import { authService } from "@/features/auth/services/authService";
 import { isPublicPage } from "@/lib/auth/routes";
+import { AppRoutes } from "@/constants/routes";
 import { useConfigStore } from "./useConfigStore";
 
 export interface StudentSessionPayload {
@@ -160,7 +161,7 @@ export const useUserStore = create<UserState>()(
           useUserStore.persist?.clearStorage();
           useConfigStore.getState().clearConfigs();
           if (typeof window !== "undefined") {
-            window.location.href = "/login";
+            window.location.href = AppRoutes.LOGIN;
           }
         }
       },

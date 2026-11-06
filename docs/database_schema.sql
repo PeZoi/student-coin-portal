@@ -732,8 +732,8 @@ CREATE TABLE auth_logs (
     -- Vai trò người dùng tại thời điểm đăng nhập: 'student', 'teacher', 'admin', 'unknown'
     role VARCHAR(20) NOT NULL DEFAULT 'student' CHECK (role IN ('student', 'teacher', 'admin', 'unknown')),
     
-    -- Hành động xác thực: 'LOGIN', 'LOGOUT', 'TOKEN_REFRESH'
-    auth_action VARCHAR(30) NOT NULL DEFAULT 'LOGIN' CHECK (auth_action IN ('LOGIN', 'LOGOUT', 'TOKEN_REFRESH')),
+    -- Hành động xác thực: 'LOGIN', 'LOGOUT', 'REGISTER'
+    auth_action VARCHAR(30) NOT NULL DEFAULT 'LOGIN' CHECK (auth_action IN ('LOGIN', 'LOGOUT', 'REGISTER')),
     
     -- Trạng thái đăng nhập: 'SUCCESS' (thành công), 'FAILED' (thất bại)
     status VARCHAR(20) NOT NULL CHECK (status IN ('SUCCESS', 'FAILED')),
@@ -743,6 +743,9 @@ CREATE TABLE auth_logs (
     
     -- Địa chỉ IP của thiết bị đăng nhập (Hỗ trợ cả định dạng IPv4 và IPv6)
     ip_address VARCHAR(45) NOT NULL,
+
+    -- Vị trí địa lý ước tính (Thành phố, Quốc gia - giải mã tự động từ Vercel GeoIP hoặc IP lookup)
+    location VARCHAR(150),
     
     -- Thông tin User-Agent chi tiết của trình duyệt (Chrome, Safari, Zalo In-App Browser...)
     user_agent TEXT,
@@ -1375,3 +1378,5 @@ CREATE POLICY "Cho phép học sinh tự đăng ký tài khoản" ON users FOR I
 CREATE POLICY "Cho phép cập nhật trạng thái người dùng" ON users FOR UPDATE TO public USING (true) WITH CHECK (true);
 CREATE POLICY "system_settings_public_select" ON system_settings FOR SELECT TO public USING (is_public = true);
 CREATE POLICY "system_settings_admin_all" ON system_settings FOR ALL TO public USING (true) WITH CHECK (true);
+CREATE POLICY "auth_logs_insert_policy" ON auth_logs FOR INSERT TO public WITH CHECK (true);
+CREATE POLICY "auth_logs_select_policy" ON auth_logs FOR SELECT TO public USING (true);

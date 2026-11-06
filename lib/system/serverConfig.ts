@@ -1,5 +1,11 @@
 import { supabase } from "@/lib/supabase/db";
 import { AuthSecurityConfig, SystemPublicConfigs } from "@/types/systemConfig";
+import {
+  DEFAULT_AUTH_SECURITY_CONFIG,
+  DEFAULT_CACHE_TTL_MS,
+} from "@/constants/system";
+
+export { DEFAULT_AUTH_SECURITY_CONFIG };
 
 /**
  * Cấu trúc bản ghi cache trong bộ nhớ RAM của Server
@@ -15,19 +21,6 @@ interface CacheEntry<T> {
  * - Tránh việc mỗi request API lại tốn một kết nối truy vấn sang cơ sở dữ liệu Supabase
  */
 const memoryCache = new Map<string, CacheEntry<unknown>>();
-
-/**
- * Thời gian sống mặc định của Cache trên Server: 5 phút (300.000 ms)
- */
-const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000;
-
-/**
- * Giá trị cấu hình bảo mật mặc định (Fallback an toàn khi chưa cấu hình DB hoặc mất kết nối)
- */
-export const DEFAULT_AUTH_SECURITY_CONFIG: AuthSecurityConfig = {
-  max_failed_attempts: 5,
-  lockout_minutes: 15,
-};
 
 /**
  * Lấy một giá trị cấu hình cụ thể theo key từ bảng system_settings
