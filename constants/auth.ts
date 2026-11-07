@@ -58,6 +58,7 @@ export type AuthFailureReasonType =
 export const UserRole = {
   STUDENT: "student",
   TEACHER: "teacher",
+  SUPER_TEACHER: "super_teacher",
   ADMIN: "admin",
 } as const;
 

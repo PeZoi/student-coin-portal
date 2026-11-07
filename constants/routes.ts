@@ -26,6 +26,19 @@ export const AppRoutes = {
   // Phân hệ Quản trị & Giáo viên dùng chung (Staff / Teacher Portal) - Đã triển khai
   TEACHER: {
     DASHBOARD: "/teacher",
+    SUBMISSIONS: "/teacher/submissions",
+    MISSIONS: "/teacher/missions",
+    REWARDS: "/teacher/rewards",
+    STUDENTS: "/teacher/students",
+    LEADERBOARD: "/teacher/leaderboard",
+    // Quản lý cấp Trường (Dành cho Super-Teacher & Admin)
+    CLASSES: "/teacher/classes",
+    MANAGE_STUDENTS: "/teacher/manage-students",
+    MANAGE_TEACHERS: "/teacher/manage-teachers",
+    // Quản trị Hệ thống Tối cao (Độc quyền Admin)
+    SYSTEM_SETTINGS: "/teacher/system-settings",
+    WHEEL_CONFIG: "/teacher/wheel-config",
+    AUDIT_LOGS: "/teacher/audit-logs",
   },
 
   // API Endpoints nội bộ - Đã triển khai
@@ -85,6 +98,12 @@ export const ROLE_PERMISSIONS: Record<string, RoleAccessRule> = {
 
   // Giáo viên: Truy cập khu vực /teacher và được xem /student
   [UserRole.TEACHER]: {
+    allowedPrefixes: [AppRoutes.TEACHER.DASHBOARD, AppRoutes.STUDENT.DASHBOARD],
+    defaultHome: AppRoutes.TEACHER.DASHBOARD,
+  },
+
+  // Tổ trưởng / Khối trưởng (Super-Teacher): Quản lý toàn bộ lớp học và xem /student
+  [UserRole.SUPER_TEACHER]: {
     allowedPrefixes: [AppRoutes.TEACHER.DASHBOARD, AppRoutes.STUDENT.DASHBOARD],
     defaultHome: AppRoutes.TEACHER.DASHBOARD,
   },

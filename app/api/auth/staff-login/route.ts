@@ -103,7 +103,7 @@ export async function POST(
       `
       )
       .eq("username", normalizedUsername)
-      .in("role", ["teacher", "admin"])
+      .in("role", ["teacher", "super_teacher", "admin"])
       .maybeSingle();
 
     // Tự động thử lại 1 lần nếu mạng chập chờn
@@ -132,7 +132,7 @@ export async function POST(
         `
         )
         .eq("username", normalizedUsername)
-        .in("role", ["teacher", "admin"])
+        .in("role", ["teacher", "super_teacher", "admin"])
         .maybeSingle();
     }
 

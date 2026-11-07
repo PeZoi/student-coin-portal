@@ -1,295 +1,460 @@
 "use client";
 
 import Link from "next/link";
-import { useUserStore } from "@/stores/useUserStore";
 import { AppRoutes } from "@/constants/routes";
+import { useUserStore } from "@/stores/useUserStore";
 import {
-  GraduationCap,
-  LogOut,
-  ExternalLink,
-  CheckCircle2,
-  Award,
+  FileCheck2,
   Users,
+  Gift,
+  Coins,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  Sparkles,
   ShieldCheck,
+  ChevronRight,
+  Award,
+  KeyRound,
   Settings,
   History,
-  Gift,
-  KeyRound,
-  Sparkles,
 } from "lucide-react";
 
 export function TeacherDashboardView() {
-  const { student, logout } = useUserStore();
-
+  const { student } = useUserStore();
   const isAdmin = student?.role === "admin";
+  const isSuperTeacher = student?.role === "super_teacher";
 
   return (
-    <div className="min-h-screen bg-[#F0F7FF] text-slate-800 flex flex-col antialiased">
+    <div className="space-y-6">
       {/* ========================================================================= */}
-      {/* TOP HEADER */}
+      {/* 1. WELCOME HERO SECTION (Clean, Solid, No Heavy Gradients) */}
       {/* ========================================================================= */}
-      <header className="sticky top-0 z-50 border-b border-sky-100 bg-white/90 backdrop-blur-md px-4 sm:px-6 py-3 flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-3">
-          <div
-            className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xl shadow-xs transition-all ${
-              isAdmin
-                ? "bg-purple-100 text-purple-700 border border-purple-200"
-                : "bg-emerald-100 text-emerald-700 border border-emerald-200"
-            }`}
-          >
-            {isAdmin ? "👑" : "🍎"}
-          </div>
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-7 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-heading font-black text-lg text-slate-900 leading-tight">
-                {isAdmin ? "Bàn Làm Việc Quản Trị" : "Góc Giáo Viên"}
-              </h1>
-              {isAdmin ? (
-                <span className="text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-300 flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3 text-purple-600" />
-                  Admin
-                </span>
-              ) : (
-                <span className="text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
-                  Thầy / Cô
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-slate-500 font-medium">
-              {isAdmin
-                ? "Toàn quyền điều hành tính năng giáo viên & cấu hình hệ thống"
-                : "Quản lý lớp học & đồng hành học tập cùng các bé"}
-            </p>
-          </div>
-        </div>
-
-        {/* Action Controls */}
-        <div className="flex items-center gap-2.5">
-          <Link
-            href={AppRoutes.STUDENT.DASHBOARD}
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition-all shadow-xs"
-          >
-            <span>Cổng Học Sinh</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </Link>
-          <button
-            type="button"
-            onClick={logout}
-            className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-all cursor-pointer shadow-xs"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Đăng xuất</span>
-          </button>
-        </div>
-      </header>
-
-      {/* ========================================================================= */}
-      {/* MAIN CONTAINER */}
-      {/* ========================================================================= */}
-      <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 md:p-8 flex flex-col gap-8">
-        {/* Welcome Hero Card */}
-        <div
-          className={`rounded-3xl p-6 sm:p-8 shadow-md relative overflow-hidden transition-all ${
-            isAdmin
-              ? "bg-gradient-to-r from-slate-900 via-purple-950 to-indigo-900 text-white border border-purple-500/20"
-              : "bg-gradient-to-r from-emerald-600 via-teal-700 to-cyan-700 text-white"
-          }`}
-        >
-          <div className="relative z-10 max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-xs font-bold backdrop-blur-sm mb-3">
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold mb-2">
+              <Sparkles className="w-3.5 h-3.5" />
               <span>
                 {isAdmin
-                  ? "Chế độ Quản trị viên (Admin Mode)"
-                  : "Chế độ Giáo viên (Teacher Mode)"}
+                  ? "Bàn điều hành Quản trị"
+                  : isSuperTeacher
+                  ? "Bàn làm việc Khối Trưởng (Toàn trường)"
+                  : "Bàn làm việc Giáo viên"}
               </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black font-heading leading-snug">
-              Chào mừng {student?.full_name || (isAdmin ? "Quản trị viên" : "Thầy / Cô")}! 🌟
-            </h2>
-            <p className="text-sm sm:text-base text-white/85 mt-2 leading-relaxed">
-              {isAdmin
-                ? "Bạn đang đăng nhập với tư cách Quản trị viên cao nhất. Bạn có thể sử dụng tất cả tính năng của giáo viên đồng thời quản lý cấu hình, người dùng và nhật ký an ninh."
-                : "Thầy/Cô đã đăng nhập thành công vào hệ thống. Hãy kiểm tra bài tập hôm nay của các con và tặng xu khen thưởng cho các bé nhé!"}
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 font-heading tracking-tight">
+              Xin chào, {student?.full_name || (isAdmin ? "Quản trị viên" : isSuperTeacher ? "Khối Trưởng" : "Thầy / Cô")}! 👋
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">
+              {isSuperTeacher
+                ? "Bạn có quyền giám sát toàn bộ lớp học trong trường, duyệt bài chéo và khen thưởng thi đua toàn khối."
+                : "Lớp 3A1 hôm nay có 5 bài tập chờ duyệt và 2 phần quà đang chờ trao tận tay."}
             </p>
-            <div className="mt-5 flex items-center gap-3">
-              <Link
-                href={AppRoutes.STUDENT.DASHBOARD}
-                className="inline-flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl bg-white text-slate-900 hover:bg-slate-100 transition-all shadow-md"
-              >
-                Trải nghiệm giao diện học sinh →
-              </Link>
-            </div>
+          </div>
+
+          {/* Quick Action Shortcuts */}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <Link
+              href={AppRoutes.TEACHER.SUBMISSIONS}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs active:scale-98"
+            >
+              <FileCheck2 className="w-4 h-4" />
+              <span>Duyệt bài ngay</span>
+            </Link>
+            <Link
+              href={AppRoutes.TEACHER.MISSIONS}
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors border border-slate-200"
+            >
+              <span>+ Giao nhiệm vụ</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 2. STATS KPI CARDS (4 Solid Metric Cards) */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Bài chờ duyệt */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Bài chờ duyệt</p>
+            <div className="text-2xl font-black text-slate-900 mt-1">5 bài</div>
+            <p className="text-[11px] font-semibold text-blue-600 mt-1 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 inline-block" />
+              +3 bài mới sáng nay
+            </p>
+          </div>
+          <div className="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+            <FileCheck2 className="w-5 h-5" />
           </div>
         </div>
 
-        {/* ========================================================================= */}
-        {/* PHẦN 1: CÔNG CỤ DÀNH CHO GIÁO VIÊN (Cả Giáo viên & Admin đều nhìn thấy) */}
-        {/* ========================================================================= */}
-        <section className="flex flex-col gap-3.5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-heading font-black text-lg text-slate-900 flex items-center gap-2">
-                <span>🍎</span>
-                <span>Nghiệp Vụ Lớp Học & Bài Tập</span>
-              </h3>
-              <p className="text-xs text-slate-500">
-                Các chức năng quản lý bài tập và động viên học sinh hàng ngày
-              </p>
+        {/* Card 2: Tỷ lệ nộp bài */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tỷ lệ nộp bài</p>
+            <div className="text-2xl font-black text-slate-900 mt-1">87.5%</div>
+            <p className="text-[11px] font-semibold text-emerald-600 mt-1">
+              28 / 32 học sinh hoàn thành
+            </p>
+          </div>
+          <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+            <Users className="w-5 h-5" />
+          </div>
+        </div>
+
+        {/* Card 3: Yêu cầu đổi quà */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Đổi quà chờ trao</p>
+            <div className="text-2xl font-black text-slate-900 mt-1">2 phần</div>
+            <p className="text-[11px] font-semibold text-rose-600 mt-1">
+              Cần trao tại lớp học
+            </p>
+          </div>
+          <div className="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
+            <Gift className="w-5 h-5" />
+          </div>
+        </div>
+
+        {/* Card 4: Tổng xu phát thưởng */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Xu thưởng tuần này</p>
+            <div className="text-2xl font-black text-slate-900 mt-1">1,420</div>
+            <p className="text-[11px] font-semibold text-amber-600 mt-1">
+              +320 xu so với tuần trước
+            </p>
+          </div>
+          <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
+            <Coins className="w-5 h-5" />
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 3. TWO COLUMNS CONTENT: RECENT SUBMISSIONS & REWARDS */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column: Recent Submissions (2 cols) */}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                  <FileCheck2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-slate-900">Bài tập nộp gần nhất cần duyệt</h2>
+                  <p className="text-xs text-slate-500">Xem trước bài làm và xác nhận cộng xu cho học sinh</p>
+                </div>
+              </div>
+              <Link
+                href={AppRoutes.TEACHER.SUBMISSIONS}
+                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
+              >
+                <span>Xem tất cả (5)</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
-            <span className="text-xs font-semibold text-sky-700 bg-sky-100 px-2.5 py-1 rounded-full">
-              Chung cho Giáo viên & Admin
+
+            {/* List of 3 Mock Submissions */}
+            <div className="space-y-3">
+              {/* Submission 1 */}
+              <div className="p-3.5 rounded-xl border border-slate-100 hover:border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 font-black text-xs flex items-center justify-center shrink-0">
+                    MA
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-xs text-slate-900">Nguyễn Minh An</span>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
+                        Toán học
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 mt-0.5 font-medium">Nhiệm vụ: Bảng nhân 7 và bài tập ứng dụng</p>
+                    <div className="flex items-center gap-3 text-[11px] text-slate-600 mt-1">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> 15 phút trước
+                      </span>
+                      <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> AI Check: 9/10 câu đúng
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                  <button
+                    type="button"
+                    className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Duyệt (+30 xu)
+                  </button>
+                  <Link
+                    href={AppRoutes.TEACHER.SUBMISSIONS}
+                    className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-slate-900 text-xs font-semibold transition-colors"
+                  >
+                    Chi tiết
+                  </Link>
+                </div>
+              </div>
+
+              {/* Submission 2 */}
+              <div className="p-3.5 rounded-xl border border-slate-100 hover:border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-rose-100 text-rose-700 font-black text-xs flex items-center justify-center shrink-0">
+                    BN
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-xs text-slate-900">Trần Bảo Ngọc</span>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200">
+                        Tiếng Việt
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 mt-0.5 font-medium">Nhiệm vụ: Luyện viết chính tả bài 12</p>
+                    <div className="flex items-center gap-3 text-[11px] text-slate-600 mt-1">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> 45 phút trước
+                      </span>
+                      <span className="text-blue-700 font-semibold flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" /> AI Check: Chữ viết rõ ràng
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                  <button
+                    type="button"
+                    className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Duyệt (+25 xu)
+                  </button>
+                  <Link
+                    href={AppRoutes.TEACHER.SUBMISSIONS}
+                    className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-slate-900 text-xs font-semibold transition-colors"
+                  >
+                    Chi tiết
+                  </Link>
+                </div>
+              </div>
+
+              {/* Submission 3 */}
+              <div className="p-3.5 rounded-xl border border-slate-100 hover:border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 font-black text-xs flex items-center justify-center shrink-0">
+                    HN
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-xs text-slate-900">Lê Hoàng Nam</span>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                        Rèn luyện
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 mt-0.5 font-medium">Nhiệm vụ: Đọc sách 20 phút mỗi tối</p>
+                    <div className="flex items-center gap-3 text-[11px] text-slate-600 mt-1">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> 2 giờ trước
+                      </span>
+                      <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> Có ảnh kèm chữ ký PH
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                  <button
+                    type="button"
+                    className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Duyệt (+20 xu)
+                  </button>
+                  <Link
+                    href={AppRoutes.TEACHER.SUBMISSIONS}
+                    className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-slate-900 text-xs font-semibold transition-colors"
+                  >
+                    Chi tiết
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 mt-2 border-t border-slate-100 text-center">
+            <Link
+              href={AppRoutes.TEACHER.SUBMISSIONS}
+              className="text-xs font-bold text-emerald-700 hover:text-emerald-800 inline-flex items-center gap-1"
+            >
+              <span>Mở giao diện duyệt bài tập chi tiết</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Right Column: Pending Rewards & Quick Award (1 col) */}
+        <div className="space-y-6">
+          {/* Box 1: Yêu cầu đổi quà chờ trao */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
+                  <Gift className="w-3.5 h-3.5" />
+                </div>
+                <h2 className="text-xs font-bold text-slate-900">Quà chờ trao tại lớp (2)</h2>
+              </div>
+              <Link
+                href={AppRoutes.TEACHER.REWARDS}
+                className="text-[11px] font-bold text-emerald-700 hover:underline"
+              >
+                Kho quà →
+              </Link>
+            </div>
+
+            <div className="space-y-2.5">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-2">
+                <div>
+                  <div className="text-xs font-bold text-slate-900">Phạm Tuấn Kiệt</div>
+                  <div className="text-[11px] text-slate-500">Hộp bút màu 24 cây</div>
+                  <div className="text-[10px] font-bold text-amber-600 mt-0.5">-150 xu</div>
+                </div>
+                <button
+                  type="button"
+                  className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors cursor-pointer"
+                >
+                  Đã trao
+                </button>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-2">
+                <div>
+                  <div className="text-xs font-bold text-slate-900">Đỗ Thùy Linh</div>
+                  <div className="text-[11px] text-slate-500">Sổ tay phi hành gia</div>
+                  <div className="text-[10px] font-bold text-amber-600 mt-0.5">-80 xu</div>
+                </div>
+                <button
+                  type="button"
+                  className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors cursor-pointer"
+                >
+                  Đã trao
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Box 2: Khen thưởng nóng xu (Symbolic Box) */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                <Award className="w-3.5 h-3.5" />
+              </div>
+              <div>
+                <h2 className="text-xs font-bold text-slate-900">Thưởng nóng xu tại lớp</h2>
+                <p className="text-[10px] text-slate-500">Khích lệ học sinh phát biểu hăng hái</p>
+              </div>
+            </div>
+
+            <div className="space-y-2.5">
+              <div>
+                <label className="text-[11px] font-semibold text-slate-600 block mb-1">
+                  Chọn học sinh:
+                </label>
+                <div className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 flex items-center justify-between cursor-pointer">
+                  <span>-- Chọn tên học sinh --</span>
+                  <ChevronRight className="w-3 h-3 text-slate-400 rotate-90" />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold text-slate-600 block mb-1">
+                  Mức xu thưởng:
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    className="py-1.5 rounded-lg bg-slate-100 hover:bg-amber-100 hover:text-amber-800 text-xs font-bold text-slate-700 border border-slate-200 transition-colors"
+                  >
+                    +10 xu
+                  </button>
+                  <button
+                    type="button"
+                    className="py-1.5 rounded-lg bg-amber-500 text-white text-xs font-bold shadow-xs"
+                  >
+                    +20 xu
+                  </button>
+                  <button
+                    type="button"
+                    className="py-1.5 rounded-lg bg-slate-100 hover:bg-amber-100 hover:text-amber-800 text-xs font-bold text-slate-700 border border-slate-200 transition-colors"
+                  >
+                    +50 xu
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors cursor-pointer mt-1"
+              >
+                Gửi xu khen ngợi 🌟
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 4. ADMIN PRIVILEGE SECTION (Solid Dark Card if Admin) */}
+      {/* ========================================================================= */}
+      {isAdmin && (
+        <div className="rounded-2xl border border-slate-300 bg-white p-5 sm:p-6 shadow-xs">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-slate-900">Quản trị Hệ thống (Admin Only)</h2>
+                <p className="text-xs text-slate-500">Các công cụ quản lý bảo mật và cấp phát tài khoản</p>
+              </div>
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-purple-100 text-purple-800 border border-purple-200">
+              Admin Privilege
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Card 1: Duyệt bài tập */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-emerald-300 hover:shadow-md transition-all flex flex-col gap-2.5 group">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <CheckCircle2 className="w-5 h-5" />
-              </div>
-              <h4 className="font-bold text-slate-900 text-base">Duyệt bài tập</h4>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Kiểm tra hình ảnh bài làm học sinh đã nộp và cộng xu thưởng Heo Đất.
-              </p>
-              <div className="mt-auto pt-2 flex items-center justify-between text-xs font-semibold">
-                <span className="text-blue-600">Sắp ra mắt</span>
-                <span className="text-slate-400 group-hover:text-slate-600">→</span>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100/70 transition-colors cursor-pointer">
+              <Users className="w-4 h-4 text-purple-600 mb-2" />
+              <div className="text-xs font-bold text-slate-900">Quản lý Tài khoản</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">Tạo tài khoản & phân quyền GV</div>
             </div>
 
-            {/* Card 2: Thưởng xu đột xuất */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-amber-300 hover:shadow-md transition-all flex flex-col gap-2.5 group">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <Award className="w-5 h-5" />
-              </div>
-              <h4 className="font-bold text-slate-900 text-base">Thưởng xu khen ngợi</h4>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Tặng nóng 10 - 50 xu khích lệ các con có tinh thần phát biểu và làm bài xuất sắc.
-              </p>
-              <div className="mt-auto pt-2 flex items-center justify-between text-xs font-semibold">
-                <span className="text-amber-600">Sắp ra mắt</span>
-                <span className="text-slate-400 group-hover:text-slate-600">→</span>
-              </div>
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100/70 transition-colors cursor-pointer">
+              <KeyRound className="w-4 h-4 text-amber-600 mb-2" />
+              <div className="text-xs font-bold text-slate-900">Reset PIN / Mật khẩu</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">Đặt lại PIN 4 số cho học sinh</div>
             </div>
 
-            {/* Card 3: Danh sách lớp */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-purple-300 hover:shadow-md transition-all flex flex-col gap-2.5 group">
-              <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <GraduationCap className="w-5 h-5" />
-              </div>
-              <h4 className="font-bold text-slate-900 text-base">Hồ sơ lớp học</h4>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Theo dõi sĩ số, danh sách học sinh và số dư Heo Đất tích lũy của từng bé.
-              </p>
-              <div className="mt-auto pt-2 flex items-center justify-between text-xs font-semibold">
-                <span className="text-purple-600">Sắp ra mắt</span>
-                <span className="text-slate-400 group-hover:text-slate-600">→</span>
-              </div>
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100/70 transition-colors cursor-pointer">
+              <Settings className="w-4 h-4 text-blue-600 mb-2" />
+              <div className="text-xs font-bold text-slate-900">Cấu hình Bảo mật</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">Thời gian khóa & giới hạn sai PIN</div>
             </div>
 
-            {/* Card 4: Duyệt quà tặng */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 hover:border-rose-300 hover:shadow-md transition-all flex flex-col gap-2.5 group">
-              <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-                <Gift className="w-5 h-5" />
-              </div>
-              <h4 className="font-bold text-slate-900 text-base">Duyệt đổi quà</h4>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Xác nhận các yêu cầu đổi xu lấy dụng cụ học tập hoặc quà tặng của học sinh.
-              </p>
-              <div className="mt-auto pt-2 flex items-center justify-between text-xs font-semibold">
-                <span className="text-rose-600">Sắp ra mắt</span>
-                <span className="text-slate-400 group-hover:text-slate-600">→</span>
-              </div>
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100/70 transition-colors cursor-pointer">
+              <History className="w-4 h-4 text-emerald-600 mb-2" />
+              <div className="text-xs font-bold text-slate-900">Nhật ký Đăng nhập</div>
+              <div className="text-[11px] text-slate-500 mt-0.5">Xem bảng `auth_logs` an ninh</div>
             </div>
           </div>
-        </section>
-
-        {/* ========================================================================= */}
-        {/* PHẦN 2: CÔNG CỤ ĐỘC QUYỀN DÀNH CHO ADMIN (Chỉ Admin mới nhìn thấy) */}
-        {/* ========================================================================= */}
-        {isAdmin && (
-          <section className="flex flex-col gap-3.5 p-5 sm:p-6 rounded-3xl bg-slate-900 text-slate-100 border border-purple-500/30 shadow-lg">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-800">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="font-heading font-black text-lg text-white flex items-center gap-2">
-                    <span>👑</span>
-                    <span>Khu Vực Quản Trị Hệ Thống</span>
-                  </h3>
-                  <p className="text-xs text-slate-400">
-                    Các công cụ quản lý bảo mật và tài khoản chỉ hiển thị riêng cho Admin
-                  </p>
-                </div>
-              </div>
-              <span className="self-start sm:self-auto text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40">
-                Admin Privilege Only
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
-              {/* Admin Card 1: Quản lý người dùng */}
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 hover:border-purple-500/50 hover:bg-slate-950 transition-all flex flex-col gap-2 group">
-                <div className="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <Users className="w-4 h-4" />
-                </div>
-                <h4 className="font-bold text-white text-sm">Quản lý Tài khoản</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Tạo tài khoản giáo viên, mở khóa học sinh bị khóa do nhập sai mã PIN.
-                </p>
-                <span className="text-[11px] font-semibold text-purple-400 mt-auto pt-2">
-                  Toàn quyền
-                </span>
-              </div>
-
-              {/* Admin Card 2: Reset PIN & Mật khẩu */}
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 hover:border-purple-500/50 hover:bg-slate-950 transition-all flex flex-col gap-2 group">
-                <div className="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <KeyRound className="w-4 h-4" />
-                </div>
-                <h4 className="font-bold text-white text-sm">Đặt lại PIN / Mật khẩu</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Hỗ trợ phụ huynh lấy lại mã PIN 4 số hoặc đổi mật khẩu cho giáo viên.
-                </p>
-                <span className="text-[11px] font-semibold text-purple-400 mt-auto pt-2">
-                  Toàn quyền
-                </span>
-              </div>
-
-              {/* Admin Card 3: Cấu hình hệ thống */}
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 hover:border-purple-500/50 hover:bg-slate-950 transition-all flex flex-col gap-2 group">
-                <div className="w-9 h-9 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <Settings className="w-4 h-4" />
-                </div>
-                <h4 className="font-bold text-white text-sm">Cấu hình Bảo mật</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Thiết lập số lần nhập sai tối đa, thời gian khóa tài khoản tạm thời.
-                </p>
-                <span className="text-[11px] font-semibold text-purple-400 mt-auto pt-2">
-                  Toàn quyền
-                </span>
-              </div>
-
-              {/* Admin Card 4: Nhật ký xác thực */}
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 hover:border-purple-500/50 hover:bg-slate-950 transition-all flex flex-col gap-2 group">
-                <div className="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <History className="w-4 h-4" />
-                </div>
-                <h4 className="font-bold text-white text-sm">Nhật ký Đăng nhập</h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Xem bảng `auth_logs`, theo dõi địa chỉ IP, thiết bị và cảnh báo bất thường.
-                </p>
-                <span className="text-[11px] font-semibold text-purple-400 mt-auto pt-2">
-                  Toàn quyền
-                </span>
-              </div>
-            </div>
-          </section>
-        )}
-      </main>
+        </div>
+      )}
     </div>
   );
 }

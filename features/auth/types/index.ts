@@ -1,4 +1,4 @@
-export type UserRole = "student" | "teacher" | "admin";
+export type UserRole = "student" | "teacher" | "super_teacher" | "admin";
 
 export type AuthMode = "login" | "register";
 
