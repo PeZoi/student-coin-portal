@@ -23,10 +23,21 @@ export const AppRoutes = {
     TEST_AI: "/student/test-ai",
   },
 
+  // Phân hệ Giáo viên (Teacher Portal) - Đã triển khai
+  TEACHER: {
+    DASHBOARD: "/teacher",
+  },
+
+  // Phân hệ Quản trị viên (Admin Portal) - Đã triển khai
+  ADMIN: {
+    DASHBOARD: "/admin",
+  },
+
   // API Endpoints nội bộ - Đã triển khai
   API: {
     AUTH: {
       LOGIN: "/api/auth/login",
+      STAFF_LOGIN: "/api/auth/staff-login",
       REGISTER: "/api/auth/register",
       LOGOUT: "/api/auth/logout",
       LOOKUP: "/api/auth/lookup",
@@ -54,6 +65,7 @@ export const PUBLIC_PAGES: readonly string[] = [
  */
 export const PUBLIC_API_PREFIXES: readonly string[] = [
   AppRoutes.API.AUTH.LOGIN,
+  AppRoutes.API.AUTH.STAFF_LOGIN,
   AppRoutes.API.AUTH.LOOKUP,
   AppRoutes.API.AUTH.REGISTER,
   AppRoutes.API.CLASSES,
@@ -76,15 +88,19 @@ export const ROLE_PERMISSIONS: Record<string, RoleAccessRule> = {
     defaultHome: AppRoutes.STUDENT.DASHBOARD,
   },
 
-  // Giáo viên: Hiện tại chưa có giao diện /teacher, tạm điều hướng về /student
+  // Giáo viên: Truy cập khu vực /teacher và được xem /student
   [UserRole.TEACHER]: {
-    allowedPrefixes: [AppRoutes.STUDENT.DASHBOARD],
-    defaultHome: AppRoutes.STUDENT.DASHBOARD,
+    allowedPrefixes: [AppRoutes.TEACHER.DASHBOARD, AppRoutes.STUDENT.DASHBOARD],
+    defaultHome: AppRoutes.TEACHER.DASHBOARD,
   },
 
-  // Quản trị viên: Hiện tại chưa có giao diện /admin, tạm điều hướng về /student
+  // Quản trị viên: Toàn quyền truy cập /admin, /teacher, /student
   [UserRole.ADMIN]: {
-    allowedPrefixes: [AppRoutes.STUDENT.DASHBOARD],
-    defaultHome: AppRoutes.STUDENT.DASHBOARD,
+    allowedPrefixes: [
+      AppRoutes.ADMIN.DASHBOARD,
+      AppRoutes.TEACHER.DASHBOARD,
+      AppRoutes.STUDENT.DASHBOARD,
+    ],
+    defaultHome: AppRoutes.ADMIN.DASHBOARD,
   },
 };

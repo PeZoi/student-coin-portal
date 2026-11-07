@@ -17,6 +17,7 @@ export interface AuthLockInfo {
   locked_until?: string | null;
   remaining_minutes?: number;
   remaining_attempts?: number;
+  failed_attempts?: number;
 }
 
 /**
@@ -136,4 +137,3 @@ export interface RegisteredStudentData {
   current_coins: number;
   role: string;
 }
-

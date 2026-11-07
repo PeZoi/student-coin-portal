@@ -63,7 +63,7 @@ export const studentRegisterSchema = z
       .string()
       .trim()
       .min(2, "Bé hãy nhập đầy đủ họ và tên nhé!")
-      .max(100, "Họ và tên không vượt quá 100 ký tự ."),
+      .max(100, "Họ và tên không vượt quá 100 ký tự."),
     phone_zalo: z
       .string()
       .trim()
@@ -98,7 +98,7 @@ export const studentRegisterSchema = z
 /**
  * Schema đăng nhập Giáo viên & Quản trị viên (bảng `users.username` và `users.password`)
  * - username: Tên đăng nhập của giáo viên / admin (tối thiểu 3 ký tự)
- * - password: Mật khẩu đăng nhập quản trị (tối thiểu 6 ký tự)
+ * - password: Mật khẩu đăng nhập quản trị (tối thiểu 3 ký tự)
  */
 export const teacherLoginSchema = z.object({
   username: z
@@ -110,5 +110,4 @@ export const teacherLoginSchema = z.object({
   password: z
     .string()
     .min(1, "Thầy cô hãy nhập Mật khẩu nhé!")
-    .min(6, "Mật khẩu quản trị phải có ít nhất 6 ký tự."),
 });

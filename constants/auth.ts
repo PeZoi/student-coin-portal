@@ -41,6 +41,7 @@ export type AuthStatusType = (typeof AuthStatus)[keyof typeof AuthStatus];
  */
 export const AuthFailureReason = {
   WRONG_PIN: "WRONG_PIN",
+  WRONG_PASSWORD: "WRONG_PASSWORD",
   ACCOUNT_LOCKED: "ACCOUNT_LOCKED",
   USER_NOT_FOUND: "USER_NOT_FOUND",
   ACCOUNT_INACTIVE: "ACCOUNT_INACTIVE",

@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useUserStore } from "@/stores/useUserStore";
-import { useConfigStore } from "@/stores/useConfigStore";
 import { getErrorMessage } from "@/lib/http/httpClient";
 import { authService } from "../services/authService";
 import {
@@ -70,7 +69,7 @@ export function useAuthForm(initialRole: UserRole = "student", initialMode: Auth
     reValidateMode: "onChange",
   });
 
-  // Form Đăng nhập giáo viên (bảng `users.username` và `users.password`)
+  // Form Đăng nhập giáo viên & admin (bảng `users.username` và `users.password`)
   const teacherLoginForm = useForm<TeacherLoginFormValues>({
     resolver: zodResolver(teacherLoginSchema),
     defaultValues: {
@@ -194,21 +193,25 @@ export function useAuthForm(initialRole: UserRole = "student", initialMode: Auth
     }
   };
 
-  // Xử lý nộp form giáo viên
+  // Xử lý nộp form giáo viên / admin
   const handleTeacherLogin = async (values: TeacherLoginFormValues) => {
     setIsSubmitting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      const result = await authService.loginStaff(values);
 
-      toast.success("Đăng nhập giáo viên thành công! 📚", {
-        description: `Chào mừng thầy/cô (${values.username}) đến với Cổng quản lý!`,
+      // Lưu thông tin phiên vào Zustand store
+      loginStudent(result.user);
+
+      toast.success("Đăng nhập thành công! 🌟", {
+        description: `Chào mừng ${result.user.full_name} (${result.user.role === "admin" ? "Quản trị viên" : "Giáo viên"})!`,
       });
+
       resetAllForms();
-      router.push("/student");
+      router.push(result.redirect_url);
     } catch (error: unknown) {
-      const err = error instanceof Error ? error : new Error(String(error));
-      toast.error("Đăng nhập giáo viên thất bại!", {
-        description: err.message || "Vui lòng kiểm tra lại thông tin đăng nhập.",
+      const message = getErrorMessage(error);
+      toast.error("Đăng nhập thất bại!", {
+        description: message,
       });
     } finally {
       setIsSubmitting(false);

@@ -29,7 +29,7 @@ export function TeacherLoginForm({
   } = form;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col gap-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col gap-3.5">
       {/* Trường 1: Tên đăng nhập (bảng `users.username`) */}
       <Input
         id="teacher_username"
@@ -64,7 +64,7 @@ export function TeacherLoginForm({
         {...register("password")}
       />
 
-      {/* Nút bấm 3D Game Button màu xanh dương */}
+      {/* Nút bấm 3D Game Button */}
       <div className="mt-2">
         <Button3D
           type="submit"

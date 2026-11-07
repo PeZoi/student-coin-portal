@@ -1,18 +1,17 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { AUTH_COOKIE_NAME } from "@/constants/auth";
 
-/**
- * Tên Cookie lưu trữ Token xác thực
- */
-export const AUTH_COOKIE_NAME = "auth_token";
+export { AUTH_COOKIE_NAME };
 
 /**
  * Payload chứa trong JWT Token
- * - Gồm userId, phone_zalo và role để phục vụ Authentication & Authorization
+ * - Gồm userId, phone_zalo (hoặc username) và role để phục vụ Authentication & Authorization
  */
 export interface AuthTokenPayload {
   userId: string;
-  phone_zalo: string;
+  phone_zalo?: string | null;
+  username?: string | null;
   role: string;
 }
 
@@ -27,7 +26,7 @@ const getSecretKey = (): Uint8Array => {
  * - Thuật toán: HS256
  * - Thời hạn: Vĩnh viễn (không bao giờ hết hạn)
  *
- * @param payload Gồm userId và phone_zalo
+ * @param payload Gồm userId, role, và phone_zalo / username
  * @returns Chuỗi JWT token
  */
 export async function signAuthToken(payload: AuthTokenPayload): Promise<string> {
@@ -35,7 +34,8 @@ export async function signAuthToken(payload: AuthTokenPayload): Promise<string> 
 
   return await new SignJWT({
     userId: payload.userId,
-    phone_zalo: payload.phone_zalo,
+    phone_zalo: payload.phone_zalo || "",
+    username: payload.username || "",
     role: payload.role,
   })
     .setProtectedHeader({ alg: "HS256" })
@@ -56,13 +56,11 @@ export async function verifyAuthToken(token: string): Promise<AuthTokenPayload |
       algorithms: ["HS256"],
     });
 
-    if (
-      typeof payload.userId === "string" &&
-      typeof payload.phone_zalo === "string"
-    ) {
+    if (typeof payload.userId === "string") {
       return {
         userId: payload.userId,
-        phone_zalo: payload.phone_zalo,
+        phone_zalo: typeof payload.phone_zalo === "string" ? payload.phone_zalo : "",
+        username: typeof payload.username === "string" ? payload.username : "",
         role: typeof payload.role === "string" ? payload.role : "student",
       };
     }

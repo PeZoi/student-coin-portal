@@ -9,7 +9,13 @@ import {
   StudentLookupData,
   StudentRegisterFormValues,
   StudentSessionData,
+  TeacherLoginFormValues,
 } from "../types";
+
+export interface StaffLoginResult {
+  user: StudentSessionData;
+  redirect_url: string;
+}
 
 /**
  * ==============================================================================
@@ -103,6 +109,26 @@ export const authService = {
       }
       throw err;
     }
+  },
+
+  /**
+   * Đăng nhập dành cho Giáo viên & Quản trị viên
+   * Gửi username và password lên API POST /api/auth/staff-login
+   */
+  async loginStaff(payload: TeacherLoginFormValues): Promise<StaffLoginResult> {
+    const response = await http.post<ApiResponse<StaffLoginResult>>(
+      AppRoutes.API.AUTH.STAFF_LOGIN,
+      payload,
+      {
+        skipUnauthorizedHandler: true,
+      }
+    );
+
+    if (!response.success || !response.data) {
+      throw new Error(response.error || "Tên đăng nhập hoặc mật khẩu không chính xác.");
+    }
+
+    return response.data;
   },
 
   /**
