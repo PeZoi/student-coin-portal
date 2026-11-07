@@ -268,11 +268,8 @@ export async function POST(
 
     await setAuthCookie(token);
 
-    // 9. Xác định đường dẫn chuyển hướng tương ứng với vai trò
-    const redirectUrl =
-      userRow.role === "admin"
-        ? AppRoutes.ADMIN.DASHBOARD
-        : AppRoutes.TEACHER.DASHBOARD;
+    // 9. Cả giáo viên và admin đều dùng chung link /teacher (admin sẽ hiển thị thêm menu quản trị)
+    const redirectUrl = AppRoutes.TEACHER.DASHBOARD;
 
     // 10. Trả về phiên đăng nhập thành công
     const sessionData: StudentSessionData = {

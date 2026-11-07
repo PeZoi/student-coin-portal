@@ -4,7 +4,7 @@ import { UserRole } from "./auth";
  * ==============================================================================
  * APPLICATION ROUTES CONSTANTS
  * - Tập trung toàn bộ đường dẫn Routing thực tế đã triển khai trong hệ thống
- * - Chỉ định nghĩa những route ĐÃ CÓ trong dự án (Không tạo route ảo chưa làm)
+ * - Giáo viên và Quản trị viên (Admin) dùng chung cổng điều khiển /teacher
  * ==============================================================================
  */
 
@@ -23,14 +23,9 @@ export const AppRoutes = {
     TEST_AI: "/student/test-ai",
   },
 
-  // Phân hệ Giáo viên (Teacher Portal) - Đã triển khai
+  // Phân hệ Quản trị & Giáo viên dùng chung (Staff / Teacher Portal) - Đã triển khai
   TEACHER: {
     DASHBOARD: "/teacher",
-  },
-
-  // Phân hệ Quản trị viên (Admin Portal) - Đã triển khai
-  ADMIN: {
-    DASHBOARD: "/admin",
   },
 
   // API Endpoints nội bộ - Đã triển khai
@@ -94,13 +89,9 @@ export const ROLE_PERMISSIONS: Record<string, RoleAccessRule> = {
     defaultHome: AppRoutes.TEACHER.DASHBOARD,
   },
 
-  // Quản trị viên: Toàn quyền truy cập /admin, /teacher, /student
+  // Quản trị viên (Admin): Dùng chung khu vực /teacher (kèm menu mở rộng của Admin) và /student
   [UserRole.ADMIN]: {
-    allowedPrefixes: [
-      AppRoutes.ADMIN.DASHBOARD,
-      AppRoutes.TEACHER.DASHBOARD,
-      AppRoutes.STUDENT.DASHBOARD,
-    ],
-    defaultHome: AppRoutes.ADMIN.DASHBOARD,
+    allowedPrefixes: [AppRoutes.TEACHER.DASHBOARD, AppRoutes.STUDENT.DASHBOARD],
+    defaultHome: AppRoutes.TEACHER.DASHBOARD,
   },
 };
