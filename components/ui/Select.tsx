@@ -11,6 +11,7 @@ import React, {
 import { AlertCircle, Check, ChevronDown, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useControllableState } from "@/hooks/useControllableState";
 import {
   FIELD_BASE_BORDER,
   FIELD_DISABLED,
@@ -133,16 +134,11 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     const isMobileOrTouch = useMediaQuery("(max-width: 639px), (pointer: coarse)");
     const presentation: "sheet" | "dropdown" = isMobileOrTouch ? "sheet" : "dropdown";
 
-    // Giá trị hiện tại: Hỗ trợ controlled và uncontrolled từ react-hook-form
-    const initialVal = (controlledValue ?? defaultValue ?? "") as string | number;
-    const [selectedValue, setSelectedValue] = useState<string | number>(initialVal);
-
-    // Đồng bộ khi controlledValue từ react-hook-form thay đổi (form.reset(), form.setValue())
-    useEffect(() => {
-      if (controlledValue !== undefined) {
-        setSelectedValue(controlledValue as string | number);
-      }
-    }, [controlledValue]);
+    // Quản lý giá trị chọn: Dùng useControllableState hỗ trợ cả controlled & uncontrolled chuẩn xác
+    const [selectedValue, setSelectedValue] = useControllableState<string | number>({
+      prop: controlledValue as string | number | undefined,
+      defaultProp: (defaultValue ?? "") as string | number,
+    });
 
     // DOM Refs
     const containerRef = useRef<HTMLDivElement | null>(null);

@@ -54,10 +54,14 @@ export function LeaderboardClassFilter({
         searchInputRef.current?.focus();
       }, 50);
       return () => clearTimeout(timer);
-    } else {
-      setSearchQuery("");
     }
   }, [isOpen]);
+
+  // Đóng dropdown và reset ô tìm kiếm trong event handler
+  const handleCloseDropdown = () => {
+    setIsOpen(false);
+    setSearchQuery("");
+  };
 
   // Xử lý đóng Dropdown khi click ra ngoài hoặc bấm phím Escape
   useEffect(() => {
@@ -66,13 +70,13 @@ export function LeaderboardClassFilter({
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
       ) {
-        setIsOpen(false);
+        handleCloseDropdown();
       }
     }
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        setIsOpen(false);
+        handleCloseDropdown();
       }
     }
 
@@ -89,7 +93,7 @@ export function LeaderboardClassFilter({
 
   const handleSelectClass = (classId: string) => {
     onChangeClass(classId);
-    setIsOpen(false);
+    handleCloseDropdown();
   };
 
   return (

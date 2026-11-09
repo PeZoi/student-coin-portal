@@ -248,6 +248,69 @@ try {
 }
 ```
 
+---
+
+### Quy tắc 8: Tuyệt đối không gọi `setState` đồng bộ bên trong `useEffect` (Tránh Cascading Renders)
+* **Lý do nghiêm cấm:**
+  - Vi phạm cảnh báo nghiêm ngặt của React Compiler / ESLint: *"Error: Calling setState synchronously within an effect can trigger cascading renders"*.
+  - Khi gọi `setState` trực tiếp và đồng bộ trong `useEffect` (đặc biệt là để đồng bộ props vào state), React buộc phải chạy thêm một chu kỳ render phụ (cascading render) ngay sau lượt render vừa hoàn tất. Điều này làm giảm hiệu năng, gây hiện tượng chớp nháy giao diện (flicker) và làm phức tạp hóa vòng đời component.
+
+* **Quy chuẩn giải pháp bắt buộc (Theo tài liệu React "You Might Not Need an Effect"):**
+  1. **Khởi tạo và Reset State bằng thuộc tính `key` (Khuyến nghị hàng đầu cho Form & Modal nghiệp vụ):**
+     - Khi mở modal hoặc chuyển đổi dữ liệu cần sửa, truyền `key={item?.id ?? "create"}` vào component.
+     - Component con khởi tạo giá trị trực tiếp trong `useState(initialData?.name || "")` mà **không cần bất kỳ `useEffect` nào**. Khi `key` đổi, React tự động reset component về trạng thái ban đầu sạch sẽ.
+  2. **Quản lý Controlled / Uncontrolled Component bằng `useControllableState` (Cho UI Controls dùng chung):**
+     - Đối với các component như `Select`, `Input`, `Switch`, `Checkbox`, `Tabs` vừa hỗ trợ `value` từ form cha (controlled), vừa hỗ trợ tự lưu state (uncontrolled):
+     - **Bắt buộc dùng hook `@/hooks/useControllableState`**, rút gọn việc xử lý chỉ còn **1 dòng** giống như `useState` thông thường, loại bỏ hoàn toàn `useEffect`.
+  3. **Tính toán dữ liệu phái sinh ngay trong lúc render (Derive State during Rendering):**
+     - Nếu một giá trị có thể tính toán từ props hoặc state hiện tại, tính trực tiếp bằng biến thông thường hoặc `useMemo`, tuyệt đối không tạo thêm `useState` rồi cập nhật nó bằng `useEffect`.
+  4. **Cập nhật State trực tiếp trong Event Handler:**
+     - Thay đổi state tại hàm xử lý sự kiện của người dùng (`onClick`, `onChange`, `onSubmit`), tránh việc sự kiện làm đổi props rồi component lại dùng `useEffect` để đồng bộ lại state.
+
+*Ví dụ chuẩn khi xử lý Form / Modal nhận `initialData`:*
+```tsx
+// ❌ SAI: Dùng useEffect để đồng bộ props vào state -> Gây lỗi Cascading Renders
+export function EditModal({ isOpen, initialData }: Props) {
+  const [name, setName] = useState("");
+  useEffect(() => {
+    if (isOpen) {
+      setName(initialData?.name || ""); // ❌ Gọi setState đồng bộ trong effect
+    }
+  }, [isOpen, initialData]);
+}
+
+// ✅ ĐÚNG: Khởi tạo trực tiếp từ props kết hợp thuộc tính key ở component cha
+// Component Cha:
+<EditModal key={item?.id ?? "new"} isOpen={isOpen} initialData={item} />
+
+// Component Con (Cực kỳ đơn giản, không cần useEffect):
+export function EditModal({ isOpen, initialData }: Props) {
+  const [name, setName] = useState(initialData?.name || ""); // ✅ Khởi tạo trực tiếp
+  // ...
+}
+```
+
+*Ví dụ chuẩn khi viết UI Controls vừa hỗ trợ `value` (controlled) vừa hỗ trợ `defaultValue` (uncontrolled):*
+```tsx
+import { useControllableState } from "@/hooks/useControllableState";
+
+export function CustomSelect({ value: controlledValue, defaultValue, onChange }: Props) {
+  // ✅ ĐÚNG: Chỉ 1 dòng duy nhất, hoạt động như useState mà không cần useEffect
+  const [value, setValue] = useControllableState({
+    prop: controlledValue,
+    defaultProp: defaultValue ?? "",
+    onChange,
+  });
+
+  return (
+    <div onClick={() => setValue("option-1")}>
+      <span>Giá trị hiện tại: {value}</span>
+    </div>
+  );
+}
+```
+
+
 
 
 

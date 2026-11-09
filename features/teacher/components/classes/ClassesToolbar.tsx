@@ -57,7 +57,7 @@ export function ClassesToolbar({
               : "bg-slate-100 hover:bg-slate-200 text-slate-700"
           }`}
         >
-          Tạm dừng ({inactiveCount})
+          Tạm ẩn ({inactiveCount})
         </button>
       </div>
 

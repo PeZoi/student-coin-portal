@@ -25,35 +25,22 @@ export function StudentPinModal({
   isVerifying,
   onChangePhone,
 }: StudentPinModalProps) {
+  const isLockedInitial = student?.is_locked ?? false;
   const [pinDigits, setPinDigits] = useState<string[]>(["", "", "", ""]);
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>(
+    isLockedInitial
+      ? `Tài khoản của con đang bị tạm khóa. Vui lòng thử lại sau ${student?.remaining_minutes || 15} phút nữa nhé!`
+      : ""
+  );
   const [focusedIndex, setFocusedIndex] = useState<number>(0);
 
-  // Quản lý trạng thái khóa tài khoản và số lần thử còn lại
-  const [isLocked, setIsLocked] = useState<boolean>(student?.is_locked ?? false);
+  // Quản lý trạng thái khóa tài khoản và số lần thử còn lại (khởi tạo trực tiếp từ student kết hợp key ở component cha)
+  const [isLocked, setIsLocked] = useState<boolean>(isLockedInitial);
   const [lockRemainingMinutes, setLockRemainingMinutes] = useState<number>(student?.remaining_minutes ?? 0);
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(student?.remaining_attempts ?? null);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const modalRef = useRef<HTMLDivElement | null>(null);
-
-  // Đồng bộ trạng thái khóa từ dữ liệu học sinh khi mở modal
-  useEffect(() => {
-    if (student) {
-      const locked = student.is_locked ?? false;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsLocked(locked);
-      setLockRemainingMinutes(student.remaining_minutes ?? 0);
-      setRemainingAttempts(student.remaining_attempts ?? null);
-      if (locked) {
-        setErrorMessage(
-          `Tài khoản của con đang bị tạm khóa. Vui lòng thử lại sau ${student.remaining_minutes || 15} phút nữa nhé!`
-        );
-      } else {
-        setErrorMessage("");
-      }
-    }
-  }, [student, isOpen]);
 
   // Bộ đếm ngược tự động giảm số phút khóa theo thời gian thực
   useEffect(() => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { UserPlus, MoreHorizontal, Pencil, PauseCircle, PlayCircle } from "lucide-react";
+import { UserPlus, MoreHorizontal, Pencil, EyeOff, Eye } from "lucide-react";
 import { MockClassItem } from "./types";
 
 interface RowActionsProps {
@@ -91,7 +91,7 @@ export function RowActions({
   };
 
   const handleToggleStatusClick = () => {
-    // TODO: nối API thay đổi trạng thái kích hoạt / tạm dừng
+    // TODO: nối API thay đổi trạng thái kích hoạt / tạm ẩn
     setIsOpen(false);
     if (onToggleStatus) {
       onToggleStatus(item);
@@ -149,13 +149,13 @@ export function RowActions({
           >
             {item.is_active ? (
               <>
-                <PauseCircle className="w-4 h-4 text-amber-500" />
-                <span>Tạm dừng</span>
+                <EyeOff className="w-4 h-4 text-amber-500" />
+                <span>Tạm ẩn</span>
               </>
             ) : (
               <>
-                <PlayCircle className="w-4 h-4 text-[#15803D]" />
-                <span>Kích hoạt lại</span>
+                <Eye className="w-4 h-4 text-[#15803D]" />
+                <span>Hiện lại lớp</span>
               </>
             )}
           </button>

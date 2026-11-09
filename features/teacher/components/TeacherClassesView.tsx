@@ -2,6 +2,8 @@
 
 import { useState, useMemo } from "react";
 import { Plus, Search } from "lucide-react";
+import { format } from "date-fns";
+import { toast } from "sonner";
 import { MockClassItem, StatusFilter, SortField, SortDirection } from "./classes/types";
 import { INITIAL_MOCK_CLASSES } from "./classes/constants";
 import { normalizeText, parseDate } from "./classes/utils";
@@ -9,13 +11,23 @@ import { ClassesKpiCards } from "./classes/ClassesKpiCards";
 import { ClassesToolbar } from "./classes/ClassesToolbar";
 import { ClassesTable } from "./classes/ClassesTable";
 import { ClassCard } from "./classes/ClassCard";
+import { ClassFormModal } from "./classes/ClassFormModal";
+import { AssignTeachersModal } from "./classes/AssignTeachersModal";
 
 export function TeacherClassesView() {
-  const [classesList] = useState<MockClassItem[]>(INITIAL_MOCK_CLASSES);
+  const [classesList, setClassesList] = useState<MockClassItem[]>(INITIAL_MOCK_CLASSES);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("none");
+
+  // State quản lý modal Tạo/Chỉnh sửa lớp học
+  const [isClassFormOpen, setIsClassFormOpen] = useState(false);
+  const [editingClass, setEditingClass] = useState<MockClassItem | null>(null);
+
+  // State quản lý modal Phân công giáo viên
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [assigningClass, setAssigningClass] = useState<MockClassItem | null>(null);
 
   // 1.1 Tính toán số liệu KPI và số đếm trong các tab lọc từ dữ liệu
   const { totalClasses, activeClasses, inactiveClasses, totalStudents, totalTeachers } =
@@ -110,24 +122,79 @@ export function TeacherClassesView() {
     setSearchQuery("");
   };
 
-  const handleCreateClass = () => {
-    // TODO: nối API tạo lớp học mới
+  // Xử lý mở modal tạo lớp học mới
+  const handleOpenCreateClass = () => {
+    setEditingClass(null);
+    setIsClassFormOpen(true);
   };
 
-  const handleAssignTeacher = (_item: MockClassItem) => {
-    // TODO: nối API phân công giáo viên
+  // Xử lý mở modal chỉnh sửa lớp học
+  const handleOpenEditClass = (item: MockClassItem) => {
+    setEditingClass(item);
+    setIsClassFormOpen(true);
   };
 
-  const handleEditClass = (_item: MockClassItem) => {
-    // TODO: nối API chỉnh sửa thông tin lớp
+  // Xử lý submit form tạo/chỉnh sửa lớp học
+  const handleClassFormSubmit = (data: { class_name: string; is_active: boolean }) => {
+    // TODO: nối API tạo/sửa lớp học vào DB
+    if (editingClass) {
+      setClassesList((prev) =>
+        prev.map((c) =>
+          c.id === editingClass.id
+            ? { ...c, class_name: data.class_name, is_active: data.is_active }
+            : c
+        )
+      );
+      toast.success("Cập nhật thông tin lớp học thành công!");
+    } else {
+      const newClass: MockClassItem = {
+        id: `c-${Date.now()}`,
+        class_name: data.class_name,
+        is_active: data.is_active,
+        student_count: 0,
+        teachers: [],
+        created_at: format(new Date(), "dd/MM/yyyy"),
+      };
+      setClassesList((prev) => [newClass, ...prev]);
+      toast.success("Tạo lớp học mới thành công!");
+    }
+
+    setIsClassFormOpen(false);
+    setEditingClass(null);
   };
 
-  const handleToggleClassStatus = (_item: MockClassItem) => {
+  // Xử lý mở modal phân công giáo viên
+  const handleOpenAssignTeacher = (item: MockClassItem) => {
+    setAssigningClass(item);
+    setIsAssignModalOpen(true);
+  };
+
+  // Xử lý submit phân công giáo viên
+  const handleAssignTeacherSubmit = (classId: string, assignedTeachers: string[]) => {
+    // TODO: nối API phân công giáo viên vào DB
+    setClassesList((prev) =>
+      prev.map((c) => (c.id === classId ? { ...c, teachers: assignedTeachers } : c))
+    );
+    toast.success("Phân công giáo viên thành công!");
+    setIsAssignModalOpen(false);
+    setAssigningClass(null);
+  };
+
+  // Xử lý thay đổi nhanh trạng thái kích hoạt / tạm ẩn
+  const handleToggleClassStatus = (item: MockClassItem) => {
     // TODO: nối API thay đổi trạng thái lớp
+    const nextStatus = !item.is_active;
+    setClassesList((prev) =>
+      prev.map((c) => (c.id === item.id ? { ...c, is_active: nextStatus } : c))
+    );
+    toast.success(
+      nextStatus ? "Đã hiện lại lớp học!" : "Đã chuyển lớp học sang trạng thái tạm ẩn!"
+    );
   };
 
-  const handleViewClassDetails = (_item: MockClassItem) => {
+  const handleViewClassDetails = (item: MockClassItem) => {
     // TODO: mở chi tiết lớp
+    toast.info(`Xem chi tiết lớp: ${item.class_name}`);
   };
 
   return (
@@ -146,7 +213,7 @@ export function TeacherClassesView() {
         {/* Nút Tạo lớp học mới: h-10 px-4, màu chính #0A62D6, full width trên mobile */}
         <button
           type="button"
-          onClick={handleCreateClass}
+          onClick={handleOpenCreateClass}
           className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-[#0A62D6] hover:bg-[#0850B0] text-white text-sm font-semibold transition-all shadow-xs cursor-pointer active:scale-98 shrink-0"
         >
           <Plus className="w-4 h-4" />
@@ -207,8 +274,8 @@ export function TeacherClassesView() {
                 sortField={sortField}
                 sortDirection={sortDirection}
                 onSortToggle={handleSortToggle}
-                onAssignTeacher={handleAssignTeacher}
-                onEdit={handleEditClass}
+                onAssignTeacher={handleOpenAssignTeacher}
+                onEdit={handleOpenEditClass}
                 onToggleStatus={handleToggleClassStatus}
                 onViewClassDetails={handleViewClassDetails}
               />
@@ -220,8 +287,8 @@ export function TeacherClassesView() {
                 <ClassCard
                   key={item.id}
                   item={item}
-                  onAssignTeacher={handleAssignTeacher}
-                  onEdit={handleEditClass}
+                  onAssignTeacher={handleOpenAssignTeacher}
+                  onEdit={handleOpenEditClass}
                   onToggleStatus={handleToggleClassStatus}
                   onViewClassDetails={handleViewClassDetails}
                 />
@@ -230,6 +297,30 @@ export function TeacherClassesView() {
           </>
         )}
       </div>
+
+      {/* 4. Modal Tạo / Chỉnh sửa lớp học */}
+      <ClassFormModal
+        key={editingClass ? `edit-${editingClass.id}` : "create-new-class"}
+        isOpen={isClassFormOpen}
+        initialData={editingClass}
+        onClose={() => {
+          setIsClassFormOpen(false);
+          setEditingClass(null);
+        }}
+        onSubmit={handleClassFormSubmit}
+      />
+
+      {/* 5. Modal Phân công giáo viên phụ trách */}
+      <AssignTeachersModal
+        key={assigningClass ? `assign-${assigningClass.id}` : "assign-none"}
+        isOpen={isAssignModalOpen}
+        classItem={assigningClass}
+        onClose={() => {
+          setIsAssignModalOpen(false);
+          setAssigningClass(null);
+        }}
+        onSubmit={handleAssignTeacherSubmit}
+      />
     </div>
   );
 }

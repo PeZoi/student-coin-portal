@@ -43,6 +43,18 @@ export const TEACHER_AVATAR_COLORS = [
   { bg: "#DCFCE7", text: "#166534" },
 ] as const;
 
+/**
+ * Danh sách giáo viên mẫu phục vụ tính năng phân công
+ */
+export const AVAILABLE_TEACHERS = [
+  "Cô Trần Thị Lan",
+  "Thầy Minh (Trợ giảng)",
+  "Thầy Nguyễn Văn Nam",
+  "Cô Hoàng Bích Ngọc",
+  "Cô Nguyễn Thu Hà",
+  "Thầy Lê Minh Quân",
+];
+
 export const INITIAL_MOCK_CLASSES: MockClassItem[] = [
   {
     id: "c-1",

@@ -15,7 +15,7 @@ export function StatusBadge({ isActive }: StatusBadgeProps) {
   return (
     <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#475569] bg-[#F1F5F9] px-2.5 py-1 rounded-full border border-slate-200 whitespace-nowrap">
       <span className="w-1.5 h-1.5 rounded-full bg-[#94A3B8] shrink-0" />
-      <span>Tạm dừng</span>
+      <span>Tạm ẩn</span>
     </span>
   );
 }
