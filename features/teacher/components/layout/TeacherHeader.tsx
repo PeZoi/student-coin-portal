@@ -1,119 +1,110 @@
 "use client";
 
-import Link from "next/link";
-import { AppRoutes } from "@/constants/routes";
 import { useUserStore } from "@/stores/useUserStore";
-import {
-  Menu,
-  Coins,
-  ExternalLink,
-  LogOut,
-  ChevronDown,
-  Bell,
-} from "lucide-react";
+import { Menu, LogOut, ChevronDown, Bell, School } from "lucide-react";
 
 interface TeacherHeaderProps {
-  onToggleSidebar: () => void;
+	onToggleSidebar: () => void;
 }
 
 export function TeacherHeader({ onToggleSidebar }: TeacherHeaderProps) {
-  const { student, logout } = useUserStore();
-  const isAdmin = student?.role === "admin";
-  const isSuperTeacher = student?.role === "super_teacher";
+	const { student, logout } = useUserStore();
+	const isAdmin = student?.role === "admin";
+	const isSuperTeacher = student?.role === "super_teacher";
 
-  return (
-    <header className="sticky top-0 z-30 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between">
-      {/* Left: Mobile Toggle & Class Selector */}
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={onToggleSidebar}
-          className="lg:hidden p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
-          aria-label="Mở thanh điều hướng"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
+	const displayName =
+		student?.full_name ||
+		(isAdmin ? "Admin" : isSuperTeacher ? "Khối Trưởng" : "Giáo viên");
 
-        {/* Class Selector Dropdown (Symbolic) */}
-        <div className="relative inline-flex items-center">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100/90 border border-slate-200 text-xs font-bold text-slate-800 transition-colors cursor-pointer select-none">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="font-semibold text-slate-500 hidden sm:inline">
-              {isSuperTeacher || isAdmin ? "Xem lớp:" : "Lớp phụ trách:"}
-            </span>
-            <span>Lớp 3A1</span>
-            <span className="hidden sm:inline-block text-[11px] font-normal text-slate-500">
-              {isSuperTeacher || isAdmin ? "(Toàn trường)" : "(32 học sinh)"}
-            </span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-          </div>
-        </div>
-      </div>
+	const roleLabel = isAdmin ? "Quản trị" : "Giáo viên";
 
-      {/* Right Controls */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        {/* Quick Reward Action Button (Symbolic) */}
-        <button
-          type="button"
-          className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white transition-all shadow-xs cursor-pointer active:scale-98"
-          title="Thưởng nóng xu cho học sinh"
-        >
-          <Coins className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">+ Thưởng nhanh</span>
-          <span className="sm:hidden">+ Thưởng</span>
-        </button>
+	const avatarInitial = displayName.trim().charAt(0).toUpperCase() || "T";
 
-        {/* Link to Student Portal */}
-        <Link
-          href={AppRoutes.STUDENT.DASHBOARD}
-          className="hidden md:inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors"
-        >
-          <span>Góc học sinh</span>
-          <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
-        </Link>
+	return (
+		<header className='fixed top-0 right-0 left-0 lg:left-64 z-30 h-16 bg-white/95 backdrop-blur-md border-b border-[#E2E8F0] px-4 sm:px-6 flex items-center justify-between'>
+			{/* Left: Mobile Toggle & Class Selector */}
+			<div className='flex items-center gap-3'>
+				<button
+					type='button'
+					onClick={onToggleSidebar}
+					className='lg:hidden p-2 text-[#475569] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-xl transition-colors cursor-pointer'
+					aria-label='Mở thanh điều hướng'
+				>
+					<Menu className='w-5 h-5' />
+				</button>
 
-        {/* Notification Bell (Symbolic) */}
-        <button
-          type="button"
-          className="relative p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
-          aria-label="Thông báo"
-        >
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white" />
-        </button>
+				{/* Class Selector Dropdown (Symbolic) */}
+				<button
+					type='button'
+					className='group inline-flex items-center gap-2.5 pl-1.5 pr-3 py-1.5 rounded-xl bg-white hover:bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition-all cursor-pointer select-none'
+				>
+					<div className='w-7 h-7 rounded-lg bg-[#EAF2FF] text-[#0A62D6] flex items-center justify-center shrink-0 group-hover:bg-[#DCE9FF] transition-colors'>
+						<School className='w-4 h-4 stroke-[2.2]' />
+					</div>
 
-        <div className="h-5 w-px bg-slate-200 mx-0.5 hidden sm:block" />
+					<div className='flex items-center gap-1.5 text-xs'>
+						<span className='font-medium text-[#64748B] hidden sm:inline'>
+							{isSuperTeacher || isAdmin ? "Xem lớp:" : "Lớp phụ trách:"}
+						</span>
+						<span className='font-bold text-[13px] text-[#0F172A]'>
+							Lớp 3A1
+						</span>
+					</div>
 
-        {/* Teacher Avatar & Info */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 font-black text-xs flex items-center justify-center">
-            {student?.full_name ? student.full_name.charAt(0).toUpperCase() : "T"}
-          </div>
-          <div className="hidden xl:block text-left leading-tight">
-            <div className="text-xs font-bold text-slate-800 max-w-[120px] truncate">
-              {student?.full_name || (isAdmin ? "Quản trị viên" : isSuperTeacher ? "Khối Trưởng" : "Thầy / Cô")}
-            </div>
-            <div className="text-[10px] text-slate-500 font-medium">
-              {isAdmin
-                ? "Admin Hệ thống"
-                : isSuperTeacher
-                ? "Khối Trưởng / Toàn trường"
-                : "Giáo viên bộ môn"}
-            </div>
-          </div>
+					<span className='hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#F8FAFC] text-[11px] font-semibold text-[#475569] border border-[#E2E8F0]'>
+						<span className='w-1.5 h-1.5 rounded-full bg-emerald-500' />
+						{isSuperTeacher || isAdmin ? "Toàn trường" : "32 học sinh"}
+					</span>
 
-          {/* Logout Button */}
-          <button
-            type="button"
-            onClick={logout}
-            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
-            title="Đăng xuất"
-            aria-label="Đăng xuất"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    </header>
-  );
+					<ChevronDown className='w-4 h-4 text-[#94A3B8] group-hover:text-[#475569] transition-colors ml-0.5' />
+				</button>
+			</div>
+
+			{/* Right Controls */}
+			<div className='flex items-center gap-2.5 sm:gap-3'>
+				{/* Notification Bell (Symbolic) */}
+				<button
+					type='button'
+					className='relative w-9 h-9 rounded-xl bg-[#F8FAFC] hover:bg-[#F1F5F9] border border-[#E2E8F0] hover:border-[#CBD5E1] text-[#475569] hover:text-[#0F172A] flex items-center justify-center transition-all cursor-pointer'
+					aria-label='Thông báo'
+					title='Thông báo'
+				>
+					<Bell className='w-4 h-4' />
+					<span className='absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white' />
+				</button>
+
+				<div className='h-6 w-px bg-[#E2E8F0] hidden sm:block' />
+
+				{/* Teacher Avatar, Info & Logout */}
+				<div className='flex items-center gap-2.5 pl-1.5 pr-1.5 py-1 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]/90'>
+					<div className='w-8 h-8 rounded-lg bg-gradient-to-br from-[#0A62D6] to-[#074799] text-white font-extrabold text-xs flex items-center justify-center shadow-[0_2px_6px_rgba(10,98,214,0.28)] shrink-0'>
+						{avatarInitial}
+					</div>
+
+					<div className='hidden md:block text-left leading-tight pr-1'>
+						<div className='text-xs font-bold text-[#0F172A] max-w-[180px] truncate'>
+							{displayName}
+						</div>
+						<div className='text-[11px] text-[#64748B] font-medium flex items-center gap-1 mt-0.5'>
+							<span className='w-1.5 h-1.5 rounded-full bg-[#0A62D6]' />
+							<span>{roleLabel}</span>
+						</div>
+					</div>
+
+					<div className='h-5 w-px bg-[#E2E8F0] hidden md:block' />
+
+					{/* Logout Button */}
+					<button
+						type='button'
+						onClick={logout}
+						className='w-8 h-8 text-[#64748B] hover:text-rose-600 hover:bg-rose-50 rounded-lg flex items-center justify-center transition-colors cursor-pointer'
+						title='Đăng xuất'
+						aria-label='Đăng xuất'
+					>
+						<LogOut className='w-4 h-4' />
+					</button>
+				</div>
+			</div>
+		</header>
+	);
 }

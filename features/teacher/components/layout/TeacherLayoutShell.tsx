@@ -20,7 +20,7 @@ export function TeacherLayoutShell({ children }: TeacherLayoutShellProps) {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
+      <div className="flex-1 flex flex-col min-w-0 pt-16 lg:pl-64">
         {/* Top Header */}
         <TeacherHeader onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)} />
 

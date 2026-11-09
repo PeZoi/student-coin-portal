@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { UserPlus, MoreHorizontal, Pencil, EyeOff, Eye, Trash2 } from "lucide-react";
 import { MockClassItem } from "./types";
 
@@ -13,6 +14,16 @@ interface RowActionsProps {
   onDelete?: (item: MockClassItem) => void;
 }
 
+interface MenuPosition {
+  top?: number;
+  bottom?: number;
+  right: number;
+  openUpward: boolean;
+}
+
+const ESTIMATED_MENU_HEIGHT = 150;
+const VIEWPORT_PADDING = 12;
+
 export function RowActions({
   item,
   fullWidth = false,
@@ -22,25 +33,49 @@ export function RowActions({
   onDelete,
 }: RowActionsProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [menuCoords, setMenuCoords] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
+  const [menuPos, setMenuPos] = useState<MenuPosition>({
+    top: 0,
+    right: 0,
+    openUpward: false,
+  });
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Mở/đóng menu và tính vị trí cố định để không bị cắt bởi overflow của bảng
+  // Mở/đóng menu và tự động tính toán hướng bung (lên trên hoặc xuống dưới) để không bị che khuất ở mép màn hình
   const handleToggleMenu = () => {
     if (!isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      setMenuCoords({
-        top: rect.bottom + 6,
-        right: window.innerWidth - rect.right,
-      });
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const openUpward =
+        spaceBelow < ESTIMATED_MENU_HEIGHT + VIEWPORT_PADDING &&
+        spaceAbove > spaceBelow;
+
+      const rightOffset = Math.max(
+        VIEWPORT_PADDING,
+        window.innerWidth - rect.right
+      );
+
+      if (openUpward) {
+        setMenuPos({
+          bottom: window.innerHeight - rect.top + 6,
+          right: rightOffset,
+          openUpward: true,
+        });
+      } else {
+        setMenuPos({
+          top: rect.bottom + 6,
+          right: rightOffset,
+          openUpward: false,
+        });
+      }
       setIsOpen(true);
     } else {
       setIsOpen(false);
     }
   };
 
-  // Đóng popover khi nhấn phím Escape, click ra ngoài hoặc khi cuộn trang
+  // Đóng popover khi nhấn phím Escape, click ra ngoài, cuộn trang hoặc đổi kích thước cửa sổ
   useEffect(() => {
     if (!isOpen) return;
 
@@ -62,30 +97,30 @@ export function RowActions({
       }
     };
 
-    const handleScroll = () => {
+    const handleScrollOrResize = () => {
       setIsOpen(false);
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("scroll", handleScrollOrResize, true);
+    window.addEventListener("resize", handleScrollOrResize);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("scroll", handleScrollOrResize, true);
+      window.removeEventListener("resize", handleScrollOrResize);
     };
   }, [isOpen]);
 
   const handleAssignClick = () => {
-    // TODO: nối API phân công giáo viên
     if (onAssignTeacher) {
       onAssignTeacher(item);
     }
   };
 
   const handleEditClick = () => {
-    // TODO: nối API chỉnh sửa thông tin lớp
     setIsOpen(false);
     if (onEdit) {
       onEdit(item);
@@ -93,7 +128,6 @@ export function RowActions({
   };
 
   const handleToggleStatusClick = () => {
-    // TODO: nối API thay đổi trạng thái kích hoạt / tạm ẩn
     setIsOpen(false);
     if (onToggleStatus) {
       onToggleStatus(item);
@@ -135,52 +169,62 @@ export function RowActions({
         <MoreHorizontal className="w-4 h-4" />
       </button>
 
-      {/* Popover menu với vị trí fixed tránh bị cắt */}
-      {isOpen && (
-        <div
-          ref={menuRef}
-          style={{ top: `${menuCoords.top}px`, right: `${menuCoords.right}px` }}
-          className="fixed z-50 w-44 rounded-xl bg-white border border-slate-200 shadow-xl p-1 text-[13px]"
-        >
-          <button
-            type="button"
-            onClick={handleEditClick}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[#0F172A] hover:bg-slate-100 transition-colors text-left font-medium cursor-pointer"
+      {/* Popover menu render qua Portal và tự động đảo chiều lên trên nếu sát đáy màn hình */}
+      {isOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={menuRef}
+            style={{
+              top: menuPos.top !== undefined ? `${menuPos.top}px` : undefined,
+              bottom:
+                menuPos.bottom !== undefined ? `${menuPos.bottom}px` : undefined,
+              right: `${menuPos.right}px`,
+            }}
+            className={`fixed z-50 w-44 rounded-xl bg-white border border-slate-200 shadow-xl p-1 text-[13px] animate-in fade-in zoom-in-95 duration-150 ${
+              menuPos.openUpward ? "origin-bottom-right" : "origin-top-right"
+            }`}
           >
-            <Pencil className="w-4 h-4 text-slate-500" />
-            <span>Chỉnh sửa</span>
-          </button>
+            <button
+              type="button"
+              onClick={handleEditClick}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[#0F172A] hover:bg-slate-100 transition-colors text-left font-medium cursor-pointer"
+            >
+              <Pencil className="w-4 h-4 text-slate-500" />
+              <span>Chỉnh sửa</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={handleToggleStatusClick}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[#0F172A] hover:bg-slate-100 transition-colors text-left font-medium cursor-pointer"
-          >
-            {item.is_active ? (
-              <>
-                <EyeOff className="w-4 h-4 text-amber-500" />
-                <span>Tạm ẩn</span>
-              </>
-            ) : (
-              <>
-                <Eye className="w-4 h-4 text-[#15803D]" />
-                <span>Hiện lại lớp</span>
-              </>
-            )}
-          </button>
+            <button
+              type="button"
+              onClick={handleToggleStatusClick}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[#0F172A] hover:bg-slate-100 transition-colors text-left font-medium cursor-pointer"
+            >
+              {item.is_active ? (
+                <>
+                  <EyeOff className="w-4 h-4 text-amber-500" />
+                  <span>Tạm ẩn</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="w-4 h-4 text-[#15803D]" />
+                  <span>Hiện lại lớp</span>
+                </>
+              )}
+            </button>
 
-          <div className="my-1 border-t border-slate-100" />
+            <div className="my-1 border-t border-slate-100" />
 
-          <button
-            type="button"
-            onClick={handleDeleteClick}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-left font-medium cursor-pointer"
-          >
-            <Trash2 className="w-4 h-4 text-rose-500" />
-            <span>Xóa lớp học</span>
-          </button>
-        </div>
-      )}
+            <button
+              type="button"
+              onClick={handleDeleteClick}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-left font-medium cursor-pointer"
+            >
+              <Trash2 className="w-4 h-4 text-rose-500" />
+              <span>Xóa lớp học</span>
+            </button>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
