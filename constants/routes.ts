@@ -32,7 +32,7 @@ export const AppRoutes = {
     STUDENTS: "/teacher/students",
     LEADERBOARD: "/teacher/leaderboard",
     // Quản lý cấp Trường (Dành cho Super-Teacher & Admin)
-    CLASSES: "/teacher/classes",
+    CLASSES: "/teacher/manage-classes",
     MANAGE_STUDENTS: "/teacher/manage-students",
     MANAGE_TEACHERS: "/teacher/manage-teachers",
     // Quản trị Hệ thống Tối cao (Độc quyền Admin)
