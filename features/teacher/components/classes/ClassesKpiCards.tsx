@@ -1,18 +1,19 @@
 import { School, CheckCircle2, Users, UserCheck } from "lucide-react";
+import { useTeacherClassesContext } from "../../contexts/TeacherClassesContext";
 
 interface ClassesKpiCardsProps {
-  totalClasses: number;
-  activeClasses: number;
-  totalStudents: number;
-  totalTeachers: number;
+  totalClasses?: number;
+  activeClasses?: number;
+  totalStudents?: number;
+  totalTeachers?: number;
 }
 
-export function ClassesKpiCards({
-  totalClasses,
-  activeClasses,
-  totalStudents,
-  totalTeachers,
-}: ClassesKpiCardsProps) {
+export function ClassesKpiCards(props?: ClassesKpiCardsProps) {
+  const context = useTeacherClassesContext();
+  const totalClasses = props?.totalClasses ?? context.totalClasses;
+  const activeClasses = props?.activeClasses ?? context.activeClasses;
+  const totalStudents = props?.totalStudents ?? context.totalStudents;
+  const totalTeachers = props?.totalTeachers ?? context.totalTeachers;
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {/* 1. Tổng số lớp */}

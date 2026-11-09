@@ -1,19 +1,12 @@
 import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { ClassItem } from "@/features/auth/types";
-import { verifyAuthToken } from "@/lib/auth/jwt";
-import { AUTH_COOKIE_NAME, UserRole } from "@/constants/auth";
-
-function getTokenFromCookie(cookieHeader: string | null): string | null {
-  if (!cookieHeader) return null;
-  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${AUTH_COOKIE_NAME}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
-}
+import { getAuthSessionFromRequest } from "@/lib/auth/jwt";
+import { UserRole } from "@/constants/auth";
 
 export async function GET(req: Request) {
   try {
-    const token = getTokenFromCookie(req.headers.get("cookie"));
-    const session = token ? await verifyAuthToken(token) : null;
+    const session = await getAuthSessionFromRequest(req);
 
     let query = supabase
       .from("classes")

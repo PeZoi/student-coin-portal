@@ -11,28 +11,31 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
+import { useTeacherClassesContext } from "../../contexts/TeacherClassesContext";
 
 interface ClassesTableProps {
-  items: MockClassItem[];
-  sortField: SortField | null;
-  sortDirection: SortDirection;
-  onSortToggle: (field: SortField) => void;
+  items?: MockClassItem[];
+  sortField?: SortField | null;
+  sortDirection?: SortDirection;
+  onSortToggle?: (field: SortField) => void;
   onAssignTeacher?: (item: MockClassItem) => void;
   onEdit?: (item: MockClassItem) => void;
   onToggleStatus?: (item: MockClassItem) => void;
   onViewClassDetails?: (item: MockClassItem) => void;
+  onDelete?: (item: MockClassItem) => void;
 }
 
-export function ClassesTable({
-  items,
-  sortField,
-  sortDirection,
-  onSortToggle,
-  onAssignTeacher,
-  onEdit,
-  onToggleStatus,
-  onViewClassDetails,
-}: ClassesTableProps) {
+export function ClassesTable(props?: ClassesTableProps) {
+  const context = useTeacherClassesContext();
+  const items = props?.items ?? context.filteredClasses;
+  const sortField = props?.sortField !== undefined ? props.sortField : context.sortField;
+  const sortDirection = props?.sortDirection ?? context.sortDirection;
+  const onSortToggle = props?.onSortToggle ?? context.handleSortToggle;
+  const onAssignTeacher = props?.onAssignTeacher ?? context.handleOpenAssignTeacher;
+  const onEdit = props?.onEdit ?? context.handleOpenEditClass;
+  const onToggleStatus = props?.onToggleStatus ?? context.handleToggleClassStatus;
+  const onViewClassDetails = props?.onViewClassDetails ?? context.handleViewClassDetails;
+  const onDelete = props?.onDelete ?? context.handleOpenDeleteModal;
   const renderSortIcon = (field: SortField) => {
     if (sortField !== field || sortDirection === "none") {
       return <ChevronsUpDown className="w-3.5 h-3.5 text-slate-400 ml-1 shrink-0" />;
@@ -154,6 +157,7 @@ export function ClassesTable({
                 onAssignTeacher={onAssignTeacher}
                 onEdit={onEdit}
                 onToggleStatus={onToggleStatus}
+                onDelete={onDelete}
               />
             </TableCell>
           </TableRow>

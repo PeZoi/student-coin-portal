@@ -106,6 +106,9 @@ CREATE TABLE users (
     -- Thời điểm hết hạn khóa tài khoản (Khóa tạm thời, hoặc NULL nếu tài khoản bình thường / chờ giáo viên mở khóa)
     locked_until TIMESTAMP WITH TIME ZONE,
     
+    -- Khóa ngoại: Người tạo tài khoản (Giáo viên hoặc Admin tạo học sinh/giáo viên; NULL nếu học sinh tự đăng ký)
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+
     -- Khóa ngoại: Người cập nhật thông tin hồ sơ/tài khoản lần gần nhất (Bản thân người dùng hoặc Giáo viên)
     updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
 
@@ -902,6 +905,7 @@ CREATE INDEX idx_users_phone ON users(phone_zalo);
 CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_class ON users(class_id);
+CREATE INDEX idx_users_created_by ON users(created_by);
 CREATE INDEX idx_submissions_student ON homework_submissions(student_id);
 CREATE INDEX idx_submissions_status ON homework_submissions(approval_status);
 CREATE INDEX idx_submissions_created ON homework_submissions(created_at);

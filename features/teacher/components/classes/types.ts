@@ -4,7 +4,18 @@ export interface MockClassItem {
   is_active: boolean;
   student_count: number;
   teachers: string[];
+  teacher_ids?: string[];
   created_at: string;
+}
+
+export type TeacherClassItem = MockClassItem;
+
+export interface AvailableTeacherItem {
+  id: string;
+  full_name: string;
+  username: string | null;
+  role: string;
+  assigned_class_count?: number;
 }
 
 export type StatusFilter = "all" | "active" | "inactive";

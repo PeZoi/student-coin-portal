@@ -23,9 +23,7 @@ interface UserMeDbRow {
  * Lấy thông tin chi tiết của người dùng hiện tại dựa trên session cookie (JWT)
  * Dùng để khôi phục State khi F5 trang hoặc khởi động ứng dụng
  */
-export async function GET(
-  _req: Request
-): Promise<NextResponse<ApiResponse<StudentSessionData>>> {
+export async function GET(): Promise<NextResponse<ApiResponse<StudentSessionData>>> {
   try {
     // 1. Lấy thông tin phiên từ JWT Cookie
     const session = await getAuthSession();

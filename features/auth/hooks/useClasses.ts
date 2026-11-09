@@ -1,51 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { SelectOption } from "@/components/ui/Select";
 import { classService } from "../services/classService";
-import { ClassItem } from "../types";
 
 /**
- * Custom Hook quản lý trạng thái tải danh sách lớp học
- * - Tuân thủ Separation of Concerns: Hook chỉ quản lý State & Lifecycle
- * - Toàn bộ tác vụ Network được ủy thác cho Service Layer (`classService`)
+ * Custom Hook quản lý danh sách lớp học cho form xác thực
+ * - Tuân thủ Quy tắc 9 trong AGENTS.md: Dùng SWR bọc ngoài Service Layer
+ * - Tự động cache: Chuyển tab hoặc mở lại form có dữ liệu ngay lập tức (0ms delay)
+ * - Tự động gộp request (Request Deduplication): Nhiều component cùng dùng chỉ gọi 1 request
  */
 export function useClasses() {
-  const [classes, setClasses] = useState<ClassItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadClasses() {
-      try {
-        setIsLoading(true);
-        const data = await classService.getActiveClasses();
-        if (isMounted) {
-          setClasses(data);
-          setError(null);
-        }
-      } catch (err: unknown) {
-        if (isMounted) {
-          const e = err instanceof Error ? err : new Error(String(err));
-          setError(e.message);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
+  const { data: classes = [], isLoading, error } = useSWR(
+    "active-classes",
+    () => classService.getActiveClasses(),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
     }
+  );
 
-    loadClasses();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // Chuyển đổi định dạng phù hợp cho Select component
   const classOptions: SelectOption[] = classes.map((item) => ({
     label: item.class_name,
     value: item.id,
@@ -55,6 +29,6 @@ export function useClasses() {
     classes,
     classOptions,
     isLoading,
-    error,
+    error: error instanceof Error ? error.message : error ? String(error) : null,
   };
 }

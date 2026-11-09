@@ -11,8 +11,6 @@ import {
   Users,
   Trophy,
   GraduationCap,
-  Sparkles,
-  ShieldCheck,
   X,
   School,
   Contact,

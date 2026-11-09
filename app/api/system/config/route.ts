@@ -12,9 +12,7 @@ import { getPublicSystemConfigs } from "@/lib/system/serverConfig";
  * Yêu cầu: Đã đăng nhập (có cookie xác thực hợp lệ)
  * Hỗ trợ Server In-Memory Cache và HTTP Caching (Cache-Control) tối ưu hiệu năng
  */
-export async function GET(
-  _req: Request
-): Promise<NextResponse<ApiResponse<SystemPublicConfigs>>> {
+export async function GET(): Promise<NextResponse<ApiResponse<SystemPublicConfigs>>> {
   try {
     // 1. Kiểm tra xác thực (Chỉ cho phép người dùng đã đăng nhập gọi)
     const session = await getAuthSession();

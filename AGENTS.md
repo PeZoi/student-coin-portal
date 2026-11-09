@@ -310,6 +310,171 @@ export function CustomSelect({ value: controlledValue, defaultValue, onChange }:
 }
 ```
 
+---
+
+### Quy tắc 9: Chuẩn mực Data Fetching tối ưu (Mô hình 2 tầng: Server Component + SWR)
+* **Lý do nghiêm cấm tự viết `useEffect` để fetch data:**
+  - Vi phạm khuyến cáo chính thức của React.dev (*"You Might Not Need an Effect"*): Gây ra hiện tượng Network Waterfall, buộc người dùng phải chờ tải xong toàn bộ JavaScript mới bắt đầu gọi API, dễ mắc lỗi Race Condition và Cascading Renders khi gọi `setState` đồng bộ.
+  - Tốn quá nhiều mã boilerplate rườm rà (`useState(data)`, `useState(loading)`, `useState(error)`, `let isMounted = true`).
+  - Không có bộ nhớ đệm (Cache), mỗi lần mở modal hay chuyển tab là lại phải gọi API từ đầu và hiển thị lại spinner khó chịu.
+
+* **Quy chuẩn giải pháp bắt buộc (Mô hình 2 tầng kết hợp):**
+
+  1. **Tầng 1 - Dữ liệu chính của Trang (Page-level Data):**
+     - **Bắt buộc fetch trực tiếp trên Server Component (`page.tsx`)** bằng Server Service / Server Action trực tiếp (truy vấn DB trên server thay vì gọi HTTP endpoint nội bộ để tránh round-trip không cần thiết).
+     - **Suspense Fallback phải là Pure Skeleton UI:**
+       - `fallback` của `<Suspense>` PHẢI là component Skeleton thuần JSX tĩnh (Server Component, không `'use client'`).
+       - **Tuyệt đối nghiêm cấm:** Đặt chính Client Component chứa hook data fetching vào `fallback={<FeatureView />}`. Vì khi fallback mount mà chưa có dữ liệu (`initialData` là `undefined`), Client sẽ lập tức tự bắn request API, gây ra lỗi **gọi API trùng lặp 2 lần (Duplicate Fetch)**.
+     - **Cấu hình SWR khi nhận `initialData`:**
+       - Trong Client Hook, khi truyền `fallbackData: initialData`, **bắt buộc cấu hình `revalidateOnMount: initialData ? false : true`** và `revalidateIfStale: !initialData`.
+       - Điều này đảm bảo Client hoàn toàn tin tưởng dữ liệu tươi mới từ Server Component, không tự động gọi ngầm API kiểm tra lại trên Client khi vừa tải trang.
+     - Trang hiển thị HTML có sẵn dữ liệu ngay lập tức (0ms độ trễ chờ đợi mạng Client, tối ưu Core Web Vitals FCP & LCP).
+     ```tsx
+     // ✅ ĐÚNG: app/teacher/classes/page.tsx (Server Component + Streaming Suspense)
+     import { Suspense } from "react";
+     import { TeacherClassesView } from "@/features/teacher/components/TeacherClassesView";
+     import { ClassesSkeleton } from "@/features/teacher/components/classes/ClassesSkeleton";
+     import { getTeacherClassesServer } from "@/features/teacher/services/teacherClassServerService";
+
+     async function ClassesDataContainer() {
+       const initialClasses = await getTeacherClassesServer();
+       return <TeacherClassesView initialClasses={initialClasses} />;
+     }
+
+     export default function ClassesPage() {
+       return (
+         <Suspense fallback={<ClassesSkeleton />}>
+           <ClassesDataContainer />
+         </Suspense>
+       );
+     }
+     ```
+
+     ```ts
+     // ✅ ĐÚNG: features/teacher/hooks/useTeacherClasses.ts
+     const { data: classesList = initialClasses ?? [], mutate } = useSWR(
+       "teacher-classes",
+       () => teacherClassService.getClasses(),
+       {
+         fallbackData: initialClasses,
+         revalidateOnMount: initialClasses ? false : true, // Không refetch ngầm nếu server đã cung cấp
+         revalidateIfStale: !initialClasses,
+         revalidateOnFocus: false,
+       }
+     );
+     ```
+
+  2. **Tầng 2 - Dữ liệu phụ / Bật Modal mới tải / Dropdown / Client Interaction:**
+     - **Bắt buộc dùng thư viện `swr` bọc ngoài Service**: `useSWR(key, () => service.get())`.
+     - Giữ nguyên 100% tầng Service để gọi API, `swr` quản lý lifecycle và bộ nhớ đệm.
+     - Tự động cache (mở modal lần 2 tải 0ms tức thì), tự động gộp request trùng lặp (Request Deduplication), tự động revalidate khi focus tab.
+     - Rút gọn code từ 35 dòng xuống đúng 1 - 2 dòng duy nhất!
+     ```tsx
+     // ✅ ĐÚNG: features/auth/hooks/useClasses.ts (Client Hook)
+     import useSWR from "swr";
+     import { classService } from "../services/classService";
+
+     export function useClasses() {
+       const { data: classes = [], isLoading, error } = useSWR(
+         "active-classes",
+         () => classService.getActiveClasses()
+       );
+
+       return { classes, isLoading, error };
+     }
+     ```
+
+---
+
+### Quy tắc 10: Quản lý State bằng Feature Context Pattern (Chống Prop Drilling & God Hook)
+* **Lý do bắt buộc áp dụng:**
+  - Khi một màn hình tính năng phức tạp (như Quản lý lớp học, Nhiệm vụ, Đổi quà...) bao gồm nhiều thành phần con: Thanh công cụ lọc (Toolbar), Thẻ thống kê (KPIs), Bảng dữ liệu (Table/Cards), và các hộp thoại (Modals).
+  - **Nghiêm cấm:** Destructure hàng chục biến/hàm (20 - 35 biến) tại component cha chỉ để làm "người trung chuyển" truyền prop dây chuyền (Prop Drilling) xuống cho từng component con. Điều này làm code component cha phình to hàng trăm dòng, khó đọc, khó bảo trì và dễ sinh lỗi.
+
+* **Quy chuẩn giải pháp bắt buộc (Feature Context Pattern):**
+  1. **Tạo Feature Context cục bộ tại `features/<feature>/contexts/<Feature>Context.tsx`:**
+     - Provider gọi custom hook chính của tính năng và truyền toàn bộ giá trị xuống Context.
+     - Tận dụng `export type FeatureContextType = ReturnType<typeof useFeature>` để suy luận kiểu dữ liệu tự động 100% (Type-Safe, DRY, không định nghĩa lại interface).
+  2. **Component View cha siêu ngắn gọn (Declarative View):**
+     - Component View chỉ bọc Provider và render các thành phần con mà **không cần truyền props dây chuyền**.
+  3. **Component con tự truy xuất Context (Consuming Context with Optional Fallback):**
+     - Các component con (`<FeatureToolbar />`, `<FeatureTable />`, `<FeatureModal />`) tự gọi `useFeatureContext()` để lấy đúng dữ liệu/hàm cần dùng.
+     - Vẫn hỗ trợ nhận `props?: Partial<Props>` dự phòng để dễ dàng viết test hoặc tái sử dụng độc lập.
+
+*Ví dụ chuẩn khi áp dụng Feature Context Pattern:*
+```tsx
+// ❌ SAI: Component cha destructure 35 biến rồi truyền prop dây chuyền mệt mỏi
+export function ClassesView() {
+  const {
+    totalClasses, activeClasses, statusFilter, setStatusFilter,
+    searchQuery, setSearchQuery, sortField, sortDirection,
+    handleSortToggle, filteredClasses, isClassFormOpen, editingClass,
+    handleOpenCreateClass, handleCloseClassForm, /* ... 20 biến nữa */
+  } = useTeacherClasses();
+
+  return (
+    <div>
+      <ClassesKpiCards totalClasses={totalClasses} activeClasses={activeClasses} />
+      <ClassesToolbar statusFilter={statusFilter} onStatusFilterChange={setStatusFilter} searchQuery={searchQuery} />
+      <ClassesTable items={filteredClasses} sortField={sortField} sortDirection={sortDirection} />
+      <ClassFormModal isOpen={isClassFormOpen} initialData={editingClass} onClose={handleCloseClassForm} />
+    </div>
+  );
+}
+
+// ✅ ĐÚNG: Áp dụng Feature Context Pattern - Cực kỳ thanh lịch, 0 dòng Prop Drilling
+// features/teacher/contexts/TeacherClassesContext.tsx
+export function TeacherClassesProvider({ children, initialClasses }: Props) {
+  const value = useTeacherClasses(initialClasses);
+  return <TeacherClassesContext.Provider value={value}>{children}</TeacherClassesContext.Provider>;
+}
+
+// Component Cha (View chỉ còn ~30 dòng cực kỳ sạch đẹp):
+export function TeacherClassesView({ initialClasses }: Props) {
+  return (
+    <TeacherClassesProvider initialClasses={initialClasses}>
+      <div className="space-y-5">
+        <ClassesHeader />
+        <ClassesKpiCards />
+        <div className="bg-white rounded-2xl border border-slate-200">
+          <ClassesToolbar />
+          <ClassesTable />
+        </div>
+        <ClassFormModal />
+        <AssignTeachersModal />
+      </div>
+    </TeacherClassesProvider>
+  );
+}
+```
+
+---
+
+### Quy tắc 11: Kiểm soát Phân quyền & Xác thực 2 tầng (Proxy Edge + Server Guard)
+* **Lý do nghiêm cấm viết thủ công kiểm tra session ở từng trang:**
+  - Vi phạm nguyên tắc DRY: Lặp đi lặp lại 10-12 dòng `getAuthSession()`, kiểm tra null, kiểm tra `role` và gọi `redirect("/login")` ở từng file `page.tsx`.
+  - Nguy cơ hở bảo mật (Security Leak) khi lập trình viên tạo trang mới nhưng quên copy đoạn mã kiểm tra này.
+* **Quy chuẩn giải pháp bắt buộc (2 tầng phòng thủ):**
+  1. **Tầng 1 - Cửa khẩu mạng (`proxy.ts` của Next.js 16):**
+     - Chặn và kiểm tra quyền truy cập ở tầng Edge trước khi request chạm vào bất kỳ file Page hay Layout nào.
+     - Tự động điều hướng người dùng chưa đăng nhập về `/login`, hoặc người dùng sai quyền về đúng trang chủ của họ.
+  2. **Tầng 2 - Trợ lý Server (`@/lib/auth/guard.ts`):**
+     - Khi Server Component hoặc Server Action cần lấy thông tin `session` đã xác thực, **bắt buộc sử dụng các helper function tập trung**:
+       - `requireTeacher()`: Dành cho toàn bộ trang/action của Giáo viên & Quản trị viên (`TEACHER`, `SUPER_TEACHER`, `ADMIN`).
+       - `requireStudent()`: Dành cho trang/action của Học sinh (`STUDENT`).
+       - `requireAuth(allowedRoles)`: Dành cho các trường hợp phân quyền tùy biến.
+     - **Rút gọn thành đúng 1 dòng code duy nhất:**
+       ```tsx
+       // ✅ ĐÚNG: Cực kỳ ngắn gọn, 1 dòng duy nhất, Type-Safe
+       async function DataContainer() {
+         const session = await requireTeacher();
+         const data = await getServiceData(session);
+         return <FeatureView initialData={data} />;
+       }
+       ```
+
+
+
 
 
 

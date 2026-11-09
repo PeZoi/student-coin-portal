@@ -10,6 +10,7 @@ interface ClassCardProps {
   onEdit?: (item: MockClassItem) => void;
   onToggleStatus?: (item: MockClassItem) => void;
   onViewClassDetails?: (item: MockClassItem) => void;
+  onDelete?: (item: MockClassItem) => void;
 }
 
 export function ClassCard({
@@ -18,6 +19,7 @@ export function ClassCard({
   onEdit,
   onToggleStatus,
   onViewClassDetails,
+  onDelete,
 }: ClassCardProps) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3 shadow-2xs">
@@ -64,6 +66,7 @@ export function ClassCard({
           onAssignTeacher={onAssignTeacher}
           onEdit={onEdit}
           onToggleStatus={onToggleStatus}
+          onDelete={onDelete}
         />
       </div>
     </div>

@@ -1,44 +1,82 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { X, School, Check } from "lucide-react";
 import { MockClassItem } from "./types";
+import { useTeacherClassesContext } from "../../contexts/TeacherClassesContext";
 
 interface ClassFormModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
   initialData?: MockClassItem | null;
-  onSubmit: (data: { class_name: string; is_active: boolean }) => void;
+  onSubmit?: (
+    data: { class_name: string; is_active: boolean }
+  ) => Promise<boolean | void> | boolean | void;
+  isSubmitting?: boolean;
 }
 
-export function ClassFormModal({
-  isOpen,
-  onClose,
+export function ClassFormModal(props?: ClassFormModalProps) {
+  const context = useTeacherClassesContext();
+  const isOpen = props?.isOpen ?? context.isClassFormOpen;
+  const onClose = props?.onClose ?? context.handleCloseClassForm;
+  const initialData = props?.initialData !== undefined ? props.initialData : context.editingClass;
+  const onSubmit = props?.onSubmit ?? context.handleClassFormSubmit;
+  const isSubmitting = props?.isSubmitting ?? context.isSubmitting;
+  const formKey = context.formKey;
+
+  if (!isOpen) return null;
+
+  return (
+    <ClassFormDialogContent
+      key={initialData ? `edit-${initialData.id}` : `create-${formKey}`}
+      initialData={initialData}
+      onClose={onClose}
+      onSubmit={onSubmit}
+      isSubmitting={isSubmitting}
+    />
+  );
+}
+
+interface ClassFormDialogContentProps {
+  initialData?: MockClassItem | null;
+  onClose: () => void;
+  onSubmit: (
+    data: { class_name: string; is_active: boolean }
+  ) => Promise<boolean | void> | boolean | void;
+  isSubmitting: boolean;
+}
+
+function ClassFormDialogContent({
   initialData,
+  onClose,
   onSubmit,
-}: ClassFormModalProps) {
+  isSubmitting,
+}: ClassFormDialogContentProps) {
   const isEdit = Boolean(initialData);
   const [className, setClassName] = useState(initialData?.class_name || "");
   const [isActive, setIsActive] = useState(initialData ? initialData.is_active : true);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const handleClose = useCallback(() => {
+    setClassName(initialData?.class_name || "");
+    setIsActive(initialData ? initialData.is_active : true);
+    setErrorMessage("");
+    onClose();
+  }, [initialData, onClose]);
+
   // Đóng modal khi bấm Escape
   useEffect(() => {
-    if (!isOpen) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        handleClose();
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [handleClose]);
 
-  if (!isOpen) return null;
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = className.trim();
     if (!trimmed) {
@@ -46,10 +84,19 @@ export function ClassFormModal({
       return;
     }
 
-    onSubmit({
+    setErrorMessage("");
+    const isSuccess = await onSubmit({
       class_name: trimmed,
       is_active: isActive,
     });
+
+    // Chỉ khi submit THÀNH CÔNG mới reset form!
+    // Nếu thất bại (API lỗi, trùng tên...), giữ nguyên dữ liệu để người dùng chỉnh sửa
+    if (isSuccess !== false) {
+      setClassName("");
+      setIsActive(true);
+      setErrorMessage("");
+    }
   };
 
   return (
@@ -78,8 +125,9 @@ export function ClassFormModal({
 
           <button
             type="button"
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+            onClick={handleClose}
+            disabled={isSubmitting}
+            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer shrink-0 disabled:opacity-50"
           >
             <X className="w-4 h-4" />
           </button>
@@ -199,16 +247,25 @@ export function ClassFormModal({
           <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/70 flex items-center justify-end gap-3">
             <button
               type="button"
-              onClick={onClose}
-              className="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-sm font-semibold transition-colors cursor-pointer"
+              onClick={handleClose}
+              disabled={isSubmitting}
+              className="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
             >
               Hủy
             </button>
             <button
               type="submit"
-              className="h-10 px-5 rounded-xl bg-[#0A62D6] hover:bg-[#0850B0] text-white text-sm font-semibold transition-all shadow-xs cursor-pointer active:scale-98"
+              disabled={isSubmitting}
+              className="h-10 px-5 rounded-xl bg-[#0A62D6] hover:bg-[#0850B0] text-white text-sm font-semibold transition-all shadow-xs cursor-pointer active:scale-98 disabled:opacity-60 inline-flex items-center gap-2"
             >
-              {isEdit ? "Lưu thay đổi" : "Tạo lớp học"}
+              {isSubmitting ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Đang lưu...</span>
+                </>
+              ) : (
+                <span>{isEdit ? "Lưu thay đổi" : "Tạo lớp học"}</span>
+              )}
             </button>
           </div>
         </form>

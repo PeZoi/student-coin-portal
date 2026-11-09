@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { UserPlus, MoreHorizontal, Pencil, EyeOff, Eye } from "lucide-react";
+import { UserPlus, MoreHorizontal, Pencil, EyeOff, Eye, Trash2 } from "lucide-react";
 import { MockClassItem } from "./types";
 
 interface RowActionsProps {
@@ -10,6 +10,7 @@ interface RowActionsProps {
   onAssignTeacher?: (item: MockClassItem) => void;
   onEdit?: (item: MockClassItem) => void;
   onToggleStatus?: (item: MockClassItem) => void;
+  onDelete?: (item: MockClassItem) => void;
 }
 
 export function RowActions({
@@ -18,6 +19,7 @@ export function RowActions({
   onAssignTeacher,
   onEdit,
   onToggleStatus,
+  onDelete,
 }: RowActionsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [menuCoords, setMenuCoords] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
@@ -98,6 +100,13 @@ export function RowActions({
     }
   };
 
+  const handleDeleteClick = () => {
+    setIsOpen(false);
+    if (onDelete) {
+      onDelete(item);
+    }
+  };
+
   return (
     <div className={`inline-flex items-center gap-1.5 ${fullWidth ? "w-full" : "justify-end"}`}>
       {/* Nút Gán GV */}
@@ -158,6 +167,17 @@ export function RowActions({
                 <span>Hiện lại lớp</span>
               </>
             )}
+          </button>
+
+          <div className="my-1 border-t border-slate-100" />
+
+          <button
+            type="button"
+            onClick={handleDeleteClick}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-left font-medium cursor-pointer"
+          >
+            <Trash2 className="w-4 h-4 text-rose-500" />
+            <span>Xóa lớp học</span>
           </button>
         </div>
       )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   AiConfig,
@@ -59,22 +59,20 @@ export function useTestAiSubmission() {
   );
 
   // 3. Cấu hình AI Endpoint & API Key để tester dễ dàng thay thế
-  const [aiConfig, setAiConfig] = useState<AiConfig>(DEFAULT_AI_CONFIG);
-  const [isConfigLoaded, setIsConfigLoaded] = useState(false);
-
-  // Khôi phục cấu hình từ localStorage khi khởi động
-  useEffect(() => {
+  // Khởi tạo trực tiếp từ localStorage bằng Lazy State Initializer (Quy tắc 8)
+  const [aiConfig, setAiConfig] = useState<AiConfig>(() => {
+    if (typeof window === "undefined") return DEFAULT_AI_CONFIG;
     try {
       const savedConfig = localStorage.getItem(STORAGE_KEY_AI_CONFIG);
       if (savedConfig) {
-        setAiConfig(JSON.parse(savedConfig));
+        return JSON.parse(savedConfig) as AiConfig;
       }
     } catch (e) {
       console.warn("Không thể tải cấu hình AI từ localStorage:", e);
-    } finally {
-      setIsConfigLoaded(true);
     }
-  }, []);
+    return DEFAULT_AI_CONFIG;
+  });
+  const [isConfigLoaded] = useState(true);
 
   // Lưu cấu hình vào localStorage khi có sự thay đổi
   const updateAiConfig = useCallback((updates: Partial<AiConfig>) => {
