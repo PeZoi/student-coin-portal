@@ -157,41 +157,10 @@ export function TeacherSidebar({ isOpen = false, onClose }: TeacherSidebarProps)
           </button>
         </div>
 
-        {/* Status Pill */}
-        <div className="px-4 pt-4 pb-2">
-          <div className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs font-semibold text-slate-700">
-                {isAdmin
-                  ? "Khu vực Quản trị"
-                  : isSuperTeacher
-                  ? "Toàn Trường / Khối"
-                  : "Lớp Phụ Trách"}
-              </span>
-            </div>
-            {isAdmin ? (
-              <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 border border-purple-200 flex items-center gap-0.5">
-                <ShieldCheck className="w-2.5 h-2.5" />
-                Admin
-              </span>
-            ) : isSuperTeacher ? (
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 border border-blue-200 flex items-center gap-0.5">
-                <Sparkles className="w-2.5 h-2.5" />
-                Khối Trưởng
-              </span>
-            ) : (
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 border border-emerald-200">
-                Giáo viên
-              </span>
-            )}
-          </div>
-        </div>
-
         {/* Navigation Menu */}
         <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
           <div className="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-            Nghiệp vụ lớp học
+            Lớp học
           </div>
 
           {navItems.map((item) => {
@@ -240,10 +209,7 @@ export function TeacherSidebar({ isOpen = false, onClose }: TeacherSidebarProps)
           {(isAdmin || isSuperTeacher) && (
             <div className="pt-3 mt-2 border-t border-slate-100 space-y-1">
               <div className="px-3 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center justify-between">
-                <span>Quản lý trường học</span>
-                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
-                  {isAdmin ? "Admin" : "Khối Trưởng"}
-                </span>
+                <span>Tiện ích</span>
               </div>
 
               {managementItems.map((item) => {
@@ -292,10 +258,6 @@ export function TeacherSidebar({ isOpen = false, onClose }: TeacherSidebarProps)
             <div className="pt-3 mt-2 border-t border-slate-100 space-y-1">
               <div className="px-3 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center justify-between">
                 <span>Quản trị hệ thống</span>
-                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-0.5">
-                  <ShieldCheck className="w-2.5 h-2.5" />
-                  Admin Only
-                </span>
               </div>
 
               {adminItems.map((item) => {
@@ -339,19 +301,6 @@ export function TeacherSidebar({ isOpen = false, onClose }: TeacherSidebarProps)
             </div>
           )}
         </nav>
-
-        {/* Footer Quick Info */}
-        <div className="p-3 border-t border-slate-100">
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-600">
-            <div className="flex items-center gap-1.5 text-slate-800 font-bold mb-1">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Mẹo giảng dạy</span>
-            </div>
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              Tặng xu khen ngợi ngay khi học sinh phát biểu sẽ tăng 40% hào hứng học tập!
-            </p>
-          </div>
-        </div>
       </aside>
     </>
   );

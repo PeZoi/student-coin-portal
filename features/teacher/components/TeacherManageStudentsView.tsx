@@ -114,8 +114,6 @@ export function TeacherManageStudentsView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2 text-xs font-bold text-slate-500 mb-1">
-            <span>QUẢN TRỊ TRƯỜNG HỌC</span>
-            <span>/</span>
             <span className="text-indigo-700">QUẢN LÝ HỌC SINH</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 font-heading">
