@@ -113,17 +113,27 @@ export function useClassFilters({ classesList, onFilterChange }: UseClassFilters
       return true;
     });
 
-    if (!sortField || sortDirection === "none") {
-      return list;
-    }
-
+    // Mặc định hoặc khi sort: Ưu tiên lớp đang hoạt động lên trên, tạm ẩn luôn ở cuối
     return [...list].sort((a, b) => {
+      // 1. Luôn xếp lớp đang hoạt động trước, lớp tạm ẩn dưới cuối
+      if (a.is_active !== b.is_active) {
+        return a.is_active ? -1 : 1;
+      }
+
+      // 2. Nếu không chọn cột sắp xếp, giữ nguyên thứ tự (đã xếp theo ngày tạo từ server)
+      if (!sortField || sortDirection === "none") {
+        return 0;
+      }
+
+      // 3. Nếu cùng trạng thái, sắp xếp theo cột người dùng chọn
       let result = 0;
 
       if (sortField === "class_name") {
         result = a.class_name.localeCompare(b.class_name, "vi", { numeric: true });
       } else if (sortField === "student_count") {
         result = a.student_count - b.student_count;
+      } else if (sortField === "total_coins") {
+        result = (a.total_coins ?? 0) - (b.total_coins ?? 0);
       } else if (sortField === "created_at") {
         const timeA = parseDate(a.created_at);
         const timeB = parseDate(b.created_at);

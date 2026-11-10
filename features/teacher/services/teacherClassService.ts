@@ -1,7 +1,11 @@
 import { http } from "@/lib/http/httpClient";
 import { ApiResponse } from "@/types/api";
 import { AppRoutes } from "@/constants/routes";
-import { TeacherClassItem, AvailableTeacherItem } from "../components/classes/types";
+import {
+  TeacherClassItem,
+  AvailableTeacherItem,
+  ClassStudentItem,
+} from "../components/classes/types";
 
 /**
  * Service quản lý các yêu cầu API Lớp học & Phân công giáo viên
@@ -84,11 +88,11 @@ export const teacherClassService = {
   },
 
   /**
-   * Thao tác hàng loạt trên nhiều lớp học (Khôi phục hoặc Xóa vĩnh viễn)
+   * Thao tác hàng loạt trên nhiều lớp học (Khôi phục, Xóa vĩnh viễn, Kích hoạt, Tạm ẩn, Chuyển thùng rác)
    */
   async batchAction(
     ids: string[],
-    action: "restore" | "delete_permanent"
+    action: "restore" | "delete_permanent" | "activate" | "deactivate" | "delete_soft"
   ): Promise<{ count: number; action: string }> {
     const res = await http.post<ApiResponse<{ count: number; action: string }>>(
       AppRoutes.API.TEACHER.BATCH,
@@ -105,6 +109,16 @@ export const teacherClassService = {
    */
   async getAvailableTeachers(): Promise<AvailableTeacherItem[]> {
     const res = await http.get<ApiResponse<AvailableTeacherItem[]>>(AppRoutes.API.TEACHER.TEACHERS);
+    return res.data ?? [];
+  },
+
+  /**
+   * Lấy danh sách học sinh thuộc một lớp học cụ thể
+   */
+  async getClassStudents(classId: string): Promise<ClassStudentItem[]> {
+    const res = await http.get<ApiResponse<ClassStudentItem[]>>(
+      AppRoutes.API.TEACHER.CLASS_STUDENTS(classId)
+    );
     return res.data ?? [];
   },
 };

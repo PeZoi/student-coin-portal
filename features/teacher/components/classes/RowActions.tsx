@@ -2,7 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { UserPlus, MoreHorizontal, Pencil, EyeOff, Eye, Trash2, RotateCcw } from "lucide-react";
+import { UserPlus, MoreHorizontal, Pencil, EyeOff, Eye, Trash2, RotateCcw, Loader2 } from "lucide-react";
+import { Tooltip } from "@/components/ui/tooltip";
+import { useTeacherClassesContext } from "../../contexts/TeacherClassesContext";
 import { MockClassItem } from "./types";
 
 interface RowActionsProps {
@@ -44,6 +46,14 @@ export function RowActions({
   });
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  let restoringId: string | null = null;
+  try {
+    const context = useTeacherClassesContext();
+    restoringId = context.restoringId ?? null;
+  } catch {
+    // Nếu component được gọi độc lập ngoài context
+  }
 
   // Mở/đóng menu và tự động tính toán hướng bung (lên trên hoặc xuống dưới) để không bị che khuất ở mép màn hình
   const handleToggleMenu = () => {
@@ -149,29 +159,41 @@ export function RowActions({
   if (item.is_deleted) {
     return (
       <div className={`inline-flex items-center gap-1.5 ${fullWidth ? "w-full" : "justify-end"}`}>
-        <button
-          type="button"
-          onClick={() => onRestore && onRestore(item)}
-          title="Khôi phục lớp học"
-          className={`inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[13px] font-semibold transition-colors cursor-pointer ${
-            fullWidth ? "flex-1 h-10 px-3" : "h-9 px-3"
-          }`}
-        >
-          <RotateCcw className="w-4 h-4" />
-          <span>Khôi phục</span>
-        </button>
+        <Tooltip content="Khôi phục lớp học về trạng thái hoạt động" side="top">
+          <button
+            type="button"
+            onClick={() => onRestore && onRestore(item)}
+            disabled={restoringId === item.id}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[13px] font-semibold transition-colors cursor-pointer disabled:opacity-50 ${
+              fullWidth ? "flex-1 h-10 px-3" : "h-9 px-3"
+            }`}
+          >
+            {restoringId === item.id ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+                <span>Đang khôi phục...</span>
+              </>
+            ) : (
+              <>
+                <RotateCcw className="w-4 h-4" />
+                <span>Khôi phục</span>
+              </>
+            )}
+          </button>
+        </Tooltip>
 
-        <button
-          type="button"
-          onClick={() => onPermanentDelete && onPermanentDelete(item)}
-          title="Xóa vĩnh viễn khỏi hệ thống"
-          className={`inline-flex items-center justify-center gap-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-[13px] font-semibold transition-colors cursor-pointer ${
-            fullWidth ? "flex-1 h-10 px-3" : "h-9 px-3"
-          }`}
-        >
-          <Trash2 className="w-4 h-4 text-rose-600" />
-          <span>Xóa vĩnh viễn</span>
-        </button>
+        <Tooltip content="Xóa vĩnh viễn lớp học khỏi hệ thống" side="top">
+          <button
+            type="button"
+            onClick={() => onPermanentDelete && onPermanentDelete(item)}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-[13px] font-semibold transition-colors cursor-pointer ${
+              fullWidth ? "flex-1 h-10 px-3" : "h-9 px-3"
+            }`}
+          >
+            <Trash2 className="w-4 h-4 text-rose-600" />
+            <span>Xóa vĩnh viễn</span>
+          </button>
+        </Tooltip>
       </div>
     );
   }
@@ -179,30 +201,32 @@ export function RowActions({
   return (
     <div className={`inline-flex items-center gap-1.5 ${fullWidth ? "w-full" : "justify-end"}`}>
       {/* Nút Gán GV */}
-      <button
-        type="button"
-        onClick={handleAssignClick}
-        title="Phân công giáo viên"
-        className={`inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#EAF2FF] hover:bg-[#D8E7FD] text-[#0A62D6] text-[13px] font-semibold transition-colors cursor-pointer ${
-          fullWidth ? "flex-1 h-10 px-4" : "h-9 px-3"
-        }`}
-      >
-        <UserPlus className="w-4 h-4" />
-        <span>Gán GV</span>
-      </button>
+      <Tooltip content="Phân công giáo viên phụ trách lớp" side="top">
+        <button
+          type="button"
+          onClick={handleAssignClick}
+          className={`inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#EAF2FF] hover:bg-[#D8E7FD] text-[#0A62D6] text-[13px] font-semibold transition-colors cursor-pointer ${
+            fullWidth ? "flex-1 h-10 px-4" : "h-9 px-3"
+          }`}
+        >
+          <UserPlus className="w-4 h-4" />
+          <span>Gán GV</span>
+        </button>
+      </Tooltip>
 
       {/* Nút 3 chấm mở popover */}
-      <button
-        ref={buttonRef}
-        type="button"
-        onClick={handleToggleMenu}
-        title="Thao tác khác"
-        className={`rounded-xl flex items-center justify-center border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer shrink-0 ${
-          fullWidth ? "w-10 h-10" : "w-9 h-9"
-        }`}
-      >
-        <MoreHorizontal className="w-4 h-4" />
-      </button>
+      <Tooltip content="Thao tác khác" side="top" disabled={isOpen}>
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={handleToggleMenu}
+          className={`rounded-xl flex items-center justify-center border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer shrink-0 ${
+            fullWidth ? "w-10 h-10" : "w-9 h-9"
+          }`}
+        >
+          <MoreHorizontal className="w-4 h-4" />
+        </button>
+      </Tooltip>
 
       {/* Popover menu render qua Portal và tự động đảo chiều lên trên nếu sát đáy màn hình */}
       {isOpen &&

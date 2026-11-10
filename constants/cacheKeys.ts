@@ -13,6 +13,8 @@ export const CACHE_KEYS = {
     ALL: "teacher-classes",
     /** Danh sách lớp học đang hoạt động phục vụ đăng ký / xác thực */
     ACTIVE: "active-classes",
+    /** Danh sách học sinh của một lớp học cụ thể */
+    STUDENTS: (id: string) => `class-students-${id}`,
   },
 
   // 2. Giáo viên (Teachers)

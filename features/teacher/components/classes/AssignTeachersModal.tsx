@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { X, UserPlus, Search, Check, Users, Loader2 } from "lucide-react";
-import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
+import { X, UserPlus, Search, Check, Users } from "lucide-react";
+import { Modal, ModalHeader, ModalBody, ModalFooter, ModalLoading } from "@/components/ui/modal";
 import { MockClassItem, AvailableTeacherItem } from "./types";
 import { getTeacherColor, getTeacherInitial, normalizeText } from "./utils";
 import { useTeacherClassesContext } from "../../contexts/TeacherClassesContext";
@@ -229,12 +229,7 @@ function AssignTeachersDialogContent({
           </label>
 
           {isLoadingTeachers ? (
-            <div className="py-12 flex flex-col items-center justify-center text-center">
-              <Loader2 className="w-6 h-6 text-[#0A62D6] animate-spin mb-2" />
-              <p className="text-xs text-slate-500 font-medium">
-                Đang tải danh sách giáo viên...
-              </p>
-            </div>
+            <ModalLoading text="Đang tải danh sách giáo viên..." className="py-8 sm:py-10" />
           ) : filteredTeachers.length === 0 ? (
             <div className="py-8 text-center text-slate-400 text-xs">
               Không tìm thấy giáo viên nào phù hợp với từ khóa.
@@ -301,38 +296,23 @@ function AssignTeachersDialogContent({
         </div>
       </ModalBody>
 
-      <ModalFooter className="justify-between">
-        <div className="text-xs text-slate-500 hidden sm:flex items-center gap-1.5">
-          <Users className="w-3.5 h-3.5 text-slate-400" />
-          <span>1 lớp có thể có nhiều giáo viên phụ trách</span>
-        </div>
-
-        <div className="flex items-center gap-2.5 ml-auto">
-          <button
-            type="button"
-            onClick={handleClose}
-            disabled={isSubmitting}
-            className="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
-          >
-            Hủy
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={isSubmitting}
-            className="h-10 px-5 rounded-xl bg-[#0A62D6] hover:bg-[#0850B0] text-white text-sm font-semibold transition-all shadow-xs cursor-pointer active:scale-98 disabled:opacity-60 inline-flex items-center gap-2"
-          >
-            {isSubmitting ? (
-              <>
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>Đang lưu...</span>
-              </>
-            ) : (
-              <span>Lưu phân công</span>
-            )}
-          </button>
-        </div>
-      </ModalFooter>
+      <ModalFooter
+        leftNode={
+          <div className="hidden sm:flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5 text-slate-400" />
+            <span>1 lớp có thể có nhiều giáo viên phụ trách</span>
+          </div>
+        }
+        showCancel
+        cancelLabel="Hủy"
+        onCancel={handleClose}
+        cancelDisabled={isSubmitting}
+        showSubmit
+        submitLabel="Lưu phân công"
+        submittingLabel="Đang lưu..."
+        onSubmit={handleSave}
+        isSubmitting={isSubmitting}
+      />
     </Modal>
   );
 }

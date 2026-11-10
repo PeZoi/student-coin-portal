@@ -1,4 +1,6 @@
+import Image from "next/image";
 import { School, Users, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { Tooltip } from "@/components/ui/tooltip";
 import { MockClassItem, SortField, SortDirection } from "./types";
 import { StatusBadge } from "./StatusBadge";
 import { TeacherList } from "./TeacherList";
@@ -25,6 +27,7 @@ interface ClassesTableProps {
   onDelete?: (item: MockClassItem) => void;
   onRestore?: (item: MockClassItem) => void;
   onPermanentDelete?: (item: MockClassItem) => void;
+  onOpenStudents?: (item: MockClassItem) => void;
 }
 
 export function ClassesTable(props?: ClassesTableProps) {
@@ -36,10 +39,10 @@ export function ClassesTable(props?: ClassesTableProps) {
   const onAssignTeacher = props?.onAssignTeacher ?? context.handleOpenAssignTeacher;
   const onEdit = props?.onEdit ?? context.handleOpenEditClass;
   const onToggleStatus = props?.onToggleStatus ?? context.handleToggleClassStatus;
-  const onViewClassDetails = props?.onViewClassDetails ?? context.handleViewClassDetails;
   const onDelete = props?.onDelete ?? context.handleOpenDeleteModal;
   const onRestore = props?.onRestore ?? context.handleRestoreClass;
   const onPermanentDelete = props?.onPermanentDelete ?? context.handleOpenPermanentModal;
+  const onOpenStudents = props?.onOpenStudents ?? context.handleOpenStudentsModal;
 
   const isAdmin = context.isAdmin;
   const selectedIds = context.selectedIds;
@@ -99,6 +102,18 @@ export function ClassesTable(props?: ClassesTableProps) {
             </button>
           </TableHead>
 
+          {/* Tổng xu của cả lớp (Căn giữa, Sắp xếp) */}
+          <TableHead align="center">
+            <button
+              type="button"
+              onClick={() => onSortToggle("total_coins")}
+              className="inline-flex items-center justify-center gap-1 font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer select-none"
+            >
+              <span>Tổng xu</span>
+              {renderSortIcon("total_coins")}
+            </button>
+          </TableHead>
+
           {/* Giáo viên phụ trách */}
           <TableHead>Giáo viên phụ trách</TableHead>
 
@@ -151,13 +166,8 @@ export function ClassesTable(props?: ClassesTableProps) {
                 >
                   <School className="w-4 h-4" />
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    // TODO: mở chi tiết lớp
-                    if (onViewClassDetails) onViewClassDetails(item);
-                  }}
-                  className={`text-left font-semibold text-sm transition-colors cursor-pointer hover:underline hover:text-[#0A62D6] ${
+                <span
+                  className={`font-semibold text-sm select-text ${
                     item.is_deleted
                       ? "text-slate-500 line-through"
                       : item.is_active
@@ -166,16 +176,73 @@ export function ClassesTable(props?: ClassesTableProps) {
                   }`}
                 >
                   {item.class_name}
-                </button>
+                </span>
               </div>
             </TableCell>
 
-            {/* Sĩ số (chỉ số + icon Users, căn giữa) */}
+            {/* Sĩ số (Badge pill nhỏ gọn click được) */}
             <TableCell align="center" className="whitespace-nowrap">
-              <div className="inline-flex items-center justify-center gap-1.5 font-semibold text-slate-700 tabular-nums">
-                <Users className="w-4 h-4 text-slate-400" />
-                <span>{item.student_count}</span>
-              </div>
+              <Tooltip
+                content={`Xem danh sách ${item.student_count} học sinh của ${item.class_name}`}
+                side="top"
+              >
+                <button
+                  type="button"
+                  onClick={() => onOpenStudents(item)}
+                  className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer tabular-nums shadow-2xs group ${
+                    item.student_count > 0
+                      ? "bg-blue-50/80 text-[#0A62D6] border border-blue-200/70 hover:bg-[#EAF2FF] hover:border-blue-300"
+                      : "bg-slate-50 text-slate-400 border border-slate-200/60 hover:bg-slate-100 hover:text-slate-600"
+                  }`}
+                >
+                  <Users
+                    className={`w-3.5 h-3.5 transition-colors ${
+                      item.student_count > 0
+                        ? "text-[#0A62D6]"
+                        : "text-slate-400 group-hover:text-slate-600"
+                    }`}
+                  />
+                  <span>{item.student_count}</span>
+                </button>
+              </Tooltip>
+            </TableCell>
+
+            {/* Tổng xu tích lũy của học sinh trong lớp */}
+            <TableCell align="center" className="whitespace-nowrap">
+              {item.total_coins && item.total_coins > 0 ? (
+                <Tooltip
+                  content={`Tổng ${item.total_coins.toLocaleString("vi-VN")} xu của lớp ${item.class_name}`}
+                  side="top"
+                >
+                  <div className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-50/90 border border-amber-200/80 text-amber-900 text-xs font-bold tabular-nums shadow-2xs cursor-default">
+                    <Image
+                      src="/coin.png"
+                      alt="Xu"
+                      width={15}
+                      height={15}
+                      unoptimized
+                      style={{ height: "auto" }}
+                      className="w-3.5 h-3.5 drop-shadow-xs shrink-0"
+                    />
+                    <span>{item.total_coins.toLocaleString("vi-VN")}</span>
+                  </div>
+                </Tooltip>
+              ) : (
+                <Tooltip content="Lớp chưa có xu tích lũy" side="top">
+                  <div className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-50 border border-slate-200/60 text-slate-400 text-xs font-medium tabular-nums cursor-default">
+                    <Image
+                      src="/coin.png"
+                      alt="Xu"
+                      width={15}
+                      height={15}
+                      unoptimized
+                      style={{ height: "auto" }}
+                      className="w-3.5 h-3.5 opacity-30 grayscale shrink-0"
+                    />
+                    <span>0</span>
+                  </div>
+                </Tooltip>
+              )}
             </TableCell>
 
             {/* Giáo viên phụ trách */}

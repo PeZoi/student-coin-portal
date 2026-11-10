@@ -3,6 +3,7 @@ export interface MockClassItem {
   class_name: string;
   is_active: boolean;
   student_count: number;
+  total_coins?: number;
   teachers: string[];
   teacher_ids?: string[];
   created_at: string;
@@ -21,6 +22,18 @@ export interface AvailableTeacherItem {
 
 export type StatusFilter = "all" | "active" | "inactive" | "deleted";
 
-export type SortField = "class_name" | "student_count" | "created_at";
+export type SortField = "class_name" | "student_count" | "total_coins" | "created_at";
 
 export type SortDirection = "asc" | "desc" | "none";
+
+export interface ClassStudentItem {
+  id: string;
+  full_name: string;
+  username: string | null;
+  phone_zalo: string | null;
+  avatar_url: string | null;
+  current_coins: number;
+  total_earned_coins?: number;
+  is_active: boolean;
+  created_at: string;
+}

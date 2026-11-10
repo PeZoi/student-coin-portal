@@ -1,4 +1,5 @@
 import { Search, X, RotateCw } from "lucide-react";
+import { Tooltip } from "@/components/ui/tooltip";
 import { StatusFilter } from "./types";
 import { useTeacherClassesContext } from "../../contexts/TeacherClassesContext";
 
@@ -93,26 +94,29 @@ export function ClassesToolbar(props?: ClassesToolbarProps) {
             className="w-full h-10 pl-10 pr-9 rounded-xl bg-white border border-slate-300 text-base md:text-sm text-[#0F172A] placeholder-slate-500 transition-all focus:outline-none focus:border-[#0A62D6] focus:ring-2 focus:ring-[#0A62D6]/25"
           />
           {searchQuery.length > 0 && (
-            <button
-              type="button"
-              onClick={() => onSearchQueryChange("")}
-              className="w-6 h-6 absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
+            <Tooltip content="Xóa từ khóa tìm kiếm" side="top">
+              <button
+                type="button"
+                onClick={() => onSearchQueryChange("")}
+                className="w-6 h-6 absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </Tooltip>
           )}
         </div>
 
         {/* Nút Làm mới: chỉ icon, không text */}
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={isRefreshing}
-          title="Làm mới dữ liệu"
-          className="w-10 h-10 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 hover:text-[#0A62D6] hover:border-[#0A62D6]/40 flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-2xs disabled:opacity-50"
-        >
-          <RotateCw className={`w-4 h-4 ${isRefreshing ? "animate-spin text-[#0A62D6]" : ""}`} />
-        </button>
+        <Tooltip content={isRefreshing ? "Đang đồng bộ..." : "Làm mới danh sách lớp"} side="top">
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="w-10 h-10 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 hover:text-[#0A62D6] hover:border-[#0A62D6]/40 flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-2xs disabled:opacity-50"
+          >
+            <RotateCw className={`w-4 h-4 ${isRefreshing ? "animate-spin text-[#0A62D6]" : ""}`} />
+          </button>
+        </Tooltip>
       </div>
     </div>
   );

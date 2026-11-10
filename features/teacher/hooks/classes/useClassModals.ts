@@ -82,6 +82,20 @@ export function useClassModals(selectedIdsCount: number) {
     setIsBatchPermanentModalOpen(false);
   }, []);
 
+  // 6. Modal Xem danh sách học sinh của lớp học
+  const [isStudentsModalOpen, setIsStudentsModalOpen] = useState(false);
+  const [viewingStudentsClass, setViewingStudentsClass] = useState<TeacherClassItem | null>(null);
+
+  const handleOpenStudentsModal = useCallback((item: TeacherClassItem) => {
+    setViewingStudentsClass(item);
+    setIsStudentsModalOpen(true);
+  }, []);
+
+  const handleCloseStudentsModal = useCallback(() => {
+    setIsStudentsModalOpen(false);
+    setViewingStudentsClass(null);
+  }, []);
+
   return {
     // Form Modal
     isClassFormOpen,
@@ -123,5 +137,13 @@ export function useClassModals(selectedIdsCount: number) {
     setIsBatchPermanentModalOpen,
     handleOpenBatchPermanentModal,
     handleCloseBatchPermanentModal,
+
+    // Class Students Modal
+    isStudentsModalOpen,
+    viewingStudentsClass,
+    setIsStudentsModalOpen,
+    setViewingStudentsClass,
+    handleOpenStudentsModal,
+    handleCloseStudentsModal,
   };
 }

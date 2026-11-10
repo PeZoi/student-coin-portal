@@ -25,9 +25,9 @@ export function TeacherHeader({ onToggleSidebar }: TeacherHeaderProps) {
 
   const displayName =
     student?.full_name ||
-    (isAdmin ? "Quản trị viên" : isSuperTeacher ? "Tổ trưởng chuyên môn" : "Giáo viên bộ môn");
+    (isAdmin ? "Quản trị viên" : "Giáo viên");
 
-  const roleLabel = isAdmin ? "Quản trị viên" : isSuperTeacher ? "Tổ trưởng" : "Giáo viên";
+  const roleLabel = isAdmin ? "Quản trị viên" : "Giáo viên";
   const classNameDisplay = student?.class_name || (isAdmin ? "Toàn trường" : "Lớp 3A1");
 
   return (

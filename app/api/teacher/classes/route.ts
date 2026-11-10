@@ -88,6 +88,7 @@ export async function POST(req: Request) {
       class_name: createdClass.class_name,
       is_active: createdClass.is_active,
       student_count: 0,
+      total_coins: 0,
       teachers: [],
       teacher_ids: [],
       created_at: formattedDate,

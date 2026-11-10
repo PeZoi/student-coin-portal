@@ -26,9 +26,11 @@ export async function getTeacherClassesServer(
     }
 
     // 1. Lấy danh sách lớp học (Admin/Super-Teacher lấy cả lớp đã xóa để quản lý thùng rác)
+    // Sắp xếp mặc định: Đang hoạt động (is_active: true) lên đầu, Tạm ẩn (is_active: false) xuống cuối
     let classesQuery = supabase
       .from("classes")
       .select("id, class_name, is_active, is_deleted, created_at, created_by")
+      .order("is_active", { ascending: false })
       .order("created_at", { ascending: false });
 
     if (session.role !== UserRole.ADMIN && session.role !== UserRole.SUPER_TEACHER) {
@@ -42,25 +44,30 @@ export async function getTeacherClassesServer(
       return [];
     }
 
-    // 2. Lấy số lượng học sinh theo từng lớp
+    // 2. Lấy số lượng học sinh và tổng số xu theo từng lớp
     const { data: studentList, error: studentError } = await supabase
       .from("users")
-      .select("class_id")
+      .select("class_id, current_coins")
       .eq("role", UserRole.STUDENT)
       .eq("is_deleted", false)
       .not("class_id", "is", null);
 
     if (studentError) {
-      console.error("Lỗi khi lấy số lượng học sinh trên server:", studentError.message);
+      console.error("Lỗi khi lấy số lượng học sinh và xu trên server:", studentError.message);
     }
 
     const studentCountMap = new Map<string, number>();
+    const totalCoinsMap = new Map<string, number>();
     if (studentList) {
       for (const student of studentList) {
         if (student.class_id) {
           studentCountMap.set(
             student.class_id,
             (studentCountMap.get(student.class_id) || 0) + 1
+          );
+          totalCoinsMap.set(
+            student.class_id,
+            (totalCoinsMap.get(student.class_id) || 0) + (Number(student.current_coins) || 0)
           );
         }
       }
@@ -98,7 +105,15 @@ export async function getTeacherClassesServer(
       }
     }
 
-    // 4. Tổng hợp dữ liệu trả về
+    // 4. Đảm bảo trạng thái đang hoạt động (true) luôn đứng trước tạm ẩn (false)
+    classesData.sort((a, b) => {
+      if (a.is_active !== b.is_active) {
+        return a.is_active ? -1 : 1;
+      }
+      return 0;
+    });
+
+    // 5. Tổng hợp dữ liệu trả về
     return classesData.map((c) => {
       const teacherInfo = classTeachersMap.get(c.id) || { names: [], ids: [] };
       let formattedDate = "";
@@ -114,6 +129,7 @@ export async function getTeacherClassesServer(
         is_active: c.is_active,
         is_deleted: Boolean(c.is_deleted),
         student_count: studentCountMap.get(c.id) || 0,
+        total_coins: totalCoinsMap.get(c.id) || 0,
         teachers: teacherInfo.names,
         teacher_ids: teacherInfo.ids,
         created_at: formattedDate,

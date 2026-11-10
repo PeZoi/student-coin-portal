@@ -1,4 +1,6 @@
+import Image from "next/image";
 import { Users } from "lucide-react";
+import { Tooltip } from "@/components/ui/tooltip";
 import { MockClassItem } from "./types";
 import { StatusBadge } from "./StatusBadge";
 import { TeacherList } from "./TeacherList";
@@ -9,10 +11,10 @@ interface ClassCardProps {
   onAssignTeacher?: (item: MockClassItem) => void;
   onEdit?: (item: MockClassItem) => void;
   onToggleStatus?: (item: MockClassItem) => void;
-  onViewClassDetails?: (item: MockClassItem) => void;
   onDelete?: (item: MockClassItem) => void;
   onRestore?: (item: MockClassItem) => void;
   onPermanentDelete?: (item: MockClassItem) => void;
+  onOpenStudents?: (item: MockClassItem) => void;
   isSelected?: boolean;
   onToggleSelect?: (id: string) => void;
 }
@@ -22,10 +24,10 @@ export function ClassCard({
   onAssignTeacher,
   onEdit,
   onToggleStatus,
-  onViewClassDetails,
   onDelete,
   onRestore,
   onPermanentDelete,
+  onOpenStudents,
   isSelected,
   onToggleSelect,
 }: ClassCardProps) {
@@ -50,12 +52,8 @@ export function ClassCard({
               className="w-4 h-4 rounded border-slate-300 text-[#0A62D6] focus:ring-[#0A62D6] cursor-pointer accent-[#0A62D6] shrink-0"
             />
           )}
-          <button
-            type="button"
-            onClick={() => {
-              if (onViewClassDetails) onViewClassDetails(item);
-            }}
-            className={`text-left font-semibold text-sm leading-snug transition-colors cursor-pointer hover:underline hover:text-[#0A62D6] truncate ${
+          <span
+            className={`font-semibold text-sm leading-snug truncate select-text ${
               item.is_deleted
                 ? "text-slate-500 line-through"
                 : item.is_active
@@ -64,7 +62,7 @@ export function ClassCard({
             }`}
           >
             {item.class_name}
-          </button>
+          </span>
         </div>
         <div className="shrink-0">
           <StatusBadge isActive={item.is_active} isDeleted={item.is_deleted} />
@@ -76,14 +74,78 @@ export function ClassCard({
         <TeacherList teachers={item.teachers} />
       </div>
 
-      {/* Hàng 3: "Sĩ số: N" (icon Users) và Ngày tạo (13px text-slate-600) */}
-      <div className="flex items-center justify-between text-[13px] text-slate-600 pt-1 border-t border-slate-100">
-        <div className="inline-flex items-center gap-1.5 font-medium">
-          <Users className="w-4 h-4 text-slate-400" />
-          <span>Sĩ số: <strong className="font-semibold text-slate-800 tabular-nums">{item.student_count}</strong></span>
+      {/* Hàng 3: Sĩ số + Tổng xu lớp + Ngày tạo */}
+      <div className="flex items-center justify-between gap-2 text-[13px] text-slate-600 pt-2 border-t border-slate-100 flex-wrap">
+        <div className="flex items-center gap-2">
+          {/* Sĩ số */}
+          {onOpenStudents ? (
+            <Tooltip content="Xem danh sách học sinh" side="top">
+              <button
+                type="button"
+                onClick={() => onOpenStudents(item)}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer tabular-nums shadow-2xs group ${
+                  item.student_count > 0
+                    ? "bg-blue-50/80 text-[#0A62D6] border border-blue-200/70 hover:bg-[#EAF2FF]"
+                    : "bg-slate-50 text-slate-400 border border-slate-200/60 hover:bg-slate-100"
+                }`}
+              >
+                <Users
+                  className={`w-3.5 h-3.5 ${
+                    item.student_count > 0 ? "text-[#0A62D6]" : "text-slate-400"
+                  }`}
+                />
+                <span>{item.student_count} HS</span>
+              </button>
+            </Tooltip>
+          ) : (
+            <div
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold tabular-nums ${
+                item.student_count > 0
+                  ? "bg-blue-50/80 text-[#0A62D6] border border-blue-200/70"
+                  : "bg-slate-50 text-slate-400 border border-slate-200/60"
+              }`}
+            >
+              <Users
+                className={`w-3.5 h-3.5 ${
+                  item.student_count > 0 ? "text-[#0A62D6]" : "text-slate-400"
+                }`}
+              />
+              <span>{item.student_count} HS</span>
+            </div>
+          )}
+
+          {/* Tổng xu lớp */}
+          {item.total_coins && item.total_coins > 0 ? (
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50/90 border border-amber-200/80 text-amber-900 text-xs font-bold tabular-nums shadow-2xs">
+              <Image
+                src="/coin.png"
+                alt="Xu"
+                width={14}
+                height={14}
+                unoptimized
+                style={{ height: "auto" }}
+                className="w-3.5 h-3.5 drop-shadow-xs shrink-0"
+              />
+              <span>{item.total_coins.toLocaleString("vi-VN")}</span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200/60 text-slate-400 text-xs font-medium tabular-nums">
+              <Image
+                src="/coin.png"
+                alt="Xu"
+                width={14}
+                height={14}
+                unoptimized
+                style={{ height: "auto" }}
+                className="w-3.5 h-3.5 opacity-30 grayscale shrink-0"
+              />
+              <span>0</span>
+            </div>
+          )}
         </div>
-        <div className="text-[13px] font-sans font-medium text-slate-600 tabular-nums">
-          <span>Ngày tạo: {item.created_at}</span>
+
+        <div className="text-[12px] font-sans font-medium text-slate-500 tabular-nums shrink-0">
+          <span>{item.created_at}</span>
         </div>
       </div>
 

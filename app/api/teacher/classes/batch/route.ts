@@ -10,7 +10,7 @@ const batchActionSchema = z.object({
   ids: z
     .array(z.string().uuid("Mã lớp học không hợp lệ"))
     .min(1, "Vui lòng chọn ít nhất một lớp học"),
-  action: z.enum(["restore", "delete_permanent"], {
+  action: z.enum(["restore", "delete_permanent", "activate", "deactivate", "delete_soft"], {
     message: "Hành động hàng loạt không hợp lệ.",
   }),
 });
@@ -94,6 +94,78 @@ export async function POST(req: Request) {
       return apiSuccess(
         { count: ids.length, action: "delete_permanent" },
         `Đã xóa vĩnh viễn thành công ${ids.length} lớp học!`
+      );
+    }
+
+    // 3. Kích hoạt / Mở lại hàng loạt các lớp học
+    if (action === "activate") {
+      const { error: activateError } = await supabase
+        .from("classes")
+        .update({
+          is_active: true,
+          updated_at: new Date().toISOString(),
+          updated_by: session.userId,
+        })
+        .in("id", ids)
+        .eq("is_deleted", false);
+
+      if (activateError) {
+        console.error("Lỗi khi kích hoạt hàng loạt lớp học:", activateError.message);
+        return apiError("Không thể kích hoạt các lớp học đã chọn. Vui lòng thử lại.");
+      }
+
+      return apiSuccess(
+        { count: ids.length, action: "activate" },
+        `Đã hiện lại và kích hoạt thành công ${ids.length} lớp học!`
+      );
+    }
+
+    // 4. Tạm ẩn hàng loạt các lớp học
+    if (action === "deactivate") {
+      const { error: deactivateError } = await supabase
+        .from("classes")
+        .update({
+          is_active: false,
+          updated_at: new Date().toISOString(),
+          updated_by: session.userId,
+        })
+        .in("id", ids)
+        .eq("is_deleted", false);
+
+      if (deactivateError) {
+        console.error("Lỗi khi tạm ẩn hàng loạt lớp học:", deactivateError.message);
+        return apiError("Không thể tạm ẩn các lớp học đã chọn. Vui lòng thử lại.");
+      }
+
+      return apiSuccess(
+        { count: ids.length, action: "deactivate" },
+        `Đã chuyển ${ids.length} lớp học sang trạng thái tạm ẩn!`
+      );
+    }
+
+    // 5. Chuyển vào thùng rác hàng loạt (Xóa mềm)
+    if (action === "delete_soft") {
+      const now = new Date().toISOString();
+      const { error: softDeleteError } = await supabase
+        .from("classes")
+        .update({
+          is_deleted: true,
+          is_active: false,
+          deleted_at: now,
+          deleted_by: session.userId,
+          updated_at: now,
+          updated_by: session.userId,
+        })
+        .in("id", ids);
+
+      if (softDeleteError) {
+        console.error("Lỗi khi chuyển thùng rác hàng loạt lớp học:", softDeleteError.message);
+        return apiError("Không thể chuyển các lớp học đã chọn vào thùng rác. Vui lòng thử lại.");
+      }
+
+      return apiSuccess(
+        { count: ids.length, action: "delete_soft" },
+        `Đã chuyển thành công ${ids.length} lớp học vào thùng rác!`
       );
     }
 

@@ -11,10 +11,10 @@ export function ClassesMobileList() {
     handleOpenAssignTeacher,
     handleOpenEditClass,
     handleToggleClassStatus,
-    handleViewClassDetails,
     handleOpenDeleteModal,
     handleRestoreClass,
     handleOpenPermanentModal,
+    handleOpenStudentsModal,
     isAdmin,
     selectedIds,
     handleToggleSelect,
@@ -29,10 +29,10 @@ export function ClassesMobileList() {
           onAssignTeacher={handleOpenAssignTeacher}
           onEdit={handleOpenEditClass}
           onToggleStatus={handleToggleClassStatus}
-          onViewClassDetails={handleViewClassDetails}
           onDelete={handleOpenDeleteModal}
           onRestore={handleRestoreClass}
           onPermanentDelete={handleOpenPermanentModal}
+          onOpenStudents={handleOpenStudentsModal}
           isSelected={selectedIds.includes(item.id)}
           onToggleSelect={isAdmin ? handleToggleSelect : undefined}
         />

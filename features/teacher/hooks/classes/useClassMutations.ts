@@ -27,6 +27,13 @@ interface UseClassMutationsProps {
   };
 }
 
+export type BatchActionType =
+  | "activate"
+  | "deactivate"
+  | "delete_soft"
+  | "restore"
+  | "delete_permanent";
+
 /**
  * Micro-hook chuyên trách: Tương tác API, Cập nhật Cache và Thông báo người dùng (Mutations & Optimistic UI)
  */
@@ -39,6 +46,8 @@ export function useClassMutations({
   modals,
 }: UseClassMutationsProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [batchActionLoading, setBatchActionLoading] = useState<BatchActionType | null>(null);
+  const [restoringId, setRestoringId] = useState<string | null>(null);
 
   // 1. Tạo mới hoặc cập nhật lớp học qua API
   const handleClassFormSubmit = useCallback(
@@ -166,6 +175,7 @@ export function useClassMutations({
     async (item: TeacherClassItem): Promise<boolean> => {
       try {
         setIsSubmitting(true);
+        setRestoringId(item.id);
         await teacherClassService.restoreClass(item.id);
         const nextList = classesList.map((c) =>
           c.id === item.id ? { ...c, is_deleted: false, is_active: true } : c
@@ -180,6 +190,7 @@ export function useClassMutations({
         return false;
       } finally {
         setIsSubmitting(false);
+        setRestoringId(null);
       }
     },
     [classesList, mutate, setSelectedIds]
@@ -213,6 +224,7 @@ export function useClassMutations({
 
     try {
       setIsSubmitting(true);
+      setBatchActionLoading("restore");
       const count = selectedIds.length;
       await teacherClassService.batchAction(selectedIds, "restore");
       const nextList = classesList.map((c) =>
@@ -228,15 +240,95 @@ export function useClassMutations({
       return false;
     } finally {
       setIsSubmitting(false);
+      setBatchActionLoading(null);
     }
   }, [classesList, mutate, selectedIds, setSelectedIds]);
 
-  // 8. Xóa vĩnh viễn hàng loạt (Admin)
+  // 8. Kích hoạt / Hiện lại hàng loạt
+  const handleBatchActivate = useCallback(async (): Promise<boolean> => {
+    if (selectedIds.length === 0) return false;
+
+    try {
+      setIsSubmitting(true);
+      setBatchActionLoading("activate");
+      const count = selectedIds.length;
+      await teacherClassService.batchAction(selectedIds, "activate");
+      const nextList = classesList.map((c) =>
+        selectedIds.includes(c.id) ? { ...c, is_active: true } : c
+      );
+      await mutate(nextList, false);
+      setSelectedIds([]);
+      toast.success(`Đã hiện lại thành công ${count} lớp học!`);
+      return true;
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      toast.error(error.message || "Không thể kích hoạt các lớp học.");
+      return false;
+    } finally {
+      setIsSubmitting(false);
+      setBatchActionLoading(null);
+    }
+  }, [classesList, mutate, selectedIds, setSelectedIds]);
+
+  // 9. Tạm ẩn hàng loạt
+  const handleBatchDeactivate = useCallback(async (): Promise<boolean> => {
+    if (selectedIds.length === 0) return false;
+
+    try {
+      setIsSubmitting(true);
+      setBatchActionLoading("deactivate");
+      const count = selectedIds.length;
+      await teacherClassService.batchAction(selectedIds, "deactivate");
+      const nextList = classesList.map((c) =>
+        selectedIds.includes(c.id) ? { ...c, is_active: false } : c
+      );
+      await mutate(nextList, false);
+      setSelectedIds([]);
+      toast.success(`Đã chuyển ${count} lớp học sang trạng thái tạm ẩn!`);
+      return true;
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      toast.error(error.message || "Không thể tạm ẩn các lớp học.");
+      return false;
+    } finally {
+      setIsSubmitting(false);
+      setBatchActionLoading(null);
+    }
+  }, [classesList, mutate, selectedIds, setSelectedIds]);
+
+  // 10. Chuyển vào thùng rác hàng loạt (Xóa mềm)
+  const handleBatchSoftDelete = useCallback(async (): Promise<boolean> => {
+    if (selectedIds.length === 0) return false;
+
+    try {
+      setIsSubmitting(true);
+      setBatchActionLoading("delete_soft");
+      const count = selectedIds.length;
+      await teacherClassService.batchAction(selectedIds, "delete_soft");
+      const nextList = classesList.map((c) =>
+        selectedIds.includes(c.id) ? { ...c, is_deleted: true, is_active: false } : c
+      );
+      await mutate(nextList, false);
+      setSelectedIds([]);
+      toast.success(`Đã chuyển thành công ${count} lớp học vào thùng rác!`);
+      return true;
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      toast.error(error.message || "Không thể chuyển các lớp học vào thùng rác.");
+      return false;
+    } finally {
+      setIsSubmitting(false);
+      setBatchActionLoading(null);
+    }
+  }, [classesList, mutate, selectedIds, setSelectedIds]);
+
+  // 11. Xóa vĩnh viễn hàng loạt (Admin)
   const handleConfirmBatchPermanentDelete = useCallback(async (): Promise<boolean> => {
     if (selectedIds.length === 0) return false;
 
     try {
       setIsSubmitting(true);
+      setBatchActionLoading("delete_permanent");
       const count = selectedIds.length;
       await teacherClassService.batchAction(selectedIds, "delete_permanent");
       const nextList = classesList.filter((c) => !selectedIds.includes(c.id));
@@ -251,11 +343,14 @@ export function useClassMutations({
       return false;
     } finally {
       setIsSubmitting(false);
+      setBatchActionLoading(null);
     }
   }, [classesList, modals, mutate, selectedIds, setSelectedIds]);
 
   return {
     isSubmitting,
+    batchActionLoading,
+    restoringId,
     handleClassFormSubmit,
     handleAssignTeacherSubmit,
     handleToggleClassStatus,
@@ -264,6 +359,9 @@ export function useClassMutations({
     handleRestoreClass,
     handleConfirmPermanentDelete,
     handleBatchRestore,
+    handleBatchActivate,
+    handleBatchDeactivate,
+    handleBatchSoftDelete,
     handleConfirmBatchPermanentDelete,
   };
 }

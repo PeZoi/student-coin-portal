@@ -58,6 +58,7 @@ export const AppRoutes = {
       CLASS_DETAIL: (id: string) => `/api/teacher/classes/${id}`,
       CLASS_RESTORE: (id: string) => `/api/teacher/classes/${id}/restore`,
       CLASS_TEACHERS: (id: string) => `/api/teacher/classes/${id}/teachers`,
+      CLASS_STUDENTS: (id: string) => `/api/teacher/classes/${id}/students`,
       BATCH: "/api/teacher/classes/batch",
     },
     SYSTEM: {

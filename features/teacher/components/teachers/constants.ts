@@ -25,8 +25,8 @@ export const STAFF_ROLE_CONFIG: Record<
     dotColor: "#0A62D6",
   },
   super_teacher: {
-    label: "Tổ trưởng (Super-Teacher)",
-    shortLabel: "Tổ trưởng",
+    label: "Giáo viên",
+    shortLabel: "Giáo viên",
     description: "Quản lý danh sách lớp học, học sinh và phân công giáo viên toàn trung tâm.",
     badgeBg: "#F3E8FF",
     badgeText: "#7E22CE",

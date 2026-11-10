@@ -10,6 +10,7 @@ import { ClassFormModal } from "./classes/ClassFormModal";
 import { AssignTeachersModal } from "./classes/AssignTeachersModal";
 import { DeleteClassModal } from "./classes/DeleteClassModal";
 import { PermanentDeleteModal } from "./classes/PermanentDeleteModal";
+import { ClassStudentsModal } from "./classes/ClassStudentsModal";
 import { ClassesBatchBar } from "./classes/ClassesBatchBar";
 import { TeacherClassItem } from "./classes/types";
 import {
@@ -127,7 +128,10 @@ function TeacherClassesContent() {
       {/* 7. Modal Xác nhận xóa vĩnh viễn (Hard delete - Admin) */}
       <PermanentDeleteModal />
 
-      {/* 8. Thanh tác vụ hàng loạt nổi khi chọn checkbox */}
+      {/* 8. Modal Danh sách học sinh trong lớp */}
+      <ClassStudentsModal />
+
+      {/* 9. Thanh tác vụ hàng loạt nổi khi chọn checkbox */}
       <ClassesBatchBar />
     </div>
   );

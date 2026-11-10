@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import { useEffect } from "react";
-import { X, Trash2, Loader2, AlertTriangle } from "lucide-react";
+import { X, Trash2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type ModalMaxWidth = "sm" | "md" | "lg" | "xl" | "2xl";
+export type ModalMaxWidth = "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl";
 
 const MAX_WIDTH_CLASSES: Record<ModalMaxWidth, string> = {
   sm: "max-w-sm",
@@ -13,6 +13,8 @@ const MAX_WIDTH_CLASSES: Record<ModalMaxWidth, string> = {
   lg: "max-w-lg",
   xl: "max-w-xl",
   "2xl": "max-w-2xl",
+  "3xl": "max-w-3xl",
+  "4xl": "max-w-4xl",
 };
 
 export interface ModalProps {
@@ -138,7 +140,7 @@ export function ModalHeader({
           type="button"
           onClick={onClose}
           disabled={disabled}
-          aria-label="Đóng hộp thoại"
+          title="Đóng hộp thoại"
           className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer shrink-0 disabled:opacity-50"
         >
           <X className="w-4 h-4" />
@@ -166,23 +168,159 @@ export function ModalBody({ className, children, ...props }: ModalBodyProps) {
   );
 }
 
+export interface ModalLoadingProps {
+  text?: string;
+  className?: string;
+}
+
+/**
+ * Trạng thái quay xoay loading chuẩn cho các Modal khi tải dữ liệu
+ * - Hiệu ứng vòng xoay xanh dương thanh lịch kèm thông báo text
+ */
+export function ModalLoading({
+  text = "Đang tải dữ liệu...",
+  className,
+}: ModalLoadingProps) {
+  return (
+    <div
+      className={cn(
+        "py-12 sm:py-16 flex flex-col items-center justify-center text-center",
+        className
+      )}
+    >
+      <span className="w-8 h-8 border-[3px] border-[#0A62D6]/20 border-t-[#0A62D6] rounded-full animate-spin mb-3 shrink-0" />
+      <p className="text-xs sm:text-[13px] text-slate-500 font-medium">
+        {text}
+      </p>
+    </div>
+  );
+}
+
 export interface ModalFooterProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  /** Nội dung / text hiển thị góc bên trái của footer (số lượng, ghi chú...) */
+  leftNode?: React.ReactNode;
+  /** Hiển thị nút Hủy / Đóng (mặc định: true) */
+  showCancel?: boolean;
+  /** Tiêu đề nút Hủy / Đóng (mặc định: "Đóng" khi chỉ có 1 nút, "Hủy" khi có nút xác nhận) */
+  cancelLabel?: string;
+  /** Hàm callback khi nhấn nút Hủy / Đóng */
+  onCancel?: () => void;
+  /** Vô hiệu hóa nút Cancel */
+  cancelDisabled?: boolean;
+
+  /** Hiển thị nút Xác nhận / Submit (mặc định: true nếu có onSubmit, hoặc chỉ định rõ) */
+  showSubmit?: boolean;
+  /** Tiêu đề nút Xác nhận / Submit (mặc định: "Xác nhận") */
+  submitLabel?: string;
+  /** Tiêu đề nút khi đang submit (mặc định: "Đang lưu...") */
+  submittingLabel?: string;
+  /** Hàm callback khi nhấn nút Xác nhận */
+  onSubmit?: () => void;
+  /** Trạng thái đang gửi yêu cầu (hiển thị hiệu ứng xoay spinner) */
+  isSubmitting?: boolean;
+  /** Vô hiệu hóa nút Submit */
+  submitDisabled?: boolean;
+  /** Phong cách nút submit: "primary" (xanh #0A62D6) hoặc "danger" (đỏ rose-600) */
+  submitVariant?: "primary" | "danger";
+  /** Loại nút submit trong HTML ("button" hoặc "submit" cho form) */
+  submitType?: "button" | "submit";
 }
 
 /**
  * Phần chân chứa các nút hành động của Modal
+ * - Đồng bộ 100% phong cách nút bấm (kích thước, bo góc, màu sắc, khoảng cách)
+ * - Mặc định gồm 2 nút: Đóng/Hủy và Xác nhận (Submit)
+ * - Cả 2 nút có thể linh hoạt ẩn/hiện và tùy biến văn bản (text)
  */
-export function ModalFooter({ className, children, ...props }: ModalFooterProps) {
+export function ModalFooter({
+  className,
+  children,
+  leftNode,
+  showCancel = true,
+  cancelLabel,
+  onCancel,
+  cancelDisabled = false,
+  showSubmit,
+  submitLabel = "Xác nhận",
+  submittingLabel = "Đang lưu...",
+  onSubmit,
+  isSubmitting = false,
+  submitDisabled = false,
+  submitVariant = "primary",
+  submitType = "button",
+  ...props
+}: ModalFooterProps) {
+  // Nếu có truyền children tùy biến, ưu tiên render children
+  if (children) {
+    return (
+      <div
+        className={cn(
+          "p-4 sm:p-5 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between gap-3 shrink-0",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  }
+
+  // Tự động suy luận hiển thị nút Submit nếu có onSubmit hoặc submitType="submit"
+  const hasSubmit = showSubmit !== undefined ? showSubmit : Boolean(onSubmit || submitType === "submit");
+  const resolvedCancelLabel = cancelLabel ?? (hasSubmit ? "Hủy" : "Đóng");
+
   return (
     <div
       className={cn(
-        "p-4 sm:p-5 border-t border-slate-100 bg-slate-50/70 flex items-center justify-end gap-3 shrink-0",
+        "p-4 sm:p-5 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between gap-3 shrink-0",
         className
       )}
       {...props}
     >
-      {children}
+      {/* Góc trái: Ghi chú / Thông tin phụ nếu có */}
+      {leftNode ? (
+        <div className="text-xs text-slate-500 font-medium">{leftNode}</div>
+      ) : (
+        <div />
+      )}
+
+      {/* Góc phải: Cụm nút bấm chuẩn hóa */}
+      <div className="flex items-center gap-2.5 ml-auto">
+        {showCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={cancelDisabled || isSubmitting}
+            className="h-10 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
+          >
+            {resolvedCancelLabel}
+          </button>
+        )}
+
+        {hasSubmit && (
+          <button
+            type={submitType}
+            onClick={submitType === "button" ? onSubmit : undefined}
+            disabled={submitDisabled || isSubmitting}
+            className={cn(
+              "h-10 px-5 rounded-xl text-white text-sm font-semibold transition-all shadow-xs cursor-pointer active:scale-98 disabled:opacity-60 inline-flex items-center justify-center gap-2",
+              submitVariant === "danger"
+                ? "bg-rose-600 hover:bg-rose-700"
+                : "bg-[#0A62D6] hover:bg-[#0850B0]"
+            )}
+          >
+            {isSubmitting ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>{submittingLabel}</span>
+              </>
+            ) : (
+              <span>{submitLabel}</span>
+            )}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -243,34 +381,18 @@ export function ConfirmDeleteModal({
         )}
       </ModalBody>
 
-      <ModalFooter>
-        <button
-          type="button"
-          onClick={onClose}
-          disabled={isSubmitting}
-          className="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
-        >
-          Hủy bỏ
-        </button>
-        <button
-          type="button"
-          onClick={() => onConfirm()}
-          disabled={isSubmitting}
-          className="h-10 px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold transition-colors cursor-pointer shadow-xs disabled:opacity-50 inline-flex items-center gap-2"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Đang xóa...</span>
-            </>
-          ) : (
-            <>
-              <Trash2 className="w-4 h-4" />
-              <span>{confirmLabel}</span>
-            </>
-          )}
-        </button>
-      </ModalFooter>
+      <ModalFooter
+        showCancel
+        cancelLabel="Hủy bỏ"
+        onCancel={onClose}
+        cancelDisabled={isSubmitting}
+        showSubmit
+        submitLabel={confirmLabel}
+        submittingLabel="Đang xóa..."
+        onSubmit={() => onConfirm()}
+        isSubmitting={isSubmitting}
+        submitVariant="danger"
+      />
     </Modal>
   );
 }
