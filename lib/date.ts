@@ -17,6 +17,30 @@ export function toValidDate(dateInput: string | Date): Date | null {
 }
 
 /**
+ * Format ngày an toàn (mặc định: "dd/MM/yyyy", ví dụ: "06/11/2026")
+ * - Nếu chuỗi đã là dạng dd/MM/yyyy thì trả về ngay
+ * - Nếu là Date hoặc ISO string thì format theo pattern
+ * - Nếu null, undefined hoặc không hợp lệ thì trả về fallback (mặc định: "-")
+ */
+export function formatDate(
+  dateInput?: string | Date | null,
+  pattern = "dd/MM/yyyy",
+  fallback = "-"
+): string {
+  if (!dateInput) return fallback;
+  if (typeof dateInput === "string" && /^\d{2}\/\d{2}\/\d{4}$/.test(dateInput.trim())) {
+    return dateInput.trim();
+  }
+  const date = toValidDate(dateInput);
+  if (!date) return fallback;
+  try {
+    return format(date, pattern, { locale: vi });
+  } catch {
+    return fallback;
+  }
+}
+
+/**
  * Format ngày giờ thành chuỗi ngắn gọn nhất có thể (ví dụ: "08:00 27/10" hoặc "27/10")
  * Đảm bảo tính nhất quán (deterministic) giữa Server SSR và Client Hydration,
  * tránh các lỗi Next.js unstable value (Date.now()) trong quá trình prerendering.

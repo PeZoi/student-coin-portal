@@ -14,6 +14,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { useTeacherClassesContext } from "../../contexts/TeacherClassesContext";
+import { formatDate } from "@/lib/date";
 
 interface ClassesTableProps {
   items?: MockClassItem[];
@@ -263,7 +264,7 @@ export function ClassesTable(props?: ClassesTableProps) {
 
             {/* Ngày tạo */}
             <TableCell className="text-[13px] font-sans font-medium text-slate-600 tabular-nums whitespace-nowrap">
-              {item.created_at}
+              {formatDate(item.created_at)}
             </TableCell>
 
             {/* Thao tác */}

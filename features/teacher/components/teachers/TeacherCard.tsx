@@ -3,6 +3,7 @@ import { TeacherStaffItem } from "./types";
 import { TeacherStatusBadge, AssignedClassesList } from "./TeacherBadges";
 import { TeacherRowActions } from "./TeacherRowActions";
 import { getTeacherColor, getTeacherInitial } from "../classes/utils";
+import { formatDate } from "@/lib/date";
 
 interface TeacherCardProps {
   item: TeacherStaffItem;
@@ -115,7 +116,7 @@ export function TeacherCard({
           </span>
         </div>
         <div>
-          <span>Ngày tạo: {item.created_at}</span>
+          <span>Ngày tạo: {formatDate(item.created_at)}</span>
         </div>
       </div>
 

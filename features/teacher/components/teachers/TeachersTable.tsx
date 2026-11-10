@@ -11,6 +11,7 @@ import { TeacherStaffItem, TeacherSortField, SortDirection } from "./types";
 import { TeacherStatusBadge, AssignedClassesList } from "./TeacherBadges";
 import { TeacherRowActions } from "./TeacherRowActions";
 import { getTeacherColor, getTeacherInitial } from "../classes/utils";
+import { formatDate } from "@/lib/date";
 import {
   Table,
   TableHeader,
@@ -281,7 +282,7 @@ export function TeachersTable(props?: TeachersTableProps) {
 
               {/* 6. Ngày tạo (`created_at`) */}
               <TableCell className="text-[13px] font-sans font-medium text-slate-600 tabular-nums whitespace-nowrap">
-                {item.created_at}
+                {formatDate(item.created_at)}
               </TableCell>
 
               {/* 7. Thao tác */}

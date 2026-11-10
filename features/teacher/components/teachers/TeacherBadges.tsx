@@ -102,7 +102,7 @@ export function AssignedClassesList({ classes, role }: AssignedClassesListProps)
         </span>
       );
     }
-    return <span className="text-slate-400 text-[13px] italic">Chưa phân công</span>;
+    return <span className="text-slate-400 text-[13px] italic whitespace-nowrap">Chưa phân công</span>;
   }
 
   const maxVisible = 2;
@@ -114,7 +114,7 @@ export function AssignedClassesList({ classes, role }: AssignedClassesListProps)
       {visibleClasses.map((className) => (
         <span
           key={className}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F8FAFC] border border-slate-200/90 text-[13px] font-medium text-slate-700 whitespace-nowrap"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#EAF2FF] text-[#0A62D6] border border-[#CFE1FB] whitespace-nowrap"
         >
           <School className="w-3.5 h-3.5 text-[#0A62D6] shrink-0" />
           <span>{className}</span>

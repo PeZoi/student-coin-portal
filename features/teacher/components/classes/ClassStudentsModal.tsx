@@ -13,8 +13,7 @@ import {
   List,
 } from "lucide-react";
 import Image from "next/image";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
+import { formatDate } from "@/lib/date";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Modal, ModalHeader, ModalBody, ModalFooter, ModalLoading } from "@/components/ui/modal";
 import {
@@ -25,12 +24,13 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn, getInitials } from "@/lib/utils";
 import { MockClassItem } from "./types";
 import { teacherClassService } from "../../services/teacherClassService";
 import { CACHE_KEYS } from "@/constants";
 import { useTeacherClassesContext } from "../../contexts/TeacherClassesContext";
 import { normalizeText } from "./utils";
+import { StudentCoinsBadge } from "../students/StudentBadges";
 
 interface ClassStudentsModalProps {
   isOpen?: boolean;
@@ -299,24 +299,7 @@ function ClassStudentsModalContent({ item, onClose }: ClassStudentsModalContentP
                   </TableHeader>
                   <TableBody>
                     {filteredStudents.map((student, index) => {
-                      const initials = student.full_name
-                        .split(" ")
-                        .filter(Boolean)
-                        .slice(-2)
-                        .map((part) => part[0])
-                        .join("")
-                        .toUpperCase();
-
-                      let formattedDate = "";
-                      try {
-                        if (student.created_at) {
-                          formattedDate = format(new Date(student.created_at), "dd/MM/yyyy", {
-                            locale: vi,
-                          });
-                        }
-                      } catch {
-                        formattedDate = "";
-                      }
+                      const formattedDate = formatDate(student.created_at);
 
                       return (
                         <TableRow
@@ -334,7 +317,7 @@ function ClassStudentsModalContent({ item, onClose }: ClassStudentsModalContentP
                               {student.avatar_url ? (
                                 <Image
                                   src={student.avatar_url}
-                                  alt={student.full_name}
+                                  alt={student.full_name || "Học sinh"}
                                   width={40}
                                   height={40}
                                   style={{ height: "auto" }}
@@ -342,12 +325,12 @@ function ClassStudentsModalContent({ item, onClose }: ClassStudentsModalContentP
                                 />
                               ) : (
                                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                                  {initials || "HS"}
+                                  {getInitials(student.full_name)}
                                 </div>
                               )}
                               <div className="min-w-0">
                                 <p className="font-bold text-sm text-[#0F172A] truncate">
-                                  {student.full_name}
+                                  {student.full_name || "..."}
                                 </p>
                                 <div className="flex items-center gap-2 mt-0.5">
                                   {student.phone_zalo ? (
@@ -362,7 +345,7 @@ function ClassStudentsModalContent({ item, onClose }: ClassStudentsModalContentP
                                     </Tooltip>
                                   ) : (
                                     <span className="text-xs text-slate-400 font-medium">
-                                      @{student.username || "hocsinh"}
+                                      {student.username ? `@${student.username}` : "..."}
                                     </span>
                                   )}
                                 </div>
@@ -370,50 +353,12 @@ function ClassStudentsModalContent({ item, onClose }: ClassStudentsModalContentP
                             </div>
                           </TableCell>
 
-                          {/* 3. Số xu: Hộp 2 tầng mini gọn gàng (Zero-Scroll) */}
+                          {/* 3. Số xu: Hộp 2 tầng mini gọn gàng (Tái sử dụng StudentCoinsBadge) */}
                           <TableCell align="center" className="py-2.5 whitespace-nowrap">
-                            <div className="inline-flex flex-col items-start justify-center py-1 px-2.5 rounded-xl bg-slate-50 border border-slate-200/80 shadow-2xs min-w-[110px]">
-                              {/* Dòng 1: Ví hiện có */}
-                              <Tooltip content="Số xu hiện có trong ví học sinh" side="top">
-                                <div className="inline-flex items-center gap-1.5 text-amber-900 cursor-default">
-                                  <Image
-                                    src="/coin.png"
-                                    alt="Ví xu"
-                                    width={15}
-                                    height={15}
-                                    unoptimized
-                                    style={{ height: "auto" }}
-                                    className="w-3.5 h-3.5 object-contain shrink-0 drop-shadow-xs"
-                                  />
-                                  <span className="font-heading font-black text-xs tabular-nums text-amber-950">
-                                    {(student.current_coins ?? 0).toLocaleString("vi-VN")}
-                                  </span>
-                                  <span className="text-[10px] font-semibold text-amber-700">ví</span>
-                                </div>
-                              </Tooltip>
-
-                              {/* Vạch ngăn mảnh */}
-                              <div className="w-full h-[1px] bg-slate-200/70 my-0.5" />
-
-                              {/* Dòng 2: Tổng tích lũy */}
-                              <Tooltip content="Tổng số xu đã kiếm được từ trước đến nay" side="top">
-                                <div className="inline-flex items-center gap-1.5 text-slate-600 cursor-default">
-                                  <Image
-                                    src="/coin.png"
-                                    alt="Tổng xu"
-                                    width={14}
-                                    height={14}
-                                    unoptimized
-                                    style={{ height: "auto" }}
-                                    className="w-3.5 h-3.5 object-contain shrink-0 opacity-80"
-                                  />
-                                  <span className="font-heading font-bold text-xs tabular-nums text-slate-700">
-                                    {(student.total_earned_coins ?? student.current_coins ?? 0).toLocaleString("vi-VN")}
-                                  </span>
-                                  <span className="text-[10px] font-medium text-slate-400">tổng</span>
-                                </div>
-                              </Tooltip>
-                            </div>
+                            <StudentCoinsBadge
+                              currentCoins={student.current_coins}
+                              totalEarnedCoins={student.total_earned_coins}
+                            />
                           </TableCell>
 
                           {/* 4. Ngày tham gia */}
@@ -437,24 +382,7 @@ function ClassStudentsModalContent({ item, onClose }: ClassStudentsModalContentP
               /* ================= MODE 2: DẠNG LƯỚI (GRID MODE) ================= */
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[52vh] overflow-y-auto pr-1">
                 {filteredStudents.map((student, index) => {
-                  const initials = student.full_name
-                    .split(" ")
-                    .filter(Boolean)
-                    .slice(-2)
-                    .map((part) => part[0])
-                    .join("")
-                    .toUpperCase();
-
-                  let formattedDate = "";
-                  try {
-                    if (student.created_at) {
-                      formattedDate = format(new Date(student.created_at), "dd/MM/yyyy", {
-                        locale: vi,
-                      });
-                    }
-                  } catch {
-                    formattedDate = "";
-                  }
+                  const formattedDate = formatDate(student.created_at);
 
                   return (
                     <div
@@ -467,12 +395,10 @@ function ClassStudentsModalContent({ item, onClose }: ClassStudentsModalContentP
                           {index + 1}
                         </span>
 
-                        {formattedDate && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400">
-                            <Calendar className="w-3 h-3 text-slate-400" />
-                            <span>{formattedDate}</span>
-                          </span>
-                        )}
+                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400">
+                          <Calendar className="w-3 h-3 text-slate-400" />
+                          <span>{formattedDate}</span>
+                        </span>
                       </div>
 
                       {/* Hàng 2: Avatar to + Tên học sinh + SĐT */}
@@ -480,7 +406,7 @@ function ClassStudentsModalContent({ item, onClose }: ClassStudentsModalContentP
                         {student.avatar_url ? (
                           <Image
                             src={student.avatar_url}
-                            alt={student.full_name}
+                            alt={student.full_name || "Học sinh"}
                             width={48}
                             height={48}
                             style={{ height: "auto" }}
@@ -488,13 +414,13 @@ function ClassStudentsModalContent({ item, onClose }: ClassStudentsModalContentP
                           />
                         ) : (
                           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 text-white font-extrabold text-sm flex items-center justify-center shrink-0 shadow-2xs ring-2 ring-amber-100">
-                            {initials || "HS"}
+                            {getInitials(student.full_name)}
                           </div>
                         )}
 
                         <div className="min-w-0 flex-1">
                           <p className="font-bold text-[15px] text-[#0F172A] truncate leading-snug">
-                            {student.full_name}
+                            {student.full_name || "..."}
                           </p>
                           <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
                             {student.phone_zalo ? (
@@ -509,7 +435,7 @@ function ClassStudentsModalContent({ item, onClose }: ClassStudentsModalContentP
                               </Tooltip>
                             ) : (
                               <span className="text-slate-400 font-medium truncate">
-                                @{student.username || "hocsinh"}
+                                {student.username ? `@${student.username}` : "..."}
                               </span>
                             )}
                           </div>

@@ -49,6 +49,19 @@ export function getDisplayName(fullName?: string | null): string {
 }
 
 /**
+ * Trích xuất 1-2 chữ cái viết tắt đại diện làm avatar (ví dụ: "Phúc Lét" -> "PL", "Nam" -> "NA", rỗng -> "?")
+ */
+export function getInitials(fullName?: string | null, fallback = "?"): string {
+  if (!fullName || typeof fullName !== "string") return fallback;
+  const trimmed = fullName.trim();
+  if (!trimmed) return fallback;
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  if (words.length === 0) return fallback;
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+}
+
+/**
  * Escape các ký tự đại diện đặc biệt (wildcards % và _) trong câu truy vấn LIKE / ILIKE của SQL
  * - Tránh trường hợp tên như "10_A" bị khớp nhầm với "10XA" khi so sánh
  */
