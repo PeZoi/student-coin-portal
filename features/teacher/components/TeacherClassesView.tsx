@@ -9,6 +9,8 @@ import { ClassesMobileList } from "./classes/ClassesMobileList";
 import { ClassFormModal } from "./classes/ClassFormModal";
 import { AssignTeachersModal } from "./classes/AssignTeachersModal";
 import { DeleteClassModal } from "./classes/DeleteClassModal";
+import { PermanentDeleteModal } from "./classes/PermanentDeleteModal";
+import { ClassesBatchBar } from "./classes/ClassesBatchBar";
 import { TeacherClassItem } from "./classes/types";
 import {
   TeacherClassesProvider,
@@ -17,6 +19,7 @@ import {
 
 interface TeacherClassesViewProps {
   initialClasses?: TeacherClassItem[];
+  userRole?: string;
 }
 
 /**
@@ -24,9 +27,9 @@ interface TeacherClassesViewProps {
  * - Áp dụng Feature Context Pattern (Quy tắc 10): Tách biệt Provider và Content
  * - Loại bỏ hoàn toàn 35 biến destructure và Prop Drilling
  */
-export function TeacherClassesView({ initialClasses }: TeacherClassesViewProps) {
+export function TeacherClassesView({ initialClasses, userRole }: TeacherClassesViewProps) {
   return (
-    <TeacherClassesProvider initialClasses={initialClasses}>
+    <TeacherClassesProvider initialClasses={initialClasses} userRole={userRole}>
       <TeacherClassesContent />
     </TeacherClassesProvider>
   );
@@ -118,8 +121,14 @@ function TeacherClassesContent() {
       {/* 5. Modal Phân công giáo viên phụ trách */}
       <AssignTeachersModal />
 
-      {/* 6. Modal Xác nhận xóa lớp học */}
+      {/* 6. Modal Xác nhận xóa lớp học (Xóa mềm - Chuyển thùng rác) */}
       <DeleteClassModal />
+
+      {/* 7. Modal Xác nhận xóa vĩnh viễn (Hard delete - Admin) */}
+      <PermanentDeleteModal />
+
+      {/* 8. Thanh tác vụ hàng loạt nổi khi chọn checkbox */}
+      <ClassesBatchBar />
     </div>
   );
 }

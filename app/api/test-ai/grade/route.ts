@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { HttpStatus } from "@/constants/http";
 
 /**
  * Kiểu dữ liệu lỗi được AI phát hiện từ bài làm học sinh
@@ -449,7 +450,7 @@ export async function POST(req: NextRequest) {
     if (!rawTargetUrl || rawTargetUrl.trim() === "") {
       return NextResponse.json(
         { error: "Vui lòng cấu hình URL API AI hợp lệ" },
-        { status: 400 }
+        { status: HttpStatus.BAD_REQUEST }
       );
     }
 
@@ -851,6 +852,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err.message }, { status: HttpStatus.INTERNAL_SERVER_ERROR });
   }
 }

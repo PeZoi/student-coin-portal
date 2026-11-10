@@ -1,5 +1,6 @@
 import { HelpCircle, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { UserRole as SystemRole } from "@/constants";
 import { AuthMode, UserRole } from "../types";
 import { AUTH_THEME } from "../constants/authTheme";
 
@@ -12,7 +13,7 @@ interface BottomPlaqueProps {
 export function BottomPlaque({ role, mode }: BottomPlaqueProps) {
   // Xác định icon và nội dung hiển thị dựa trên role và mode
   const renderContent = () => {
-    if (role === "student" && mode === "login") {
+    if (role === SystemRole.STUDENT && mode === "login") {
       return (
         <>
           <HelpCircle className="w-4 h-4 text-[#FFD76A] flex-shrink-0" />
@@ -23,7 +24,7 @@ export function BottomPlaque({ role, mode }: BottomPlaqueProps) {
       );
     }
 
-    if (role === "student" && mode === "register") {
+    if (role === SystemRole.STUDENT && mode === "register") {
       return (
         <>
           <Sparkles className="w-4 h-4 text-[#FFD76A] flex-shrink-0" />

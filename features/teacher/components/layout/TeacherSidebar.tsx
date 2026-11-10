@@ -20,6 +20,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { useUserStore } from "@/stores/useUserStore";
+import { UserRole } from "@/constants/auth";
 
 interface TeacherSidebarProps {
   isOpen?: boolean;
@@ -37,8 +38,8 @@ interface NavItem {
 export function TeacherSidebar({ isOpen = false, onClose }: TeacherSidebarProps) {
   const pathname = usePathname();
   const { student } = useUserStore();
-  const isAdmin = student?.role === "admin";
-  const isSuperTeacher = student?.role === "super_teacher";
+  const isAdmin = student?.role === UserRole.ADMIN;
+  const isSuperTeacher = student?.role === UserRole.SUPER_TEACHER;
 
   const navItems: NavItem[] = [
     {

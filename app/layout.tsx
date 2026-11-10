@@ -4,18 +4,16 @@ import { Toaster } from "sonner";
 import { UserInitializer } from "@/features/auth/components/UserInitializer";
 import "./globals.css";
 
-// Font tiêu đề hoạt hình 3D, hỗ trợ 100% tiếng Việt
+// Font tiêu đề hoạt hình 3D (Variable Font, hỗ trợ 100% tiếng Việt)
 const baloo2 = Baloo_2({
-  subsets: ["vietnamese", "latin"],
-  weight: ["600", "700", "800"],
+  subsets: ["vietnamese"],
   variable: "--font-heading",
   display: "swap",
 });
 
-// Font nội dung thân thiện, bo tròn, hỗ trợ 100% tiếng Việt
+// Font nội dung thân thiện, bo tròn (Variable Font, hỗ trợ 100% tiếng Việt)
 const nunito = Nunito({
-  subsets: ["vietnamese", "latin"],
-  weight: ["400", "600", "700", "800", "900"],
+  subsets: ["vietnamese"],
   variable: "--font-sans",
   display: "swap",
 });

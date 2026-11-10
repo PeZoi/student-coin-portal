@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 async function ClassesDataContainer() {
   const session = await requireTeacher();
   const initialClasses = await getTeacherClassesServer(session);
-  return <TeacherClassesView initialClasses={initialClasses} />;
+  return <TeacherClassesView initialClasses={initialClasses} userRole={session.role} />;
 }
 
 export default function ClassesPage() {

@@ -13,6 +13,11 @@ export function ClassesMobileList() {
     handleToggleClassStatus,
     handleViewClassDetails,
     handleOpenDeleteModal,
+    handleRestoreClass,
+    handleOpenPermanentModal,
+    isAdmin,
+    selectedIds,
+    handleToggleSelect,
   } = useTeacherClassesContext();
 
   return (
@@ -26,6 +31,10 @@ export function ClassesMobileList() {
           onToggleStatus={handleToggleClassStatus}
           onViewClassDetails={handleViewClassDetails}
           onDelete={handleOpenDeleteModal}
+          onRestore={handleRestoreClass}
+          onPermanentDelete={handleOpenPermanentModal}
+          isSelected={selectedIds.includes(item.id)}
+          onToggleSelect={isAdmin ? handleToggleSelect : undefined}
         />
       ))}
     </div>

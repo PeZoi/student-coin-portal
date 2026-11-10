@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { AppRoutes } from "@/constants/routes";
 import { useUserStore } from "@/stores/useUserStore";
+import { UserRole } from "@/constants/auth";
 import {
   FileCheck2,
   Users,
@@ -22,8 +23,8 @@ import {
 
 export function TeacherDashboardView() {
   const { student } = useUserStore();
-  const isAdmin = student?.role === "admin";
-  const isSuperTeacher = student?.role === "super_teacher";
+  const isAdmin = student?.role === UserRole.ADMIN;
+  const isSuperTeacher = student?.role === UserRole.SUPER_TEACHER;
 
   return (
     <div className="space-y-6">

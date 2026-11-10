@@ -1,5 +1,6 @@
 import { http } from "@/lib/http/httpClient";
 import { ApiResponse } from "@/types/api";
+import { AppRoutes } from "@/constants/routes";
 import { ClassItem } from "../types";
 
 /**
@@ -14,7 +15,7 @@ export const classService = {
    * Lấy danh sách các lớp học đang hoạt động từ hệ thống
    */
   async getActiveClasses(): Promise<ClassItem[]> {
-    const response = await http.get<ApiResponse<ClassItem[]>>("/api/classes");
+    const response = await http.get<ApiResponse<ClassItem[]>>(AppRoutes.API.CLASSES);
 
     if (!response.success || !response.data) {
       throw new Error(response.error || "Không thể tải danh sách lớp học.");

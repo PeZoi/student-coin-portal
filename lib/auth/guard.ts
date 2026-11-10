@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import { getAuthSession, getAuthSessionFromRequest, AuthTokenPayload } from "./jwt";
 import { apiError } from "@/lib/api/response";
-import { HttpStatus, UserRole } from "@/constants";
+import { HttpStatus, UserRole, AppRoutes } from "@/constants";
 
 /**
  * ==============================================================================
@@ -23,11 +23,11 @@ export async function requireAuth(allowedRoles?: string[]): Promise<AuthTokenPay
   const session = await getAuthSession();
 
   if (!session) {
-    redirect("/login");
+    redirect(AppRoutes.LOGIN);
   }
 
   if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(session.role)) {
-    redirect("/login");
+    redirect(AppRoutes.LOGIN);
   }
 
   return session;

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { UserPlus, MoreHorizontal, Pencil, EyeOff, Eye, Trash2 } from "lucide-react";
+import { UserPlus, MoreHorizontal, Pencil, EyeOff, Eye, Trash2, RotateCcw } from "lucide-react";
 import { MockClassItem } from "./types";
 
 interface RowActionsProps {
@@ -12,6 +12,8 @@ interface RowActionsProps {
   onEdit?: (item: MockClassItem) => void;
   onToggleStatus?: (item: MockClassItem) => void;
   onDelete?: (item: MockClassItem) => void;
+  onRestore?: (item: MockClassItem) => void;
+  onPermanentDelete?: (item: MockClassItem) => void;
 }
 
 interface MenuPosition {
@@ -31,6 +33,8 @@ export function RowActions({
   onEdit,
   onToggleStatus,
   onDelete,
+  onRestore,
+  onPermanentDelete,
 }: RowActionsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [menuPos, setMenuPos] = useState<MenuPosition>({
@@ -140,6 +144,37 @@ export function RowActions({
       onDelete(item);
     }
   };
+
+  // Nếu lớp đã ở trong Thùng rác: chỉ hiển thị nút Khôi phục và Xóa vĩnh viễn
+  if (item.is_deleted) {
+    return (
+      <div className={`inline-flex items-center gap-1.5 ${fullWidth ? "w-full" : "justify-end"}`}>
+        <button
+          type="button"
+          onClick={() => onRestore && onRestore(item)}
+          title="Khôi phục lớp học"
+          className={`inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[13px] font-semibold transition-colors cursor-pointer ${
+            fullWidth ? "flex-1 h-10 px-3" : "h-9 px-3"
+          }`}
+        >
+          <RotateCcw className="w-4 h-4" />
+          <span>Khôi phục</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onPermanentDelete && onPermanentDelete(item)}
+          title="Xóa vĩnh viễn khỏi hệ thống"
+          className={`inline-flex items-center justify-center gap-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-[13px] font-semibold transition-colors cursor-pointer ${
+            fullWidth ? "flex-1 h-10 px-3" : "h-9 px-3"
+          }`}
+        >
+          <Trash2 className="w-4 h-4 text-rose-600" />
+          <span>Xóa vĩnh viễn</span>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={`inline-flex items-center gap-1.5 ${fullWidth ? "w-full" : "justify-end"}`}>

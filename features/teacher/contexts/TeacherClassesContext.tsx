@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, ReactNode } from "react";
-import { useTeacherClasses } from "../hooks/useTeacherClasses";
+import { useTeacherClasses } from "../hooks/useManageClasses";
 import { TeacherClassItem } from "../components/classes/types";
 
 export type TeacherClassesContextType = ReturnType<typeof useTeacherClasses>;
@@ -11,6 +11,7 @@ const TeacherClassesContext = createContext<TeacherClassesContextType | null>(nu
 interface TeacherClassesProviderProps {
   children: ReactNode;
   initialClasses?: TeacherClassItem[];
+  userRole?: string;
 }
 
 /**
@@ -18,8 +19,12 @@ interface TeacherClassesProviderProps {
  * - Quản lý toàn bộ State, SWR cache, Filter, Sorting và Modals của trang
  * - Loại bỏ hoàn toàn Prop Drilling qua nhiều tầng component con
  */
-export function TeacherClassesProvider({ children, initialClasses }: TeacherClassesProviderProps) {
-  const value = useTeacherClasses(initialClasses);
+export function TeacherClassesProvider({
+  children,
+  initialClasses,
+  userRole,
+}: TeacherClassesProviderProps) {
+  const value = useTeacherClasses(initialClasses, userRole);
 
   return (
     <TeacherClassesContext.Provider value={value}>

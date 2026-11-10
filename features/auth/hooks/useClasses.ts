@@ -3,6 +3,7 @@
 import useSWR from "swr";
 import { SelectOption } from "@/components/ui/Select";
 import { classService } from "../services/classService";
+import { CACHE_KEYS } from "@/constants";
 
 /**
  * Custom Hook quản lý danh sách lớp học cho form xác thực
@@ -12,7 +13,7 @@ import { classService } from "../services/classService";
  */
 export function useClasses() {
   const { data: classes = [], isLoading, error } = useSWR(
-    "active-classes",
+    CACHE_KEYS.CLASSES.ACTIVE,
     () => classService.getActiveClasses(),
     {
       revalidateOnFocus: false,

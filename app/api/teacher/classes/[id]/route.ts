@@ -3,6 +3,7 @@ import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus } from "@/constants";
+import { UserRole } from "@/constants/auth";
 import { updateClassSchema } from "@/features/teacher/schemas/classSchemas";
 
 interface RouteParams {
@@ -97,7 +98,10 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 
 /**
  * DELETE /api/teacher/classes/[id]
- * Xóa mềm (soft delete) lớp học
+ * - Nếu lớp CHƯA CÓ HỌC SINH (student_count === 0): Xóa vĩnh viễn luôn khỏi cần xuống tầng 2.
+ * - Nếu lớp ĐÃ CÓ HỌC SINH:
+ *   + Mặc định: Xóa mềm (chuyển vào thùng rác, bảo vệ an toàn học sinh và lịch sử học tập).
+ *   + Kèm ?permanent=true (chỉ dành cho Admin / Super-Teacher): Xóa vĩnh viễn (giải phóng học sinh, xóa quan hệ).
  */
 export async function DELETE(req: Request, { params }: RouteParams) {
   try {
@@ -105,6 +109,9 @@ export async function DELETE(req: Request, { params }: RouteParams) {
     if (!id) {
       return apiError("Mã lớp học không hợp lệ.", HttpStatus.BAD_REQUEST);
     }
+
+    const { searchParams } = new URL(req.url);
+    const isPermanent = searchParams.get("permanent") === "true";
 
     const auth = await authorizeTeacherRequest(
       req,
@@ -115,21 +122,72 @@ export async function DELETE(req: Request, { params }: RouteParams) {
     }
     const { session } = auth;
 
+    // 1. Kiểm tra lớp học có học sinh hay không (Existence Check: LIMIT 1, dừng ngay khi tìm thấy 1 bản ghi - O(1))
+    const { data: existingStudent, error: checkError } = await supabase
+      .from("users")
+      .select("id")
+      .eq("class_id", id)
+      .limit(1)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error("Lỗi khi kiểm tra học sinh trong lớp học:", checkError.message);
+      return apiError("Không thể kiểm tra thông tin lớp học. Vui lòng thử lại.");
+    }
+
+    const hasStudents = !!existingStudent;
+
+    // 2. XÓA VĨNH VIỄN: Nếu lớp chưa có học sinh HOẶC người dùng yêu cầu xóa vĩnh viễn (?permanent=true)
+    if (!hasStudents || isPermanent) {
+      // Nếu lớp ĐÃ CÓ học sinh mà muốn xóa vĩnh viễn: bắt buộc phải có quyền Admin hoặc Super-Teacher
+      if (hasStudents && session.role !== UserRole.ADMIN && session.role !== UserRole.SUPER_TEACHER) {
+        return apiError("Chỉ Quản trị viên mới có quyền xóa vĩnh viễn lớp học đang có học sinh.", HttpStatus.FORBIDDEN);
+      }
+
+      // a. Giải phóng học sinh khỏi lớp (nếu có)
+      if (hasStudents) {
+        await supabase.from("users").update({ class_id: null }).eq("class_id", id);
+      }
+
+      // b. Xóa các phân công giáo viên liên quan
+      await supabase.from("teacher_classes").delete().eq("class_id", id);
+
+      // c. Xóa các liên kết nhiệm vụ theo lớp
+      await supabase.from("mission_classes").delete().eq("class_id", id);
+
+      // d. Xóa vĩnh viễn lớp học khỏi cơ sở dữ liệu
+      const { error: hardDeleteError } = await supabase.from("classes").delete().eq("id", id);
+
+      if (hardDeleteError) {
+        console.error("Lỗi khi xóa vĩnh viễn lớp học:", hardDeleteError.message);
+        return apiError("Không thể xóa vĩnh viễn lớp học. Vui lòng thử lại sau.");
+      }
+
+      return apiSuccess(
+        { id, permanent: true },
+        hasStudents
+          ? "Đã xóa vĩnh viễn lớp học thành công!"
+          : "Lớp học chưa có học sinh nên đã được xóa vĩnh viễn thành công!"
+      );
+    }
+
+    // 3. XÓA MỀM (TẦNG 1): Dành cho lớp đang có học sinh (bảo vệ an toàn dữ liệu)
     const { error: deleteError } = await supabase
       .from("classes")
       .update({
         is_deleted: true,
+        is_active: false,
         deleted_at: new Date().toISOString(),
         deleted_by: session.userId,
       })
       .eq("id", id);
 
     if (deleteError) {
-      console.error("Lỗi khi xóa lớp học:", deleteError.message);
+      console.error("Lỗi khi chuyển lớp học vào thùng rác:", deleteError.message);
       return apiError("Không thể xóa lớp học. Vui lòng thử lại sau.");
     }
 
-    return apiSuccess({ id }, "Đã xóa lớp học thành công!");
+    return apiSuccess({ id, permanent: false }, "Đã xóa lớp học thành công!");
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));
     console.error("Lỗi máy chủ tại DELETE /api/teacher/classes/[id]:", error.message);

@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { UserRole as SystemRole } from "@/constants";
 import { AUTH_THEME } from "../constants/authTheme";
 import { useAuthForm } from "../hooks/useAuthForm";
 import { AuthMode, UserRole } from "../types";
@@ -22,12 +23,12 @@ interface RoleTabConfig {
 }
 
 const ROLE_TABS: RoleTabConfig[] = [
-  { id: "student", label: "Học sinh", emoji: "🎒" },
-  { id: "teacher", label: "Giáo viên", emoji: "🍎" },
+  { id: SystemRole.STUDENT, label: "Học sinh", emoji: "🎒" },
+  { id: SystemRole.TEACHER, label: "Giáo viên", emoji: "🍎" },
 ];
 
 export function AuthCard({
-  initialRole = "student",
+  initialRole = SystemRole.STUDENT,
   initialMode = "login",
 }: AuthCardProps) {
   const {
@@ -107,7 +108,7 @@ export function AuthCard({
           )}
         >
           {/* Thanh chuyển đổi Đăng nhập / Đăng ký dành riêng cho Học sinh */}
-          {role === "student" && (
+          {role === SystemRole.STUDENT && (
             <div className={cn("w-full flex items-center mb-3", AUTH_THEME.modeTab.wrapper)}>
               <button
                 type="button"
@@ -139,7 +140,7 @@ export function AuthCard({
           )}
 
           {/* Render form tương ứng */}
-          {role === "student" ? (
+          {role === SystemRole.STUDENT ? (
             mode === "login" ? (
               <StudentLoginForm
                 form={studentLoginForm}

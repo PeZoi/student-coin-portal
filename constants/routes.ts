@@ -52,6 +52,14 @@ export const AppRoutes = {
       ME: "/api/auth/me",
     },
     CLASSES: "/api/classes",
+    TEACHER: {
+      CLASSES: "/api/teacher/classes",
+      TEACHERS: "/api/teacher/teachers",
+      CLASS_DETAIL: (id: string) => `/api/teacher/classes/${id}`,
+      CLASS_RESTORE: (id: string) => `/api/teacher/classes/${id}/restore`,
+      CLASS_TEACHERS: (id: string) => `/api/teacher/classes/${id}/teachers`,
+      BATCH: "/api/teacher/classes/batch",
+    },
     SYSTEM: {
       CONFIG: "/api/system/config",
     },

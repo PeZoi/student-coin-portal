@@ -8,6 +8,7 @@ import {
   AuthStatus,
   AuthFailureReason,
   type AuthFailureReasonType,
+  UserRole,
   type UserRoleType,
   AppRoutes,
 } from "@/constants";
@@ -103,7 +104,7 @@ export async function POST(
       `
       )
       .eq("username", normalizedUsername)
-      .in("role", ["teacher", "super_teacher", "admin"])
+      .in("role", [UserRole.TEACHER, UserRole.SUPER_TEACHER, UserRole.ADMIN])
       .maybeSingle();
 
     // Tự động thử lại 1 lần nếu mạng chập chờn
@@ -132,7 +133,7 @@ export async function POST(
         `
         )
         .eq("username", normalizedUsername)
-        .in("role", ["teacher", "super_teacher", "admin"])
+        .in("role", [UserRole.TEACHER, UserRole.SUPER_TEACHER, UserRole.ADMIN])
         .maybeSingle();
     }
 

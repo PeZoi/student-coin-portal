@@ -1,6 +1,8 @@
+import { useSyncExternalStore } from "react";
 import { ShieldCheck, Sparkles, UserCheck, School } from "lucide-react";
 import { StaffRole } from "./types";
 import { STAFF_ROLE_CONFIG } from "./constants";
+import { UserRole } from "@/constants/auth";
 
 interface RoleBadgeProps {
   role: StaffRole;
@@ -13,9 +15,9 @@ export function RoleBadge({ role }: RoleBadgeProps) {
   const config = STAFF_ROLE_CONFIG[role] ?? STAFF_ROLE_CONFIG.teacher;
 
   const Icon =
-    role === "admin"
+    role === UserRole.ADMIN
       ? ShieldCheck
-      : role === "super_teacher"
+      : role === UserRole.SUPER_TEACHER
         ? Sparkles
         : UserCheck;
 
@@ -39,12 +41,20 @@ interface TeacherStatusBadgeProps {
   lockedUntil?: string | null;
 }
 
+const emptySubscribe = () => () => {};
+
 /**
  * Huy hiệu hiển thị trạng thái tài khoản (`is_active` và `locked_until` từ bảng `public.users`)
  */
 export function TeacherStatusBadge({ isActive, lockedUntil }: TeacherStatusBadgeProps) {
+  const now = useSyncExternalStore(
+    emptySubscribe,
+    () => Date.now(),
+    () => 0
+  );
+
   const isTemporarilyLocked = Boolean(
-    lockedUntil && new Date(lockedUntil).getTime() > Date.now()
+    lockedUntil && now > 0 && new Date(lockedUntil).getTime() > now
   );
 
   if (isTemporarilyLocked) {
@@ -83,7 +93,7 @@ interface AssignedClassesListProps {
  */
 export function AssignedClassesList({ classes, role }: AssignedClassesListProps) {
   if (!classes || classes.length === 0) {
-    if (role === "admin") {
+    if (role === UserRole.ADMIN) {
       return (
         <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 whitespace-nowrap">
           <School className="w-3.5 h-3.5 text-slate-400 shrink-0" />

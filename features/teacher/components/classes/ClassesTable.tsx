@@ -23,6 +23,8 @@ interface ClassesTableProps {
   onToggleStatus?: (item: MockClassItem) => void;
   onViewClassDetails?: (item: MockClassItem) => void;
   onDelete?: (item: MockClassItem) => void;
+  onRestore?: (item: MockClassItem) => void;
+  onPermanentDelete?: (item: MockClassItem) => void;
 }
 
 export function ClassesTable(props?: ClassesTableProps) {
@@ -36,6 +38,17 @@ export function ClassesTable(props?: ClassesTableProps) {
   const onToggleStatus = props?.onToggleStatus ?? context.handleToggleClassStatus;
   const onViewClassDetails = props?.onViewClassDetails ?? context.handleViewClassDetails;
   const onDelete = props?.onDelete ?? context.handleOpenDeleteModal;
+  const onRestore = props?.onRestore ?? context.handleRestoreClass;
+  const onPermanentDelete = props?.onPermanentDelete ?? context.handleOpenPermanentModal;
+
+  const isAdmin = context.isAdmin;
+  const selectedIds = context.selectedIds;
+  const handleToggleSelect = context.handleToggleSelect;
+  const handleSelectAll = context.handleSelectAll;
+
+  const allVisibleSelected =
+    items.length > 0 && items.every((i) => selectedIds.includes(i.id));
+
   const renderSortIcon = (field: SortField) => {
     if (sortField !== field || sortDirection === "none") {
       return <ChevronsUpDown className="w-3.5 h-3.5 text-slate-400 ml-1 shrink-0" />;
@@ -50,6 +63,18 @@ export function ClassesTable(props?: ClassesTableProps) {
     <Table>
       <TableHeader>
         <TableRow className="hover:bg-transparent">
+          {/* Checkbox chọn tất cả (Chỉ Admin mới có) */}
+          {isAdmin && (
+            <TableHead className="w-10 px-3 text-center">
+              <input
+                type="checkbox"
+                checked={allVisibleSelected}
+                onChange={() => handleSelectAll(items.map((i) => i.id))}
+                className="w-4 h-4 rounded border-slate-300 text-[#0A62D6] focus:ring-[#0A62D6] cursor-pointer accent-[#0A62D6]"
+              />
+            </TableHead>
+          )}
+
           {/* Tên lớp học (Sắp xếp) */}
           <TableHead>
             <button
@@ -99,13 +124,27 @@ export function ClassesTable(props?: ClassesTableProps) {
 
       <TableBody striped>
         {items.map((item) => (
-          <TableRow key={item.id}>
+          <TableRow key={item.id} className={item.is_deleted ? "bg-rose-50/20" : undefined}>
+            {/* Checkbox chọn hàng (Chỉ Admin mới có) */}
+            {isAdmin && (
+              <TableCell className="w-10 px-3 text-center">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.includes(item.id)}
+                  onChange={() => handleToggleSelect(item.id)}
+                  className="w-4 h-4 rounded border-slate-300 text-[#0A62D6] focus:ring-[#0A62D6] cursor-pointer accent-[#0A62D6]"
+                />
+              </TableCell>
+            )}
+
             {/* Tên lớp */}
             <TableCell>
               <div className="flex items-center gap-3">
                 <div
                   className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border border-slate-200/60 font-bold ${
-                    item.is_active
+                    item.is_deleted
+                      ? "bg-rose-100 text-rose-600 border-rose-200"
+                      : item.is_active
                       ? "bg-[#F1F5F9] text-[#64748B]"
                       : "bg-[#F1F5F9] text-[#94A3B8]"
                   }`}
@@ -119,7 +158,11 @@ export function ClassesTable(props?: ClassesTableProps) {
                     if (onViewClassDetails) onViewClassDetails(item);
                   }}
                   className={`text-left font-semibold text-sm transition-colors cursor-pointer hover:underline hover:text-[#0A62D6] ${
-                    item.is_active ? "text-[#0F172A]" : "text-slate-500"
+                    item.is_deleted
+                      ? "text-slate-500 line-through"
+                      : item.is_active
+                      ? "text-[#0F172A]"
+                      : "text-slate-500"
                   }`}
                 >
                   {item.class_name}
@@ -142,7 +185,7 @@ export function ClassesTable(props?: ClassesTableProps) {
 
             {/* Trạng thái */}
             <TableCell>
-              <StatusBadge isActive={item.is_active} />
+              <StatusBadge isActive={item.is_active} isDeleted={item.is_deleted} />
             </TableCell>
 
             {/* Ngày tạo */}
@@ -158,6 +201,8 @@ export function ClassesTable(props?: ClassesTableProps) {
                 onEdit={onEdit}
                 onToggleStatus={onToggleStatus}
                 onDelete={onDelete}
+                onRestore={onRestore}
+                onPermanentDelete={onPermanentDelete}
               />
             </TableCell>
           </TableRow>

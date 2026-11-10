@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
-import { AUTH_COOKIE_NAME } from "@/constants/auth";
+import { AUTH_COOKIE_NAME, UserRole } from "@/constants/auth";
 
 export { AUTH_COOKIE_NAME };
 
@@ -60,7 +60,7 @@ export async function verifyAuthToken(token: string): Promise<AuthTokenPayload |
         userId: payload.userId,
         phone_zalo: typeof payload.phone_zalo === "string" ? payload.phone_zalo : "",
         username: typeof payload.username === "string" ? payload.username : "",
-        role: typeof payload.role === "string" ? payload.role : "student",
+        role: typeof payload.role === "string" ? payload.role : UserRole.STUDENT,
       };
     }
 

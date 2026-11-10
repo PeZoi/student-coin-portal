@@ -64,6 +64,21 @@ export function ClassesToolbar(props?: ClassesToolbarProps) {
         >
           Tạm ẩn ({inactiveCount})
         </button>
+
+        {/* Tab Thùng rác (Chỉ hiển thị cho Admin / Super-Teacher) */}
+        {context.isAdmin && (
+          <button
+            type="button"
+            onClick={() => onStatusFilterChange("deleted")}
+            className={`h-10 px-4 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
+              statusFilter === "deleted"
+                ? "bg-rose-600 text-white shadow-2xs"
+                : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+            }`}
+          >
+            <span>Đã xóa ({context.deletedClasses})</span>
+          </button>
+        )}
       </div>
 
       {/* 2. Ô tìm kiếm & Nút làm mới */}

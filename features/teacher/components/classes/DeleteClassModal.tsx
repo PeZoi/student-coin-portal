@@ -25,6 +25,8 @@ export function DeleteClassModal(props?: DeleteClassModalProps) {
 
 	if (!isOpen || !item) return null;
 
+	const hasStudents = (item.student_count ?? 0) > 0;
+
 	return (
 		<ConfirmDeleteModal
 			isOpen={isOpen}
@@ -32,8 +34,12 @@ export function DeleteClassModal(props?: DeleteClassModalProps) {
 			onConfirm={onConfirm}
 			isSubmitting={isSubmitting}
 			title='Xác nhận xóa lớp học'
-			description='Thao tác này không thể hoàn tác'
-			warningText='Lớp học này sẽ bị xóa khỏi danh sách quản lý. Thao tác này không thể hoàn tác, bạn có chắc chắn muốn tiếp tục?'
+			description='Thao tác này sẽ xóa lớp khỏi danh sách của bạn'
+			warningText={
+				hasStudents
+					? `Lớp học hiện có ${item.student_count} học sinh và sẽ bị xóa khỏi danh sách quản lý. Dữ liệu tài khoản và lịch sử của học sinh vẫn được lưu trữ an toàn trên hệ thống.`
+					: "Lớp học này chưa có học sinh và sẽ bị xóa hoàn toàn khỏi hệ thống."
+			}
 		>
 			Bạn có chắc chắn muốn xóa lớp học{" "}
 			<span className='font-semibold text-slate-900'>

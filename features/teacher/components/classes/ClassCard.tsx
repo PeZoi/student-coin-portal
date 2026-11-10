@@ -11,6 +11,10 @@ interface ClassCardProps {
   onToggleStatus?: (item: MockClassItem) => void;
   onViewClassDetails?: (item: MockClassItem) => void;
   onDelete?: (item: MockClassItem) => void;
+  onRestore?: (item: MockClassItem) => void;
+  onPermanentDelete?: (item: MockClassItem) => void;
+  isSelected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }
 
 export function ClassCard({
@@ -20,25 +24,50 @@ export function ClassCard({
   onToggleStatus,
   onViewClassDetails,
   onDelete,
+  onRestore,
+  onPermanentDelete,
+  isSelected,
+  onToggleSelect,
 }: ClassCardProps) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3 shadow-2xs">
-      {/* Hàng 1: Tên lớp (bên trái, cho phép wrap) + Huy hiệu trạng thái (bên phải) */}
+    <div
+      className={`rounded-2xl border p-4 space-y-3 shadow-2xs transition-colors ${
+        item.is_deleted
+          ? "border-rose-200 bg-rose-50/20"
+          : isSelected
+          ? "border-[#0A62D6] bg-blue-50/20"
+          : "border-slate-200 bg-white"
+      }`}
+    >
+      {/* Hàng 1: Checkbox (nếu có) + Tên lớp (bên trái) + Huy hiệu trạng thái (bên phải) */}
       <div className="flex items-start justify-between gap-3">
-        <button
-          type="button"
-          onClick={() => {
-            // TODO: mở chi tiết lớp
-            if (onViewClassDetails) onViewClassDetails(item);
-          }}
-          className={`text-left font-semibold text-sm leading-snug transition-colors cursor-pointer hover:underline hover:text-[#0A62D6] ${
-            item.is_active ? "text-[#0F172A]" : "text-slate-500"
-          }`}
-        >
-          {item.class_name}
-        </button>
+        <div className="flex items-center gap-2.5 min-w-0">
+          {onToggleSelect && (
+            <input
+              type="checkbox"
+              checked={Boolean(isSelected)}
+              onChange={() => onToggleSelect(item.id)}
+              className="w-4 h-4 rounded border-slate-300 text-[#0A62D6] focus:ring-[#0A62D6] cursor-pointer accent-[#0A62D6] shrink-0"
+            />
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              if (onViewClassDetails) onViewClassDetails(item);
+            }}
+            className={`text-left font-semibold text-sm leading-snug transition-colors cursor-pointer hover:underline hover:text-[#0A62D6] truncate ${
+              item.is_deleted
+                ? "text-slate-500 line-through"
+                : item.is_active
+                ? "text-[#0F172A]"
+                : "text-slate-500"
+            }`}
+          >
+            {item.class_name}
+          </button>
+        </div>
         <div className="shrink-0">
-          <StatusBadge isActive={item.is_active} />
+          <StatusBadge isActive={item.is_active} isDeleted={item.is_deleted} />
         </div>
       </div>
 
@@ -58,7 +87,7 @@ export function ClassCard({
         </div>
       </div>
 
-      {/* Hàng 4: Nút "Gán GV" chiếm phần lớn chiều rộng + nút "⋯" */}
+      {/* Hàng 4: Các nút hành động */}
       <div className="pt-2 border-t border-slate-100">
         <RowActions
           item={item}
@@ -67,6 +96,8 @@ export function ClassCard({
           onEdit={onEdit}
           onToggleStatus={onToggleStatus}
           onDelete={onDelete}
+          onRestore={onRestore}
+          onPermanentDelete={onPermanentDelete}
         />
       </div>
     </div>

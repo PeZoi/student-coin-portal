@@ -6,6 +6,7 @@ export interface MockClassItem {
   teachers: string[];
   teacher_ids?: string[];
   created_at: string;
+  is_deleted?: boolean;
 }
 
 export type TeacherClassItem = MockClassItem;
@@ -18,7 +19,7 @@ export interface AvailableTeacherItem {
   assigned_class_count?: number;
 }
 
-export type StatusFilter = "all" | "active" | "inactive";
+export type StatusFilter = "all" | "active" | "inactive" | "deleted";
 
 export type SortField = "class_name" | "student_count" | "created_at";
 

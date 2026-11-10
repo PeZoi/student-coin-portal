@@ -14,6 +14,7 @@ import {
   teacherLoginSchema,
 } from "../schemas/authSchemas";
 import { DEFAULT_CHIBI_AVATAR } from "../constants/chibiAvatars";
+import { AppRoutes, UserRole as SystemRole } from "@/constants";
 import {
   AuthMode,
   StudentLoginFormValues,
@@ -135,7 +136,7 @@ export function useAuthForm(initialRole: UserRole = "student", initialMode: Auth
 
       // Reset tất cả form liên quan đến đăng nhập
       resetAllForms();
-      router.push("/student");
+      router.push(AppRoutes.STUDENT.DASHBOARD);
     } catch (error: unknown) {
       // Ném nguyên vẹn lỗi để StudentPinModal bắt và hiển thị trực tiếp lên UI (không dùng toast)
       throw error;
@@ -203,7 +204,7 @@ export function useAuthForm(initialRole: UserRole = "student", initialMode: Auth
       loginStudent(result.user);
 
       toast.success("Đăng nhập thành công! 🌟", {
-        description: `Chào mừng ${result.user.full_name} (${result.user.role === "admin" ? "Quản trị viên" : "Giáo viên"})!`,
+        description: `Chào mừng ${result.user.full_name} (${result.user.role === SystemRole.ADMIN ? "Quản trị viên" : "Giáo viên"})!`,
       });
 
       resetAllForms();

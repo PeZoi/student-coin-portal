@@ -25,12 +25,17 @@ export async function getTeacherClassesServer(
       return [];
     }
 
-    // 1. Lấy danh sách lớp học chưa bị xóa
-    const { data: classesData, error: classesError } = await supabase
+    // 1. Lấy danh sách lớp học (Admin/Super-Teacher lấy cả lớp đã xóa để quản lý thùng rác)
+    let classesQuery = supabase
       .from("classes")
-      .select("id, class_name, is_active, created_at, created_by")
-      .eq("is_deleted", false)
+      .select("id, class_name, is_active, is_deleted, created_at, created_by")
       .order("created_at", { ascending: false });
+
+    if (session.role !== UserRole.ADMIN && session.role !== UserRole.SUPER_TEACHER) {
+      classesQuery = classesQuery.eq("is_deleted", false);
+    }
+
+    const { data: classesData, error: classesError } = await classesQuery;
 
     if (classesError || !classesData) {
       console.error("Lỗi khi tải danh sách lớp học trên server:", classesError?.message);
@@ -107,6 +112,7 @@ export async function getTeacherClassesServer(
         id: c.id,
         class_name: c.class_name,
         is_active: c.is_active,
+        is_deleted: Boolean(c.is_deleted),
         student_count: studentCountMap.get(c.id) || 0,
         teachers: teacherInfo.names,
         teacher_ids: teacherInfo.ids,
