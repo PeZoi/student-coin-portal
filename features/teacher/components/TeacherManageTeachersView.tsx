@@ -10,6 +10,8 @@ import { TeacherFormModal } from "./teachers/TeacherFormModal";
 import { AssignClassesModal } from "./teachers/AssignClassesModal";
 import { ResetPasswordModal } from "./teachers/ResetPasswordModal";
 import { DeleteTeacherModal } from "./teachers/DeleteTeacherModal";
+import { PermanentDeleteTeacherModal } from "./teachers/PermanentDeleteTeacherModal";
+import { TeachersBatchBar } from "./teachers/TeachersBatchBar";
 import { TeacherStaffItem } from "./teachers/types";
 import {
   ManageTeachersProvider,
@@ -18,6 +20,7 @@ import {
 
 interface TeacherManageTeachersViewProps {
   initialTeachers?: TeacherStaffItem[];
+  userRole?: string;
 }
 
 /**
@@ -27,9 +30,13 @@ interface TeacherManageTeachersViewProps {
  */
 export function TeacherManageTeachersView({
   initialTeachers,
+  userRole,
 }: TeacherManageTeachersViewProps) {
   return (
-    <ManageTeachersProvider initialTeachers={initialTeachers}>
+    <ManageTeachersProvider
+      initialTeachers={initialTeachers}
+      userRole={userRole}
+    >
       <ManageTeachersContent />
     </ManageTeachersProvider>
   );
@@ -126,8 +133,14 @@ function ManageTeachersContent() {
       {/* 6. Modal Đặt lại mật khẩu */}
       <ResetPasswordModal />
 
-      {/* 7. Modal Xác nhận xóa tài khoản giáo viên */}
+      {/* 7. Modal Xác nhận xóa tài khoản giáo viên (thùng rác) */}
       <DeleteTeacherModal />
+
+      {/* 8. Modal Xác nhận xóa vĩnh viễn (Admin) */}
+      <PermanentDeleteTeacherModal />
+
+      {/* 9. Floating Batch Action Bar */}
+      <TeachersBatchBar />
     </div>
   );
 }

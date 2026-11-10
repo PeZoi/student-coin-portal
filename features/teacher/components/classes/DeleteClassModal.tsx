@@ -34,11 +34,11 @@ export function DeleteClassModal(props?: DeleteClassModalProps) {
 			onConfirm={onConfirm}
 			isSubmitting={isSubmitting}
 			title='Xác nhận xóa lớp học'
-			description='Thao tác này sẽ xóa lớp khỏi danh sách của bạn'
+			description='Thao tác này sẽ chuyển lớp học vào thùng rác'
 			warningText={
 				hasStudents
-					? `Lớp học hiện có ${item.student_count} học sinh và sẽ bị xóa khỏi danh sách quản lý. Dữ liệu tài khoản và lịch sử của học sinh vẫn được lưu trữ an toàn trên hệ thống.`
-					: "Lớp học này chưa có học sinh và sẽ bị xóa hoàn toàn khỏi hệ thống."
+					? `Lớp học hiện có ${item.student_count} học sinh và sẽ được chuyển vào thùng rác. Dữ liệu tài khoản và lịch sử nộp bài của học sinh vẫn được bảo toàn an toàn trên hệ thống.`
+					: "Lớp học này sẽ được chuyển vào thùng rác. Quản trị viên có thể khôi phục hoặc xóa vĩnh viễn bất kỳ lúc nào."
 			}
 		>
 			Bạn có chắc chắn muốn xóa lớp học{" "}

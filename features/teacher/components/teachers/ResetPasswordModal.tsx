@@ -178,7 +178,14 @@ function ResetPasswordDialogContent({
             disabled={isSubmitting}
             className="h-10 px-5 rounded-xl bg-[#0A62D6] hover:bg-[#0850B0] text-white text-sm font-semibold transition-all shadow-xs cursor-pointer active:scale-98 disabled:opacity-60 inline-flex items-center gap-2"
           >
-            <span>Cập nhật mật khẩu</span>
+            {isSubmitting ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Đang cập nhật...</span>
+              </>
+            ) : (
+              <span>Cập nhật mật khẩu</span>
+            )}
           </button>
         </ModalFooter>
       </form>

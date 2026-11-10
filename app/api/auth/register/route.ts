@@ -8,6 +8,7 @@ import {
   AuthStatus,
   AuthFailureReason,
   UserRole,
+  PostgresErrorCode,
 } from "@/constants";
 import { studentRegisterSchema } from "@/features/auth/schemas/authSchemas";
 import { RegisteredStudentData } from "@/features/auth/types";
@@ -73,8 +74,8 @@ export async function POST(
       .single();
 
     if (insertError) {
-      // Mã lỗi 23505: Vi phạm ràng buộc UNIQUE trong PostgreSQL (trùng phone_zalo)
-      if (insertError.code === "23505") {
+      // Bắt lỗi vi phạm ràng buộc UNIQUE của PostgreSQL (trùng lặp số điện thoại phone_zalo)
+      if (insertError.code === PostgresErrorCode.UNIQUE_VIOLATION) {
         void logAuthEvent({
           phoneZalo: normalizedPhone,
           role: UserRole.STUDENT,

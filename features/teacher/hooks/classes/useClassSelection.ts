@@ -1,32 +1,11 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useTableSelection } from "@/hooks/useTableSelection";
 
 /**
- * Micro-hook chuyên trách: Quản lý chọn checkbox nhiều dòng (Batch Selection)
+ * Micro-hook chuyên trách: Quản lý chọn checkbox nhiều dòng lớp học (Batch Selection)
+ * - Tái sử dụng hook dùng chung @/hooks/useTableSelection (DRY)
  */
 export function useClassSelection() {
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-
-  const handleToggleSelect = useCallback((id: string) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
-  }, []);
-
-  const handleSelectAll = useCallback((idsToSelect: string[]) => {
-    setSelectedIds((prev) => (prev.length === idsToSelect.length ? [] : idsToSelect));
-  }, []);
-
-  const handleClearSelection = useCallback(() => {
-    setSelectedIds([]);
-  }, []);
-
-  return {
-    selectedIds,
-    setSelectedIds,
-    handleToggleSelect,
-    handleSelectAll,
-    handleClearSelection,
-  };
+  return useTableSelection<string>();
 }

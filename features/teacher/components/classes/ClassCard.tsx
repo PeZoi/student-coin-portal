@@ -52,17 +52,23 @@ export function ClassCard({
               className="w-4 h-4 rounded border-slate-300 text-[#0A62D6] focus:ring-[#0A62D6] cursor-pointer accent-[#0A62D6] shrink-0"
             />
           )}
-          <span
-            className={`font-semibold text-sm leading-snug truncate select-text ${
-              item.is_deleted
-                ? "text-slate-500 line-through"
-                : item.is_active
-                ? "text-[#0F172A]"
-                : "text-slate-500"
-            }`}
-          >
-            {item.class_name}
-          </span>
+          {item.is_deleted ? (
+            <span className="font-semibold text-sm leading-snug truncate select-text text-slate-500 line-through">
+              {item.class_name}
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                if (onEdit) onEdit(item);
+              }}
+              className={`text-left font-semibold text-sm leading-snug truncate cursor-pointer hover:underline hover:text-[#0A62D6] block transition-colors ${
+                item.is_active ? "text-[#0F172A]" : "text-slate-500"
+              }`}
+            >
+              {item.class_name}
+            </button>
+          )}
         </div>
         <div className="shrink-0">
           <StatusBadge isActive={item.is_active} isDeleted={item.is_deleted} />

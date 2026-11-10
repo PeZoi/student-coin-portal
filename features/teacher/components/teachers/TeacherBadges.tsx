@@ -1,4 +1,3 @@
-import { useSyncExternalStore } from "react";
 import { ShieldCheck, Sparkles, UserCheck, School } from "lucide-react";
 import { StaffRole } from "./types";
 import { STAFF_ROLE_CONFIG } from "./constants";
@@ -38,26 +37,28 @@ export function RoleBadge({ role }: RoleBadgeProps) {
 
 interface TeacherStatusBadgeProps {
   isActive: boolean;
-  lockedUntil?: string | null;
+  isLocked?: boolean;
+  isDeleted?: boolean;
 }
 
-const emptySubscribe = () => () => {};
-
 /**
- * Huy hiệu hiển thị trạng thái tài khoản (`is_active` và `locked_until` từ bảng `public.users`)
+ * Huy hiệu hiển thị trạng thái tài khoản (`is_active`, `is_locked` và `is_deleted`)
  */
-export function TeacherStatusBadge({ isActive, lockedUntil }: TeacherStatusBadgeProps) {
-  const now = useSyncExternalStore(
-    emptySubscribe,
-    () => Date.now(),
-    () => 0
-  );
+export function TeacherStatusBadge({
+  isActive,
+  isLocked,
+  isDeleted,
+}: TeacherStatusBadgeProps) {
+  if (isDeleted) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200 whitespace-nowrap">
+        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
+        <span>Đã xóa</span>
+      </span>
+    );
+  }
 
-  const isTemporarilyLocked = Boolean(
-    lockedUntil && now > 0 && new Date(lockedUntil).getTime() > now
-  );
-
-  if (isTemporarilyLocked) {
+  if (isLocked) {
     return (
       <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 whitespace-nowrap">
         <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />

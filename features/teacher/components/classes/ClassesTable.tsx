@@ -166,17 +166,23 @@ export function ClassesTable(props?: ClassesTableProps) {
                 >
                   <School className="w-4 h-4" />
                 </div>
-                <span
-                  className={`font-semibold text-sm select-text ${
-                    item.is_deleted
-                      ? "text-slate-500 line-through"
-                      : item.is_active
-                      ? "text-[#0F172A]"
-                      : "text-slate-500"
-                  }`}
-                >
-                  {item.class_name}
-                </span>
+                {item.is_deleted ? (
+                  <span className="font-semibold text-sm select-text text-slate-500 line-through">
+                    {item.class_name}
+                  </span>
+                ) : (
+                  <Tooltip content={`Click để chỉnh sửa thông tin`} side="top">
+                    <button
+                      type="button"
+                      onClick={() => onEdit(item)}
+                      className={`text-left font-semibold text-sm transition-colors cursor-pointer hover:underline hover:text-[#0A62D6] block truncate ${
+                        item.is_active ? "text-[#0F172A]" : "text-slate-500"
+                      }`}
+                    >
+                      {item.class_name}
+                    </button>
+                  </Tooltip>
+                )}
               </div>
             </TableCell>
 

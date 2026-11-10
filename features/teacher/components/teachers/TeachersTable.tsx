@@ -6,6 +6,7 @@ import {
   ChevronDown,
   ChevronsUpDown,
 } from "lucide-react";
+import { Tooltip } from "@/components/ui/tooltip";
 import { TeacherStaffItem, TeacherSortField, SortDirection } from "./types";
 import { TeacherStatusBadge, AssignedClassesList } from "./TeacherBadges";
 import { TeacherRowActions } from "./TeacherRowActions";
@@ -31,6 +32,8 @@ interface TeachersTableProps {
   onToggleStatus?: (item: TeacherStaffItem) => void;
   onViewDetails?: (item: TeacherStaffItem) => void;
   onDelete?: (item: TeacherStaffItem) => void;
+  onRestore?: (item: TeacherStaffItem) => void;
+  onPermanentDelete?: (item: TeacherStaffItem) => void;
 }
 
 export function TeachersTable(props?: TeachersTableProps) {
@@ -47,9 +50,21 @@ export function TeachersTable(props?: TeachersTableProps) {
     props?.onResetPassword ?? context.handleOpenResetPassword;
   const onToggleStatus =
     props?.onToggleStatus ?? context.handleToggleTeacherStatus;
-  const onViewDetails =
-    props?.onViewDetails ?? context.handleViewTeacherDetails;
   const onDelete = props?.onDelete ?? context.handleOpenDeleteModal;
+  const onRestore = props?.onRestore ?? context.handleRestoreTeacher;
+  const onPermanentDelete =
+    props?.onPermanentDelete ?? context.handleOpenPermanentModal;
+
+  const {
+    handleToggleSelect,
+    handleSelectAll,
+    isSelected,
+    isAllSelected,
+    restoringId,
+  } = context;
+
+  const allVisibleIds = items.map((i) => i.id);
+  const isAllChecked = isAllSelected(allVisibleIds);
 
   const renderSortIcon = (field: TeacherSortField) => {
     if (sortField !== field || sortDirection === "none") {
@@ -71,6 +86,20 @@ export function TeachersTable(props?: TeachersTableProps) {
     <Table>
       <TableHeader>
         <TableRow className="hover:bg-transparent">
+          {/* Cột Checkbox chọn tất cả (Chỉ Quản trị viên tối cao) */}
+          {context.isAdmin && (
+            <TableHead className="w-12 px-4">
+              <div className="flex items-center justify-center">
+                <input
+                  type="checkbox"
+                  checked={isAllChecked}
+                  onChange={() => handleSelectAll(allVisibleIds)}
+                  className="w-4 h-4 rounded border-slate-300 text-[#0A62D6] focus:ring-[#0A62D6] cursor-pointer"
+                />
+              </div>
+            </TableHead>
+          )}
+
           {/* 1. Giáo viên & Tài khoản (Sắp xếp) */}
           <TableHead>
             <button
@@ -134,30 +163,60 @@ export function TeachersTable(props?: TeachersTableProps) {
         {items.map((item) => {
           const color = getTeacherColor(item.full_name);
           const initial = getTeacherInitial(item.full_name);
+          const checked = isSelected(item.id);
 
           return (
-            <TableRow key={item.id}>
+            <TableRow
+              key={item.id}
+              className={`${checked ? "bg-blue-50/60" : ""} ${
+                item.is_deleted ? "bg-rose-50/30" : ""
+              }`}
+            >
+              {/* Checkbox chọn dòng (Chỉ Quản trị viên tối cao) */}
+              {context.isAdmin && (
+                <TableCell className="w-12 px-4">
+                  <div className="flex items-center justify-center">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => handleToggleSelect(item.id)}
+                      className="w-4 h-4 rounded border-slate-300 text-[#0A62D6] focus:ring-[#0A62D6] cursor-pointer"
+                    />
+                  </div>
+                </TableCell>
+              )}
+
               {/* 1. Giáo viên (full_name + username) */}
               <TableCell>
                 <div className="flex items-center gap-3">
                   <div
                     style={{ backgroundColor: color.bg, color: color.text }}
                     className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 font-bold text-xs ${
-                      !item.is_active ? "opacity-60" : ""
+                      !item.is_active || item.is_deleted ? "opacity-60" : ""
                     }`}
                   >
                     {initial}
                   </div>
                   <div className="min-w-0">
-                    <button
-                      type="button"
-                      onClick={() => onViewDetails(item)}
-                      className={`text-left font-semibold text-sm transition-colors cursor-pointer hover:underline hover:text-[#0A62D6] block truncate ${
-                        item.is_active ? "text-[#0F172A]" : "text-slate-500"
-                      }`}
-                    >
-                      {item.full_name}
-                    </button>
+                    {item.is_deleted ? (
+                      <span className="text-left font-semibold text-sm block truncate text-slate-400 line-through">
+                        {item.full_name}
+                      </span>
+                    ) : (
+                      <Tooltip content={`Click để chỉnh sửa thông tin`} side="top">
+                        <button
+                          type="button"
+                          onClick={() => onEdit(item)}
+                          className={`text-left font-semibold text-sm transition-colors cursor-pointer hover:underline hover:text-[#0A62D6] block truncate ${
+                            item.is_active
+                              ? "text-[#0F172A]"
+                              : "text-slate-500"
+                          }`}
+                        >
+                          {item.full_name}
+                        </button>
+                      </Tooltip>
+                    )}
                     <p className="text-xs font-mono text-slate-500 mt-0.5">
                       @{item.username}
                     </p>
@@ -197,11 +256,12 @@ export function TeachersTable(props?: TeachersTableProps) {
                 />
               </TableCell>
 
-              {/* 4. Trạng thái (`is_active`, `locked_until`) */}
+              {/* 4. Trạng thái (`is_active`, `is_locked`, `is_deleted`) */}
               <TableCell>
                 <TeacherStatusBadge
                   isActive={item.is_active}
-                  lockedUntil={item.locked_until}
+                  isLocked={item.is_locked}
+                  isDeleted={item.is_deleted}
                 />
               </TableCell>
 
@@ -233,6 +293,9 @@ export function TeachersTable(props?: TeachersTableProps) {
                   onResetPassword={onResetPassword}
                   onToggleStatus={onToggleStatus}
                   onDelete={onDelete}
+                  onRestore={onRestore}
+                  onPermanentDelete={onPermanentDelete}
+                  isRestoring={restoringId === item.id}
                 />
               </TableCell>
             </TableRow>

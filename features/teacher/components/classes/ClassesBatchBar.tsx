@@ -12,6 +12,7 @@ import { useTeacherClassesContext } from "../../contexts/TeacherClassesContext";
  */
 export function ClassesBatchBar() {
   const {
+    isAdmin,
     selectedIds,
     statusFilter,
     handleClearSelection,
@@ -24,7 +25,7 @@ export function ClassesBatchBar() {
     batchActionLoading,
   } = useTeacherClassesContext();
 
-  if (selectedIds.length === 0) return null;
+  if (!isAdmin || selectedIds.length === 0) return null;
 
   const isDeletedTab = statusFilter === "deleted";
   const isAnyLoading = Boolean(batchActionLoading) || isSubmitting;

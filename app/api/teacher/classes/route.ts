@@ -2,10 +2,11 @@ import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
-import { HttpStatus } from "@/constants";
+import { HttpStatus, PostgresErrorCode } from "@/constants";
 import { createClassSchema } from "@/features/teacher/schemas/classSchemas";
 import { getTeacherClassesServer } from "@/features/teacher/services/teacherClassServerService";
 import { format } from "date-fns";
+import { escapeSqlWildcards } from "@/lib/utils";
 
 /**
  * GET /api/teacher/classes
@@ -46,11 +47,11 @@ export async function POST(req: Request) {
 
     const { class_name, is_active } = validation.data;
 
-    // Kiểm tra tên lớp học đã tồn tại chưa
+    // Kiểm tra tên lớp học đã tồn tại chưa (escape wildcard % và _)
     const { data: existingClass } = await supabase
       .from("classes")
       .select("id")
-      .ilike("class_name", class_name)
+      .ilike("class_name", escapeSqlWildcards(class_name.trim()))
       .eq("is_deleted", false)
       .maybeSingle();
 
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
     const { data: createdClass, error: insertError } = await supabase
       .from("classes")
       .insert({
-        class_name,
+        class_name: class_name.trim(),
         is_active,
         is_deleted: false,
         created_by: session.userId,
@@ -72,16 +73,17 @@ export async function POST(req: Request) {
       .single();
 
     if (insertError || !createdClass) {
+      // Bắt lỗi vi phạm ràng buộc UNIQUE của PostgreSQL (Unique Partial Index uq_classes_active_name chặn trùng tên)
+      if (insertError?.code === PostgresErrorCode.UNIQUE_VIOLATION) {
+        return apiError("Tên lớp học này đã tồn tại trong hệ thống. Vui lòng chọn tên khác.", HttpStatus.CONFLICT);
+      }
       console.error("Lỗi khi thêm lớp học vào Supabase:", insertError?.message);
       return apiError("Không thể tạo lớp học. Vui lòng thử lại sau.");
     }
 
-    let formattedDate = "";
-    try {
-      formattedDate = createdClass.created_at ? format(new Date(createdClass.created_at), "dd/MM/yyyy") : "";
-    } catch {
-      formattedDate = "";
-    }
+    const formattedDate = createdClass.created_at
+      ? format(new Date(createdClass.created_at), "dd/MM/yyyy")
+      : "";
 
     const responseItem = {
       id: createdClass.id,

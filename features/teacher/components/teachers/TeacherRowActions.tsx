@@ -10,8 +10,11 @@ import {
   Lock,
   Unlock,
   Trash2,
+  RotateCcw,
+  Loader2,
 } from "lucide-react";
 import { TeacherStaffItem } from "./types";
+import { Tooltip } from "@/components/ui/tooltip";
 
 interface TeacherRowActionsProps {
   item: TeacherStaffItem;
@@ -21,6 +24,9 @@ interface TeacherRowActionsProps {
   onResetPassword?: (item: TeacherStaffItem) => void;
   onToggleStatus?: (item: TeacherStaffItem) => void;
   onDelete?: (item: TeacherStaffItem) => void;
+  onRestore?: (item: TeacherStaffItem) => void;
+  onPermanentDelete?: (item: TeacherStaffItem) => void;
+  isRestoring?: boolean;
 }
 
 interface MenuPosition {
@@ -41,6 +47,9 @@ export function TeacherRowActions({
   onResetPassword,
   onToggleStatus,
   onDelete,
+  onRestore,
+  onPermanentDelete,
+  isRestoring = false,
 }: TeacherRowActionsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [menuPos, setMenuPos] = useState<MenuPosition>({
@@ -51,7 +60,7 @@ export function TeacherRowActions({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Mở/đóng menu và tự động tính toán hướng bung (lên trên hoặc xuống dưới) để không bị che khuất ở mép màn hình
+  // Mở/đóng menu và tự động tính toán hướng bung
   const handleToggleMenu = () => {
     if (!isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
@@ -85,7 +94,7 @@ export function TeacherRowActions({
     }
   };
 
-  // Đóng popover khi nhấn phím Escape, click ra ngoài, cuộn trang hoặc đổi kích thước cửa sổ
+  // Đóng popover khi nhấn Escape, click ngoài, cuộn trang
   useEffect(() => {
     if (!isOpen) return;
 
@@ -123,6 +132,49 @@ export function TeacherRowActions({
       window.removeEventListener("resize", handleScrollOrResize);
     };
   }, [isOpen]);
+
+  // Nếu là tài khoản trong thùng rác: Hiển thị 2 nút trực tiếp Khôi phục và Xóa vĩnh viễn
+  if (item.is_deleted) {
+    return (
+      <div
+        className={`inline-flex items-center gap-1.5 ${
+          fullWidth ? "w-full" : "justify-end"
+        }`}
+      >
+        <Tooltip content="Khôi phục tài khoản giáo viên" side="top">
+          <button
+            type="button"
+            onClick={() => onRestore?.(item)}
+            disabled={isRestoring}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[13px] font-semibold transition-colors cursor-pointer border border-emerald-200/80 disabled:opacity-50 ${
+              fullWidth ? "flex-1 h-10 px-3" : "h-9 px-3"
+            }`}
+          >
+            {isRestoring ? (
+              <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+            ) : (
+              <RotateCcw className="w-4 h-4 text-emerald-600" />
+            )}
+            <span>Khôi phục</span>
+          </button>
+        </Tooltip>
+
+        <Tooltip content="Xóa vĩnh viễn khỏi hệ thống" side="top">
+          <button
+            type="button"
+            onClick={() => onPermanentDelete?.(item)}
+            disabled={isRestoring}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-[13px] font-semibold transition-colors cursor-pointer border border-rose-200/80 disabled:opacity-50 ${
+              fullWidth ? "flex-1 h-10 px-3" : "h-9 px-3"
+            }`}
+          >
+            <Trash2 className="w-4 h-4 text-rose-600" />
+            <span>Xóa vĩnh viễn</span>
+          </button>
+        </Tooltip>
+      </div>
+    );
+  }
 
   const handleAssignClick = () => {
     if (onAssignClasses) {
@@ -165,32 +217,34 @@ export function TeacherRowActions({
       }`}
     >
       {/* Nút Gán lớp */}
-      <button
-        type="button"
-        onClick={handleAssignClick}
-        title="Phân công lớp phụ trách"
-        className={`inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#EAF2FF] hover:bg-[#D8E7FD] text-[#0A62D6] text-[13px] font-semibold transition-colors cursor-pointer ${
-          fullWidth ? "flex-1 h-10 px-4" : "h-9 px-3"
-        }`}
-      >
-        <School className="w-4 h-4" />
-        <span>Gán lớp</span>
-      </button>
+      <Tooltip content="Phân công lớp phụ trách" side="top">
+        <button
+          type="button"
+          onClick={handleAssignClick}
+          className={`inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#EAF2FF] hover:bg-[#D8E7FD] text-[#0A62D6] text-[13px] font-semibold transition-colors cursor-pointer ${
+            fullWidth ? "flex-1 h-10 px-4" : "h-9 px-3"
+          }`}
+        >
+          <School className="w-4 h-4" />
+          <span>Gán lớp</span>
+        </button>
+      </Tooltip>
 
       {/* Nút 3 chấm mở popover */}
-      <button
-        ref={buttonRef}
-        type="button"
-        onClick={handleToggleMenu}
-        title="Thao tác khác"
-        className={`rounded-xl flex items-center justify-center border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer shrink-0 ${
-          fullWidth ? "w-10 h-10" : "w-9 h-9"
-        }`}
-      >
-        <MoreHorizontal className="w-4 h-4" />
-      </button>
+      <Tooltip content="Thao tác khác" side="top">
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={handleToggleMenu}
+          className={`rounded-xl flex items-center justify-center border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer shrink-0 ${
+            fullWidth ? "w-10 h-10" : "w-9 h-9"
+          }`}
+        >
+          <MoreHorizontal className="w-4 h-4" />
+        </button>
+      </Tooltip>
 
-      {/* Popover menu render qua Portal và tự động đảo chiều lên trên nếu sát đáy màn hình */}
+      {/* Popover menu render qua Portal */}
       {isOpen &&
         typeof document !== "undefined" &&
         createPortal(

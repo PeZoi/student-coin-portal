@@ -33,7 +33,8 @@ export async function getTeacherClassesServer(
       .order("is_active", { ascending: false })
       .order("created_at", { ascending: false });
 
-    if (session.role !== UserRole.ADMIN && session.role !== UserRole.SUPER_TEACHER) {
+    // Chỉ duy nhất Quản trị viên tối cao (Admin) mới có quyền xem cả danh sách thùng rác
+    if (session.role !== UserRole.ADMIN) {
       classesQuery = classesQuery.eq("is_deleted", false);
     }
 
@@ -79,7 +80,7 @@ export async function getTeacherClassesServer(
       supabase
         .from("users")
         .select("id, full_name")
-        .in("role", [UserRole.TEACHER, UserRole.SUPER_TEACHER, UserRole.ADMIN])
+        .in("role", [UserRole.TEACHER, UserRole.SUPER_TEACHER])
         .eq("is_deleted", false),
     ]);
 
@@ -116,12 +117,9 @@ export async function getTeacherClassesServer(
     // 5. Tổng hợp dữ liệu trả về
     return classesData.map((c) => {
       const teacherInfo = classTeachersMap.get(c.id) || { names: [], ids: [] };
-      let formattedDate = "";
-      try {
-        formattedDate = c.created_at ? format(new Date(c.created_at), "dd/MM/yyyy") : "";
-      } catch {
-        formattedDate = "";
-      }
+      const formattedDate = c.created_at
+        ? format(new Date(c.created_at), "dd/MM/yyyy")
+        : "";
 
       return {
         id: c.id,

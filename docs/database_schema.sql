@@ -41,6 +41,13 @@ CREATE TABLE classes (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- CHỐNG TRÙNG TÊN LỚP HỌC (PARTIAL UNIQUE INDEX):
+-- Chỉ bắt buộc duy nhất tên lớp đối với các lớp đang hoạt động (is_deleted = false)
+-- Cho phép tái sử dụng lại tên lớp nếu lớp cũ đã bị xóa vĩnh viễn hoặc nằm trong thùng rác
+CREATE UNIQUE INDEX IF NOT EXISTS uq_classes_active_name 
+    ON classes (lower(trim(class_name))) 
+    WHERE is_deleted = false;
+
 -- ==============================================================================
 -- 2. BẢNG NGƯỜI DÙNG & HỒ SƠ HỌC SINH (USERS)
 -- Quản lý thông tin đăng nhập, hồ sơ cá nhân và số dư Heo Đất của học sinh/giáo viên

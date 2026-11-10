@@ -21,6 +21,10 @@ export const CACHE_KEYS = {
   TEACHERS: {
     /** Danh sách giáo viên khả dụng để phân công vào lớp học */
     AVAILABLE: "available-teachers",
+    /** Danh sách đầy đủ nhân sự giáo viên (Quản lý giáo viên) */
+    MANAGE_ALL: "manage-teachers-all",
+    /** Danh sách lớp học khả dụng để phân công cho giáo viên */
+    AVAILABLE_CLASSES: "teachers-available-classes",
   },
 } as const;
 

@@ -48,4 +48,13 @@ export function getDisplayName(fullName?: string | null): string {
   return words[words.length - 1] || "Học sinh";
 }
 
+/**
+ * Escape các ký tự đại diện đặc biệt (wildcards % và _) trong câu truy vấn LIKE / ILIKE của SQL
+ * - Tránh trường hợp tên như "10_A" bị khớp nhầm với "10XA" khi so sánh
+ */
+export function escapeSqlWildcards(str: string): string {
+  return str.replace(/([%_\\])/g, "\\$1");
+}
+
+
 

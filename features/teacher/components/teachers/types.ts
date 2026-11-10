@@ -12,6 +12,8 @@ export interface TeacherStaffItem {
   avatar_url: string | null;
   role: StaffRole;
   is_active: boolean;
+  is_deleted?: boolean;
+  is_locked?: boolean;
   failed_login_attempts: number;
   locked_until: string | null;
   assigned_classes: string[];
@@ -30,7 +32,14 @@ export interface AvailableClassItem {
   student_count: number;
 }
 
-export type TeacherStatusFilter = "all" | "active" | "inactive";
+export type TeacherStatusFilter = "all" | "active" | "inactive" | "deleted";
+
+export type TeacherBatchAction =
+  | "activate"
+  | "deactivate"
+  | "delete_soft"
+  | "restore"
+  | "delete_permanent";
 
 export type TeacherSortField =
   | "full_name"

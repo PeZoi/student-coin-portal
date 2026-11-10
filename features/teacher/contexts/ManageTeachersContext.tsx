@@ -11,6 +11,7 @@ const ManageTeachersContext = createContext<ManageTeachersContextType | null>(nu
 interface ManageTeachersProviderProps {
   children: ReactNode;
   initialTeachers?: TeacherStaffItem[];
+  userRole?: string;
 }
 
 /**
@@ -21,8 +22,9 @@ interface ManageTeachersProviderProps {
 export function ManageTeachersProvider({
   children,
   initialTeachers,
+  userRole,
 }: ManageTeachersProviderProps) {
-  const value = useManageTeachers(initialTeachers);
+  const value = useManageTeachers(initialTeachers, userRole);
 
   return (
     <ManageTeachersContext.Provider value={value}>

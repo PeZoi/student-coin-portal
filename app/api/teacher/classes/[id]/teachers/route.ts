@@ -12,6 +12,8 @@ interface RouteParams {
 /**
  * PUT /api/teacher/classes/[id]/teachers
  * Cập nhật danh sách giáo viên phụ trách cho một lớp học
+ * - Validate danh sách teacher_ids: loại trùng, kiểm tra role và trạng thái hoạt động
+ * - Áp dụng Diff-based update: Thêm mới trước, xóa sau để tránh mất dữ liệu nếu xảy ra lỗi giữa chừng
  */
 export async function PUT(req: Request, { params }: RouteParams) {
   try {
@@ -45,22 +47,52 @@ export async function PUT(req: Request, { params }: RouteParams) {
       return apiError("Lớp học không tồn tại hoặc đã bị xóa.", HttpStatus.NOT_FOUND);
     }
 
-    // 2. Xóa toàn bộ phân công cũ của lớp học này
-    const { error: deleteError } = await supabase
-      .from("teacher_classes")
-      .delete()
-      .eq("class_id", classId);
+    // 2. Loại trùng danh sách teacher_ids
+    const uniqueTeacherIds = Array.from(new Set(teacher_ids));
 
-    if (deleteError) {
-      console.error("Lỗi khi xóa phân công cũ:", deleteError.message);
-      return apiError("Không thể làm mới phân công giáo viên. Vui lòng thử lại.");
+    // 3. Validate kiểm tra toàn bộ teacher_ids có thật sự là giáo viên hợp lệ
+    let teachersData: { id: string; full_name: string }[] = [];
+    if (uniqueTeacherIds.length > 0) {
+      const { data: validTeachers, error: teacherCheckError } = await supabase
+        .from("users")
+        .select("id, full_name")
+        .in("id", uniqueTeacherIds)
+        .in("role", ["teacher", "super_teacher"])
+        .eq("is_deleted", false);
+
+      if (teacherCheckError) {
+        console.error("Lỗi khi kiểm tra danh sách giáo viên:", teacherCheckError.message);
+        return apiError("Không thể kiểm tra thông tin giáo viên. Vui lòng thử lại.");
+      }
+
+      if (!validTeachers || validTeachers.length !== uniqueTeacherIds.length) {
+        return apiError(
+          "Một hoặc nhiều giáo viên được chọn không tồn tại, sai vai trò hoặc đã bị khóa/xóa.",
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      teachersData = validTeachers;
     }
 
-    // 3. Nếu danh sách giáo viên mới không rỗng, thêm các bản ghi mới
-    let assignedTeacherNames: string[] = [];
+    // 4. Lấy danh sách phân công hiện tại để áp dụng Diff-based Update (Bảo vệ dữ liệu)
+    const { data: currentAssignments, error: currentFetchError } = await supabase
+      .from("teacher_classes")
+      .select("teacher_id")
+      .eq("class_id", classId);
 
-    if (teacher_ids.length > 0) {
-      const rowsToInsert = teacher_ids.map((teacher_id) => ({
+    if (currentFetchError) {
+      console.error("Lỗi khi đọc phân công hiện tại:", currentFetchError.message);
+      return apiError("Không thể kiểm tra phân công hiện tại của lớp học.");
+    }
+
+    const currentTeacherIds = (currentAssignments || []).map((r) => r.teacher_id);
+    const idsToAdd = uniqueTeacherIds.filter((tId) => !currentTeacherIds.includes(tId));
+    const idsToRemove = currentTeacherIds.filter((tId) => !uniqueTeacherIds.includes(tId));
+
+    // 5. Thêm mới các phân công chưa có trước (Nếu thêm lỗi -> Dừng lại ngay, không xóa phân công cũ)
+    if (idsToAdd.length > 0) {
+      const rowsToInsert = idsToAdd.map((teacher_id) => ({
         class_id: classId,
         teacher_id,
         created_by: session.userId,
@@ -72,25 +104,31 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
       if (insertError) {
         console.error("Lỗi khi thêm phân công mới:", insertError.message);
-        return apiError("Không thể lưu phân công giáo viên mới. Vui lòng thử lại.");
-      }
-
-      // Lấy danh sách tên giáo viên tương ứng
-      const { data: teachersData } = await supabase
-        .from("users")
-        .select("id, full_name")
-        .in("id", teacher_ids);
-
-      if (teachersData) {
-        assignedTeacherNames = teachersData.map((t) => t.full_name);
+        return apiError("Không thể lưu phân công giáo viên mới. Dữ liệu phân công cũ vẫn được giữ nguyên.");
       }
     }
+
+    // 6. Xóa các phân công không còn được chọn sau
+    if (idsToRemove.length > 0) {
+      const { error: removeError } = await supabase
+        .from("teacher_classes")
+        .delete()
+        .eq("class_id", classId)
+        .in("teacher_id", idsToRemove);
+
+      if (removeError) {
+        console.error("Lỗi khi gỡ phân công cũ:", removeError.message);
+        return apiError("Đã thêm giáo viên mới nhưng chưa thể gỡ giáo viên cũ. Vui lòng thử lại.");
+      }
+    }
+
+    const assignedTeacherNames = teachersData.map((t) => t.full_name);
 
     return apiSuccess(
       {
         class_id: classId,
         teachers: assignedTeacherNames,
-        teacher_ids,
+        teacher_ids: uniqueTeacherIds,
       },
       "Phân công giáo viên thành công!"
     );

@@ -71,13 +71,13 @@ export function ClassesToolbar(props?: ClassesToolbarProps) {
           <button
             type="button"
             onClick={() => onStatusFilterChange("deleted")}
-            className={`h-10 px-4 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap cursor-pointer shrink-0 inline-flex items-center gap-1.5 ${
+            className={`h-10 px-4 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap cursor-pointer shrink-0 ${
               statusFilter === "deleted"
                 ? "bg-rose-600 text-white shadow-2xs"
-                : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                : "bg-rose-50 hover:bg-rose-100 text-rose-700"
             }`}
           >
-            <span>Đã xóa ({context.deletedClasses})</span>
+            Đã xóa ({context.deletedClasses})
           </button>
         )}
       </div>

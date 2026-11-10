@@ -44,3 +44,21 @@ export const assignTeachersSchema = z.object({
 });
 
 export type AssignTeachersInput = z.infer<typeof assignTeachersSchema>;
+
+/**
+ * Schema xác thực thao tác hàng loạt trên nhiều lớp học
+ */
+export const batchClassActionSchema = z.object({
+  ids: z
+    .array(z.string().uuid("Mã lớp học không hợp lệ."))
+    .min(1, "Vui lòng chọn ít nhất một lớp học.")
+    .max(100, "Mỗi lần chỉ được chọn tối đa 100 lớp học."),
+  action: z.enum(
+    ["restore", "delete_permanent", "activate", "deactivate", "delete_soft"],
+    {
+      message: "Hành động hàng loạt không hợp lệ.",
+    }
+  ),
+});
+
+export type BatchClassActionInput = z.infer<typeof batchClassActionSchema>;

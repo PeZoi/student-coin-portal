@@ -12,6 +12,9 @@ interface TeacherCardProps {
   onToggleStatus?: (item: TeacherStaffItem) => void;
   onViewDetails?: (item: TeacherStaffItem) => void;
   onDelete?: (item: TeacherStaffItem) => void;
+  onRestore?: (item: TeacherStaffItem) => void;
+  onPermanentDelete?: (item: TeacherStaffItem) => void;
+  isRestoring?: boolean;
 }
 
 export function TeacherCard({
@@ -20,8 +23,10 @@ export function TeacherCard({
   onEdit,
   onResetPassword,
   onToggleStatus,
-  onViewDetails,
   onDelete,
+  onRestore,
+  onPermanentDelete,
+  isRestoring = false,
 }: TeacherCardProps) {
   const color = getTeacherColor(item.full_name);
   const initial = getTeacherInitial(item.full_name);
@@ -40,17 +45,23 @@ export function TeacherCard({
             {initial}
           </div>
           <div className="min-w-0">
-            <button
-              type="button"
-              onClick={() => {
-                if (onViewDetails) onViewDetails(item);
-              }}
-              className={`text-left font-semibold text-sm leading-snug transition-colors cursor-pointer hover:underline hover:text-[#0A62D6] block truncate ${
-                item.is_active ? "text-[#0F172A]" : "text-slate-500"
-              }`}
-            >
-              {item.full_name}
-            </button>
+            {item.is_deleted ? (
+              <span className="text-left font-semibold text-sm leading-snug block truncate text-slate-400 line-through">
+                {item.full_name}
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (onEdit) onEdit(item);
+                }}
+                className={`text-left font-semibold text-sm leading-snug transition-colors cursor-pointer hover:underline hover:text-[#0A62D6] block truncate ${
+                  item.is_active ? "text-[#0F172A]" : "text-slate-500"
+                }`}
+              >
+                {item.full_name}
+              </button>
+            )}
             <p className="text-xs font-mono text-slate-500 mt-0.5">
               @{item.username}
             </p>
@@ -60,7 +71,8 @@ export function TeacherCard({
         <div className="shrink-0">
           <TeacherStatusBadge
             isActive={item.is_active}
-            lockedUntil={item.locked_until}
+            isLocked={item.is_locked}
+            isDeleted={item.is_deleted}
           />
         </div>
       </div>
@@ -107,7 +119,7 @@ export function TeacherCard({
         </div>
       </div>
 
-      {/* Hàng 5: Nút "Gán lớp" chiếm phần lớn chiều rộng + nút "⋯" */}
+      {/* Hàng 5: Nút "Gán lớp" chiếm phần lớn chiều rộng + nút "⋯" hoặc Khôi phục / Xóa vĩnh viễn */}
       <div className="pt-2 border-t border-slate-100">
         <TeacherRowActions
           item={item}
@@ -117,6 +129,9 @@ export function TeacherCard({
           onResetPassword={onResetPassword}
           onToggleStatus={onToggleStatus}
           onDelete={onDelete}
+          onRestore={onRestore}
+          onPermanentDelete={onPermanentDelete}
+          isRestoring={isRestoring}
         />
       </div>
     </div>

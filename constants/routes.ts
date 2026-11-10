@@ -60,6 +60,14 @@ export const AppRoutes = {
       CLASS_TEACHERS: (id: string) => `/api/teacher/classes/${id}/teachers`,
       CLASS_STUDENTS: (id: string) => `/api/teacher/classes/${id}/students`,
       BATCH: "/api/teacher/classes/batch",
+      // Quản lý nhân sự Giáo viên
+      STAFF: "/api/teacher/teachers",
+      STAFF_DETAIL: (id: string) => `/api/teacher/teachers/${id}`,
+      STAFF_CLASSES: (id: string) => `/api/teacher/teachers/${id}/classes`,
+      STAFF_RESET_PASSWORD: (id: string) => `/api/teacher/teachers/${id}/reset-password`,
+      STAFF_RESTORE: (id: string) => `/api/teacher/teachers/${id}/restore`,
+      STAFF_BATCH: "/api/teacher/teachers/batch",
+      STAFF_AVAILABLE_CLASSES: "/api/teacher/teachers/available-classes",
     },
     SYSTEM: {
       CONFIG: "/api/system/config",

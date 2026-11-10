@@ -1,5 +1,6 @@
 import { Search, X, RotateCw } from "lucide-react";
 import { TeacherStatusFilter } from "./types";
+import { Tooltip } from "@/components/ui/tooltip";
 import { useManageTeachersContext } from "../../contexts/ManageTeachersContext";
 
 interface TeachersToolbarProps {
@@ -10,6 +11,8 @@ interface TeachersToolbarProps {
   totalCount?: number;
   activeCount?: number;
   inactiveCount?: number;
+  deletedCount?: number;
+  isAdmin?: boolean;
   onRefresh?: () => void;
   isRefreshing?: boolean;
 }
@@ -25,6 +28,8 @@ export function TeachersToolbar(props?: TeachersToolbarProps) {
   const totalCount = props?.totalCount ?? context.totalTeachers;
   const activeCount = props?.activeCount ?? context.activeTeachers;
   const inactiveCount = props?.inactiveCount ?? context.inactiveTeachers;
+  const deletedCount = props?.deletedCount ?? context.deletedTeachers;
+  const isAdmin = props?.isAdmin ?? context.isAdmin;
   const onRefresh = props?.onRefresh ?? context.handleRefresh;
   const isRefreshing = props?.isRefreshing ?? context.isRefreshing;
 
@@ -67,6 +72,21 @@ export function TeachersToolbar(props?: TeachersToolbarProps) {
         >
           Tạm khóa ({inactiveCount})
         </button>
+
+        {/* Tab Đã xóa (chỉ dành riêng cho Admin) */}
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={() => onStatusFilterChange("deleted")}
+            className={`h-10 px-4 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap cursor-pointer shrink-0 ${
+              statusFilter === "deleted"
+                ? "bg-rose-600 text-white shadow-2xs"
+                : "bg-rose-50 hover:bg-rose-100 text-rose-700"
+            }`}
+          >
+            Đã xóa ({deletedCount})
+          </button>
+        )}
       </div>
 
       {/* 2. Ô tìm kiếm & Nút làm mới */}
@@ -91,18 +111,19 @@ export function TeachersToolbar(props?: TeachersToolbarProps) {
           )}
         </div>
 
-        {/* Nút Làm mới: chỉ icon, không text */}
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={isRefreshing}
-          title="Làm mới dữ liệu"
-          className="w-10 h-10 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 hover:text-[#0A62D6] hover:border-[#0A62D6]/40 flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-2xs disabled:opacity-50"
-        >
-          <RotateCw
-            className={`w-4 h-4 ${isRefreshing ? "animate-spin text-[#0A62D6]" : ""}`}
-          />
-        </button>
+        {/* Nút Làm mới: Sử dụng Tooltip, không dùng thuộc tính title */}
+        <Tooltip content="Làm mới dữ liệu" side="top">
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="w-10 h-10 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 hover:text-[#0A62D6] hover:border-[#0A62D6]/40 flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-2xs disabled:opacity-50"
+          >
+            <RotateCw
+              className={`w-4 h-4 ${isRefreshing ? "animate-spin text-[#0A62D6]" : ""}`}
+            />
+          </button>
+        </Tooltip>
       </div>
     </div>
   );

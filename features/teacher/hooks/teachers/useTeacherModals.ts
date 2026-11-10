@@ -56,7 +56,7 @@ export function useTeacherModals() {
     setResettingTeacher(null);
   }, []);
 
-  // 4. Modal Xác nhận xóa giáo viên
+  // 4. Modal Xác nhận xóa giáo viên (Xóa mềm - Chuyển thùng rác)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingTeacher, setDeletingTeacher] = useState<TeacherStaffItem | null>(null);
 
@@ -68,6 +68,29 @@ export function useTeacherModals() {
   const handleCloseDeleteModal = useCallback(() => {
     setIsDeleteModalOpen(false);
     setDeletingTeacher(null);
+  }, []);
+
+  // 5. Modal Xác nhận xóa vĩnh viễn giáo viên (Tầng 2 - Admin)
+  const [isPermanentModalOpen, setIsPermanentModalOpen] = useState(false);
+  const [permanentTargetTeacher, setPermanentTargetTeacher] = useState<TeacherStaffItem | null>(null);
+  const [isBatchPermanentModalOpen, setIsBatchPermanentModalOpen] = useState(false);
+
+  const handleOpenPermanentModal = useCallback((item: TeacherStaffItem) => {
+    setPermanentTargetTeacher(item);
+    setIsPermanentModalOpen(true);
+  }, []);
+
+  const handleClosePermanentModal = useCallback(() => {
+    setIsPermanentModalOpen(false);
+    setPermanentTargetTeacher(null);
+  }, []);
+
+  const handleOpenBatchPermanentModal = useCallback(() => {
+    setIsBatchPermanentModalOpen(true);
+  }, []);
+
+  const handleCloseBatchPermanentModal = useCallback(() => {
+    setIsBatchPermanentModalOpen(false);
   }, []);
 
   return {
@@ -101,5 +124,16 @@ export function useTeacherModals() {
     setDeletingTeacher,
     handleOpenDeleteModal,
     handleCloseDeleteModal,
+
+    isPermanentModalOpen,
+    permanentTargetTeacher,
+    isBatchPermanentModalOpen,
+    setIsPermanentModalOpen,
+    setPermanentTargetTeacher,
+    setIsBatchPermanentModalOpen,
+    handleOpenPermanentModal,
+    handleClosePermanentModal,
+    handleOpenBatchPermanentModal,
+    handleCloseBatchPermanentModal,
   };
 }

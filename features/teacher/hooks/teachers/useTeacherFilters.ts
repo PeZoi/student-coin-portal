@@ -35,41 +35,65 @@ function parseDateTime(dateTimeStr: string | null): number {
 
 interface UseTeacherFiltersProps {
   teachersList: TeacherStaffItem[];
+  onFilterChange?: () => void;
 }
 
 /**
  * Micro-hook chuyên trách: Bộ lọc, Tìm kiếm, Sắp xếp và Tính toán KPIs Giáo viên
  */
-export function useTeacherFilters({ teachersList }: UseTeacherFiltersProps) {
-  const [statusFilter, setStatusFilter] = useState<TeacherStatusFilter>("all");
+export function useTeacherFilters({
+  teachersList,
+  onFilterChange,
+}: UseTeacherFiltersProps) {
+  const [statusFilter, setStatusFilterState] =
+    useState<TeacherStatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [sortField, setSortField] = useState<TeacherSortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("none");
 
-  // Tính toán chỉ số KPI hiển thị trên thẻ thống kê
+  // Đổi bộ lọc trạng thái và tự động gọi hook ngoài (xóa selection)
+  const setStatusFilter = useCallback(
+    (filter: TeacherStatusFilter) => {
+      setStatusFilterState(filter);
+      onFilterChange?.();
+    },
+    [onFilterChange]
+  );
+
+  // Tính toán chỉ số KPI hiển thị trên thẻ thống kê (bỏ qua các tài khoản đã xóa mềm trừ deletedTeachers)
   const {
     totalTeachers,
     activeTeachers,
     inactiveTeachers,
+    deletedTeachers,
     assignedTeachersCount,
     unassignedTeachersCount,
   } = useMemo(() => {
-    const total = teachersList.length;
+    let total = 0;
     let active = 0;
+    let inactive = 0;
+    let deleted = 0;
     let assignedCount = 0;
 
     for (const item of teachersList) {
-      if (item.is_active) active += 1;
-      if (item.assigned_classes.length > 0) {
-        assignedCount += 1;
+      if (item.is_deleted) {
+        deleted += 1;
+      } else {
+        total += 1;
+        if (item.is_active) active += 1;
+        else inactive += 1;
+        if (item.assigned_classes.length > 0) {
+          assignedCount += 1;
+        }
       }
     }
 
     return {
       totalTeachers: total,
       activeTeachers: active,
-      inactiveTeachers: total - active,
+      inactiveTeachers: inactive,
+      deletedTeachers: deleted,
       assignedTeachersCount: assignedCount,
       unassignedTeachersCount: total - assignedCount,
     };
@@ -98,8 +122,13 @@ export function useTeacherFilters({ teachersList }: UseTeacherFiltersProps) {
     const normalizedQuery = normalizeText(deferredSearchQuery);
 
     const list = teachersList.filter((item) => {
-      if (statusFilter === "active" && !item.is_active) return false;
-      if (statusFilter === "inactive" && item.is_active) return false;
+      if (statusFilter === "deleted") {
+        if (!item.is_deleted) return false;
+      } else {
+        if (item.is_deleted) return false;
+        if (statusFilter === "active" && !item.is_active) return false;
+        if (statusFilter === "inactive" && item.is_active) return false;
+      }
 
       if (normalizedQuery) {
         const matchFullName = normalizeText(item.full_name).includes(normalizedQuery);
@@ -128,11 +157,19 @@ export function useTeacherFilters({ teachersList }: UseTeacherFiltersProps) {
       return true;
     });
 
-    if (!sortField || sortDirection === "none") {
-      return list;
-    }
-
+    // Mặc định hoặc khi sort: Ưu tiên tài khoản đang hoạt động lên trên, tạm khóa luôn ở cuối
     return [...list].sort((a, b) => {
+      // 1. Luôn xếp tài khoản đang hoạt động trước, tạm khóa dưới cuối
+      if (a.is_active !== b.is_active) {
+        return a.is_active ? -1 : 1;
+      }
+
+      // 2. Nếu không chọn cột sắp xếp, giữ nguyên thứ tự
+      if (!sortField || sortDirection === "none") {
+        return 0;
+      }
+
+      // 3. Sắp xếp theo cột người dùng chọn
       let result = 0;
 
       if (sortField === "full_name") {
@@ -164,7 +201,8 @@ export function useTeacherFilters({ teachersList }: UseTeacherFiltersProps) {
   const handleResetFilter = useCallback(() => {
     setStatusFilter("all");
     setSearchQuery("");
-  }, []);
+    onFilterChange?.();
+  }, [setStatusFilter, onFilterChange]);
 
   return {
     statusFilter,
@@ -177,6 +215,7 @@ export function useTeacherFilters({ teachersList }: UseTeacherFiltersProps) {
     totalTeachers,
     activeTeachers,
     inactiveTeachers,
+    deletedTeachers,
     assignedTeachersCount,
     unassignedTeachersCount,
     filteredTeachers,

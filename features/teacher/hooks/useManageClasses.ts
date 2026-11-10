@@ -24,7 +24,7 @@ import { useClassMutations } from "./classes/useClassMutations";
 export function useTeacherClasses(initialClasses?: TeacherClassItem[], userRole?: string) {
   const { student } = useUserStore();
   const currentRole = userRole || student?.role || UserRole.TEACHER;
-  const isAdmin = currentRole === UserRole.ADMIN || currentRole === UserRole.SUPER_TEACHER;
+  const isAdmin = currentRole === UserRole.ADMIN;
 
   // 1. Quản lý danh sách lớp học qua SWR (Quy tắc 9): Tự động cache, 0 dòng useEffect
   const {

@@ -14,6 +14,9 @@ export function TeachersMobileList() {
     handleToggleTeacherStatus,
     handleViewTeacherDetails,
     handleOpenDeleteModal,
+    handleRestoreTeacher,
+    handleOpenPermanentModal,
+    restoringId,
   } = useManageTeachersContext();
 
   return (
@@ -28,6 +31,9 @@ export function TeachersMobileList() {
           onToggleStatus={handleToggleTeacherStatus}
           onViewDetails={handleViewTeacherDetails}
           onDelete={handleOpenDeleteModal}
+          onRestore={handleRestoreTeacher}
+          onPermanentDelete={handleOpenPermanentModal}
+          isRestoring={restoringId === item.id}
         />
       ))}
     </div>
