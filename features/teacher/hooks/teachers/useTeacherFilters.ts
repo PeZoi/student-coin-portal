@@ -7,32 +7,9 @@ import {
   TeacherSortField,
   SortDirection,
 } from "../../components/teachers/types";
-import { normalizeText, parseDate } from "../../components/classes/utils";
+import { normalizeText } from "@/lib/utils";
+import { parseDate, parseDateTime } from "@/lib/date";
 import { UserRole } from "@/constants/auth";
-
-/**
- * Hỗ trợ phân tích chuỗi ngày giờ "HH:mm dd/MM/yyyy" hoặc "dd/MM/yyyy" sang timestamp để sắp xếp
- */
-function parseDateTime(dateTimeStr: string | null): number {
-  if (!dateTimeStr) return -1;
-  const trimmed = dateTimeStr.trim();
-  const spaceParts = trimmed.split(/\s+/);
-  if (spaceParts.length === 2) {
-    const [timePart, datePart] = spaceParts;
-    const [hourStr, minStr] = timePart.split(":");
-    const dateParts = datePart.split("/");
-    if (dateParts.length === 3) {
-      const day = parseInt(dateParts[0], 10);
-      const month = parseInt(dateParts[1], 10) - 1;
-      const year = parseInt(dateParts[2], 10);
-      const hour = parseInt(hourStr || "0", 10);
-      const minute = parseInt(minStr || "0", 10);
-      const d = new Date(year, month, day, hour, minute);
-      if (!isNaN(d.getTime())) return d.getTime();
-    }
-  }
-  return parseDate(trimmed);
-}
 
 interface UseTeacherFiltersProps {
   teachersList: TeacherStaffItem[];

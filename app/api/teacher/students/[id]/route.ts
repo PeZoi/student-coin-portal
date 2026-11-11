@@ -37,7 +37,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       return validation.response;
     }
 
-    const { full_name, phone_zalo } = validation.data;
+    const { full_name, phone_zalo, class_id } = validation.data;
 
     // 1. Kiểm tra tài khoản học sinh có tồn tại
     const { data: existingStudent, error: findError } = await supabase
@@ -83,6 +83,25 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     }
     if (phone_zalo !== undefined && phone_zalo.trim() !== "") {
       updatePayload.phone_zalo = phone_zalo.trim();
+    }
+    if (class_id !== undefined) {
+      if (class_id && class_id.trim() !== "") {
+        const { data: classRecord } = await supabase
+          .from("classes")
+          .select("id, class_name, is_deleted, is_active")
+          .eq("id", class_id)
+          .maybeSingle();
+
+        if (!classRecord || classRecord.is_deleted || !classRecord.is_active) {
+          return apiError(
+            "Lớp học được chọn không tồn tại hoặc đang tạm ngưng hoạt động.",
+            HttpStatus.BAD_REQUEST
+          );
+        }
+        updatePayload.class_id = class_id;
+      } else {
+        updatePayload.class_id = null;
+      }
     }
 
     const { data: updatedStudent, error: updateError } = await supabase

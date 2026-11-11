@@ -154,30 +154,17 @@ function ResetStudentPinDialogContent({
           </div>
         </ModalBody>
 
-        <ModalFooter>
-          <button
-            type="button"
-            onClick={handleClose}
-            disabled={isSubmitting}
-            className="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
-          >
-            Hủy
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="h-10 px-5 rounded-xl bg-[#0A62D6] hover:bg-[#0850B0] text-white text-sm font-semibold transition-all shadow-xs cursor-pointer active:scale-98 disabled:opacity-60 inline-flex items-center gap-2"
-          >
-            {isSubmitting ? (
-              <>
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>Đang xử lý...</span>
-              </>
-            ) : (
-              <span>Cập nhật mã PIN</span>
-            )}
-          </button>
-        </ModalFooter>
+        <ModalFooter
+          showCancel
+          cancelLabel="Hủy"
+          onCancel={handleClose}
+          cancelDisabled={isSubmitting}
+          showSubmit
+          submitType="submit"
+          submitLabel="Cập nhật mã PIN"
+          submittingLabel="Đang xử lý..."
+          isSubmitting={isSubmitting}
+        />
       </form>
     </Modal>
   );

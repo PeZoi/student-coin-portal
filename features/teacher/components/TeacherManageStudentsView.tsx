@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, AlertCircle } from "lucide-react";
 import { StudentsHeader } from "./students/StudentsHeader";
 import { StudentsKpiCards } from "./students/StudentsKpiCards";
 import { StudentsToolbar } from "./students/StudentsToolbar";
@@ -47,8 +47,11 @@ export function TeacherManageStudentsView({
 function ManageStudentsContent() {
   const {
     isLoading,
+    isError,
+    studentsList,
     filteredStudents,
     handleResetFilter,
+    handleRefresh,
   } = useManageStudentsContext();
 
   return (
@@ -64,13 +67,32 @@ function ManageStudentsContent() {
         <StudentsToolbar />
         <div className="border-b border-slate-200" />
 
-        {/* Hiển thị nội dung: Loading / Trạng thái rỗng / Danh sách học sinh */}
+        {/* Hiển thị nội dung: Loading / Lỗi kết nối / Trạng thái rỗng / Danh sách học sinh */}
         {isLoading ? (
           <div className="py-20 px-4 flex flex-col items-center justify-center text-center">
             <Loader2 className="w-8 h-8 text-[#0A62D6] animate-spin mb-3" />
             <p className="text-sm font-medium text-slate-600">
               Đang tải danh sách học sinh...
             </p>
+          </div>
+        ) : isError && studentsList.length === 0 ? (
+          <div className="py-16 px-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-3">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-semibold text-[#0F172A]">
+              Không thể tải danh sách học sinh
+            </h3>
+            <p className="text-sm text-[#475569] mt-1">
+              Đã xảy ra lỗi khi kết nối với máy chủ. Vui lòng thử lại.
+            </p>
+            <button
+              type="button"
+              onClick={handleRefresh}
+              className="mt-4 inline-flex items-center justify-center h-9 px-4 rounded-xl bg-[#0A62D6] hover:bg-[#0850B0] text-white text-[13px] font-semibold transition-colors cursor-pointer"
+            >
+              Thử tải lại
+            </button>
           </div>
         ) : filteredStudents.length === 0 ? (
           <div className="py-16 px-4 text-center">

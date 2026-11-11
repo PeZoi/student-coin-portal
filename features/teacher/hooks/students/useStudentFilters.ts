@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useDeferredValue } from "react";
 import {
   StudentItem,
   StudentStatusFilter,
@@ -9,29 +9,8 @@ import {
 } from "../../components/students/types";
 import { calculateLockRemainingText } from "../../components/students/StudentBadges";
 import { useMinuteTicker } from "../../components/students/useMinuteTicker";
-
-function parseDateTime(dateTimeStr: string | null | undefined): number {
-  if (!dateTimeStr) return -1;
-  const trimmed = dateTimeStr.trim();
-  const spaceParts = trimmed.split(/\s+/);
-  if (spaceParts.length === 2) {
-    const [timePart, datePart] = spaceParts;
-    const [hourStr, minStr] = timePart.split(":");
-    const dateParts = datePart.split("/");
-    if (dateParts.length === 3) {
-      const day = parseInt(dateParts[0], 10);
-      const month = parseInt(dateParts[1], 10) - 1;
-      const year = parseInt(dateParts[2], 10);
-      const hour = parseInt(hourStr || "0", 10);
-      const minute = parseInt(minStr || "0", 10);
-      const d = new Date(year, month, day, hour, minute);
-      if (!isNaN(d.getTime())) return d.getTime();
-    }
-  }
-  const iso = new Date(trimmed);
-  if (!isNaN(iso.getTime())) return iso.getTime();
-  return -1;
-}
+import { normalizeText } from "@/lib/utils";
+import { parseDateTime } from "@/lib/date";
 
 interface UseStudentFiltersProps {
   studentsList: StudentItem[];
@@ -49,6 +28,7 @@ export function useStudentFilters({
     useState<StudentStatusFilter>("all");
   const [selectedClassId, setSelectedClassIdState] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [sortField, setSortField] = useState<StudentSortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("none");
 
@@ -119,7 +99,7 @@ export function useStudentFilters({
 
   // 2. Lọc và Sắp xếp danh sách học sinh
   const filteredStudents = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = normalizeText(deferredSearchQuery);
 
     const result = studentsList.filter((item) => {
       // a. Lọc theo trạng thái
@@ -147,11 +127,11 @@ export function useStudentFilters({
         }
       }
 
-      // c. Tìm kiếm từ khóa
+      // c. Tìm kiếm từ khóa (hỗ trợ tiếng Việt không dấu)
       if (q) {
-        const nameMatch = item.full_name.toLowerCase().includes(q);
-        const phoneMatch = item.phone_zalo.toLowerCase().includes(q);
-        const classMatch = item.class_name.toLowerCase().includes(q);
+        const nameMatch = normalizeText(item.full_name).includes(q);
+        const phoneMatch = normalizeText(item.phone_zalo).includes(q);
+        const classMatch = normalizeText(item.class_name).includes(q);
         if (!nameMatch && !phoneMatch && !classMatch) return false;
       }
 
@@ -209,7 +189,7 @@ export function useStudentFilters({
     studentsList,
     statusFilter,
     selectedClassId,
-    searchQuery,
+    deferredSearchQuery,
     sortField,
     sortDirection,
     currentMinute,

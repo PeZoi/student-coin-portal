@@ -74,6 +74,7 @@ export function useManageStudents(
   // 6. Micro-hook: Tương tác API, Cập nhật SWR Cache & Optimistic UI
   const mutations = useStudentMutations({
     isAdmin,
+    studentsList,
     mutate,
     selectedIds: selection.selectedIds,
     handleClearSelection: selection.handleClearSelection,

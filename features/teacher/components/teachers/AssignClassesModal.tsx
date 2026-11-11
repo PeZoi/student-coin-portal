@@ -87,21 +87,26 @@ function AssignClassesDialogContent({
     onClose();
   }, [onClose]);
 
+  const activeAvailableClasses = useMemo(
+    () => availableClasses.filter((c) => c.is_active),
+    [availableClasses]
+  );
+
   const classMap = useMemo(() => {
     const map = new Map<string, AvailableClassItem>();
-    for (const cls of availableClasses) {
+    for (const cls of activeAvailableClasses) {
       map.set(cls.id, cls);
     }
     return map;
-  }, [availableClasses]);
+  }, [activeAvailableClasses]);
 
   const filteredClasses = useMemo(() => {
     const q = normalizeText(searchQuery);
-    if (!q) return availableClasses;
-    return availableClasses.filter((cls) =>
+    if (!q) return activeAvailableClasses;
+    return activeAvailableClasses.filter((cls) =>
       normalizeText(cls.class_name).includes(q)
     );
-  }, [availableClasses, searchQuery]);
+  }, [activeAvailableClasses, searchQuery]);
 
   const handleToggleClass = (classId: string) => {
     if (isSubmitting) return;
@@ -291,38 +296,23 @@ function AssignClassesDialogContent({
         </div>
       </ModalBody>
 
-      <ModalFooter className="justify-between">
-        <div className="text-xs text-slate-500 hidden sm:flex items-center gap-1.5">
-          <Users className="w-3.5 h-3.5 text-slate-400" />
-          <span>1 giáo viên có thể phụ trách nhiều lớp học</span>
-        </div>
-
-        <div className="flex items-center gap-2.5 ml-auto">
-          <button
-            type="button"
-            onClick={handleClose}
-            disabled={isSubmitting}
-            className="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
-          >
-            Hủy
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={isSubmitting}
-            className="h-10 px-5 rounded-xl bg-[#0A62D6] hover:bg-[#0850B0] text-white text-sm font-semibold transition-all shadow-xs cursor-pointer active:scale-98 disabled:opacity-60 inline-flex items-center gap-2"
-          >
-            {isSubmitting ? (
-              <>
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>Đang lưu...</span>
-              </>
-            ) : (
-              <span>Lưu phân công</span>
-            )}
-          </button>
-        </div>
-      </ModalFooter>
+      <ModalFooter
+        leftNode={
+          <div className="hidden sm:flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5 text-slate-400" />
+            <span>1 giáo viên có thể phụ trách nhiều lớp học</span>
+          </div>
+        }
+        showCancel
+        cancelLabel="Hủy"
+        onCancel={handleClose}
+        cancelDisabled={isSubmitting}
+        showSubmit
+        submitLabel="Lưu phân công"
+        submittingLabel="Đang lưu..."
+        onSubmit={handleSave}
+        isSubmitting={isSubmitting}
+      />
     </Modal>
   );
 }

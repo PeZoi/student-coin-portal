@@ -1,37 +1,6 @@
 import { TEACHER_AVATAR_COLORS } from "./constants";
-
-/**
- * Chuẩn hóa chuỗi văn bản: xóa dấu tiếng Việt, chuyển chữ thường, loại bỏ khoảng trắng thừa
- */
-export const normalizeText = (s: string): string => {
-  if (!s) return "";
-  return s
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/g, "d")
-    .replace(/Đ/g, "D")
-    .toLowerCase()
-    .trim();
-};
-
-/**
- * Phân tích ngày tháng hỗ trợ định dạng dd/MM/yyyy và chuỗi ISO
- * Trả về timestamp mili-giây, hoặc -1 nếu không phân tích được
- */
-export function parseDate(dateStr: string): number {
-  if (!dateStr) return -1;
-  const parts = dateStr.trim().split("/");
-  if (parts.length === 3) {
-    const day = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10) - 1;
-    const year = parseInt(parts[2], 10);
-    const d = new Date(year, month, day);
-    if (!isNaN(d.getTime())) return d.getTime();
-  }
-  const iso = new Date(dateStr);
-  if (!isNaN(iso.getTime())) return iso.getTime();
-  return -1;
-}
+export { normalizeText } from "@/lib/utils";
+export { parseDate } from "@/lib/date";
 
 /**
  * Lấy chữ cái đại diện từ tên giáo viên:

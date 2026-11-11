@@ -2,7 +2,12 @@ import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
-import { HttpStatus } from "@/constants";
+import {
+  HttpStatus,
+  CoinTxType,
+  CoinReferenceType,
+  COIN_TX_DESCRIPTIONS,
+} from "@/constants";
 import { UserRole } from "@/constants/auth";
 import { batchChangeStudentClassSchema } from "@/features/teacher/schemas/studentSchemas";
 
@@ -36,13 +41,13 @@ export async function POST(req: Request) {
     if (new_class_id && new_class_id.trim() !== "") {
       const { data: classRecord } = await supabase
         .from("classes")
-        .select("id, class_name, is_deleted")
+        .select("id, class_name, is_deleted, is_active")
         .eq("id", new_class_id)
         .maybeSingle();
 
-      if (!classRecord || classRecord.is_deleted) {
+      if (!classRecord || classRecord.is_deleted || !classRecord.is_active) {
         return apiError(
-          "Lớp học tiếp nhận không tồn tại hoặc đã bị xóa.",
+          "Lớp học tiếp nhận không tồn tại hoặc đang tạm ngưng hoạt động.",
           HttpStatus.BAD_REQUEST
         );
       }
@@ -57,10 +62,25 @@ export async function POST(req: Request) {
       updated_by: session.userId,
     };
 
+    let studentsToResetCoins: { id: string; current_coins: number }[] = [];
     if (reset_progress) {
       batchPayload.current_coins = 0;
       batchPayload.total_earned_coins = 0;
       batchPayload.free_spins = 0;
+
+      // Đọc số dư xu hiện tại trước khi reset về 0 để ghi sổ cái coin_transactions
+      const { data: studentCoinsList } = await supabase
+        .from("users")
+        .select("id, current_coins")
+        .in("id", student_ids)
+        .eq("role", UserRole.STUDENT)
+        .eq("is_deleted", false);
+
+      if (studentCoinsList) {
+        studentsToResetCoins = studentCoinsList
+          .filter((s) => Number(s.current_coins) > 0)
+          .map((s) => ({ id: s.id, current_coins: Number(s.current_coins) }));
+      }
     }
 
     const { error: batchUpdateError, count } = await supabase
@@ -82,6 +102,34 @@ export async function POST(req: Request) {
 
     // 3. Nếu reset toàn bộ dữ liệu: xóa bài nộp và lịch sử liên quan hàng loạt
     if (reset_progress) {
+      // 3.0. Ghi log giao dịch trừ xu về 0 vào coin_transactions cho các học sinh có xu
+      if (studentsToResetCoins.length > 0) {
+        const nowIso = new Date().toISOString();
+        const txRows = studentsToResetCoins.map((s) => ({
+          user_id: s.id,
+          amount: -s.current_coins,
+          balance_before: s.current_coins,
+          balance_after: 0,
+          tx_type: CoinTxType.MANUAL_ADJUST,
+          reference_type: CoinReferenceType.MANUAL_ADJUST,
+          reference_id: null,
+          created_by: session.userId,
+          description: COIN_TX_DESCRIPTIONS.RESET_PROGRESS_BATCH,
+          created_at: nowIso,
+        }));
+
+        const { error: txBatchError } = await supabase
+          .from("coin_transactions")
+          .insert(txRows);
+
+        if (txBatchError) {
+          console.error(
+            "Cảnh báo ghi log giao dịch reset xu hàng loạt:",
+            txBatchError.message
+          );
+        }
+      }
+
       // 3.1. Tìm các bài nộp để xóa ai_submission_errors trước
       const { data: submissions } = await supabase
         .from("homework_submissions")

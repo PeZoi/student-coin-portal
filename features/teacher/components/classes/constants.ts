@@ -1,5 +1,3 @@
-import { MockClassItem } from "./types";
-
 /**
  * Bảng màu chuẩn dùng cho giao diện Quản lý lớp học
  */
@@ -42,66 +40,3 @@ export const TEACHER_AVATAR_COLORS = [
   { bg: "#EDE9FE", text: "#5B21B6" },
   { bg: "#DCFCE7", text: "#166534" },
 ] as const;
-
-/**
- * Danh sách giáo viên mẫu phục vụ tính năng phân công
- */
-export const AVAILABLE_TEACHERS = [
-  "Cô Trần Thị Lan",
-  "Thầy Minh (Trợ giảng)",
-  "Thầy Nguyễn Văn Nam",
-  "Cô Hoàng Bích Ngọc",
-  "Cô Nguyễn Thu Hà",
-  "Thầy Lê Minh Quân",
-];
-
-export const INITIAL_MOCK_CLASSES: MockClassItem[] = [
-  {
-    id: "c-1",
-    class_name: "Ca 17:30 - 19:00 (Thứ 2 - 4 - 6)",
-    is_active: true,
-    student_count: 18,
-    teachers: ["Cô Trần Thị Lan", "Thầy Minh (Trợ giảng)"],
-    created_at: "01/10/2026",
-  },
-  {
-    id: "c-2",
-    class_name: "Ca 19:15 - 20:45 (Thứ 2 - 4 - 6)",
-    is_active: true,
-    student_count: 16,
-    teachers: ["Cô Trần Thị Lan"],
-    created_at: "01/10/2026",
-  },
-  {
-    id: "c-3",
-    class_name: "Ca 17:30 - 19:00 (Thứ 3 - 5 - 7)",
-    is_active: true,
-    student_count: 15,
-    teachers: ["Thầy Nguyễn Văn Nam"],
-    created_at: "05/10/2026",
-  },
-  {
-    id: "c-4",
-    class_name: "Ca 19:15 - 20:45 (Thứ 3 - 5 - 7)",
-    is_active: true,
-    student_count: 14,
-    teachers: ["Thầy Nguyễn Văn Nam"],
-    created_at: "05/10/2026",
-  },
-  {
-    id: "c-5",
-    class_name: "Ca 08:30 - 10:00 (Thứ 7 - CN)",
-    is_active: true,
-    student_count: 12,
-    teachers: ["Cô Hoàng Bích Ngọc"],
-    created_at: "12/10/2026",
-  },
-  {
-    id: "c-6",
-    class_name: "Ca 14:00 - 15:30",
-    is_active: false,
-    student_count: 0,
-    teachers: [],
-    created_at: "15/09/2026",
-  },
-];

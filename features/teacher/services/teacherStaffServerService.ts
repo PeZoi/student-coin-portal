@@ -202,7 +202,7 @@ export async function getAvailableClassesForTeachersServer(
         .from("classes")
         .select("id, class_name, is_active")
         .eq("is_deleted", false)
-        .order("is_active", { ascending: false })
+        .eq("is_active", true)
         .order("class_name", { ascending: true }),
       supabase
         .from("users")

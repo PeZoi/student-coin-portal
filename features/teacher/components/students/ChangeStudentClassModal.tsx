@@ -63,22 +63,26 @@ function ChangeStudentClassDialogContent({
   isSubmitting,
 }: ChangeStudentClassDialogContentProps) {
   const { availableClasses } = useManageStudentsContext();
+  const activeClasses = useMemo(
+    () => availableClasses.filter((c) => c.is_active),
+    [availableClasses]
+  );
   const [selectedClassId, setSelectedClassId] = useState(
-    studentItem.class_id || (availableClasses[0]?.id ?? "")
+    studentItem.class_id || (activeClasses[0]?.id ?? "")
   );
   const [resetProgress, setResetProgress] = useState(false);
 
   const classOptions: TeacherSelectOption[] = useMemo(
     () => [
       { label: "Chưa phân lớp", value: "" },
-      ...availableClasses.map((c) => ({
+      ...activeClasses.map((c) => ({
         label: c.class_name,
         value: c.id,
         badge:
           c.student_count !== undefined ? `${c.student_count} em` : undefined,
       })),
     ],
-    [availableClasses]
+    [activeClasses]
   );
 
   const handleClose = useCallback(() => {
@@ -183,67 +187,46 @@ function ChangeStudentClassDialogContent({
             />
 
             {/* Checkbox tùy chọn Reset dữ liệu */}
-            <div
-              onClick={() => !isSubmitting && setResetProgress((prev) => !prev)}
+            <label
               className={`p-3 rounded-xl border transition-all cursor-pointer select-none flex items-start gap-3 ${
                 resetProgress
                   ? "bg-amber-50/70 border-amber-300 ring-2 ring-amber-400/20"
                   : "bg-slate-50 border-slate-200 hover:bg-slate-100/70"
-              }`}
+              } ${isSubmitting ? "opacity-50 pointer-events-none" : ""}`}
             >
               <input
                 type="checkbox"
-                id="reset-student-progress-checkbox"
                 checked={resetProgress}
                 onChange={(e) => setResetProgress(e.target.checked)}
                 disabled={isSubmitting}
                 className="mt-0.5 w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500 cursor-pointer shrink-0"
               />
               <div className="flex-1 text-xs">
-                <label
-                  htmlFor="reset-student-progress-checkbox"
-                  className="font-bold text-[#0F172A] cursor-pointer block"
-                >
+                <span className="font-bold text-[#0F172A] block">
                   Đặt lại toàn bộ tiến trình học sinh
-                </label>
+                </span>
                 <p className="text-slate-500 mt-0.5 text-[11.5px]">
                   Xóa lịch sử bài tập cũ, đưa số dư xu và lượt quay về 0.
                 </p>
               </div>
-            </div>
+            </label>
           </div>
         </ModalBody>
 
-        <ModalFooter>
-          <button
-            type="button"
-            onClick={handleClose}
-            disabled={isSubmitting}
-            className="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
-          >
-            Hủy
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`h-10 px-5 rounded-xl text-white text-sm font-semibold transition-all shadow-xs cursor-pointer active:scale-98 disabled:opacity-60 inline-flex items-center gap-2 ${
-              resetProgress
-                ? "bg-amber-600 hover:bg-amber-700"
-                : "bg-[#0A62D6] hover:bg-[#0850B0]"
-            }`}
-          >
-            {isSubmitting ? (
-              <>
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>Đang chuyển...</span>
-              </>
-            ) : (
-              <span>
-                {resetProgress ? "Xác nhận chuyển & Đặt lại" : "Xác nhận chuyển lớp"}
-              </span>
-            )}
-          </button>
-        </ModalFooter>
+        <ModalFooter
+          showCancel
+          cancelLabel="Hủy"
+          onCancel={handleClose}
+          cancelDisabled={isSubmitting}
+          showSubmit
+          submitType="submit"
+          submitLabel={
+            resetProgress ? "Xác nhận chuyển & Đặt lại" : "Xác nhận chuyển lớp"
+          }
+          submittingLabel="Đang chuyển..."
+          isSubmitting={isSubmitting}
+          submitVariant={resetProgress ? "warning" : "primary"}
+        />
       </form>
     </Modal>
   );

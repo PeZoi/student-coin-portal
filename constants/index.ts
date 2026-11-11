@@ -15,3 +15,4 @@ export * from "./missions";
 export * from "./routes";
 export * from "./cacheKeys";
 export * from "./database";
+export * from "./coins";

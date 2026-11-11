@@ -7,7 +7,8 @@ import {
   SortField,
   SortDirection,
 } from "../../components/classes/types";
-import { normalizeText, parseDate } from "../../components/classes/utils";
+import { normalizeText } from "@/lib/utils";
+import { parseDate } from "@/lib/date";
 
 interface UseClassFiltersProps {
   classesList: TeacherClassItem[];

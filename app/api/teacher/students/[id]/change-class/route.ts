@@ -2,7 +2,12 @@ import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
-import { HttpStatus } from "@/constants";
+import {
+  HttpStatus,
+  CoinTxType,
+  CoinReferenceType,
+  COIN_TX_DESCRIPTIONS,
+} from "@/constants";
 import { UserRole } from "@/constants/auth";
 import { changeStudentClassSchema } from "@/features/teacher/schemas/studentSchemas";
 
@@ -40,7 +45,7 @@ export async function POST(req: Request, { params }: RouteParams) {
     // 1. Kiểm tra học sinh có tồn tại không
     const { data: studentRecord, error: findError } = await supabase
       .from("users")
-      .select("id, full_name, role, is_deleted, class_id")
+      .select("id, full_name, role, is_deleted, class_id, current_coins")
       .eq("id", id)
       .eq("role", UserRole.STUDENT)
       .maybeSingle();
@@ -53,17 +58,17 @@ export async function POST(req: Request, { params }: RouteParams) {
       return apiError("Học sinh này đang ở trong thùng rác, vui lòng khôi phục trước khi chuyển lớp.", HttpStatus.BAD_REQUEST);
     }
 
-    // 2. Nếu có chọn lớp mới, kiểm tra lớp có hợp lệ không
+    // 2. Nếu có chọn lớp mới, kiểm tra lớp có hợp lệ và đang hoạt động không
     let targetClassName = "Chưa phân lớp";
     if (new_class_id && new_class_id.trim() !== "") {
       const { data: classRecord } = await supabase
         .from("classes")
-        .select("id, class_name, is_deleted")
+        .select("id, class_name, is_deleted, is_active")
         .eq("id", new_class_id)
         .maybeSingle();
 
-      if (!classRecord || classRecord.is_deleted) {
-        return apiError("Lớp học tiếp nhận không tồn tại hoặc đã bị xóa.", HttpStatus.BAD_REQUEST);
+      if (!classRecord || classRecord.is_deleted || !classRecord.is_active) {
+        return apiError("Lớp học tiếp nhận không tồn tại hoặc đang tạm ngưng hoạt động.", HttpStatus.BAD_REQUEST);
       }
       targetClassName = classRecord.class_name;
     }
@@ -94,6 +99,27 @@ export async function POST(req: Request, { params }: RouteParams) {
 
     // 4. Nếu yêu cầu làm mới toàn bộ dữ liệu: xóa sạch bài tập và nhật ký liên quan
     if (reset_progress) {
+      // 4.0. Nếu học sinh có xu trước khi reset, ghi log giao dịch trừ xu về 0 vào coin_transactions
+      const oldCoins = Number(studentRecord.current_coins) || 0;
+      if (oldCoins > 0) {
+        const { error: txError } = await supabase.from("coin_transactions").insert({
+          user_id: id,
+          amount: -oldCoins,
+          balance_before: oldCoins,
+          balance_after: 0,
+          tx_type: CoinTxType.MANUAL_ADJUST,
+          reference_type: CoinReferenceType.MANUAL_ADJUST,
+          reference_id: null,
+          created_by: session.userId,
+          description: COIN_TX_DESCRIPTIONS.RESET_PROGRESS_SINGLE,
+          created_at: new Date().toISOString(),
+        });
+
+        if (txError) {
+          console.error("Cảnh báo ghi log giao dịch reset xu:", txError.message);
+        }
+      }
+
       // 4.1. Tìm các bài nộp để xóa ai_submission_errors trước khi xóa homework_submissions
       const { data: submissions } = await supabase
         .from("homework_submissions")

@@ -8,10 +8,10 @@ import { teacherClassService } from "../services/teacherClassService";
 import { useUserStore } from "@/stores/useUserStore";
 import { UserRole } from "@/constants/auth";
 import { CACHE_KEYS } from "@/constants";
+import { useTableSelection } from "@/hooks/useTableSelection";
 
-// Import 4 Micro-Hooks chuyên trách
+// Import 3 Micro-Hooks chuyên trách
 import { useClassFilters } from "./classes/useClassFilters";
-import { useClassSelection } from "./classes/useClassSelection";
 import { useClassModals } from "./classes/useClassModals";
 import { useClassMutations } from "./classes/useClassMutations";
 
@@ -43,8 +43,8 @@ export function useTeacherClasses(initialClasses?: TeacherClassItem[], userRole?
     dedupingInterval: 30000,
   });
 
-  // 2. Micro-hook: Chọn checkbox hàng loạt (Batch Selection)
-  const selection = useClassSelection();
+  // 2. Chọn checkbox hàng loạt (Batch Selection)
+  const selection = useTableSelection<string>();
 
   // 3. Micro-hook: Bộ lọc, Tìm kiếm, Sắp xếp và KPIs
   const filters = useClassFilters({

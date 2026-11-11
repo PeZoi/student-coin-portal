@@ -66,3 +66,48 @@ export function formatShortDateTime(
 export function formatShortDate(dateInput: string | Date, fallback = "Chưa rõ"): string {
   return formatShortDateTime(dateInput, { showTime: false, fallback });
 }
+
+/**
+ * Phân tích chuỗi ngày tháng định dạng "dd/MM/yyyy" hoặc ISO sang timestamp mili-giây để sắp xếp
+ * Trả về -1 nếu không phân tích được
+ */
+export function parseDate(dateStr?: string | null): number {
+  if (!dateStr) return -1;
+  const trimmed = dateStr.trim();
+  const parts = trimmed.split("/");
+  if (parts.length === 3) {
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const year = parseInt(parts[2], 10);
+    const d = new Date(year, month, day);
+    if (!isNaN(d.getTime())) return d.getTime();
+  }
+  const iso = new Date(trimmed);
+  if (!isNaN(iso.getTime())) return iso.getTime();
+  return -1;
+}
+
+/**
+ * Phân tích chuỗi ngày giờ định dạng "HH:mm dd/MM/yyyy", "dd/MM/yyyy" hoặc ISO sang timestamp mili-giây để sắp xếp
+ */
+export function parseDateTime(dateTimeStr?: string | null): number {
+  if (!dateTimeStr) return -1;
+  const trimmed = dateTimeStr.trim();
+  const spaceParts = trimmed.split(/\s+/);
+  if (spaceParts.length === 2) {
+    const [timePart, datePart] = spaceParts;
+    const [hourStr, minStr] = timePart.split(":");
+    const dateParts = datePart.split("/");
+    if (dateParts.length === 3) {
+      const day = parseInt(dateParts[0], 10);
+      const month = parseInt(dateParts[1], 10) - 1;
+      const year = parseInt(dateParts[2], 10);
+      const hour = parseInt(hourStr || "0", 10);
+      const minute = parseInt(minStr || "0", 10);
+      const d = new Date(year, month, day, hour, minute);
+      if (!isNaN(d.getTime())) return d.getTime();
+    }
+  }
+  return parseDate(trimmed);
+}
+

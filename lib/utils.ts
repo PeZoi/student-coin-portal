@@ -69,5 +69,21 @@ export function escapeSqlWildcards(str: string): string {
   return str.replace(/([%_\\])/g, "\\$1");
 }
 
+/**
+ * Chuẩn hóa chuỗi văn bản: xóa dấu tiếng Việt, chuyển chữ thường, loại bỏ khoảng trắng thừa
+ * Phục vụ tìm kiếm không dấu trên toàn hệ thống
+ */
+export function normalizeText(str?: string | null): string {
+  if (!str) return "";
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase()
+    .trim();
+}
+
+
 
 

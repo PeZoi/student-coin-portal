@@ -2,7 +2,12 @@ import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
-import { HttpStatus } from "@/constants";
+import {
+  HttpStatus,
+  CoinTxType,
+  CoinReferenceType,
+  COIN_TX_DESCRIPTIONS,
+} from "@/constants";
 import { UserRole } from "@/constants/auth";
 import { getManageStudentsServer } from "@/features/teacher/services/teacherStudentServerService";
 import { createStudentSchema } from "@/features/teacher/schemas/studentSchemas";
@@ -52,7 +57,7 @@ export async function POST(req: Request) {
       return validation.response;
     }
 
-    const { full_name, phone_zalo, class_id, pin_number } = validation.data;
+    const { full_name, phone_zalo, class_id, pin_number, initial_coins = 0 } = validation.data;
 
     // 1. Kiểm tra số điện thoại Zalo đã tồn tại trong hệ thống chưa
     const { data: existingUser } = await supabase
@@ -68,18 +73,18 @@ export async function POST(req: Request) {
       );
     }
 
-    // 2. Kiểm tra lớp học có tồn tại (nếu có chọn lớp)
+    // 2. Kiểm tra lớp học có tồn tại và đang hoạt động (nếu có chọn lớp)
     let className = "Chưa phân lớp";
     if (class_id && class_id.trim() !== "") {
       const { data: classRecord } = await supabase
         .from("classes")
-        .select("id, class_name, is_deleted")
+        .select("id, class_name, is_deleted, is_active")
         .eq("id", class_id)
         .maybeSingle();
 
-      if (!classRecord || classRecord.is_deleted) {
+      if (!classRecord || classRecord.is_deleted || !classRecord.is_active) {
         return apiError(
-          "Lớp học được chọn không tồn tại hoặc đã bị xóa.",
+          "Lớp học được chọn không tồn tại hoặc đang tạm ngưng hoạt động.",
           HttpStatus.BAD_REQUEST
         );
       }
@@ -88,6 +93,7 @@ export async function POST(req: Request) {
 
     // 3. Thêm học sinh mới vào bảng users
     const nowIso = new Date().toISOString();
+    const startingCoins = Math.max(0, initial_coins);
     const { data: newStudent, error: insertError } = await supabase
       .from("users")
       .insert({
@@ -96,8 +102,8 @@ export async function POST(req: Request) {
         pin_number: pin_number || "0000",
         class_id: class_id && class_id.trim() !== "" ? class_id : null,
         role: UserRole.STUDENT,
-        current_coins: 0,
-        total_earned_coins: 0,
+        current_coins: startingCoins,
+        total_earned_coins: startingCoins,
         free_spins: 0,
         is_active: true,
         is_deleted: false,
@@ -115,6 +121,26 @@ export async function POST(req: Request) {
     if (insertError || !newStudent) {
       console.error("Lỗi khi thêm học sinh vào users:", insertError?.message);
       return apiError("Không thể tạo hồ sơ học sinh. Vui lòng thử lại.");
+    }
+
+    // 4. Nếu có tặng xu khởi tạo ban đầu, ghi vào sổ cái coin_transactions
+    if (startingCoins > 0) {
+      const { error: txError } = await supabase.from("coin_transactions").insert({
+        user_id: newStudent.id,
+        amount: startingCoins,
+        balance_before: 0,
+        balance_after: startingCoins,
+        tx_type: CoinTxType.MANUAL_ADJUST,
+        reference_type: CoinReferenceType.MANUAL_ADJUST,
+        reference_id: null,
+        created_by: session.userId,
+        description: COIN_TX_DESCRIPTIONS.INITIAL_GRANT,
+        created_at: nowIso,
+      });
+
+      if (txError) {
+        console.error("Cảnh báo ghi log giao dịch xu khởi tạo:", txError.message);
+      }
     }
 
     const createdItem: StudentItem = {

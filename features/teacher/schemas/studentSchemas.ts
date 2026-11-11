@@ -22,6 +22,12 @@ export const createStudentSchema = z.object({
     .regex(/^\d{4}$/, "Mã PIN phải gồm đúng 4 chữ số.")
     .optional()
     .default("0000"),
+  initial_coins: z.coerce
+    .number()
+    .int("Số xu khởi tạo phải là số nguyên.")
+    .min(0, "Số xu khởi tạo không được âm.")
+    .optional()
+    .default(0),
 });
 
 export type CreateStudentInput = z.infer<typeof createStudentSchema>;
@@ -44,6 +50,7 @@ export const updateStudentSchema = z.object({
       "Số điện thoại Zalo không hợp lệ (ví dụ: 0912345678)."
     )
     .optional(),
+  class_id: z.string().trim().optional().nullable(),
 });
 
 export type UpdateStudentInput = z.infer<typeof updateStudentSchema>;

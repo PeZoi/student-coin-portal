@@ -221,8 +221,8 @@ export interface ModalFooterProps extends React.HTMLAttributes<HTMLDivElement> {
   isSubmitting?: boolean;
   /** Vô hiệu hóa nút Submit */
   submitDisabled?: boolean;
-  /** Phong cách nút submit: "primary" (xanh #0A62D6) hoặc "danger" (đỏ rose-600) */
-  submitVariant?: "primary" | "danger";
+  /** Phong cách nút submit: "primary" (xanh #0A62D6), "danger" (đỏ rose-600), "warning" (cam amber-600), "emerald" (xanh lá emerald-600) */
+  submitVariant?: "primary" | "danger" | "warning" | "emerald";
   /** Loại nút submit trong HTML ("button" hoặc "submit" cho form) */
   submitType?: "button" | "submit";
 }
@@ -307,6 +307,10 @@ export function ModalFooter({
               "h-10 px-5 rounded-xl text-white text-sm font-semibold transition-all shadow-xs cursor-pointer active:scale-98 disabled:opacity-60 inline-flex items-center justify-center gap-2",
               submitVariant === "danger"
                 ? "bg-rose-600 hover:bg-rose-700"
+                : submitVariant === "warning"
+                ? "bg-amber-600 hover:bg-amber-700"
+                : submitVariant === "emerald"
+                ? "bg-emerald-600 hover:bg-emerald-700"
                 : "bg-[#0A62D6] hover:bg-[#0850B0]"
             )}
           >

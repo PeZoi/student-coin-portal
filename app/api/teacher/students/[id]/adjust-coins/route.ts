@@ -2,7 +2,12 @@ import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
-import { HttpStatus } from "@/constants";
+import {
+  HttpStatus,
+  CoinTxType,
+  CoinReferenceType,
+  formatCoinTxDescription,
+} from "@/constants";
 import { UserRole } from "@/constants/auth";
 import { adjustStudentCoinsSchema } from "@/features/teacher/schemas/studentSchemas";
 
@@ -97,15 +102,18 @@ export async function POST(req: Request, { params }: RouteParams) {
 
     // 5. Nếu có biến động xu (amount > 0), ghi vào sổ cái coin_transactions
     if (amount > 0) {
+      const fullDescription = formatCoinTxDescription(reason, spins_change);
+
       const { error: txError } = await supabase.from("coin_transactions").insert({
         user_id: id,
         amount: coinDiff,
         balance_before: currentCoins,
         balance_after: newCoins,
-        tx_type: "MANUAL_ADJUST",
-        reference_type: "manual_adjust",
-        reference_id: session.userId,
-        description: reason.trim(),
+        tx_type: CoinTxType.MANUAL_ADJUST,
+        reference_type: CoinReferenceType.MANUAL_ADJUST,
+        reference_id: null,
+        created_by: session.userId,
+        description: fullDescription,
         created_at: new Date().toISOString(),
       });
 

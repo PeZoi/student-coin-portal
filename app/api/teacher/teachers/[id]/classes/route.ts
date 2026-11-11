@@ -63,7 +63,8 @@ export async function PUT(req: Request, { params }: RouteParams) {
         .from("classes")
         .select("id, class_name")
         .in("id", uniqueClassIds)
-        .eq("is_deleted", false);
+        .eq("is_deleted", false)
+        .eq("is_active", true);
 
       if (classCheckError) {
         console.error("Lỗi khi kiểm tra lớp học:", classCheckError.message);
@@ -72,7 +73,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
       if (!validClasses || validClasses.length !== uniqueClassIds.length) {
         return apiError(
-          "Một hoặc nhiều lớp học được chọn không tồn tại hoặc đã bị xóa.",
+          "Một hoặc nhiều lớp học được chọn không tồn tại, đã bị xóa hoặc đang tạm ngưng hoạt động.",
           HttpStatus.BAD_REQUEST
         );
       }
