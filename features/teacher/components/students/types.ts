@@ -21,6 +21,8 @@ export interface StudentItem {
   is_deleted: boolean;
   failed_login_attempts: number;
   locked_until: string | null;
+  lock_remaining_text?: string | null;
+  last_login_at?: string | null;
   created_at: string;
 }
 
@@ -47,6 +49,7 @@ export type StudentSortField =
   | "class_name"
   | "current_coins"
   | "pin_status"
+  | "last_login_at"
   | "created_at";
 
 export type SortDirection = "asc" | "desc" | "none";
@@ -55,7 +58,7 @@ export interface StudentFormValues {
   full_name: string;
   phone_zalo: string;
   pin_number?: string;
-  class_id: string;
+  class_id?: string;
   initial_coins?: number;
   is_active: boolean;
 }

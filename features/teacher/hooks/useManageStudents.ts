@@ -20,6 +20,31 @@ import {
   INITIAL_MOCK_STUDENTS,
   INITIAL_STUDENT_CLASSES,
 } from "../components/students/constants";
+import { calculateLockRemainingText } from "../components/students/StudentBadges";
+import { useMinuteTicker } from "../components/students/useMinuteTicker";
+
+function parseDateTime(dateTimeStr: string | null | undefined): number {
+  if (!dateTimeStr) return -1;
+  const trimmed = dateTimeStr.trim();
+  const spaceParts = trimmed.split(/\s+/);
+  if (spaceParts.length === 2) {
+    const [timePart, datePart] = spaceParts;
+    const [hourStr, minStr] = timePart.split(":");
+    const dateParts = datePart.split("/");
+    if (dateParts.length === 3) {
+      const day = parseInt(dateParts[0], 10);
+      const month = parseInt(dateParts[1], 10) - 1;
+      const year = parseInt(dateParts[2], 10);
+      const hour = parseInt(hourStr || "0", 10);
+      const minute = parseInt(minStr || "0", 10);
+      const d = new Date(year, month, day, hour, minute);
+      if (!isNaN(d.getTime())) return d.getTime();
+    }
+  }
+  const iso = new Date(trimmed);
+  if (!isNaN(iso.getTime())) return iso.getTime();
+  return -1;
+}
 
 export function useManageStudents(
   initialStudents?: StudentItem[],
@@ -55,6 +80,9 @@ export function useManageStudents(
   const [sortField, setSortField] = useState<StudentSortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("none");
 
+  // Minute ticker store: Tự động cập nhật mỗi phút, an toàn 100% với SSR Prerender và không vi phạm Rule 8
+  const currentMinute = useMinuteTicker();
+
   // 5. State cho các Modal
   const [isStudentFormOpen, setIsStudentFormOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<StudentItem | null>(null);
@@ -63,6 +91,7 @@ export function useManageStudents(
   const [isChangeClassOpen, setIsChangeClassOpen] = useState(false);
   const [changingClassStudent, setChangingClassStudent] =
     useState<StudentItem | null>(null);
+  const [isBatchChangeClassOpen, setIsBatchChangeClassOpen] = useState(false);
 
   const [isResetPinOpen, setIsResetPinOpen] = useState(false);
   const [resettingPinStudent, setResettingPinStudent] =
@@ -168,11 +197,16 @@ export function useManageStudents(
     });
 
     // d. Sắp xếp
+    const result = filtered.map((st) => ({
+      ...st,
+      lock_remaining_text: calculateLockRemainingText(st.locked_until, currentMinute),
+    }));
+
     if (!sortField || sortDirection === "none") {
-      return filtered;
+      return result;
     }
 
-    return [...filtered].sort((a, b) => {
+    return [...result].sort((a, b) => {
       let comparison = 0;
       switch (sortField) {
         case "full_name":
@@ -187,6 +221,15 @@ export function useManageStudents(
         case "pin_status":
           comparison = a.failed_login_attempts - b.failed_login_attempts;
           break;
+        case "last_login_at": {
+          const timeA = parseDateTime(a.last_login_at);
+          const timeB = parseDateTime(b.last_login_at);
+          if (timeA === -1 && timeB === -1) comparison = 0;
+          else if (timeA === -1) comparison = 1;
+          else if (timeB === -1) comparison = -1;
+          else comparison = timeA - timeB;
+          break;
+        }
         case "created_at":
           comparison = a.created_at.localeCompare(b.created_at);
           break;
@@ -200,6 +243,7 @@ export function useManageStudents(
     searchQuery,
     sortField,
     sortDirection,
+    currentMinute,
   ]);
 
   // 8. Đổi sắp xếp cột
@@ -263,7 +307,7 @@ export function useManageStudents(
       const targetClassName = matchedClass?.class_name || "Chưa phân lớp";
 
       if (editingStudent) {
-        // Cập nhật học sinh hiện có
+        // Cập nhật học sinh hiện có (giữ nguyên lớp học hiện tại, chuyển lớp dùng tính năng Chuyển lớp riêng)
         setStudentsList((prev) =>
           prev.map((s) =>
             s.id === editingStudent.id
@@ -271,8 +315,6 @@ export function useManageStudents(
                   ...s,
                   full_name: values.full_name,
                   phone_zalo: values.phone_zalo,
-                  class_id: values.class_id || null,
-                  class_name: targetClassName,
                   is_active: values.is_active,
                 }
               : s
@@ -324,7 +366,11 @@ export function useManageStudents(
   }, []);
 
   const handleChangeClassSubmit = useCallback(
-    async (studentId: string, newClassId: string, newClassName: string) => {
+    async (
+      studentId: string,
+      newClassId: string,
+      newClassName: string
+    ) => {
       setIsSubmitting(true);
       await new Promise((r) => setTimeout(r, 300));
 
@@ -343,10 +389,51 @@ export function useManageStudents(
       setIsSubmitting(false);
       setIsChangeClassOpen(false);
       setChangingClassStudent(null);
-      toast.success(`Đã chuyển học sinh sang "${newClassName}" thành công!`);
+      toast.success(
+        `Đã chuyển học sinh sang "${newClassName}" thành công!`
+      );
       return true;
     },
     []
+  );
+
+  const handleOpenBatchChangeClass = useCallback(() => {
+    setIsBatchChangeClassOpen(true);
+  }, []);
+
+  const handleCloseBatchChangeClass = useCallback(() => {
+    setIsBatchChangeClassOpen(false);
+  }, []);
+
+  const handleBatchChangeClassSubmit = useCallback(
+    async (
+      newClassId: string,
+      newClassName: string
+    ) => {
+      setIsSubmitting(true);
+      await new Promise((r) => setTimeout(r, 400));
+
+      setStudentsList((prev) =>
+        prev.map((s) =>
+          selection.selectedIds.includes(s.id)
+            ? {
+                ...s,
+                class_id: newClassId || null,
+                class_name: newClassName,
+              }
+            : s
+        )
+      );
+
+      setIsSubmitting(false);
+      setIsBatchChangeClassOpen(false);
+      toast.success(
+        `Đã chuyển ${selection.selectedIds.length} học sinh sang "${newClassName}" thành công!`
+      );
+      selection.handleClearSelection();
+      return true;
+    },
+    [selection]
   );
 
   // 13. Modal: Đặt lại mã PIN
@@ -411,7 +498,10 @@ export function useManageStudents(
 
           const change = values.type === "add" ? values.amount : -values.amount;
           const newCoins = Math.max(0, s.current_coins + change);
-          const newSpins = s.free_spins + (values.spins_change || 0);
+          const newSpins = Math.max(
+            0,
+            (s.free_spins ?? 0) + (values.spins_change || 0)
+          );
           const newEarned =
             values.type === "add"
               ? s.total_earned_coins + values.amount
@@ -429,11 +519,29 @@ export function useManageStudents(
       setIsSubmitting(false);
       setIsAdjustCoinsOpen(false);
       setAdjustingCoinsStudent(null);
-      toast.success(
-        values.type === "add"
-          ? `Đã thưởng +${values.amount} xu cho bé ${values.student_name}! 🎉`
-          : `Đã trừ ${values.amount} xu của bé ${values.student_name}.`
-      );
+      if (
+        values.spins_change !== undefined &&
+        values.spins_change !== 0 &&
+        values.amount === 0
+      ) {
+        if (values.spins_change > 0) {
+          toast.success(
+            `Đã thưởng +${values.spins_change} lượt quay cho bé ${values.student_name}! 🎡`
+          );
+        } else {
+          toast.success(
+            `Đã trừ ${Math.abs(values.spins_change)} lượt quay của bé ${values.student_name}.`
+          );
+        }
+      } else if (values.type === "add") {
+        toast.success(
+          `Đã thưởng +${values.amount} xu cho bé ${values.student_name}! 🎉`
+        );
+      } else {
+        toast.success(
+          `Đã trừ ${values.amount} xu của bé ${values.student_name}.`
+        );
+      }
       return true;
     },
     []
@@ -678,6 +786,10 @@ export function useManageStudents(
     handleOpenChangeClass,
     handleCloseChangeClass,
     handleChangeClassSubmit,
+    isBatchChangeClassOpen,
+    handleOpenBatchChangeClass,
+    handleCloseBatchChangeClass,
+    handleBatchChangeClassSubmit,
 
     // Modal: Đặt lại PIN
     isResetPinOpen,

@@ -56,6 +56,7 @@ export const INITIAL_MOCK_STUDENTS: StudentItem[] = [
     is_deleted: false,
     failed_login_attempts: 0,
     locked_until: null,
+    last_login_at: "20:57 06/11/2026",
     created_at: "06/11/2026",
   },
   {
@@ -73,6 +74,7 @@ export const INITIAL_MOCK_STUDENTS: StudentItem[] = [
     is_deleted: false,
     failed_login_attempts: 0,
     locked_until: null,
+    last_login_at: "21:25 10/11/2026",
     created_at: "04/11/2026",
   },
   {
@@ -90,6 +92,7 @@ export const INITIAL_MOCK_STUDENTS: StudentItem[] = [
     is_deleted: false,
     failed_login_attempts: 0,
     locked_until: null,
+    last_login_at: "16:40 09/11/2026",
     created_at: "02/11/2026",
   },
   {
@@ -107,6 +110,7 @@ export const INITIAL_MOCK_STUDENTS: StudentItem[] = [
     is_deleted: false,
     failed_login_attempts: 1,
     locked_until: null,
+    last_login_at: "08:15 10/11/2026",
     created_at: "03/11/2026",
   },
   {
@@ -124,6 +128,7 @@ export const INITIAL_MOCK_STUDENTS: StudentItem[] = [
     is_deleted: false,
     failed_login_attempts: 5,
     locked_until: "2026-11-10T22:30:00.000Z",
+    last_login_at: "22:30 10/11/2026",
     created_at: "01/11/2026",
   },
   {
@@ -141,6 +146,7 @@ export const INITIAL_MOCK_STUDENTS: StudentItem[] = [
     is_deleted: false,
     failed_login_attempts: 0,
     locked_until: null,
+    last_login_at: "14:10 08/11/2026",
     created_at: "05/11/2026",
   },
   {
@@ -158,6 +164,7 @@ export const INITIAL_MOCK_STUDENTS: StudentItem[] = [
     is_deleted: false,
     failed_login_attempts: 0,
     locked_until: null,
+    last_login_at: null,
     created_at: "07/11/2026",
   },
   {
@@ -175,6 +182,7 @@ export const INITIAL_MOCK_STUDENTS: StudentItem[] = [
     is_deleted: false,
     failed_login_attempts: 0,
     locked_until: null,
+    last_login_at: "09:30 10/11/2026",
     created_at: "08/11/2026",
   },
   {
@@ -192,6 +200,7 @@ export const INITIAL_MOCK_STUDENTS: StudentItem[] = [
     is_deleted: false,
     failed_login_attempts: 0,
     locked_until: null,
+    last_login_at: null,
     created_at: "09/11/2026",
   },
 ];

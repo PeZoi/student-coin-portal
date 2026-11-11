@@ -138,20 +138,31 @@ export function ClassesTable(props?: ClassesTableProps) {
         </TableRow>
       </TableHeader>
 
-      <TableBody striped>
-        {items.map((item) => (
-          <TableRow key={item.id} className={item.is_deleted ? "bg-rose-50/20" : undefined}>
-            {/* Checkbox chọn hàng (Chỉ Admin mới có) */}
-            {isAdmin && (
-              <TableCell className="w-10 px-3 text-center">
-                <input
-                  type="checkbox"
-                  checked={selectedIds.includes(item.id)}
-                  onChange={() => handleToggleSelect(item.id)}
-                  className="w-4 h-4 rounded border-slate-300 text-[#0A62D6] focus:ring-[#0A62D6] cursor-pointer accent-[#0A62D6]"
-                />
-              </TableCell>
-            )}
+      <TableBody>
+        {items.map((item) => {
+          const checked = selectedIds.includes(item.id);
+          return (
+            <TableRow
+              key={item.id}
+              className={`transition-colors ${
+                item.is_deleted
+                  ? "bg-rose-50/20 hover:bg-rose-50/40"
+                  : checked
+                  ? "bg-[#EAF2FF]/40 hover:bg-[#EAF2FF]/60"
+                  : "hover:bg-slate-50/70"
+              }`}
+            >
+              {/* Checkbox chọn hàng (Chỉ Admin mới có) */}
+              {isAdmin && (
+                <TableCell className="w-10 px-3 text-center">
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => handleToggleSelect(item.id)}
+                    className="w-4 h-4 rounded border-slate-300 text-[#0A62D6] focus:ring-[#0A62D6] cursor-pointer accent-[#0A62D6]"
+                  />
+                </TableCell>
+              )}
 
             {/* Tên lớp */}
             <TableCell>
@@ -280,7 +291,8 @@ export function ClassesTable(props?: ClassesTableProps) {
               />
             </TableCell>
           </TableRow>
-        ))}
+        );
+      })}
       </TableBody>
     </Table>
   );

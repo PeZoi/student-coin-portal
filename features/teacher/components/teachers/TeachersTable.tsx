@@ -138,7 +138,7 @@ export function TeachersTable(props?: TeachersTableProps) {
               onClick={() => onSortToggle("last_login_at")}
               className="inline-flex items-center gap-1 font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer select-none whitespace-nowrap"
             >
-              <span>Đăng nhập lần cuối</span>
+              <span>Lần cuối đăng nhập</span>
               {renderSortIcon("last_login_at")}
             </button>
           </TableHead>
@@ -160,7 +160,7 @@ export function TeachersTable(props?: TeachersTableProps) {
         </TableRow>
       </TableHeader>
 
-      <TableBody striped>
+      <TableBody>
         {items.map((item) => {
           const color = getTeacherColor(item.full_name);
           const initial = getTeacherInitial(item.full_name);
@@ -169,8 +169,12 @@ export function TeachersTable(props?: TeachersTableProps) {
           return (
             <TableRow
               key={item.id}
-              className={`${checked ? "bg-blue-50/60" : ""} ${
-                item.is_deleted ? "bg-rose-50/30" : ""
+              className={`transition-colors ${
+                item.is_deleted
+                  ? "bg-rose-50/20 hover:bg-rose-50/40"
+                  : checked
+                  ? "bg-[#EAF2FF]/40 hover:bg-[#EAF2FF]/60"
+                  : "hover:bg-slate-50/70"
               }`}
             >
               {/* Checkbox chọn dòng (Chỉ Quản trị viên tối cao) */}

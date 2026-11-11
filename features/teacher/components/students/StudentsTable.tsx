@@ -1,6 +1,7 @@
 import {
   Phone,
   Calendar,
+  Clock,
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
@@ -9,12 +10,12 @@ import { StudentItem, StudentSortField, SortDirection } from "./types";
 import {
   StudentStatusBadge,
   StudentClassBadge,
-  StudentPinBadge,
   StudentCoinsBadge,
 } from "./StudentBadges";
 import { StudentRowActions } from "./StudentRowActions";
 import { getStudentInitial } from "./constants";
 import { formatDate } from "@/lib/date";
+import { Tooltip } from "@/components/ui/tooltip";
 import {
   Table,
   TableHeader,
@@ -93,7 +94,6 @@ export function StudentsTable(props?: StudentsTableProps) {
                 checked={isAllChecked}
                 onChange={() => handleSelectAll(allVisibleIds)}
                 className="w-4 h-4 rounded border-slate-300 text-[#0A62D6] focus:ring-[#0A62D6] cursor-pointer"
-                aria-label="Chọn tất cả học sinh"
               />
             </div>
           </TableHead>
@@ -134,23 +134,23 @@ export function StudentsTable(props?: StudentsTableProps) {
             </button>
           </TableHead>
 
-          {/* Cột Trạng thái PIN */}
-          <TableHead className="min-w-[150px]">
-            <button
-              type="button"
-              onClick={() => onSortToggle("pin_status")}
-              className="flex items-center text-xs font-bold text-slate-700 hover:text-[#0A62D6] transition-colors cursor-pointer select-none"
-            >
-              <span>Bảo mật PIN</span>
-              {renderSortIcon("pin_status")}
-            </button>
-          </TableHead>
-
-          {/* Cột Trạng thái tài khoản */}
-          <TableHead className="min-w-[110px]">
+          {/* Cột Trạng thái tài khoản & Bảo mật PIN (Đã gộp) */}
+          <TableHead className="min-w-[140px]">
             <span className="text-xs font-bold text-slate-700 select-none">
               Trạng thái
             </span>
+          </TableHead>
+
+          {/* Cột Đăng nhập lần cuối */}
+          <TableHead className="min-w-[150px]">
+            <button
+              type="button"
+              onClick={() => onSortToggle("last_login_at")}
+              className="flex items-center text-xs font-bold text-slate-700 hover:text-[#0A62D6] transition-colors cursor-pointer select-none"
+            >
+              <span>Lần cuối đăng nhập</span>
+              {renderSortIcon("last_login_at")}
+            </button>
           </TableHead>
 
           {/* Cột Ngày tham gia */}
@@ -166,7 +166,7 @@ export function StudentsTable(props?: StudentsTableProps) {
           </TableHead>
 
           {/* Cột Thao tác */}
-          <TableHead className="w-36 text-right pr-6">
+          <TableHead className="w-20 text-right pr-6">
             <span className="text-xs font-bold text-slate-700 select-none">
               Thao tác
             </span>
@@ -196,7 +196,6 @@ export function StudentsTable(props?: StudentsTableProps) {
                     checked={checked}
                     onChange={() => handleToggleSelect(student.id)}
                     className="w-4 h-4 rounded border-slate-300 text-[#0A62D6] focus:ring-[#0A62D6] cursor-pointer"
-                    aria-label={`Chọn học sinh ${student.full_name}`}
                   />
                 </div>
               </TableCell>
@@ -208,9 +207,21 @@ export function StudentsTable(props?: StudentsTableProps) {
                     {avatarLetter}
                   </div>
                   <div className="min-w-0">
-                    <div className="font-bold text-[13px] text-[#0F172A] truncate">
-                      {student.full_name}
-                    </div>
+                    {student.is_deleted ? (
+                      <span className="font-bold text-[13px] text-slate-400 line-through block truncate">
+                        {student.full_name}
+                      </span>
+                    ) : (
+                      <Tooltip content={`Click để chỉnh sửa thông tin học sinh ${student.full_name}`} side="top">
+                        <button
+                          type="button"
+                          onClick={() => onEdit?.(student)}
+                          className="text-left font-bold text-[13px] text-[#0F172A] hover:text-[#0A62D6] hover:underline transition-colors block truncate cursor-pointer"
+                        >
+                          {student.full_name}
+                        </button>
+                      </Tooltip>
+                    )}
                     <div className="text-[11px] text-[#64748B] flex items-center gap-1 font-mono mt-0.5">
                       <Phone className="w-3 h-3 text-slate-400 shrink-0" />
                       <span>{student.phone_zalo}</span>
@@ -232,20 +243,29 @@ export function StudentsTable(props?: StudentsTableProps) {
                 />
               </TableCell>
 
-              {/* Bảo mật PIN */}
-              <TableCell>
-                <StudentPinBadge
-                  failedAttempts={student.failed_login_attempts}
-                  lockedUntil={student.locked_until}
-                />
-              </TableCell>
-
-              {/* Trạng thái tài khoản */}
+              {/* Trạng thái học sinh (Gộp trạng thái tài khoản & Bảo mật PIN) */}
               <TableCell>
                 <StudentStatusBadge
                   isActive={student.is_active}
                   isDeleted={student.is_deleted}
+                  failedAttempts={student.failed_login_attempts}
+                  lockedUntil={student.locked_until}
+                  lockRemainingText={student.lock_remaining_text}
                 />
+              </TableCell>
+
+              {/* Đăng nhập lần cuối */}
+              <TableCell className="whitespace-nowrap">
+                {student.last_login_at ? (
+                  <div className="inline-flex items-center gap-1.5 text-xs font-sans font-medium text-slate-700 tabular-nums">
+                    <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span>{student.last_login_at}</span>
+                  </div>
+                ) : (
+                  <span className="text-slate-400 text-xs italic">
+                    Chưa đăng nhập
+                  </span>
+                )}
               </TableCell>
 
               {/* Ngày vào lớp */}

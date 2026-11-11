@@ -8,6 +8,7 @@ import {
   Lock,
   Unlock,
   Loader2,
+  ArrowRightLeft,
 } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useManageStudentsContext } from "../../contexts/ManageStudentsContext";
@@ -27,6 +28,7 @@ export function StudentsBatchBar() {
     handleBatchDeactivate,
     handleBatchSoftDelete,
     handleOpenBatchPermanentModal,
+    handleOpenBatchChangeClass,
     isSubmitting,
     batchActionLoading,
   } = useManageStudentsContext();
@@ -106,6 +108,19 @@ export function StudentsBatchBar() {
           </>
         ) : (
           <>
+            {/* Nút Chuyển lớp hàng loạt */}
+            <Tooltip content="Chuyển tất cả học sinh đã chọn sang lớp học khác" side="top">
+              <button
+                type="button"
+                onClick={handleOpenBatchChangeClass}
+                disabled={isAnyLoading}
+                className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl bg-[#0A62D6] hover:bg-[#0850B0] text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <ArrowRightLeft className="w-4 h-4" />
+                <span>Chuyển lớp ({selectedIds.length})</span>
+              </button>
+            </Tooltip>
+
             {/* Nút Kích hoạt hàng loạt */}
             <Tooltip content="Kích hoạt trạng thái đang học cho các bạn đã chọn" side="top">
               <button

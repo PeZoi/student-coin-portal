@@ -8,6 +8,7 @@ import { StudentsTable } from "./students/StudentsTable";
 import { StudentsMobileList } from "./students/StudentsMobileList";
 import { StudentFormModal } from "./students/StudentFormModal";
 import { ChangeStudentClassModal } from "./students/ChangeStudentClassModal";
+import { BatchChangeClassModal } from "./students/BatchChangeClassModal";
 import { ResetStudentPinModal } from "./students/ResetStudentPinModal";
 import { AdjustStudentCoinsModal } from "./students/AdjustStudentCoinsModal";
 import { DeleteStudentModal } from "./students/DeleteStudentModal";
@@ -108,6 +109,9 @@ function ManageStudentsContent() {
 
       {/* 5. Modal Chuyển lớp học */}
       <ChangeStudentClassModal />
+
+      {/* 5.1 Modal Chuyển lớp học hàng loạt */}
+      <BatchChangeClassModal />
 
       {/* 6. Modal Đặt lại mã PIN & Mở khóa tài khoản */}
       <ResetStudentPinModal />

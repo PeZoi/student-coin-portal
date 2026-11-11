@@ -8,6 +8,7 @@ import {
   SortDirection,
 } from "../../components/teachers/types";
 import { normalizeText, parseDate } from "../../components/classes/utils";
+import { UserRole } from "@/constants/auth";
 
 /**
  * Hỗ trợ phân tích chuỗi ngày giờ "HH:mm dd/MM/yyyy" hoặc "dd/MM/yyyy" sang timestamp để sắp xếp
@@ -77,6 +78,11 @@ export function useTeacherFilters({
     let assignedCount = 0;
 
     for (const item of teachersList) {
+      // Ẩn hoàn toàn tài khoản Quản trị viên (Admin) khỏi danh sách giáo viên
+      if (item.role === UserRole.ADMIN) {
+        continue;
+      }
+
       if (item.is_deleted) {
         deleted += 1;
       } else {
@@ -122,6 +128,11 @@ export function useTeacherFilters({
     const normalizedQuery = normalizeText(deferredSearchQuery);
 
     const list = teachersList.filter((item) => {
+      // Ẩn hoàn toàn tài khoản Quản trị viên (Admin) khỏi danh sách giáo viên
+      if (item.role === UserRole.ADMIN) {
+        return false;
+      }
+
       if (statusFilter === "deleted") {
         if (!item.is_deleted) return false;
       } else {

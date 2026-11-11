@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { ArrowRightLeft, School } from "lucide-react";
+import { ArrowRightLeft, School, Info } from "lucide-react";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { TeacherSelect, TeacherSelectOption } from "@/components/ui/TeacherSelect";
 import { StudentItem } from "./types";
@@ -116,10 +116,29 @@ function ChangeStudentClassDialogContent({
       <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
         <ModalBody>
           <div className="space-y-4">
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Chọn lớp học mới mà bạn muốn chuyển học sinh này vào. Toàn bộ lịch sử tích lũy số xu và bài tập sẽ được giữ nguyên.
-            </p>
+            {/* Callout thông tin chính sách bảo lưu */}
+            <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-100/90 text-blue-900 flex items-start gap-2.5">
+              <Info className="w-4 h-4 text-[#0A62D6] shrink-0 mt-0.5" />
+              <div className="space-y-1 leading-relaxed text-xs">
+                <p className="font-bold text-[#0F172A]">
+                  Chính sách bảo lưu bài tập & số xu:
+                </p>
+                <ul className="list-disc pl-4 space-y-1 text-slate-600 text-[11.5px]">
+                  <li>
+                    Toàn bộ số xu Heo Đất và các bài tập <strong>đã nộp</strong> ở
+                    lớp cũ được giữ nguyên 100%.
+                  </li>
+                  <li>
+                    Học sinh sẽ nhận các bài tập <strong>đang mở</strong> của lớp mới để làm và nhận thưởng xu.
+                  </li>
+                  <li>
+                    Các bài tập chưa làm ở lớp cũ sẽ tự động ẩn để tránh gây nợ bài tập.
+                  </li>
+                </ul>
+              </div>
+            </div>
 
+            {/* Dropdown chọn lớp tiếp nhận */}
             <TeacherSelect
               label="Chọn lớp học tiếp nhận"
               required
@@ -163,4 +182,3 @@ function ChangeStudentClassDialogContent({
     </Modal>
   );
 }
-

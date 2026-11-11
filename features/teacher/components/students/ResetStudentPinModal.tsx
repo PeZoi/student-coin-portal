@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { KeyRound, ShieldAlert, Sparkles } from "lucide-react";
+import { KeyRound, ShieldAlert } from "lucide-react";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { StudentItem } from "./types";
 import { useManageStudentsContext } from "../../contexts/ManageStudentsContext";
@@ -60,9 +60,12 @@ function ResetStudentPinDialogContent({
   const [newPin, setNewPin] = useState("0000");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const isLocked = Boolean(
-    studentItem.locked_until &&
-      new Date(studentItem.locked_until).getTime() > Date.now()
+  const [isLocked] = useState(() =>
+    Boolean(
+      (studentItem.locked_until &&
+        new Date(studentItem.locked_until).getTime() > Date.now()) ||
+        studentItem.failed_login_attempts >= 5
+    )
   );
 
   const handleClose = useCallback(() => {
@@ -82,11 +85,6 @@ function ResetStudentPinDialogContent({
 
     setErrorMessage("");
     await onSubmit(studentItem.id, trimmedPin);
-  };
-
-  const handleQuickPin = (pin: string) => {
-    setNewPin(pin);
-    if (errorMessage) setErrorMessage("");
   };
 
   return (
@@ -150,30 +148,9 @@ function ResetStudentPinDialogContent({
                 className="w-full h-11 pl-10 pr-4 rounded-xl bg-white border border-slate-300 text-base font-mono font-bold tracking-widest text-[#0F172A] placeholder-slate-400 transition-all focus:outline-none focus:border-[#0A62D6] focus:ring-2 focus:ring-[#0A62D6]/20"
               />
             </div>
-          </div>
-
-          {/* Gợi ý PIN nhanh */}
-          <div>
-            <label className="block text-xs font-bold text-slate-500 mb-2 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Gợi ý mã PIN nhanh tiện lợi:</span>
-            </label>
-            <div className="flex items-center gap-2">
-              {["0000", "1234", "9999", "1111"].map((quickPin) => (
-                <button
-                  key={quickPin}
-                  type="button"
-                  onClick={() => handleQuickPin(quickPin)}
-                  className={`flex-1 h-9 rounded-xl font-mono text-xs font-bold border transition-colors cursor-pointer ${
-                    newPin === quickPin
-                      ? "bg-[#0A62D6] text-white border-[#0A62D6] shadow-2xs"
-                      : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
-                  }`}
-                >
-                  {quickPin}
-                </button>
-              ))}
-            </div>
+            <p className="text-[11px] text-slate-500 mt-1.5">
+              Mã PIN mặc định là 0000 hoặc mã gồm 4 chữ số do giáo viên cấp lại cho học sinh.
+            </p>
           </div>
         </ModalBody>
 
@@ -205,4 +182,3 @@ function ResetStudentPinDialogContent({
     </Modal>
   );
 }
-

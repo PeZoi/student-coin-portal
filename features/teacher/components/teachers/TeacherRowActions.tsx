@@ -133,48 +133,19 @@ export function TeacherRowActions({
     };
   }, [isOpen]);
 
-  // Nếu là tài khoản trong thùng rác: Hiển thị 2 nút trực tiếp Khôi phục và Xóa vĩnh viễn
-  if (item.is_deleted) {
-    return (
-      <div
-        className={`inline-flex items-center gap-1.5 ${
-          fullWidth ? "w-full" : "justify-end"
-        }`}
-      >
-        <Tooltip content="Khôi phục tài khoản giáo viên" side="top">
-          <button
-            type="button"
-            onClick={() => onRestore?.(item)}
-            disabled={isRestoring}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[13px] font-semibold transition-colors cursor-pointer border border-emerald-200/80 disabled:opacity-50 ${
-              fullWidth ? "flex-1 h-10 px-3" : "h-9 px-3"
-            }`}
-          >
-            {isRestoring ? (
-              <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
-            ) : (
-              <RotateCcw className="w-4 h-4 text-emerald-600" />
-            )}
-            <span>Khôi phục</span>
-          </button>
-        </Tooltip>
+  const handleRestoreClick = () => {
+    setIsOpen(false);
+    if (onRestore) {
+      onRestore(item);
+    }
+  };
 
-        <Tooltip content="Xóa vĩnh viễn khỏi hệ thống" side="top">
-          <button
-            type="button"
-            onClick={() => onPermanentDelete?.(item)}
-            disabled={isRestoring}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-[13px] font-semibold transition-colors cursor-pointer border border-rose-200/80 disabled:opacity-50 ${
-              fullWidth ? "flex-1 h-10 px-3" : "h-9 px-3"
-            }`}
-          >
-            <Trash2 className="w-4 h-4 text-rose-600" />
-            <span>Xóa vĩnh viễn</span>
-          </button>
-        </Tooltip>
-      </div>
-    );
-  }
+  const handlePermanentDeleteClick = () => {
+    setIsOpen(false);
+    if (onPermanentDelete) {
+      onPermanentDelete(item);
+    }
+  };
 
   const handleAssignClick = () => {
     if (onAssignClasses) {
@@ -216,31 +187,43 @@ export function TeacherRowActions({
         fullWidth ? "w-full" : "justify-end"
       }`}
     >
-      {/* Nút Gán lớp */}
-      <Tooltip content="Phân công lớp phụ trách" side="top">
-        <button
-          type="button"
-          onClick={handleAssignClick}
-          className={`inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#EAF2FF] hover:bg-[#D8E7FD] text-[#0A62D6] text-[13px] font-semibold transition-colors cursor-pointer ${
-            fullWidth ? "flex-1 h-10 px-4" : "h-9 px-3"
-          }`}
-        >
-          <School className="w-4 h-4" />
-          <span>Gán lớp</span>
-        </button>
-      </Tooltip>
+      {/* Nút Gán lớp (chỉ hiện khi chưa xóa) */}
+      {!item.is_deleted && (
+        <Tooltip content="Phân công lớp phụ trách" side="top">
+          <button
+            type="button"
+            onClick={handleAssignClick}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#EAF2FF] hover:bg-[#D8E7FD] text-[#0A62D6] text-[13px] font-semibold transition-colors cursor-pointer ${
+              fullWidth ? "flex-1 h-10 px-4" : "h-9 px-3"
+            }`}
+          >
+            <School className="w-4 h-4" />
+            <span>Gán lớp</span>
+          </button>
+        </Tooltip>
+      )}
 
       {/* Nút 3 chấm mở popover */}
-      <Tooltip content="Thao tác khác" side="top">
+      <Tooltip content={item.is_deleted ? "Thao tác khôi phục hoặc xóa" : "Thao tác khác"} side="top">
         <button
           ref={buttonRef}
           type="button"
           onClick={handleToggleMenu}
-          className={`rounded-xl flex items-center justify-center border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer shrink-0 ${
-            fullWidth ? "w-10 h-10" : "w-9 h-9"
+          disabled={isRestoring}
+          className={`rounded-xl flex items-center justify-center border bg-white hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer shrink-0 ${
+            fullWidth ? "w-full h-10 gap-2 px-3 text-xs font-semibold" : "w-9 h-9"
+          } ${
+            item.is_deleted
+              ? "border-rose-200 text-rose-600 hover:bg-rose-50/50"
+              : "border-slate-200"
           }`}
         >
-          <MoreHorizontal className="w-4 h-4" />
+          {isRestoring ? (
+            <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+          ) : (
+            <MoreHorizontal className="w-4 h-4" />
+          )}
+          {fullWidth && <span>{item.is_deleted ? "Thao tác xóa/khôi phục" : "Thao tác"}</span>}
         </button>
       </Tooltip>
 
@@ -260,52 +243,82 @@ export function TeacherRowActions({
               menuPos.openUpward ? "origin-bottom-right" : "origin-top-right"
             }`}
           >
-            <button
-              type="button"
-              onClick={handleEditClick}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[#0F172A] hover:bg-slate-100 transition-colors text-left font-medium cursor-pointer"
-            >
-              <Pencil className="w-4 h-4 text-slate-500" />
-              <span>Chỉnh sửa thông tin</span>
-            </button>
+            {item.is_deleted ? (
+              /* Menu dành cho giáo viên trong thùng rác */
+              <>
+                <button
+                  type="button"
+                  onClick={handleRestoreClick}
+                  disabled={isRestoring}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-emerald-700 hover:bg-emerald-50 transition-colors text-left font-medium cursor-pointer disabled:opacity-50"
+                >
+                  <RotateCcw className="w-4 h-4 text-emerald-600" />
+                  <span>Khôi phục tài khoản</span>
+                </button>
 
-            <button
-              type="button"
-              onClick={handleResetPasswordClick}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[#0F172A] hover:bg-slate-100 transition-colors text-left font-medium cursor-pointer"
-            >
-              <KeyRound className="w-4 h-4 text-[#0A62D6]" />
-              <span>Đặt lại mật khẩu</span>
-            </button>
+                <div className="my-1 border-t border-slate-100" />
 
-            <button
-              type="button"
-              onClick={handleToggleStatusClick}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[#0F172A] hover:bg-slate-100 transition-colors text-left font-medium cursor-pointer"
-            >
-              {item.is_active ? (
-                <>
-                  <Lock className="w-4 h-4 text-amber-500" />
-                  <span>Tạm khóa tài khoản</span>
-                </>
-              ) : (
-                <>
-                  <Unlock className="w-4 h-4 text-[#15803D]" />
-                  <span>Mở khóa tài khoản</span>
-                </>
-              )}
-            </button>
+                <button
+                  type="button"
+                  onClick={handlePermanentDeleteClick}
+                  disabled={isRestoring}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-left font-medium cursor-pointer disabled:opacity-50"
+                >
+                  <Trash2 className="w-4 h-4 text-rose-500" />
+                  <span>Xóa vĩnh viễn</span>
+                </button>
+              </>
+            ) : (
+              /* Menu bình thường */
+              <>
+                <button
+                  type="button"
+                  onClick={handleEditClick}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[#0F172A] hover:bg-slate-100 transition-colors text-left font-medium cursor-pointer"
+                >
+                  <Pencil className="w-4 h-4 text-slate-500" />
+                  <span>Chỉnh sửa thông tin</span>
+                </button>
 
-            <div className="my-1 border-t border-slate-100" />
+                <button
+                  type="button"
+                  onClick={handleResetPasswordClick}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[#0F172A] hover:bg-slate-100 transition-colors text-left font-medium cursor-pointer"
+                >
+                  <KeyRound className="w-4 h-4 text-[#0A62D6]" />
+                  <span>Đặt lại mật khẩu</span>
+                </button>
 
-            <button
-              type="button"
-              onClick={handleDeleteClick}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-left font-medium cursor-pointer"
-            >
-              <Trash2 className="w-4 h-4 text-rose-500" />
-              <span>Xóa tài khoản</span>
-            </button>
+                <button
+                  type="button"
+                  onClick={handleToggleStatusClick}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[#0F172A] hover:bg-slate-100 transition-colors text-left font-medium cursor-pointer"
+                >
+                  {item.is_active ? (
+                    <>
+                      <Lock className="w-4 h-4 text-amber-500" />
+                      <span>Tạm khóa tài khoản</span>
+                    </>
+                  ) : (
+                    <>
+                      <Unlock className="w-4 h-4 text-[#15803D]" />
+                      <span>Mở khóa tài khoản</span>
+                    </>
+                  )}
+                </button>
+
+                <div className="my-1 border-t border-slate-100" />
+
+                <button
+                  type="button"
+                  onClick={handleDeleteClick}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-left font-medium cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4 text-rose-500" />
+                  <span>Xóa tài khoản</span>
+                </button>
+              </>
+            )}
           </div>,
           document.body
         )}

@@ -53,6 +53,7 @@ export async function getManageTeachersServer(
       `
       )
       .in("role", [UserRole.TEACHER, UserRole.SUPER_TEACHER])
+      .neq("role", UserRole.ADMIN)
       .order("is_active", { ascending: false })
       .order("created_at", { ascending: false });
 
@@ -128,8 +129,10 @@ export async function getManageTeachersServer(
       return 0;
     });
 
-    // 4. Tổng hợp dữ liệu TeacherStaffItem trả về
-    return teachersData.map((t) => {
+    // 4. Lọc bỏ tuyệt đối tài khoản Admin và tổng hợp dữ liệu TeacherStaffItem trả về
+    return teachersData
+      .filter((t) => t.role === UserRole.TEACHER || t.role === UserRole.SUPER_TEACHER)
+      .map((t) => {
       const classInfo = teacherClassesMap.get(t.id) || {
         names: [],
         ids: [],
