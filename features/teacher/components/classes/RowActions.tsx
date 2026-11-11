@@ -48,9 +48,13 @@ export function RowActions({
   const menuRef = useRef<HTMLDivElement>(null);
 
   let restoringId: string | null = null;
+  let isAdmin = false;
+  let canSoftDelete = false;
   try {
     const context = useTeacherClassesContext();
     restoringId = context.restoringId ?? null;
+    isAdmin = context.isAdmin ?? false;
+    canSoftDelete = context.canSoftDelete ?? false;
   } catch {
     // Nếu component được gọi độc lập ngoài context
   }
@@ -240,17 +244,21 @@ export function RowActions({
                   <span>Khôi phục lớp</span>
                 </button>
 
-                <div className="my-1 border-t border-slate-100" />
+                {isAdmin && (
+                  <>
+                    <div className="my-1 border-t border-slate-100" />
 
-                <button
-                  type="button"
-                  onClick={handlePermanentDeleteClick}
-                  disabled={restoringId === item.id}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-left font-medium cursor-pointer disabled:opacity-50"
-                >
-                  <Trash2 className="w-4 h-4 text-rose-500" />
-                  <span>Xóa vĩnh viễn</span>
-                </button>
+                    <button
+                      type="button"
+                      onClick={handlePermanentDeleteClick}
+                      disabled={restoringId === item.id}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-left font-medium cursor-pointer disabled:opacity-50"
+                    >
+                      <Trash2 className="w-4 h-4 text-rose-500" />
+                      <span>Xóa vĩnh viễn</span>
+                    </button>
+                  </>
+                )}
               </>
             ) : (
               /* Menu bình thường */
@@ -282,16 +290,20 @@ export function RowActions({
                   )}
                 </button>
 
-                <div className="my-1 border-t border-slate-100" />
+                {canSoftDelete && (
+                  <>
+                    <div className="my-1 border-t border-slate-100" />
 
-                <button
-                  type="button"
-                  onClick={handleDeleteClick}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-left font-medium cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4 text-rose-500" />
-                  <span>Xóa lớp học</span>
-                </button>
+                    <button
+                      type="button"
+                      onClick={handleDeleteClick}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-left font-medium cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4 text-rose-500" />
+                      <span>Xóa lớp học</span>
+                    </button>
+                  </>
+                )}
               </>
             )}
           </div>,

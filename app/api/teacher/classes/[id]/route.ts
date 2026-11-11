@@ -160,8 +160,16 @@ export async function DELETE(req: Request, { params }: RouteParams) {
     if (isPermanent) {
       if (session.role !== UserRole.ADMIN) {
         return apiError(
-          "Chỉ Quản trị viên tối cao (Admin) mới có quyền xóa vĩnh viễn lớp học.",
+          "Chỉ Quản trị viên tối cao (Admin) mới có quyền xóa vĩnh viễn lớp học. Giáo viên và Tổ trưởng chỉ có quyền chuyển vào thùng rác.",
           HttpStatus.FORBIDDEN
+        );
+      }
+
+      // Chỉ cho phép xóa vĩnh viễn lớp học đã nằm trong thùng rác
+      if (!targetClass.is_deleted) {
+        return apiError(
+          "Chỉ có thể xóa vĩnh viễn các lớp học đã nằm trong thùng rác.",
+          HttpStatus.BAD_REQUEST
         );
       }
 
@@ -217,7 +225,17 @@ export async function DELETE(req: Request, { params }: RouteParams) {
       );
     }
 
-    // 4. XÓA MỀM (TẦNG 1): Chuyển lớp học vào thùng rác (bảo vệ an toàn dữ liệu cho tất cả người dùng)
+    // 4. XÓA MỀM (TẦNG 1): Chuyển lớp học vào thùng rác - CHỈ SUPER_TEACHER và ADMIN mới có quyền
+    if (
+      session.role !== UserRole.SUPER_TEACHER &&
+      session.role !== UserRole.ADMIN
+    ) {
+      return apiError(
+        "Chỉ Tổ trưởng chuyên môn (Super Teacher) hoặc Quản trị viên (Admin) mới có quyền chuyển lớp học vào thùng rác. Giáo viên thường không có quyền này.",
+        HttpStatus.FORBIDDEN
+      );
+    }
+
     const { error: deleteError } = await supabase
       .from("classes")
       .update({
@@ -225,6 +243,8 @@ export async function DELETE(req: Request, { params }: RouteParams) {
         is_active: false,
         deleted_at: new Date().toISOString(),
         deleted_by: session.userId,
+        updated_at: new Date().toISOString(),
+        updated_by: session.userId,
       })
       .eq("id", id);
 

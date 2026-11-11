@@ -1,5 +1,12 @@
 import type { NextConfig } from "next";
 
+// Chỉ khống chế số worker khi chạy trên Windows local để tránh lỗi tràn Paging File (os error 1455 / 1450).
+// Trên Vercel/Linux, hệ thống sẽ tự do tận dụng tối đa vCPU được cấp phát.
+if (process.platform === "win32") {
+  process.env.NEXT_CPU_COUNT = process.env.NEXT_CPU_COUNT || "2";
+  process.env.NEXT_PRIVATE_WORKER_CORES = process.env.NEXT_PRIVATE_WORKER_CORES || "2";
+}
+
 const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,

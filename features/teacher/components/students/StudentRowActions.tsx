@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { StudentItem } from "./types";
 import { Tooltip } from "@/components/ui/tooltip";
+import { useManageStudentsContext } from "../../contexts/ManageStudentsContext";
 
 interface StudentRowActionsProps {
   item: StudentItem;
@@ -25,6 +26,7 @@ interface StudentRowActionsProps {
   onAdjustCoins?: (item: StudentItem) => void;
   onResetPin?: (item: StudentItem) => void;
   onToggleStatus?: (item: StudentItem) => void;
+  onUnlock?: (item: StudentItem) => void;
   onDelete?: (item: StudentItem) => void;
   onRestore?: (item: StudentItem) => void;
   onPermanentDelete?: (item: StudentItem) => void;
@@ -49,11 +51,16 @@ export function StudentRowActions({
   onAdjustCoins,
   onResetPin,
   onToggleStatus,
+  onUnlock,
   onDelete,
   onRestore,
   onPermanentDelete,
   isRestoring = false,
 }: StudentRowActionsProps) {
+  const context = useManageStudentsContext();
+  const isAdmin = context.isAdmin;
+  const canSoftDelete = context.canSoftDelete;
+  const handleUnlockAction = onUnlock ?? context.handleUnlockStudent;
   const [isOpen, setIsOpen] = useState(false);
   const [menuPos, setMenuPos] = useState<MenuPosition>({
     top: 0,
@@ -185,12 +192,23 @@ export function StudentRowActions({
     }
   };
 
+  const handleUnlockClick = () => {
+    setIsOpen(false);
+    handleUnlockAction?.(item);
+  };
+
   const handleDeleteClick = () => {
     setIsOpen(false);
     if (onDelete) {
       onDelete(item);
     }
   };
+
+  const isLocked = Boolean(
+    item.lock_remaining_text ||
+      (item.failed_login_attempts !== undefined &&
+        item.failed_login_attempts >= 5)
+  );
 
   return (
     <div
@@ -251,21 +269,36 @@ export function StudentRowActions({
                   <span>Khôi phục hồ sơ</span>
                 </button>
 
-                <div className="my-1 border-t border-slate-100" />
-
-                <button
-                  type="button"
-                  onClick={handlePermanentDeleteClick}
-                  disabled={isRestoring}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-left font-medium cursor-pointer disabled:opacity-50"
-                >
-                  <Trash2 className="w-4 h-4 text-rose-500" />
-                  <span>Xóa vĩnh viễn</span>
-                </button>
+                {isAdmin && (
+                  <>
+                    <div className="my-1 border-t border-slate-100" />
+                    <button
+                      type="button"
+                      onClick={handlePermanentDeleteClick}
+                      disabled={isRestoring}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-left font-medium cursor-pointer disabled:opacity-50"
+                    >
+                      <Trash2 className="w-4 h-4 text-rose-500" />
+                      <span>Xóa vĩnh viễn</span>
+                    </button>
+                  </>
+                )}
               </>
             ) : (
               /* Menu bình thường */
               <>
+                {/* Nếu học sinh đang bị khóa PIN, cho phép mở khóa tức thì */}
+                {isLocked && (
+                  <button
+                    type="button"
+                    onClick={handleUnlockClick}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-emerald-700 bg-emerald-50/70 hover:bg-emerald-100/70 transition-colors text-left font-bold cursor-pointer"
+                  >
+                    <Unlock className="w-4 h-4 text-emerald-600" />
+                    <span>Mở khóa PIN tức thì</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={handleEditClick}
@@ -299,7 +332,7 @@ export function StudentRowActions({
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[#0F172A] hover:bg-slate-100 transition-colors text-left font-medium cursor-pointer"
                 >
                   <KeyRound className="w-4 h-4 text-[#0A62D6]" />
-                  <span>Đặt lại mã PIN / Mở khóa</span>
+                  <span>Đặt lại mã PIN</span>
                 </button>
 
                 <button
@@ -320,16 +353,19 @@ export function StudentRowActions({
                   )}
                 </button>
 
-                <div className="my-1 border-t border-slate-100" />
-
-                <button
-                  type="button"
-                  onClick={handleDeleteClick}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-left font-medium cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4 text-rose-500" />
-                  <span>Xóa hồ sơ học sinh</span>
-                </button>
+                {canSoftDelete && (
+                  <>
+                    <div className="my-1 border-t border-slate-100" />
+                    <button
+                      type="button"
+                      onClick={handleDeleteClick}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-left font-medium cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4 text-rose-500" />
+                      <span>Xóa hồ sơ học sinh</span>
+                    </button>
+                  </>
+                )}
               </>
             )}
           </div>,

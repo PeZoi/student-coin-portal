@@ -1,3 +1,4 @@
+import Image from "next/image";
 import {
   Phone,
   Calendar,
@@ -203,9 +204,22 @@ export function StudentsTable(props?: StudentsTableProps) {
               {/* Tên & SĐT phụ huynh */}
               <TableCell>
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                    {avatarLetter}
-                  </div>
+                  {student.avatar_url ? (
+                    <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 shadow-2xs border border-slate-200 bg-slate-100 flex items-center justify-center">
+                      <Image
+                        src={student.avatar_url}
+                        alt={student.full_name}
+                        width={36}
+                        height={36}
+                        className="w-full h-full object-cover"
+                        unoptimized
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                      {avatarLetter}
+                    </div>
+                  )}
                   <div className="min-w-0">
                     {student.is_deleted ? (
                       <span className="font-bold text-[13px] text-slate-400 line-through block truncate">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { ArrowRightLeft, School, Users, Info } from "lucide-react";
+import { ArrowRightLeft, School, Users, Info, AlertTriangle } from "lucide-react";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { TeacherSelect, TeacherSelectOption } from "@/components/ui/TeacherSelect";
 import { useManageStudentsContext } from "../../contexts/ManageStudentsContext";
@@ -12,7 +12,8 @@ interface BatchChangeClassModalProps {
   selectedIds?: string[];
   onSubmit?: (
     newClassId: string,
-    newClassName: string
+    newClassName: string,
+    resetProgress?: boolean
   ) => Promise<boolean | void> | boolean | void;
   isSubmitting?: boolean;
 }
@@ -43,7 +44,8 @@ interface BatchChangeClassDialogContentProps {
   onClose: () => void;
   onSubmit: (
     newClassId: string,
-    newClassName: string
+    newClassName: string,
+    resetProgress?: boolean
   ) => Promise<boolean | void> | boolean | void;
   isSubmitting: boolean;
 }
@@ -58,6 +60,7 @@ function BatchChangeClassDialogContent({
   const [selectedClassId, setSelectedClassId] = useState(
     availableClasses[0]?.id ?? ""
   );
+  const [resetProgress, setResetProgress] = useState(false);
 
   const selectedStudents = useMemo(
     () => studentsList.filter((s) => selectedIds.includes(s.id)),
@@ -88,7 +91,7 @@ function BatchChangeClassDialogContent({
     const matchedClass = availableClasses.find((c) => c.id === selectedClassId);
     const targetClassName = matchedClass?.class_name || "Chưa phân lớp";
 
-    await onSubmit(selectedClassId, targetClassName);
+    await onSubmit(selectedClassId, targetClassName, resetProgress);
   };
 
   const previewCount = 4;
@@ -115,28 +118,50 @@ function BatchChangeClassDialogContent({
       <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
         <ModalBody>
           <div className="space-y-4">
-            {/* Callout thông tin chính sách bảo lưu */}
-            <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-100/90 text-blue-900 flex items-start gap-2.5">
-              <Info className="w-4 h-4 text-[#0A62D6] shrink-0 mt-0.5" />
-              <div className="space-y-1 leading-relaxed text-xs">
-                <p className="font-bold text-[#0F172A]">
-                  Chính sách bảo lưu bài tập & số xu:
-                </p>
-                <ul className="list-disc pl-4 space-y-1 text-slate-600 text-[11.5px]">
-                  <li>
-                    Toàn bộ số xu Heo Đất và các bài tập <strong>đã nộp</strong> ở
-                    lớp cũ được giữ nguyên 100%.
-                  </li>
-                  <li>
-                    Học sinh sẽ nhận các bài tập <strong>đang mở</strong> của lớp mới để làm và nhận thưởng xu.
-                  </li>
-                  <li>
-                    Các bài tập chưa làm ở lớp cũ sẽ tự động ẩn để tránh gây nợ bài
-                    tập cho các em.
-                  </li>
-                </ul>
+            {/* Callout thông tin chính sách: Đổi nội dung linh hoạt theo tuỳ chọn Reset */}
+            {resetProgress ? (
+              <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200/90 text-amber-900 flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-1 leading-relaxed text-xs">
+                  <p className="font-bold text-amber-950">
+                    Lưu ý khi đặt lại dữ liệu:
+                  </p>
+                  <ul className="list-disc pl-4 space-y-1 text-amber-800 text-[11.5px]">
+                    <li>
+                      Số dư xu và lượt quay của {selectedStudents.length} học sinh sẽ được <strong>đặt lại về 0</strong>.
+                    </li>
+                    <li>
+                      Toàn bộ bài tập đã làm và chưa nộp ở lớp cũ sẽ được <strong>xóa sạch</strong>.
+                    </li>
+                    <li>
+                      Các em sẽ tham gia lớp mới như các tài khoản mới.
+                    </li>
+                  </ul>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-100/90 text-blue-900 flex items-start gap-2.5">
+                <Info className="w-4 h-4 text-[#0A62D6] shrink-0 mt-0.5" />
+                <div className="space-y-1 leading-relaxed text-xs">
+                  <p className="font-bold text-[#0F172A]">
+                    Chính sách bảo lưu bài tập & số xu:
+                  </p>
+                  <ul className="list-disc pl-4 space-y-1 text-slate-600 text-[11.5px]">
+                    <li>
+                      Toàn bộ số xu Heo Đất và các bài tập <strong>đã nộp</strong> ở
+                      lớp cũ được giữ nguyên 100%.
+                    </li>
+                    <li>
+                      Học sinh sẽ nhận các bài tập <strong>đang mở</strong> của lớp mới để làm và nhận thưởng xu.
+                    </li>
+                    <li>
+                      Các bài tập chưa làm ở lớp cũ sẽ tự động ẩn để tránh gây nợ bài
+                      tập cho các em.
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            )}
 
             {/* Danh sách preview học sinh được chọn */}
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
@@ -175,6 +200,36 @@ function BatchChangeClassDialogContent({
               searchPlaceholder="Tìm kiếm tên lớp..."
               disabled={isSubmitting}
             />
+
+            {/* Checkbox tùy chọn Reset dữ liệu */}
+            <div
+              onClick={() => !isSubmitting && setResetProgress((prev) => !prev)}
+              className={`p-3 rounded-xl border transition-all cursor-pointer select-none flex items-start gap-3 ${
+                resetProgress
+                  ? "bg-amber-50/70 border-amber-300 ring-2 ring-amber-400/20"
+                  : "bg-slate-50 border-slate-200 hover:bg-slate-100/70"
+              }`}
+            >
+              <input
+                type="checkbox"
+                id="reset-batch-student-progress-checkbox"
+                checked={resetProgress}
+                onChange={(e) => setResetProgress(e.target.checked)}
+                disabled={isSubmitting}
+                className="mt-0.5 w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500 cursor-pointer shrink-0"
+              />
+              <div className="flex-1 text-xs">
+                <label
+                  htmlFor="reset-batch-student-progress-checkbox"
+                  className="font-bold text-[#0F172A] cursor-pointer block"
+                >
+                  Đặt lại toàn bộ tiến trình học sinh
+                </label>
+                <p className="text-slate-500 mt-0.5 text-[11.5px]">
+                  Xóa lịch sử bài tập cũ, đưa số dư xu và lượt quay về 0 cho tất cả {selectedStudents.length} em.
+                </p>
+              </div>
+            </div>
           </div>
         </ModalBody>
 
@@ -190,7 +245,11 @@ function BatchChangeClassDialogContent({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="h-10 px-5 rounded-xl bg-[#0A62D6] hover:bg-[#0850B0] text-white text-sm font-semibold transition-all shadow-xs cursor-pointer active:scale-98 disabled:opacity-60 inline-flex items-center gap-2"
+            className={`h-10 px-5 rounded-xl text-white text-sm font-semibold transition-all shadow-xs cursor-pointer active:scale-98 disabled:opacity-60 inline-flex items-center gap-2 ${
+              resetProgress
+                ? "bg-amber-600 hover:bg-amber-700"
+                : "bg-[#0A62D6] hover:bg-[#0850B0]"
+            }`}
           >
             {isSubmitting ? (
               <>
@@ -198,7 +257,9 @@ function BatchChangeClassDialogContent({
                 <span>Đang chuyển...</span>
               </>
             ) : (
-              <span>Xác nhận chuyển lớp</span>
+              <span>
+                {resetProgress ? "Xác nhận chuyển & Đặt lại" : "Xác nhận chuyển lớp"}
+              </span>
             )}
           </button>
         </ModalFooter>

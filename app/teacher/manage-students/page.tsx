@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { requireTeacher } from "@/lib/auth/guard";
 import { TeacherManageStudentsView } from "@/features/teacher/components/TeacherManageStudentsView";
 import { StudentsSkeleton } from "@/features/teacher/components/students/StudentsSkeleton";
+import { getManageStudentsServer } from "@/features/teacher/services/teacherStudentServerService";
 
 export const metadata: Metadata = {
   title: "Quản Lý Học Sinh Toàn Trường | Quản Trị Trường",
@@ -11,7 +12,14 @@ export const metadata: Metadata = {
 
 async function StudentsDataContainer() {
   const session = await requireTeacher();
-  return <TeacherManageStudentsView userRole={session.role} />;
+  const initialStudents = await getManageStudentsServer(session);
+
+  return (
+    <TeacherManageStudentsView
+      initialStudents={initialStudents}
+      userRole={session.role}
+    />
+  );
 }
 
 export default function ManageStudentsPage() {

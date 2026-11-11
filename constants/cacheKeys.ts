@@ -26,6 +26,12 @@ export const CACHE_KEYS = {
     /** Danh sách lớp học khả dụng để phân công cho giáo viên */
     AVAILABLE_CLASSES: "teachers-available-classes",
   },
+
+  // 3. Học sinh (Students)
+  STUDENTS: {
+    /** Danh sách đầy đủ học sinh toàn trường (Quản lý học sinh) */
+    MANAGE_ALL: "manage-students-all",
+  },
 } as const;
 
 export type CacheKeysType = typeof CACHE_KEYS;

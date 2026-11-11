@@ -473,6 +473,62 @@ export function TeacherClassesView({ initialClasses }: Props) {
        }
        ```
 
+---
+
+### Quy tắc 12: Kiến trúc Micro-Hooks (Anti God-Hook Pattern)
+* **Lý do bắt buộc áp dụng:**
+  - Khi một màn hình quản lý tính năng lớn (như Quản lý học sinh, Quản lý giáo viên, Quản lý lớp học...) có nhiều chức năng phức tạp: Lọc / Tìm kiếm / Sắp xếp / Tính toán KPIs, Quản lý trạng thái 5 - 8 Modals, và Các tương tác API / Mutations (thêm, sửa, xóa mềm, xóa vĩnh viễn, khôi phục, đổi trạng thái, tác vụ hàng loạt...).
+  - **Nghiêm cấm viết "God Hook":** Nhồi nhét toàn bộ logic state, modals và API mutations vào một file hook duy nhất dài 500 - 1000 dòng. Điều này làm code quá tải, khó đọc, khó debug và dễ gây lỗi xung đột state.
+
+* **Quy chuẩn giải pháp bắt buộc (Mô hình Root Orchestrator + Micro-Hooks):**
+  Tách hook thành các **Micro-Hook chuyên trách** đặt trong thư mục `features/<feature>/hooks/<entity>/`:
+  1. **`use<Entity>Filters.ts`:** Chuyên trách bộ lọc (`statusFilter`, `searchQuery`, `classId`), sắp xếp (`sortField`, `sortDirection`), tính toán KPIs tổng quan và danh sách đã lọc (`filteredItems`).
+  2. **`use<Entity>Modals.ts`:** Chuyên trách quản lý trạng thái đóng/mở và đối tượng đang chỉnh sửa của tất cả các Modals trong trang (Form thêm/sửa, Chuyển lớp, Đổi PIN, Thưởng xu, Xóa mềm, Xóa vĩnh viễn...).
+  3. **`use<Entity>Mutations.ts`:** Chuyên trách tương tác API (gọi qua Service), cập nhật bộ nhớ đệm SWR (`mutate()`), xử lý Optimistic UI, thông báo Toast (`sonner`) và quản lý các cờ loading (`isSubmitting`, `batchActionLoading`, `restoringId`).
+  4. **`useManage<Entity>.ts` (Root Orchestrator Hook):** Đóng vai trò "Nhạc trưởng" điều phối:
+     - Lấy dữ liệu danh sách qua `useSWR(CACHE_KEYS.xxx)` kết hợp `fallbackData: initialData`.
+     - Sử dụng hook chọn checkbox `useTableSelection<string>()`.
+     - Gọi và gộp kết quả từ 3 Micro-Hooks trên (`...filters, ...modals, ...mutations, ...selection`).
+     - **Quy chuẩn độ dài:** Root Orchestrator Hook **bắt buộc phải giữ ngắn gọn dưới 100 - 120 dòng code**!
+
+*Ví dụ chuẩn khi áp dụng Kiến trúc Micro-Hooks:*
+```tsx
+// ✅ ĐÚNG: features/teacher/hooks/useManageStudents.ts (Chỉ ~80 dòng, cực kỳ trong sáng)
+export function useManageStudents(initialStudents?: StudentItem[], userRole?: string) {
+  const { student } = useUserStore();
+  const currentRole = userRole || student?.role || UserRole.TEACHER;
+  const isAdmin = currentRole === UserRole.ADMIN;
+
+  // 1. SWR Data Fetching 2 tầng
+  const { data: studentsList = initialStudents ?? [], mutate, isLoading, error } = useSWR(
+    CACHE_KEYS.STUDENTS.MANAGE_ALL,
+    () => teacherStudentService.getManageStudents(),
+    { fallbackData: initialStudents, revalidateOnMount: !initialStudents }
+  );
+
+  // 2. Selection checkbox
+  const selection = useTableSelection<string>();
+
+  // 3. Ba Micro-Hooks chuyên trách
+  const filters = useStudentFilters({ studentsList, onFilterChange: selection.handleClearSelection });
+  const modals = useStudentModals({ isAdmin });
+  const mutations = useStudentMutations({ isAdmin, mutate, selectedIds: selection.selectedIds, handleClearSelection: selection.handleClearSelection, modals });
+
+  return {
+    isAdmin,
+    userRole: currentRole,
+    studentsList,
+    isLoading,
+    isError: Boolean(error),
+    ...filters,
+    ...selection,
+    ...modals,
+    ...mutations,
+  };
+}
+```
+
+
 
 
 

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { TeacherStaffItem } from "./types";
 import { Tooltip } from "@/components/ui/tooltip";
+import { useManageTeachersContext } from "../../contexts/ManageTeachersContext";
 
 interface TeacherRowActionsProps {
   item: TeacherStaffItem;
@@ -51,6 +52,16 @@ export function TeacherRowActions({
   onPermanentDelete,
   isRestoring = false,
 }: TeacherRowActionsProps) {
+  let isAdmin = false;
+  let canSoftDelete = false;
+  try {
+    const context = useManageTeachersContext();
+    isAdmin = context.isAdmin ?? false;
+    canSoftDelete = context.canSoftDelete ?? false;
+  } catch {
+    //
+  }
+
   const [isOpen, setIsOpen] = useState(false);
   const [menuPos, setMenuPos] = useState<MenuPosition>({
     top: 0,
@@ -256,17 +267,21 @@ export function TeacherRowActions({
                   <span>Khôi phục tài khoản</span>
                 </button>
 
-                <div className="my-1 border-t border-slate-100" />
+                {isAdmin && (
+                  <>
+                    <div className="my-1 border-t border-slate-100" />
 
-                <button
-                  type="button"
-                  onClick={handlePermanentDeleteClick}
-                  disabled={isRestoring}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-left font-medium cursor-pointer disabled:opacity-50"
-                >
-                  <Trash2 className="w-4 h-4 text-rose-500" />
-                  <span>Xóa vĩnh viễn</span>
-                </button>
+                    <button
+                      type="button"
+                      onClick={handlePermanentDeleteClick}
+                      disabled={isRestoring}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-left font-medium cursor-pointer disabled:opacity-50"
+                    >
+                      <Trash2 className="w-4 h-4 text-rose-500" />
+                      <span>Xóa vĩnh viễn</span>
+                    </button>
+                  </>
+                )}
               </>
             ) : (
               /* Menu bình thường */
@@ -307,16 +322,20 @@ export function TeacherRowActions({
                   )}
                 </button>
 
-                <div className="my-1 border-t border-slate-100" />
+                {canSoftDelete && (
+                  <>
+                    <div className="my-1 border-t border-slate-100" />
 
-                <button
-                  type="button"
-                  onClick={handleDeleteClick}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-left font-medium cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4 text-rose-500" />
-                  <span>Xóa tài khoản</span>
-                </button>
+                    <button
+                      type="button"
+                      onClick={handleDeleteClick}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-left font-medium cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4 text-rose-500" />
+                      <span>Xóa tài khoản</span>
+                    </button>
+                  </>
+                )}
               </>
             )}
           </div>,

@@ -22,8 +22,10 @@ export const createTeacherSchema = z.object({
   phone_zalo: z
     .string()
     .trim()
-    .optional()
-    .or(z.literal("")),
+    .regex(
+      /^(0|\+84)[3|5|7|8|9][0-9]{8}$/,
+      "Số điện thoại Zalo không hợp lệ."
+    ),
   email: z
     .string()
     .trim()

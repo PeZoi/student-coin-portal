@@ -20,6 +20,8 @@ import { useManageStudentsContext } from "../../contexts/ManageStudentsContext";
  */
 export function StudentsBatchBar() {
   const {
+    isAdmin,
+    canSoftDelete,
     selectedIds,
     statusFilter,
     handleClearSelection,
@@ -81,30 +83,32 @@ export function StudentsBatchBar() {
               </button>
             </Tooltip>
 
-            {/* Nút Xóa vĩnh viễn tất cả đã chọn */}
-            <Tooltip
-              content="Mở hộp thoại xác nhận xóa vĩnh viễn các hồ sơ đã chọn"
-              side="top"
-            >
-              <button
-                type="button"
-                onClick={handleOpenBatchPermanentModal}
-                disabled={isAnyLoading}
-                className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
+            {/* Nút Xóa vĩnh viễn tất cả đã chọn (Chỉ Admin) */}
+            {isAdmin && (
+              <Tooltip
+                content="Mở hộp thoại xác nhận xóa vĩnh viễn các hồ sơ đã chọn"
+                side="top"
               >
-                {batchActionLoading === "delete_permanent" ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Đang xóa...</span>
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="w-4 h-4" />
-                    <span>Xóa vĩnh viễn ({selectedIds.length})</span>
-                  </>
-                )}
-              </button>
-            </Tooltip>
+                <button
+                  type="button"
+                  onClick={handleOpenBatchPermanentModal}
+                  disabled={isAnyLoading}
+                  className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {batchActionLoading === "delete_permanent" ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Đang xóa...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      <span>Xóa vĩnh viễn ({selectedIds.length})</span>
+                    </>
+                  )}
+                </button>
+              </Tooltip>
+            )}
           </>
         ) : (
           <>
@@ -165,30 +169,32 @@ export function StudentsBatchBar() {
               </button>
             </Tooltip>
 
-            {/* Nút Chuyển thùng rác hàng loạt */}
-            <Tooltip
-              content="Chuyển tất cả học sinh đã chọn vào thùng rác"
-              side="top"
-            >
-              <button
-                type="button"
-                onClick={handleBatchSoftDelete}
-                disabled={isAnyLoading}
-                className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
+            {/* Nút Chuyển thùng rác hàng loạt (Super Teacher và Admin) */}
+            {canSoftDelete && (
+              <Tooltip
+                content="Chuyển tất cả học sinh đã chọn vào thùng rác"
+                side="top"
               >
-                {batchActionLoading === "delete_soft" ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Đang chuyển...</span>
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="w-4 h-4" />
-                    <span>Chuyển thùng rác ({selectedIds.length})</span>
-                  </>
-                )}
-              </button>
-            </Tooltip>
+                <button
+                  type="button"
+                  onClick={handleBatchSoftDelete}
+                  disabled={isAnyLoading}
+                  className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {batchActionLoading === "delete_soft" ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Đang chuyển...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      <span>Chuyển thùng rác ({selectedIds.length})</span>
+                    </>
+                  )}
+                </button>
+              </Tooltip>
+            )}
           </>
         )}
 

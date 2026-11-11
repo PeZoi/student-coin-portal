@@ -10,10 +10,10 @@ export interface StudentItem {
   id: string;
   full_name: string;
   phone_zalo: string;
-  pin_number: string;
+  pin_number?: string | null;
   class_id: string | null;
   class_name: string;
-  avatar_url: string | null;
+  avatar_url?: string | null;
   current_coins: number;
   free_spins: number;
   total_earned_coins: number;

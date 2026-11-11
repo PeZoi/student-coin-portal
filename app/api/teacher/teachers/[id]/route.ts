@@ -280,7 +280,17 @@ export async function DELETE(req: Request, { params }: RouteParams) {
       );
     }
 
-    // 3. Xóa mềm (Soft delete - Chuyển thùng rác)
+    // 3. Xóa mềm (Soft delete - Chuyển thùng rác): CHỈ SUPER_TEACHER và ADMIN mới có quyền
+    if (
+      session.role !== UserRole.SUPER_TEACHER &&
+      session.role !== UserRole.ADMIN
+    ) {
+      return apiError(
+        "Chỉ Tổ trưởng chuyên môn (Super Teacher) hoặc Quản trị viên (Admin) mới có quyền chuyển tài khoản giáo viên vào thùng rác. Giáo viên thường không có quyền này.",
+        HttpStatus.FORBIDDEN
+      );
+    }
+
     const { error: softDeleteError } = await supabase
       .from("users")
       .update({

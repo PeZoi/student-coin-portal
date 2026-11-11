@@ -199,8 +199,18 @@ export async function POST(req: Request) {
       );
     }
 
-    // 5. Chuyển vào thùng rác hàng loạt (Xóa mềm - Chỉ áp dụng cho lớp chưa bị xóa)
+    // 5. Chuyển vào thùng rác hàng loạt (Xóa mềm - CHỈ SUPER_TEACHER và ADMIN mới có quyền)
     if (action === "delete_soft") {
+      if (
+        session.role !== UserRole.SUPER_TEACHER &&
+        session.role !== UserRole.ADMIN
+      ) {
+        return apiError(
+          "Chỉ Tổ trưởng chuyên môn (Super Teacher) hoặc Quản trị viên (Admin) mới có quyền chuyển các lớp học vào thùng rác.",
+          HttpStatus.FORBIDDEN
+        );
+      }
+
       const now = new Date().toISOString();
       const { data: softDeletedList, error: softDeleteError } = await supabase
         .from("classes")

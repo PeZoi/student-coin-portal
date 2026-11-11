@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Phone, Calendar, Clock } from "lucide-react";
 import { StudentItem } from "./types";
 import {
@@ -58,9 +59,22 @@ export function StudentCard({
             className="w-4 h-4 rounded border-slate-300 text-[#0A62D6] focus:ring-[#0A62D6] cursor-pointer shrink-0"
           />
 
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-            {avatarLetter}
-          </div>
+          {item.avatar_url ? (
+            <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 shadow-2xs border border-slate-200 bg-slate-100 flex items-center justify-center">
+              <Image
+                src={item.avatar_url}
+                alt={item.full_name}
+                width={40}
+                height={40}
+                className="w-full h-full object-cover"
+                unoptimized
+              />
+            </div>
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+              {avatarLetter}
+            </div>
+          )}
 
           <div className="min-w-0">
             <button

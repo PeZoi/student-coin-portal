@@ -27,6 +27,8 @@ export function useManageTeachers(
   const { student } = useUserStore();
   const currentRole = userRole || student?.role || UserRole.TEACHER;
   const isAdmin = currentRole === UserRole.ADMIN;
+  const canSoftDelete =
+    currentRole === UserRole.SUPER_TEACHER || currentRole === UserRole.ADMIN;
 
   // 1. Quản lý danh sách giáo viên qua SWR (Quy tắc 9): Tự động cache, 0 dòng useEffect
   const {
@@ -85,6 +87,7 @@ export function useManageTeachers(
 
   return {
     isAdmin,
+    canSoftDelete,
     userRole: currentRole,
     teachersList,
     availableClasses,
