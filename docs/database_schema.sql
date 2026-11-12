@@ -628,6 +628,7 @@ CREATE TABLE coin_transactions (
     -- 'TOP_RANK_BONUS': Thưởng Top 1/2/3 tổng xu cuối tháng
     -- 'TOP_PROGRESS_BONUS': Thưởng tiến bộ/nỗ lực cuối tháng
     -- 'MANUAL_ADJUST': Giáo viên điều chỉnh xu thủ công kèm lý do
+    -- 'SPEAKING_REWARD': Thưởng xu phát biểu, xây dựng bài hăng hái
     tx_type VARCHAR(30) NOT NULL CHECK (
         tx_type IN (
             'MISSION_REWARD', 
@@ -638,7 +639,8 @@ CREATE TABLE coin_transactions (
             'EXCHANGE_FULFILLED', 
             'TOP_RANK_BONUS', 
             'TOP_PROGRESS_BONUS', 
-            'MANUAL_ADJUST'
+            'MANUAL_ADJUST',
+            'SPEAKING_REWARD'
         )
     ),
     

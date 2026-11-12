@@ -13,6 +13,7 @@ export function StudentsMobileList() {
     handleOpenChangeClass,
     handleOpenEditStudent,
     handleOpenAdjustCoins,
+    handleOpenTransactions,
     handleOpenResetPin,
     handleToggleStudentStatus,
     handleOpenDeleteModal,
@@ -32,6 +33,7 @@ export function StudentsMobileList() {
           onChangeClass={handleOpenChangeClass}
           onEdit={handleOpenEditStudent}
           onAdjustCoins={handleOpenAdjustCoins}
+          onOpenTransactions={handleOpenTransactions}
           onResetPin={handleOpenResetPin}
           onToggleStatus={handleToggleStudentStatus}
           onDelete={handleOpenDeleteModal}

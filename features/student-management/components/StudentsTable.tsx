@@ -35,6 +35,7 @@ interface StudentsTableProps {
   onChangeClass?: (item: StudentItem) => void;
   onEdit?: (item: StudentItem) => void;
   onAdjustCoins?: (item: StudentItem) => void;
+  onOpenTransactions?: (item: StudentItem) => void;
   onResetPin?: (item: StudentItem) => void;
   onToggleStatus?: (item: StudentItem) => void;
   onDelete?: (item: StudentItem) => void;
@@ -52,6 +53,8 @@ export function StudentsTable(props?: StudentsTableProps) {
   const onChangeClass = props?.onChangeClass ?? context.handleOpenChangeClass;
   const onEdit = props?.onEdit ?? context.handleOpenEditStudent;
   const onAdjustCoins = props?.onAdjustCoins ?? context.handleOpenAdjustCoins;
+  const onOpenTransactions =
+    props?.onOpenTransactions ?? context.handleOpenTransactions;
   const onResetPin = props?.onResetPin ?? context.handleOpenResetPin;
   const onToggleStatus =
     props?.onToggleStatus ?? context.handleToggleStudentStatus;
@@ -254,6 +257,7 @@ export function StudentsTable(props?: StudentsTableProps) {
                 <StudentCoinsBadge
                   currentCoins={student.current_coins}
                   totalEarnedCoins={student.total_earned_coins}
+                  onClick={() => onOpenTransactions(student)}
                 />
               </TableCell>
 

@@ -31,6 +31,8 @@ export const CACHE_KEYS = {
   STUDENTS: {
     /** Danh sách đầy đủ học sinh toàn trường (Quản lý học sinh) */
     MANAGE_ALL: "manage-students-all",
+    /** Danh sách lịch sử giao dịch xu của học sinh */
+    TRANSACTIONS: (studentId: string) => `student-transactions-${studentId}`,
   },
 } as const;
 

@@ -11,6 +11,7 @@ import { ChangeStudentClassModal } from "./modals/ChangeStudentClassModal";
 import { BatchChangeClassModal } from "./modals/BatchChangeClassModal";
 import { ResetStudentPinModal } from "./modals/ResetStudentPinModal";
 import { AdjustStudentCoinsModal } from "./modals/AdjustStudentCoinsModal";
+import { StudentCoinTransactionsModal } from "./modals/StudentCoinTransactionsModal";
 import { DeleteStudentModal } from "./modals/DeleteStudentModal";
 import { PermanentDeleteStudentModal } from "./modals/PermanentDeleteStudentModal";
 import { StudentsBatchBar } from "./StudentsBatchBar";
@@ -140,6 +141,9 @@ function ManageStudentsContent() {
 
       {/* 7. Modal Thưởng / Trừ Heo Đất xu */}
       <AdjustStudentCoinsModal />
+
+      {/* 7.1 Modal Xem lịch sử biến động ví xu */}
+      <StudentCoinTransactionsModal />
 
       {/* 8. Modal Xác nhận chuyển học sinh vào thùng rác */}
       <DeleteStudentModal />

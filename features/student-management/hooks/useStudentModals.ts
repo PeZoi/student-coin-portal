@@ -151,6 +151,21 @@ export function useStudentModals({ isAdmin }: UseStudentModalsProps) {
     setIsBatchPermanentModalOpen(false);
   }, []);
 
+  // 8. Modal Lịch sử giao dịch ví xu
+  const [isTransactionsOpen, setIsTransactionsOpen] = useState(false);
+  const [viewingTransactionsStudent, setViewingTransactionsStudent] =
+    useState<StudentItem | null>(null);
+
+  const handleOpenTransactions = useCallback((item: StudentItem) => {
+    setViewingTransactionsStudent(item);
+    setIsTransactionsOpen(true);
+  }, []);
+
+  const handleCloseTransactions = useCallback(() => {
+    setIsTransactionsOpen(false);
+    setViewingTransactionsStudent(null);
+  }, []);
+
   return {
     // Form thêm/sửa
     isStudentFormOpen,
@@ -214,6 +229,14 @@ export function useStudentModals({ isAdmin }: UseStudentModalsProps) {
     setIsBatchPermanentModalOpen,
     handleOpenBatchPermanentModal,
     handleCloseBatchPermanentModal,
+
+    // Lịch sử giao dịch ví xu
+    isTransactionsOpen,
+    setIsTransactionsOpen,
+    viewingTransactionsStudent,
+    setViewingTransactionsStudent,
+    handleOpenTransactions,
+    handleCloseTransactions,
   };
 }
 

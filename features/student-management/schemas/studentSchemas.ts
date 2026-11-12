@@ -99,6 +99,7 @@ export const adjustStudentCoinsSchema = z.object({
     .trim()
     .min(2, "Vui lòng nhập lý do ghi nhận sổ nhật ký.")
     .max(255, "Lý do ghi nhận không được vượt quá 255 ký tự."),
+  tx_type: z.string().optional(),
 });
 
 export type AdjustStudentCoinsInput = z.infer<typeof adjustStudentCoinsSchema>;

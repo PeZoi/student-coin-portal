@@ -191,63 +191,91 @@ export function StudentClassBadge({ className }: StudentClassBadgeProps) {
 interface StudentCoinsBadgeProps {
 	currentCoins: number;
 	totalEarnedCoins?: number;
+	onClick?: () => void;
 }
 
 /**
  * Hiển thị số xu học sinh: Hộp 2 tầng (Ví hiện có / Tổng tích lũy)
+ * Hỗ trợ onClick để mở lịch sử giao dịch ví xu Heo Đất
  * Đồng bộ 100% với giao diện bên Quản lý lớp học (ClassStudentsModal)
  */
 export function StudentCoinsBadge({
 	currentCoins,
 	totalEarnedCoins,
+	onClick,
 }: StudentCoinsBadgeProps) {
 	const current = currentCoins ?? 0;
 	const total = totalEarnedCoins ?? current;
 
-	return (
-		<div className='inline-flex flex-col items-start justify-center py-1 px-2.5 rounded-xl bg-slate-50 border border-slate-200/80 shadow-2xs min-w-[110px]'>
+	const content = (
+		<div
+			onClick={onClick}
+			role={onClick ? "button" : undefined}
+			tabIndex={onClick ? 0 : undefined}
+			onKeyDown={
+				onClick
+					? (e) => {
+							if (e.key === "Enter" || e.key === " ") {
+								e.preventDefault();
+								onClick();
+							}
+					  }
+					: undefined
+			}
+			className={`inline-flex flex-col items-start justify-center py-1 px-2.5 rounded-xl border shadow-2xs min-w-[110px] select-none transition-all ${
+				onClick
+					? "bg-slate-50 border-slate-200/90 hover:border-amber-400 hover:bg-amber-50/70 hover:shadow-xs active:scale-98 cursor-pointer group"
+					: "bg-slate-50 border-slate-200/80 cursor-default"
+			}`}
+		>
 			{/* Dòng 1: Ví hiện có */}
-			<Tooltip content='Số xu hiện có trong ví học sinh' side='top'>
-				<div className='inline-flex items-center gap-1.5 text-amber-900 cursor-default'>
-					<Image
-						src='/coin.png'
-						alt='Ví xu'
-						width={15}
-						height={15}
-						unoptimized
-						style={{ height: "auto" }}
-						className='w-3.5 h-3.5 object-contain shrink-0 drop-shadow-xs'
-					/>
-					<span className='font-heading font-black text-xs tabular-nums text-amber-950'>
-						{current.toLocaleString("vi-VN")}
-					</span>
-					<span className='text-[12px] font-bold text-amber-700'>ví</span>
-				</div>
-			</Tooltip>
+			<div className='inline-flex items-center gap-1.5 text-amber-900'>
+				<Image
+					src='/coin.png'
+					alt='Ví xu'
+					width={15}
+					height={15}
+					unoptimized
+					style={{ height: "auto" }}
+					className={`w-3.5 h-3.5 object-contain shrink-0 drop-shadow-xs ${
+						onClick ? "group-hover:scale-110 transition-transform" : ""
+					}`}
+				/>
+				<span className='font-heading font-black text-xs tabular-nums text-amber-950'>
+					{current.toLocaleString("vi-VN")}
+				</span>
+				<span className='text-[12px] font-bold text-amber-700'>ví</span>
+			</div>
 
 			{/* Vạch ngăn mảnh */}
 			<div className='w-full h-[1px] bg-slate-200/70 my-0.5' />
 
 			{/* Dòng 2: Tổng tích lũy */}
-			<Tooltip content='Tổng số xu đã kiếm được từ trước đến nay' side='top'>
-				<div className='inline-flex items-center gap-1.5 text-slate-600 cursor-default'>
-					<Image
-						src='/coin.png'
-						alt='Tổng xu'
-						width={14}
-						height={14}
-						unoptimized
-						style={{ height: "auto" }}
-						className='w-3.5 h-3.5 object-contain shrink-0 opacity-80'
-					/>
-					<span className='font-heading font-bold text-xs tabular-nums text-slate-700'>
-						{total.toLocaleString("vi-VN")}
-					</span>
-					<span className='text-[12px] font-bold text-slate-500'>
-						tổng
-					</span>
-				</div>
-			</Tooltip>
+			<div className='inline-flex items-center gap-1.5 text-slate-600'>
+				<Image
+					src='/coin.png'
+					alt='Tổng xu'
+					width={14}
+					height={14}
+					unoptimized
+					style={{ height: "auto" }}
+					className='w-3.5 h-3.5 object-contain shrink-0 opacity-80'
+				/>
+				<span className='font-heading font-bold text-xs tabular-nums text-slate-700'>
+					{total.toLocaleString("vi-VN")}
+				</span>
+				<span className='text-[12px] font-bold text-slate-500'>tổng</span>
+			</div>
 		</div>
 	);
+
+	if (onClick) {
+		return (
+			<Tooltip content='Click để xem lịch sử giao dịch ví xu Heo Đất' side='top'>
+				{content}
+			</Tooltip>
+		);
+	}
+
+	return content;
 }

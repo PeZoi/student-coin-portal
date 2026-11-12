@@ -17,6 +17,7 @@ interface StudentCardProps {
   onChangeClass?: (item: StudentItem) => void;
   onEdit?: (item: StudentItem) => void;
   onAdjustCoins?: (item: StudentItem) => void;
+  onOpenTransactions?: (item: StudentItem) => void;
   onResetPin?: (item: StudentItem) => void;
   onToggleStatus?: (item: StudentItem) => void;
   onDelete?: (item: StudentItem) => void;
@@ -32,6 +33,7 @@ export function StudentCard({
   onChangeClass,
   onEdit,
   onAdjustCoins,
+  onOpenTransactions,
   onResetPin,
   onToggleStatus,
   onDelete,
@@ -118,6 +120,7 @@ export function StudentCard({
         <StudentCoinsBadge
           currentCoins={item.current_coins}
           totalEarnedCoins={item.total_earned_coins}
+          onClick={onOpenTransactions ? () => onOpenTransactions(item) : undefined}
         />
       </div>
 

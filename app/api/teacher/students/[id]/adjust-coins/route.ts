@@ -40,7 +40,7 @@ export async function POST(req: Request, { params }: RouteParams) {
       return validation.response;
     }
 
-    const { type, amount, spins_change, reason } = validation.data;
+    const { type, amount, spins_change, reason, tx_type } = validation.data;
 
     // 1. Kiểm tra tài khoản học sinh tồn tại
     const { data: studentRecord, error: findError } = await supabase
@@ -104,12 +104,17 @@ export async function POST(req: Request, { params }: RouteParams) {
     if (amount > 0) {
       const fullDescription = formatCoinTxDescription(reason, spins_change);
 
+      const resolvedTxType =
+        tx_type === CoinTxType.SPEAKING_REWARD
+          ? CoinTxType.SPEAKING_REWARD
+          : CoinTxType.MANUAL_ADJUST;
+
       const { error: txError } = await supabase.from("coin_transactions").insert({
         user_id: id,
         amount: coinDiff,
         balance_before: currentCoins,
         balance_after: newCoins,
-        tx_type: CoinTxType.MANUAL_ADJUST,
+        tx_type: resolvedTxType,
         reference_type: CoinReferenceType.MANUAL_ADJUST,
         reference_id: null,
         created_by: session.userId,

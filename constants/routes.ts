@@ -78,6 +78,7 @@ export const AppRoutes = {
       STUDENT_RESET_PIN: (id: string) => `/api/teacher/students/${id}/reset-pin`,
       STUDENT_STATUS: (id: string) => `/api/teacher/students/${id}/status`,
       STUDENT_UNLOCK: (id: string) => `/api/teacher/students/${id}/unlock`,
+      STUDENT_COIN_TRANSACTIONS: (id: string) => `/api/teacher/students/${id}/coin-transactions`,
     },
     SYSTEM: {
       CONFIG: "/api/system/config",

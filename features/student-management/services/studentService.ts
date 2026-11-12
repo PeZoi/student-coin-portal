@@ -144,6 +144,7 @@ export const teacherStudentService = {
       amount: payload.amount,
       spins_change: payload.spins_change ?? 0,
       reason: payload.reason,
+      tx_type: payload.tx_type,
     });
     if (!res.data) {
       throw new Error(
@@ -203,6 +204,23 @@ export const teacherStudentService = {
     >(AppRoutes.API.TEACHER.STUDENT_UNLOCK(studentId));
     if (!res.data) {
       throw new Error(res.message || "Không thể mở khóa tài khoản học sinh.");
+    }
+    return res.data;
+  },
+
+  /**
+   * Lấy lịch sử biến động giao dịch ví xu của học sinh
+   */
+  async getCoinTransactions(
+    studentId: string
+  ): Promise<import("../types").StudentCoinTransactionsData> {
+    const res = await http.get<
+      ApiResponse<import("../types").StudentCoinTransactionsData>
+    >(AppRoutes.API.TEACHER.STUDENT_COIN_TRANSACTIONS(studentId));
+    if (!res.data) {
+      throw new Error(
+        res.message || "Không thể tải lịch sử giao dịch ví xu."
+      );
     }
     return res.data;
   },

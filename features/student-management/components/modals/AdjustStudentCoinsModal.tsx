@@ -8,7 +8,7 @@ import {
 	ModalBody,
 	ModalFooter,
 } from "@/components/ui/modal";
-import { COIN_TX_DESCRIPTIONS } from "@/constants";
+import { COIN_TX_DESCRIPTIONS, CoinTxType } from "@/constants";
 import { StudentItem, AdjustCoinsValues } from "@/features/student-management/types";
 import { useManageStudentsContext } from "@/features/student-management/contexts/ManageStudentsContext";
 
@@ -128,6 +128,7 @@ function AdjustStudentCoinsDialogContent({
 				student_name: studentItem.full_name,
 				type: coinType,
 				amount: parsedAmount,
+				tx_type: CoinTxType.MANUAL_ADJUST,
 				reason:
 					coinReason.trim() ||
 					(coinType === "add"
@@ -426,11 +427,7 @@ function AdjustStudentCoinsDialogContent({
 								</label>
 								<div className='relative'>
 									<FerrisWheel
-										className={`w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none ${
-											spinsType === "add"
-												? "text-purple-600"
-												: "text-rose-600"
-										}`}
+										className={`w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-purple-600`}
 									/>
 									<input
 										type='number'

@@ -70,5 +70,33 @@ export interface AdjustCoinsValues {
   amount: number;
   spins_change?: number;
   reason: string;
+  tx_type?: string;
 }
+
+export interface StudentCoinTransactionItem {
+  id: string;
+  user_id: string;
+  amount: number;
+  balance_before: number;
+  balance_after: number;
+  tx_type: string;
+  reference_type: string;
+  reference_id: string | null;
+  description: string;
+  created_at: string;
+  created_by: string | null;
+  creator_name: string | null;
+  creator_role: string | null;
+}
+
+export interface StudentCoinTransactionsData {
+  student: {
+    id: string;
+    full_name: string;
+    current_coins: number;
+    total_earned_coins: number;
+  };
+  transactions: StudentCoinTransactionItem[];
+}
+
 
