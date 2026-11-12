@@ -1,5 +1,6 @@
 import { http } from "@/lib/http/httpClient";
 import { ApiResponse } from "@/types/api";
+import { AppRoutes } from "@/constants/routes";
 import {
   StudentItem,
   StudentFormValues,
@@ -15,7 +16,7 @@ export const teacherStudentService = {
    */
   async getManageStudents(): Promise<StudentItem[]> {
     const res = await http.get<ApiResponse<StudentItem[]>>(
-      "/api/teacher/students"
+      AppRoutes.API.TEACHER.STUDENTS
     );
     return res.data ?? [];
   },
@@ -25,7 +26,7 @@ export const teacherStudentService = {
    */
   async createStudent(payload: StudentFormValues): Promise<StudentItem> {
     const res = await http.post<ApiResponse<StudentItem>>(
-      "/api/teacher/students",
+      AppRoutes.API.TEACHER.STUDENTS,
       payload
     );
     if (!res.data) {
@@ -42,7 +43,7 @@ export const teacherStudentService = {
     payload: Partial<StudentFormValues>
   ): Promise<StudentItem> {
     const res = await http.patch<ApiResponse<StudentItem>>(
-      `/api/teacher/students/${id}`,
+      AppRoutes.API.TEACHER.STUDENT_DETAIL(id),
       payload
     );
     if (!res.data) {
@@ -61,7 +62,7 @@ export const teacherStudentService = {
     const query = permanent ? "?permanent=true" : "";
     const res = await http.delete<
       ApiResponse<{ id: string; permanent: boolean }>
-    >(`/api/teacher/students/${id}${query}`);
+    >(`${AppRoutes.API.TEACHER.STUDENT_DETAIL(id)}${query}`);
     if (!res.data) {
       throw new Error(res.message || "Không thể xóa hồ sơ học sinh.");
     }
@@ -73,7 +74,7 @@ export const teacherStudentService = {
    */
   async restoreStudent(id: string): Promise<StudentItem> {
     const res = await http.post<ApiResponse<StudentItem>>(
-      `/api/teacher/students/${id}/restore`
+      AppRoutes.API.TEACHER.STUDENT_RESTORE(id)
     );
     if (!res.data) {
       throw new Error(res.message || "Không thể khôi phục hồ sơ học sinh.");
@@ -91,7 +92,7 @@ export const teacherStudentService = {
   ): Promise<{ student_id: string; new_class_id: string }> {
     const res = await http.post<
       ApiResponse<{ student_id: string; new_class_id: string }>
-    >(`/api/teacher/students/${studentId}/change-class`, {
+    >(AppRoutes.API.TEACHER.STUDENT_CHANGE_CLASS(studentId), {
       new_class_id: newClassId || null,
       reset_progress: resetProgress,
     });
@@ -111,7 +112,7 @@ export const teacherStudentService = {
   ): Promise<{ updated_count: number; new_class_id: string }> {
     const res = await http.post<
       ApiResponse<{ updated_count: number; new_class_id: string }>
-    >("/api/teacher/students/batch-change-class", {
+    >(AppRoutes.API.TEACHER.STUDENT_BATCH_CHANGE_CLASS, {
       student_ids: studentIds,
       new_class_id: newClassId || null,
       reset_progress: resetProgress,
@@ -138,7 +139,7 @@ export const teacherStudentService = {
         new_coins: number;
         new_spins: number;
       }>
-    >(`/api/teacher/students/${payload.student_id}/adjust-coins`, {
+    >(AppRoutes.API.TEACHER.STUDENT_ADJUST_COINS(payload.student_id), {
       type: payload.type,
       amount: payload.amount,
       spins_change: payload.spins_change ?? 0,
@@ -160,7 +161,7 @@ export const teacherStudentService = {
     newPin: string
   ): Promise<{ student_id: string }> {
     const res = await http.post<ApiResponse<{ student_id: string }>>(
-      `/api/teacher/students/${studentId}/reset-pin`,
+      AppRoutes.API.TEACHER.STUDENT_RESET_PIN(studentId),
       {
         new_pin: newPin,
       }
@@ -180,7 +181,7 @@ export const teacherStudentService = {
   ): Promise<{ id: string; is_active: boolean }> {
     const res = await http.patch<
       ApiResponse<{ id: string; is_active: boolean }>
-    >(`/api/teacher/students/${studentId}/status`, {
+    >(AppRoutes.API.TEACHER.STUDENT_STATUS(studentId), {
       is_active: isActive,
     });
     if (!res.data) {
@@ -199,7 +200,7 @@ export const teacherStudentService = {
   ): Promise<{ student_id: string; unlocked: boolean }> {
     const res = await http.post<
       ApiResponse<{ student_id: string; unlocked: boolean }>
-    >(`/api/teacher/students/${studentId}/unlock`);
+    >(AppRoutes.API.TEACHER.STUDENT_UNLOCK(studentId));
     if (!res.data) {
       throw new Error(res.message || "Không thể mở khóa tài khoản học sinh.");
     }

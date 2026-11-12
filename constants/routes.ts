@@ -68,6 +68,16 @@ export const AppRoutes = {
       STAFF_RESTORE: (id: string) => `/api/teacher/teachers/${id}/restore`,
       STAFF_BATCH: "/api/teacher/teachers/batch",
       STAFF_AVAILABLE_CLASSES: "/api/teacher/teachers/available-classes",
+      // Quản lý Học sinh
+      STUDENTS: "/api/teacher/students",
+      STUDENT_DETAIL: (id: string) => `/api/teacher/students/${id}`,
+      STUDENT_RESTORE: (id: string) => `/api/teacher/students/${id}/restore`,
+      STUDENT_CHANGE_CLASS: (id: string) => `/api/teacher/students/${id}/change-class`,
+      STUDENT_BATCH_CHANGE_CLASS: "/api/teacher/students/batch-change-class",
+      STUDENT_ADJUST_COINS: (id: string) => `/api/teacher/students/${id}/adjust-coins`,
+      STUDENT_RESET_PIN: (id: string) => `/api/teacher/students/${id}/reset-pin`,
+      STUDENT_STATUS: (id: string) => `/api/teacher/students/${id}/status`,
+      STUDENT_UNLOCK: (id: string) => `/api/teacher/students/${id}/unlock`,
     },
     SYSTEM: {
       CONFIG: "/api/system/config",
