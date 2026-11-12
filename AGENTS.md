@@ -45,19 +45,25 @@ student-coin-portal/
 │   ├── globals.css             # CSS toàn cục
 │   └── layout.tsx              # Root Layout chung
 │
-├── features/                   # CHỨA LOGIC & GIAO DIỆN THEO TỪNG TÍNH NĂNG
+├── features/                   # CHỨA LOGIC & GIAO DIỆN THEO DOMAIN TỪNG TÍNH NĂNG
+│   ├── auth/                   # Phân hệ Xác thực & Phân quyền
+│   ├── student-management/     # Quản lý Học sinh (Admin & Super Teacher)
+│   │   ├── components/         # Table, Cards, Toolbar, KPI, Skeleton
+│   │   │   └── modals/         # Toàn bộ hộp thoại Modal (7 modals)
+│   │   ├── contexts/           # ManageStudentsContext
+│   │   ├── hooks/              # useManageStudents, useStudentFilters...
+│   │   ├── services/           # studentService, studentServerService
+│   │   ├── schemas/            # studentSchemas (Zod)
+│   │   ├── types/              # types/index.ts
+│   │   └── constants/          # constants/index.ts
+│   ├── class-management/       # Quản lý Lớp học (Tương tự)
+│   ├── teacher-management/     # Quản lý Giáo viên / Nhân sự (Tương tự)
 │   ├── lucky-wheel/            # Module Vòng quay may mắn
-│   │   ├── components/         # LuckyWheel.tsx, WheelPrizeList.tsx
-│   │   ├── hooks/              # useLuckyWheel.ts
-│   │   ├── types/              # index.ts
-│   │   └── actions/            # spinWheelAction.ts
 │   ├── missions/               # Module Nhiệm vụ & Điểm danh
-│   │   ├── components/         # MissionCard.tsx, SubmitProofModal.tsx
-│   │   ├── types/
-│   │   └── actions/
-│   ├── wallet/                 # Module Ví coin & Lịch sử giao dịch
-│   │   └── components/         # CoinBalance.tsx, TransactionList.tsx
-│   └── auth/                   # Module Đăng nhập / Phân quyền
+│   ├── rewards/                # Module Quà tặng
+│   ├── leaderboard/            # Module Bảng xếp hạng
+│   ├── dashboard/              # Dashboard học sinh
+│   └── teacher/                # Portal Giáo viên: Shell, Sidebar, Header layout, Views chung
 │
 ├── components/                 # COMPONENT DÙNG CHUNG TOÀN ỨNG DỤNG
 │   └── ui/                     # Button.tsx, Modal.tsx, Card.tsx, Input.tsx...

@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
 import { requireTeacher } from "@/lib/auth/guard";
-import { TeacherClassesView } from "@/features/teacher/components/TeacherClassesView";
-import { ClassesSkeleton } from "@/features/teacher/components/classes/ClassesSkeleton";
-import { getTeacherClassesServer } from "@/features/teacher/services/teacherClassServerService";
+import { TeacherClassesView } from "@/features/class-management/components/ClassesView";
+import { ClassesSkeleton } from "@/features/class-management/components/ClassesSkeleton";
+import { getTeacherClassesServer } from "@/features/class-management/services/classServerService";
 
 export const metadata: Metadata = {
   title: "Quản Lý Lớp Học | Quản Trị Trung Tâm",

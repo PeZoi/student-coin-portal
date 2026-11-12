@@ -3,7 +3,7 @@ import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus } from "@/constants";
-import { assignTeachersSchema } from "@/features/teacher/schemas/classSchemas";
+import { assignTeachersSchema } from "@/features/class-management/schemas/classSchemas";
 
 interface RouteParams {
   params: Promise<{ id: string }>;

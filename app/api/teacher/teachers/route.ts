@@ -3,11 +3,11 @@ import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus, PostgresErrorCode } from "@/constants";
-import { getAvailableTeachersServer } from "@/features/teacher/services/teacherClassServerService";
-import { getManageTeachersServer } from "@/features/teacher/services/teacherStaffServerService";
-import { createTeacherSchema } from "@/features/teacher/schemas/teacherSchemas";
-import { AvailableTeacherItem } from "@/features/teacher/components/classes/types";
-import { TeacherStaffItem, StaffRole } from "@/features/teacher/components/teachers/types";
+import { getAvailableTeachersServer } from "@/features/class-management/services/classServerService";
+import { getManageTeachersServer } from "@/features/teacher-management/services/teacherStaffServerService";
+import { createTeacherSchema } from "@/features/teacher-management/schemas/teacherSchemas";
+import { AvailableTeacherItem } from "@/features/class-management/types";
+import { TeacherStaffItem, StaffRole } from "@/features/teacher-management/types";
 import { format } from "date-fns";
 import { escapeSqlWildcards } from "@/lib/utils";
 

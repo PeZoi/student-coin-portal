@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus, UserRole } from "@/constants";
-import { ClassStudentItem } from "@/features/teacher/components/classes/types";
+import { ClassStudentItem } from "@/features/class-management/types";
 
 interface RouteParams {
   params: Promise<{ id: string }>;

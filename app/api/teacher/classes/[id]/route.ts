@@ -4,7 +4,7 @@ import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus, PostgresErrorCode } from "@/constants";
 import { UserRole } from "@/constants/auth";
-import { updateClassSchema } from "@/features/teacher/schemas/classSchemas";
+import { updateClassSchema } from "@/features/class-management/schemas/classSchemas";
 import { escapeSqlWildcards } from "@/lib/utils";
 
 interface RouteParams {

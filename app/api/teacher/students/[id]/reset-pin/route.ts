@@ -4,7 +4,7 @@ import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus } from "@/constants";
 import { UserRole } from "@/constants/auth";
-import { resetStudentPinSchema } from "@/features/teacher/schemas/studentSchemas";
+import { resetStudentPinSchema } from "@/features/student-management/schemas/studentSchemas";
 
 interface RouteParams {
   params: Promise<{ id: string }>;

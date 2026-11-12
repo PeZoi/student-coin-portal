@@ -9,7 +9,7 @@ import {
   formatCoinTxDescription,
 } from "@/constants";
 import { UserRole } from "@/constants/auth";
-import { adjustStudentCoinsSchema } from "@/features/teacher/schemas/studentSchemas";
+import { adjustStudentCoinsSchema } from "@/features/student-management/schemas/studentSchemas";
 
 interface RouteParams {
   params: Promise<{ id: string }>;

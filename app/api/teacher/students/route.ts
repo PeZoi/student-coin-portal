@@ -9,9 +9,9 @@ import {
   COIN_TX_DESCRIPTIONS,
 } from "@/constants";
 import { UserRole } from "@/constants/auth";
-import { getManageStudentsServer } from "@/features/teacher/services/teacherStudentServerService";
-import { createStudentSchema } from "@/features/teacher/schemas/studentSchemas";
-import { StudentItem } from "@/features/teacher/components/students/types";
+import { getManageStudentsServer } from "@/features/student-management/services/studentServerService";
+import { createStudentSchema } from "@/features/student-management/schemas/studentSchemas";
+import { StudentItem } from "@/features/student-management/types";
 import { format } from "date-fns";
 
 /**
