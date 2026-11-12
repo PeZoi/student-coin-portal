@@ -1,7 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
-import useSWR from "swr";
 import Image from "next/image";
 import {
   Sparkles,
@@ -19,8 +17,7 @@ import {
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { StudentItem, StudentCoinTransactionItem } from "../../types";
 import { useManageStudentsContext } from "../../contexts/ManageStudentsContext";
-import { teacherStudentService } from "../../services/studentService";
-import { CACHE_KEYS } from "@/constants/cacheKeys";
+import { useStudentCoinTransactionsInfinite } from "../../hooks/useStudentCoinTransactionsInfinite";
 import { getCoinSourceConfig } from "@/constants/coins";
 import { formatDate } from "@/lib/date";
 
@@ -73,40 +70,16 @@ function StudentCoinTransactionsDialogContent({
   studentItem,
   onClose,
 }: DialogContentProps) {
-  const { data, isLoading, error } = useSWR(
-    studentItem?.id
-      ? CACHE_KEYS.STUDENTS.TRANSACTIONS(studentItem.id)
-      : null,
-    () => teacherStudentService.getCoinTransactions(studentItem.id),
-    {
-      revalidateOnFocus: false,
-    }
-  );
-
-  const transactions = useMemo(
-    () => data?.transactions ?? [],
-    [data?.transactions]
-  );
-
-  // Thống kê nhanh từ danh sách giao dịch
-  const stats = useMemo(() => {
-    let totalPlus = 0;
-    let totalMinus = 0;
-
-    for (const tx of transactions) {
-      if (tx.amount > 0) {
-        totalPlus += tx.amount;
-      } else {
-        totalMinus += Math.abs(tx.amount);
-      }
-    }
-
-    return {
-      totalPlus,
-      totalMinus,
-      count: transactions.length,
-    };
-  }, [transactions]);
+  const {
+    transactions,
+    totalCount,
+    isInitialLoading,
+    isLoadingMore,
+    isReachingEnd,
+    error,
+    containerRef,
+    sentinelRef,
+  } = useStudentCoinTransactionsInfinite(studentItem?.id);
 
   return (
     <Modal maxWidth="lg" onClose={onClose}>
@@ -162,14 +135,17 @@ function StudentCoinTransactionsDialogContent({
             <div className="flex items-center gap-1.5">
               <span className="text-slate-500 font-medium">Tổng GD:</span>
               <span className="font-bold text-slate-700 tabular-nums">
-                {stats.count} lần
+                {totalCount} lần
               </span>
             </div>
           </div>
 
-          {/* Vùng danh sách giao dịch dạng Compact Ledger */}
-          <div className="max-h-[420px] overflow-y-auto pr-1 divide-y divide-slate-100 border border-slate-200/90 rounded-xl bg-white shadow-2xs overflow-hidden">
-            {isLoading ? (
+          {/* Vùng danh sách giao dịch dạng Infinite Scroll */}
+          <div
+            ref={containerRef}
+            className="max-h-[420px] overflow-y-auto pr-1 divide-y divide-slate-100 border border-slate-200/90 rounded-xl bg-white shadow-2xs overflow-hidden"
+          >
+            {isInitialLoading ? (
               <div className="py-14 flex flex-col items-center justify-center gap-2.5 text-slate-400">
                 <Loader2 className="w-6 h-6 animate-spin text-[#0A62D6]" />
                 <span className="text-xs sm:text-sm font-medium">Đang tải lịch sử giao dịch...</span>
@@ -191,9 +167,28 @@ function StudentCoinTransactionsDialogContent({
                 </p>
               </div>
             ) : (
-              transactions.map((tx) => (
-                <CompactTransactionRow key={tx.id} tx={tx} />
-              ))
+              <>
+                {transactions.map((tx) => (
+                  <CompactTransactionRow key={tx.id} tx={tx} />
+                ))}
+
+                {/* Sentinel trigger infinite scroll khi cuộn tới cuối */}
+                <div
+                  ref={sentinelRef}
+                  className="py-2.5 px-3 flex items-center justify-center bg-slate-50/50"
+                >
+                  {isLoadingMore ? (
+                    <div className="flex items-center gap-2 text-xs font-medium text-slate-500 py-1">
+                      <Loader2 className="w-4 h-4 animate-spin text-[#0A62D6]" />
+                      <span>Đang tải thêm giao dịch cũ hơn...</span>
+                    </div>
+                  ) : isReachingEnd && transactions.length > 0 ? (
+                    <span className="text-[11px] font-medium text-slate-400 py-0.5">
+                      Đã hiển thị toàn bộ {totalCount} giao dịch
+                    </span>
+                  ) : null}
+                </div>
+              </>
             )}
           </div>
         </div>

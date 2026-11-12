@@ -209,14 +209,18 @@ export const teacherStudentService = {
   },
 
   /**
-   * Lấy lịch sử biến động giao dịch ví xu của học sinh
+   * Lấy lịch sử biến động giao dịch ví xu của học sinh (hỗ trợ phân trang / infinite scroll)
    */
   async getCoinTransactions(
-    studentId: string
+    studentId: string,
+    page = 1,
+    limit = 15
   ): Promise<import("../types").StudentCoinTransactionsData> {
     const res = await http.get<
       ApiResponse<import("../types").StudentCoinTransactionsData>
-    >(AppRoutes.API.TEACHER.STUDENT_COIN_TRANSACTIONS(studentId));
+    >(
+      `${AppRoutes.API.TEACHER.STUDENT_COIN_TRANSACTIONS(studentId)}?page=${page}&limit=${limit}`
+    );
     if (!res.data) {
       throw new Error(
         res.message || "Không thể tải lịch sử giao dịch ví xu."

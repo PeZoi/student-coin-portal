@@ -7,7 +7,7 @@ import { StudentCard } from "./StudentCard";
  */
 export function StudentsMobileList() {
   const {
-    filteredStudents,
+    paginatedStudents,
     isSelected,
     handleToggleSelect,
     handleOpenChangeClass,
@@ -24,7 +24,7 @@ export function StudentsMobileList() {
 
   return (
     <div className="md:hidden p-4 space-y-3 bg-slate-50/50">
-      {filteredStudents.map((item) => (
+      {paginatedStudents.map((item) => (
         <StudentCard
           key={item.id}
           item={item}

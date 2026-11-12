@@ -97,6 +97,12 @@ export interface StudentCoinTransactionsData {
     total_earned_coins: number;
   };
   transactions: StudentCoinTransactionItem[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    has_more: boolean;
+  };
 }
 
 

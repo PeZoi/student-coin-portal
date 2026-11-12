@@ -27,15 +27,20 @@ export function useStudentFilters({
   const [statusFilter, setStatusFilterState] =
     useState<StudentStatusFilter>("all");
   const [selectedClassId, setSelectedClassIdState] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchQuery, setSearchQueryState] = useState<string>("");
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [sortField, setSortField] = useState<StudentSortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("none");
 
-  // Đổi bộ lọc và tự động xóa checkbox chọn hàng loạt
+  // State phân trang (Pagination)
+  const [currentPage, setCurrentPageState] = useState<number>(1);
+  const [pageSize, setPageSizeState] = useState<number>(10);
+
+  // Đổi bộ lọc và tự động xóa checkbox chọn hàng loạt & reset về trang 1
   const setStatusFilter = useCallback(
     (filter: StudentStatusFilter) => {
       setStatusFilterState(filter);
+      setCurrentPageState(1);
       onFilterChange?.();
     },
     [onFilterChange]
@@ -44,6 +49,16 @@ export function useStudentFilters({
   const setSelectedClassId = useCallback(
     (classId: string) => {
       setSelectedClassIdState(classId);
+      setCurrentPageState(1);
+      onFilterChange?.();
+    },
+    [onFilterChange]
+  );
+
+  const setSearchQuery = useCallback(
+    (query: string) => {
+      setSearchQueryState(query);
+      setCurrentPageState(1);
       onFilterChange?.();
     },
     [onFilterChange]
@@ -195,7 +210,33 @@ export function useStudentFilters({
     currentMinute,
   ]);
 
-  // 3. Handlers
+  // 3. Phân trang dữ liệu
+  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+
+  const paginatedStudents = useMemo(() => {
+    const startIndex = (safePage - 1) * pageSize;
+    return filteredStudents.slice(startIndex, startIndex + pageSize);
+  }, [filteredStudents, safePage, pageSize]);
+
+  const setCurrentPage = useCallback(
+    (page: number) => {
+      setCurrentPageState(Math.max(1, page));
+      onFilterChange?.();
+    },
+    [onFilterChange]
+  );
+
+  const setPageSize = useCallback(
+    (size: number) => {
+      setPageSizeState(size);
+      setCurrentPageState(1);
+      onFilterChange?.();
+    },
+    [onFilterChange]
+  );
+
+  // 4. Handlers
   const handleSortToggle = useCallback(
     (field: StudentSortField) => {
       if (sortField !== field) {
@@ -209,6 +250,7 @@ export function useStudentFilters({
       } else {
         setSortDirection("asc");
       }
+      setCurrentPageState(1);
     },
     [sortField, sortDirection]
   );
@@ -216,9 +258,10 @@ export function useStudentFilters({
   const handleResetFilter = useCallback(() => {
     setStatusFilterState("all");
     setSelectedClassIdState("all");
-    setSearchQuery("");
+    setSearchQueryState("");
     setSortField(null);
     setSortDirection("none");
+    setCurrentPageState(1);
     onFilterChange?.();
   }, [onFilterChange]);
 
@@ -234,6 +277,15 @@ export function useStudentFilters({
     handleSortToggle,
     handleResetFilter,
     filteredStudents,
+
+    // Phân trang
+    paginatedStudents,
+    currentPage: safePage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalItems: filteredStudents.length,
 
     // KPIs
     totalStudents,

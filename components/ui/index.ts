@@ -4,3 +4,4 @@ export * from "./table";
 export * from "./tooltip";
 export * from "./Select";
 export * from "./TeacherSelect";
+export * from "./Pagination";

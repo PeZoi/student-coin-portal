@@ -1,6 +1,7 @@
 "use client";
 
 import { Search, Loader2, AlertCircle } from "lucide-react";
+import { Pagination } from "@/components/ui/Pagination";
 import { StudentsHeader } from "./StudentsHeader";
 import { StudentsKpiCards } from "./StudentsKpiCards";
 import { StudentsToolbar } from "./StudentsToolbar";
@@ -51,6 +52,12 @@ function ManageStudentsContent() {
     isError,
     studentsList,
     filteredStudents,
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalItems,
     handleResetFilter,
     handleRefresh,
   } = useManageStudentsContext();
@@ -123,6 +130,19 @@ function ManageStudentsContent() {
 
             {/* Mobile: Danh sách thẻ */}
             <StudentsMobileList />
+
+            {/* Phân trang: Click từng trang 1 */}
+            <div className="border-t border-slate-200">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                totalItems={totalItems}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={setPageSize}
+                itemLabel="học sinh"
+              />
+            </div>
           </>
         )}
       </div>

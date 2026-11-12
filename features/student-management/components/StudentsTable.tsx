@@ -45,7 +45,7 @@ interface StudentsTableProps {
 
 export function StudentsTable(props?: StudentsTableProps) {
   const context = useManageStudentsContext();
-  const items = props?.items ?? context.filteredStudents;
+  const items = props?.items ?? context.paginatedStudents;
   const sortField =
     props?.sortField !== undefined ? props.sortField : context.sortField;
   const sortDirection = props?.sortDirection ?? context.sortDirection;

@@ -32,6 +32,12 @@ export interface StudentCoinTransactionsResponse {
     total_earned_coins: number;
   };
   transactions: StudentCoinTransaction[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    has_more: boolean;
+  };
 }
 
 /**
@@ -65,15 +71,23 @@ export async function GET(req: Request, { params }: RouteParams) {
       return apiError("Không tìm thấy thông tin học sinh.", HttpStatus.NOT_FOUND);
     }
 
-    // 2. Lấy danh sách giao dịch xu mới nhất trước
-    const { data: rawTransactions, error: txError } = await supabase
+    // 2. Phân trang: Đọc page và limit từ query params
+    const url = new URL(req.url);
+    const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
+    const limit = Math.min(50, Math.max(1, parseInt(url.searchParams.get("limit") || "15", 10)));
+    const offset = (page - 1) * limit;
+
+    // Lấy danh sách giao dịch xu mới nhất trước theo phạm vi phân trang
+    const { data: rawTransactions, count: totalCount, error: txError } = await supabase
       .from("coin_transactions")
       .select(
-        "id, user_id, amount, balance_before, balance_after, tx_type, reference_type, reference_id, description, created_at, created_by"
+        "id, user_id, amount, balance_before, balance_after, tx_type, reference_type, reference_id, description, created_at, created_by",
+        { count: "exact" }
       )
       .eq("user_id", id)
       .order("created_at", { ascending: false })
-      .limit(100);
+      .order("id", { ascending: false })
+      .range(offset, offset + limit - 1);
 
     if (txError) {
       console.error(
@@ -85,6 +99,9 @@ export async function GET(req: Request, { params }: RouteParams) {
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
+
+    const total = totalCount ?? 0;
+    const has_more = offset + (rawTransactions?.length ?? 0) < total;
 
     // 3. Truy vấn thông tin người điều chỉnh (created_by)
     const creatorIds = Array.from(
@@ -143,6 +160,12 @@ export async function GET(req: Request, { params }: RouteParams) {
         total_earned_coins: studentRecord.total_earned_coins,
       },
       transactions,
+      pagination: {
+        page,
+        limit,
+        total,
+        has_more,
+      },
     };
 
     return apiSuccess(payload);
