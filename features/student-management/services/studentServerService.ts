@@ -4,14 +4,32 @@ import { UserRole } from "@/constants";
 import { StudentItem } from "@/features/student-management/types";
 import { format } from "date-fns";
 
+export interface GetManageStudentsOptions {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  classId?: string;
+}
+
+export interface PaginatedStudentsResult {
+  data: StudentItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 /**
  * Service tải danh sách học sinh trực tiếp trên máy chủ (Server Component / Route Handler)
  * - Tối ưu 0ms độ trễ mạng client (Quy tắc 9 AGENTS.md)
  * - Bảo mật: chỉ cho phép TEACHER, SUPER_TEACHER và ADMIN truy xuất dữ liệu
  * - Phân quyền xem thùng rác: Chỉ duy nhất Admin tối cao mới thấy học sinh đã xóa
+ * - Hỗ trợ cả Full-list và Server-side Pagination
  */
 export async function getManageStudentsServer(
-  customSession?: AuthTokenPayload | null
+  customSession?: AuthTokenPayload | null,
+  options?: GetManageStudentsOptions
 ): Promise<StudentItem[]> {
   try {
     const session =
@@ -28,7 +46,7 @@ export async function getManageStudentsServer(
 
     const isAdmin = session.role === UserRole.ADMIN;
 
-    // 1. Truy vấn danh sách học sinh trong bảng users
+    // 1. Truy vấn danh sách học sinh trong bảng users (tận dụng index idx_users_role_deleted)
     let studentsQuery = supabase
       .from("users")
       .select(
@@ -45,6 +63,7 @@ export async function getManageStudentsServer(
         is_deleted,
         failed_login_attempts,
         locked_until,
+        last_login_at,
         created_at
       `
       )
@@ -52,9 +71,48 @@ export async function getManageStudentsServer(
       .order("is_active", { ascending: false })
       .order("created_at", { ascending: false });
 
-    // Chỉ Admin mới có quyền xem học sinh trong thùng rác
-    if (!isAdmin) {
+    // Lọc theo trạng thái xóa
+    if (options?.status === "deleted" && isAdmin) {
+      studentsQuery = studentsQuery.eq("is_deleted", true);
+    } else if (!isAdmin) {
       studentsQuery = studentsQuery.eq("is_deleted", false);
+    }
+
+    // Lọc theo lớp học
+    if (options?.classId && options.classId !== "all") {
+      if (options.classId === "unassigned") {
+        studentsQuery = studentsQuery.is("class_id", null);
+      } else {
+        studentsQuery = studentsQuery.eq("class_id", options.classId);
+      }
+    }
+
+    // Lọc theo trạng thái hoạt động / khóa PIN
+    if (options?.status && options.status !== "all" && options.status !== "deleted") {
+      if (options.status === "active") {
+        studentsQuery = studentsQuery.eq("is_active", true);
+      } else if (options.status === "inactive") {
+        studentsQuery = studentsQuery.eq("is_active", false);
+      } else if (options.status === "locked") {
+        studentsQuery = studentsQuery.gt("locked_until", new Date().toISOString());
+      }
+    }
+
+    // Tìm kiếm nhanh theo tên hoặc số điện thoại
+    if (options?.search && options.search.trim()) {
+      const q = options.search.trim();
+      studentsQuery = studentsQuery.or(
+        `full_name.ilike.%${q}%,phone_zalo.ilike.%${q}%`
+      );
+    }
+
+    // Phân trang ở cấp cơ sở dữ liệu nếu có truyền page & limit
+    if (options?.page && options?.limit) {
+      const page = Math.max(1, options.page);
+      const limit = Math.max(1, Math.min(100, options.limit));
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
+      studentsQuery = studentsQuery.range(from, to);
     }
 
     const { data: studentsData, error: studentsError } = await studentsQuery;
@@ -67,38 +125,15 @@ export async function getManageStudentsServer(
       return [];
     }
 
-    // 2. Lấy tên lớp học và nhật ký đăng nhập gần nhất song song
-    const [classesRes, authLogsRes] = await Promise.all([
-      supabase.from("classes").select("id, class_name"),
-      supabase
-        .from("auth_logs")
-        .select("user_id, created_at")
-        .eq("status", "SUCCESS")
-        .eq("auth_action", "LOGIN")
-        .order("created_at", { ascending: false })
-        .limit(300),
-    ]);
+    // 2. Lấy tên lớp học (không cần query bảng auth_logs nhờ tối ưu cột last_login_at trực tiếp trên users)
+    const { data: classesData } = await supabase
+      .from("classes")
+      .select("id, class_name");
 
     const classNameMap = new Map<string, string>();
-    if (classesRes.data) {
-      for (const cls of classesRes.data) {
+    if (classesData) {
+      for (const cls of classesData) {
         classNameMap.set(cls.id, cls.class_name);
-      }
-    }
-
-    const lastLoginMap = new Map<string, string>();
-    if (authLogsRes.data) {
-      for (const log of authLogsRes.data) {
-        if (!lastLoginMap.has(log.user_id)) {
-          try {
-            lastLoginMap.set(
-              log.user_id,
-              format(new Date(log.created_at), "HH:mm dd/MM/yyyy")
-            );
-          } catch {
-            lastLoginMap.set(log.user_id, log.created_at);
-          }
-        }
       }
     }
 
@@ -143,7 +178,9 @@ export async function getManageStudentsServer(
         failed_login_attempts: s.failed_login_attempts ?? 0,
         locked_until: s.locked_until ?? null,
         lock_remaining_text: lockRemainingText,
-        last_login_at: lastLoginMap.get(s.id) || null,
+        last_login_at: s.last_login_at
+          ? format(new Date(s.last_login_at), "HH:mm dd/MM/yyyy")
+          : null,
         created_at: s.created_at
           ? format(new Date(s.created_at), "dd/MM/yyyy")
           : "",
@@ -153,5 +190,86 @@ export async function getManageStudentsServer(
     const error = err instanceof Error ? err : new Error(String(err));
     console.error("Lỗi ngoại lệ tại getManageStudentsServer:", error.message);
     return [];
+  }
+}
+
+/**
+ * Service tải danh sách học sinh có phân trang và đếm tổng số (Server-side Pagination - Điểm tối ưu 1)
+ */
+export async function getPaginatedManageStudentsServer(
+  customSession?: AuthTokenPayload | null,
+  options?: GetManageStudentsOptions
+): Promise<PaginatedStudentsResult> {
+  const page = Math.max(1, options?.page ?? 1);
+  const pageSize = Math.max(1, Math.min(100, options?.limit ?? 10));
+
+  try {
+    const session =
+      customSession !== undefined ? customSession : await getAuthSession();
+
+    if (
+      !session ||
+      (session.role !== UserRole.TEACHER &&
+        session.role !== UserRole.SUPER_TEACHER &&
+        session.role !== UserRole.ADMIN)
+    ) {
+      return { data: [], total: 0, page, pageSize, totalPages: 0 };
+    }
+
+    const isAdmin = session.role === UserRole.ADMIN;
+
+    let countQuery = supabase
+      .from("users")
+      .select("id", { count: "exact", head: true })
+      .eq("role", UserRole.STUDENT);
+
+    if (options?.status === "deleted" && isAdmin) {
+      countQuery = countQuery.eq("is_deleted", true);
+    } else if (!isAdmin) {
+      countQuery = countQuery.eq("is_deleted", false);
+    }
+
+    if (options?.classId && options.classId !== "all") {
+      if (options.classId === "unassigned") {
+        countQuery = countQuery.is("class_id", null);
+      } else {
+        countQuery = countQuery.eq("class_id", options.classId);
+      }
+    }
+
+    if (options?.status && options.status !== "all" && options.status !== "deleted") {
+      if (options.status === "active") {
+        countQuery = countQuery.eq("is_active", true);
+      } else if (options.status === "inactive") {
+        countQuery = countQuery.eq("is_active", false);
+      } else if (options.status === "locked") {
+        countQuery = countQuery.gt("locked_until", new Date().toISOString());
+      }
+    }
+
+    if (options?.search && options.search.trim()) {
+      const q = options.search.trim();
+      countQuery = countQuery.or(`full_name.ilike.%${q}%,phone_zalo.ilike.%${q}%`);
+    }
+
+    const [{ count }, studentsData] = await Promise.all([
+      countQuery,
+      getManageStudentsServer(session, { ...options, page, limit: pageSize }),
+    ]);
+
+    const total = count ?? studentsData.length;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+    return {
+      data: studentsData,
+      total,
+      page,
+      pageSize,
+      totalPages,
+    };
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    console.error("Lỗi ngoại lệ tại getPaginatedManageStudentsServer:", error.message);
+    return { data: [], total: 0, page, pageSize, totalPages: 0 };
   }
 }

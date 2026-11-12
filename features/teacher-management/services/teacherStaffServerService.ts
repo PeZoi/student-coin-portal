@@ -33,7 +33,7 @@ export async function getManageTeachersServer(
     // Chỉ duy nhất Quản trị viên tối cao (Admin) mới có quyền xem cả danh sách thùng rác
     const isAdmin = session.role === UserRole.ADMIN;
 
-    // 1. Lấy danh sách giáo viên và nhân sự quản trị trong bảng users
+    // 1. Lấy danh sách giáo viên và nhân sự quản trị trong bảng users (tận dụng index idx_users_role_deleted)
     let teachersQuery = supabase
       .from("users")
       .select(
@@ -49,6 +49,7 @@ export async function getManageTeachersServer(
         is_deleted,
         failed_login_attempts,
         locked_until,
+        last_login_at,
         created_at
       `
       )
@@ -72,17 +73,10 @@ export async function getManageTeachersServer(
       return [];
     }
 
-    // 2. Lấy phân công lớp và danh sách lớp học (chỉ tính các lớp chưa xóa)
-    const [assignmentsRes, classesRes, authLogsRes] = await Promise.all([
+    // 2. Lấy phân công lớp và danh sách lớp học (bỏ query auth_logs nhờ tối ưu cột last_login_at)
+    const [assignmentsRes, classesRes] = await Promise.all([
       supabase.from("teacher_classes").select("teacher_id, class_id"),
       supabase.from("classes").select("id, class_name").eq("is_deleted", false),
-      supabase
-        .from("auth_logs")
-        .select("user_id, created_at")
-        .eq("status", "SUCCESS")
-        .eq("auth_action", "LOGIN")
-        .order("created_at", { ascending: false })
-        .limit(100),
     ]);
 
     const classNameMap = new Map<string, string>();
@@ -111,16 +105,6 @@ export async function getManageTeachersServer(
       }
     }
 
-    // Map thời gian đăng nhập gần nhất từ auth_logs
-    const lastLoginMap = new Map<string, string>();
-    if (authLogsRes.data) {
-      for (const log of authLogsRes.data) {
-        if (log.user_id && !lastLoginMap.has(log.user_id)) {
-          lastLoginMap.set(log.user_id, log.created_at);
-        }
-      }
-    }
-
     // 3. Sắp xếp: Đang hoạt động (is_active: true) lên đầu, Tạm khóa (is_active: false) xuống dưới
     teachersData.sort((a, b) => {
       if (a.is_active !== b.is_active) {
@@ -142,9 +126,8 @@ export async function getManageTeachersServer(
         ? format(new Date(t.created_at), "dd/MM/yyyy")
         : "";
 
-      const rawLastLogin = lastLoginMap.get(t.id);
-      const formattedLastLogin = rawLastLogin
-        ? format(new Date(rawLastLogin), "HH:mm dd/MM/yyyy")
+      const formattedLastLogin = t.last_login_at
+        ? format(new Date(t.last_login_at), "HH:mm dd/MM/yyyy")
         : null;
 
       return {

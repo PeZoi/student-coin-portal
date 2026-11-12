@@ -232,20 +232,17 @@ export async function POST(
       );
     }
 
-    // 7. Nhập ĐÚNG PIN -> Reset số lần nhập sai và trạng thái khóa nếu có
-    if (
-      (userRow.failed_login_attempts && userRow.failed_login_attempts > 0) ||
-      userRow.locked_until
-    ) {
-      await supabase
-        .from("users")
-        .update({
-          failed_login_attempts: 0,
-          locked_until: null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", userRow.id);
-    }
+    // 7. Nhập ĐÚNG PIN -> Reset số lần nhập sai, trạng thái khóa và cập nhật thời gian đăng nhập
+    // Lưu ý: Không cập nhật updated_at ở đây vì login là sự kiện hệ thống, chỉ updated_at khi thay đổi thông tin hồ sơ
+    const nowIso = new Date().toISOString();
+    await supabase
+      .from("users")
+      .update({
+        failed_login_attempts: 0,
+        locked_until: null,
+        last_login_at: nowIso,
+      })
+      .eq("id", userRow.id);
 
     // 8. Tạo JWT Token (chứa userId, phone_zalo và role) và lưu vào httpOnly Cookie
     const token = await signAuthToken({

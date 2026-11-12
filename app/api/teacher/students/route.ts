@@ -9,14 +9,18 @@ import {
   COIN_TX_DESCRIPTIONS,
 } from "@/constants";
 import { UserRole } from "@/constants/auth";
-import { getManageStudentsServer } from "@/features/student-management/services/studentServerService";
+import {
+  getManageStudentsServer,
+  getPaginatedManageStudentsServer,
+  PaginatedStudentsResult,
+} from "@/features/student-management/services/studentServerService";
 import { createStudentSchema } from "@/features/student-management/schemas/studentSchemas";
 import { StudentItem } from "@/features/student-management/types";
 import { format } from "date-fns";
 
 /**
  * GET /api/teacher/students
- * Lấy danh sách đầy đủ học sinh phục vụ trang Quản lý học sinh (đã phân quyền server)
+ * Lấy danh sách học sinh phục vụ trang Quản lý học sinh (Hỗ trợ cả Full-list và Server-side Pagination)
  */
 export async function GET(req: Request) {
   try {
@@ -28,7 +32,37 @@ export async function GET(req: Request) {
       return auth.response;
     }
 
-    const manageStudents = await getManageStudentsServer(auth.session);
+    const { searchParams } = new URL(req.url);
+    const pageParam = searchParams.get("page");
+    const limitParam = searchParams.get("limit");
+    const search = searchParams.get("search") || undefined;
+    const status = searchParams.get("status") || undefined;
+    const classId = searchParams.get("classId") || undefined;
+
+    // Nếu client yêu cầu phân trang máy chủ (Server-side Pagination)
+    if (pageParam !== null || limitParam !== null) {
+      const page = pageParam ? Math.max(1, Number(pageParam)) : 1;
+      const limit = limitParam ? Math.max(1, Number(limitParam)) : 10;
+
+      const paginatedResult = await getPaginatedManageStudentsServer(
+        auth.session,
+        {
+          page,
+          limit,
+          search,
+          status,
+          classId,
+        }
+      );
+      return apiSuccess<PaginatedStudentsResult>(paginatedResult);
+    }
+
+    // Mặc định trả về toàn bộ danh sách để duy trì tương thích ngược 100%
+    const manageStudents = await getManageStudentsServer(auth.session, {
+      search,
+      status,
+      classId,
+    });
     return apiSuccess<StudentItem[]>(manageStudents);
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));

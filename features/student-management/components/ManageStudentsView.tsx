@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { Search, Loader2, AlertCircle } from "lucide-react";
 import { Pagination } from "@/components/ui/Pagination";
 import { StudentsHeader } from "./StudentsHeader";
@@ -7,20 +8,62 @@ import { StudentsKpiCards } from "./StudentsKpiCards";
 import { StudentsToolbar } from "./StudentsToolbar";
 import { StudentsTable } from "./StudentsTable";
 import { StudentsMobileList } from "./StudentsMobileList";
-import { StudentFormModal } from "./modals/StudentFormModal";
-import { ChangeStudentClassModal } from "./modals/ChangeStudentClassModal";
-import { BatchChangeClassModal } from "./modals/BatchChangeClassModal";
-import { ResetStudentPinModal } from "./modals/ResetStudentPinModal";
-import { AdjustStudentCoinsModal } from "./modals/AdjustStudentCoinsModal";
-import { StudentCoinTransactionsModal } from "./modals/StudentCoinTransactionsModal";
-import { DeleteStudentModal } from "./modals/DeleteStudentModal";
-import { PermanentDeleteStudentModal } from "./modals/PermanentDeleteStudentModal";
 import { StudentsBatchBar } from "./StudentsBatchBar";
 import { StudentItem } from "@/features/student-management/types";
 import {
   ManageStudentsProvider,
   useManageStudentsContext,
 } from "@/features/student-management/contexts/ManageStudentsContext";
+
+// Tách nhỏ Bundle Size qua dynamic imports (Điểm tối ưu 3)
+const StudentFormModal = dynamic(
+  () => import("./modals/StudentFormModal").then((m) => m.StudentFormModal),
+  { ssr: false }
+);
+const ChangeStudentClassModal = dynamic(
+  () =>
+    import("./modals/ChangeStudentClassModal").then(
+      (m) => m.ChangeStudentClassModal
+    ),
+  { ssr: false }
+);
+const BatchChangeClassModal = dynamic(
+  () =>
+    import("./modals/BatchChangeClassModal").then(
+      (m) => m.BatchChangeClassModal
+    ),
+  { ssr: false }
+);
+const ResetStudentPinModal = dynamic(
+  () =>
+    import("./modals/ResetStudentPinModal").then((m) => m.ResetStudentPinModal),
+  { ssr: false }
+);
+const AdjustStudentCoinsModal = dynamic(
+  () =>
+    import("./modals/AdjustStudentCoinsModal").then(
+      (m) => m.AdjustStudentCoinsModal
+    ),
+  { ssr: false }
+);
+const StudentCoinTransactionsModal = dynamic(
+  () =>
+    import("./modals/StudentCoinTransactionsModal").then(
+      (m) => m.StudentCoinTransactionsModal
+    ),
+  { ssr: false }
+);
+const DeleteStudentModal = dynamic(
+  () => import("./modals/DeleteStudentModal").then((m) => m.DeleteStudentModal),
+  { ssr: false }
+);
+const PermanentDeleteStudentModal = dynamic(
+  () =>
+    import("./modals/PermanentDeleteStudentModal").then(
+      (m) => m.PermanentDeleteStudentModal
+    ),
+  { ssr: false }
+);
 
 interface TeacherManageStudentsViewProps {
   initialStudents?: StudentItem[];

@@ -45,37 +45,11 @@ export async function getTeacherClassesServer(
       return [];
     }
 
-    // 2. Lấy số lượng học sinh và tổng số xu theo từng lớp
-    const { data: studentList, error: studentError } = await supabase
-      .from("users")
-      .select("class_id, current_coins")
-      .eq("role", UserRole.STUDENT)
-      .eq("is_deleted", false)
-      .not("class_id", "is", null);
-
-    if (studentError) {
-      console.error("Lỗi khi lấy số lượng học sinh và xu trên server:", studentError.message);
-    }
-
-    const studentCountMap = new Map<string, number>();
-    const totalCoinsMap = new Map<string, number>();
-    if (studentList) {
-      for (const student of studentList) {
-        if (student.class_id) {
-          studentCountMap.set(
-            student.class_id,
-            (studentCountMap.get(student.class_id) || 0) + 1
-          );
-          totalCoinsMap.set(
-            student.class_id,
-            (totalCoinsMap.get(student.class_id) || 0) + (Number(student.current_coins) || 0)
-          );
-        }
-      }
-    }
-
-    // 3. Lấy phân công giáo viên và thông tin giáo viên
-    const [assignmentsRes, teachersRes] = await Promise.all([
+    // 2. Lấy thống kê số học sinh/xu (từ database view), phân công giáo viên và thông tin giáo viên song song
+    const [statsRes, assignmentsRes, teachersRes] = await Promise.all([
+      supabase
+        .from("class_statistics")
+        .select("class_id, student_count, total_coins"),
       supabase.from("teacher_classes").select("class_id, teacher_id"),
       supabase
         .from("users")
@@ -83,6 +57,17 @@ export async function getTeacherClassesServer(
         .in("role", [UserRole.TEACHER, UserRole.SUPER_TEACHER])
         .eq("is_deleted", false),
     ]);
+
+    const studentCountMap = new Map<string, number>();
+    const totalCoinsMap = new Map<string, number>();
+    if (statsRes.data) {
+      for (const row of statsRes.data) {
+        if (row.class_id) {
+          studentCountMap.set(row.class_id, Number(row.student_count) || 0);
+          totalCoinsMap.set(row.class_id, Number(row.total_coins) || 0);
+        }
+      }
+    }
 
     const teacherNameMap = new Map<string, string>();
     if (teachersRes.data) {

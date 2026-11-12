@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { Search, Loader2, AlertCircle } from "lucide-react";
 import { Pagination } from "@/components/ui/Pagination";
 import { TeachersHeader } from "./TeachersHeader";
@@ -7,17 +8,37 @@ import { TeachersKpiCards } from "./TeachersKpiCards";
 import { TeachersToolbar } from "./TeachersToolbar";
 import { TeachersTable } from "./TeachersTable";
 import { TeachersMobileList } from "./TeachersMobileList";
-import { TeacherFormModal } from "./modals/TeacherFormModal";
-import { AssignClassesModal } from "./modals/AssignClassesModal";
-import { ResetPasswordModal } from "./modals/ResetPasswordModal";
-import { DeleteTeacherModal } from "./modals/DeleteTeacherModal";
-import { PermanentDeleteTeacherModal } from "./modals/PermanentDeleteTeacherModal";
 import { TeachersBatchBar } from "./TeachersBatchBar";
 import { TeacherStaffItem } from "@/features/teacher-management/types";
 import {
   ManageTeachersProvider,
   useManageTeachersContext,
 } from "@/features/teacher-management/contexts/ManageTeachersContext";
+
+// Tách nhỏ Bundle Size qua dynamic imports (Điểm tối ưu 3)
+const TeacherFormModal = dynamic(
+  () => import("./modals/TeacherFormModal").then((m) => m.TeacherFormModal),
+  { ssr: false }
+);
+const AssignClassesModal = dynamic(
+  () => import("./modals/AssignClassesModal").then((m) => m.AssignClassesModal),
+  { ssr: false }
+);
+const ResetPasswordModal = dynamic(
+  () => import("./modals/ResetPasswordModal").then((m) => m.ResetPasswordModal),
+  { ssr: false }
+);
+const DeleteTeacherModal = dynamic(
+  () => import("./modals/DeleteTeacherModal").then((m) => m.DeleteTeacherModal),
+  { ssr: false }
+);
+const PermanentDeleteTeacherModal = dynamic(
+  () =>
+    import("./modals/PermanentDeleteTeacherModal").then(
+      (m) => m.PermanentDeleteTeacherModal
+    ),
+  { ssr: false }
+);
 
 interface TeacherManageTeachersViewProps {
   initialTeachers?: TeacherStaffItem[];
