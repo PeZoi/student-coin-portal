@@ -20,15 +20,29 @@ interface UseClassFiltersProps {
  */
 export function useClassFilters({ classesList, onFilterChange }: UseClassFiltersProps) {
   const [statusFilter, setStatusFilterState] = useState<StatusFilter>("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQueryState] = useState("");
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("none");
 
-  // Đổi bộ lọc trạng thái và tự động gọi hook ngoài (xóa selection)
+  // State phân trang (Pagination)
+  const [currentPage, setCurrentPageState] = useState<number>(1);
+  const [pageSize, setPageSizeState] = useState<number>(10);
+
+  // Đổi bộ lọc trạng thái và tự động gọi hook ngoài (xóa selection) & reset về trang 1
   const setStatusFilter = useCallback(
     (filter: StatusFilter) => {
       setStatusFilterState(filter);
+      setCurrentPageState(1);
+      onFilterChange?.();
+    },
+    [onFilterChange]
+  );
+
+  const setSearchQuery = useCallback(
+    (query: string) => {
+      setSearchQueryState(query);
+      setCurrentPageState(1);
       onFilterChange?.();
     },
     [onFilterChange]
@@ -74,7 +88,7 @@ export function useClassFilters({ classesList, onFilterChange }: UseClassFilters
     };
   }, [classesList]);
 
-  // Toggle sắp xếp: asc -> desc -> none
+  // Toggle sắp xếp: asc -> desc -> none & reset về trang 1
   const handleSortToggle = useCallback(
     (field: SortField) => {
       if (sortField !== field) {
@@ -88,6 +102,7 @@ export function useClassFilters({ classesList, onFilterChange }: UseClassFilters
       } else {
         setSortDirection("asc");
       }
+      setCurrentPageState(1);
     },
     [sortField, sortDirection]
   );
@@ -149,9 +164,36 @@ export function useClassFilters({ classesList, onFilterChange }: UseClassFilters
     });
   }, [classesList, statusFilter, deferredSearchQuery, sortField, sortDirection]);
 
+  // Phân trang dữ liệu lớp học
+  const totalPages = Math.max(1, Math.ceil(filteredClasses.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+
+  const paginatedClasses = useMemo(() => {
+    const startIndex = (safePage - 1) * pageSize;
+    return filteredClasses.slice(startIndex, startIndex + pageSize);
+  }, [filteredClasses, safePage, pageSize]);
+
+  const setCurrentPage = useCallback(
+    (page: number) => {
+      setCurrentPageState(Math.max(1, page));
+      onFilterChange?.();
+    },
+    [onFilterChange]
+  );
+
+  const setPageSize = useCallback(
+    (size: number) => {
+      setPageSizeState(size);
+      setCurrentPageState(1);
+      onFilterChange?.();
+    },
+    [onFilterChange]
+  );
+
   const handleResetFilter = useCallback(() => {
     setStatusFilter("all");
-    setSearchQuery("");
+    setSearchQueryState("");
+    setCurrentPageState(1);
     onFilterChange?.();
   }, [setStatusFilter, onFilterChange]);
 
@@ -170,6 +212,16 @@ export function useClassFilters({ classesList, onFilterChange }: UseClassFilters
     totalStudents,
     totalTeachers,
     filteredClasses,
+
+    // Phân trang
+    paginatedClasses,
+    currentPage: safePage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalItems: filteredClasses.length,
+
     handleResetFilter,
   };
 }

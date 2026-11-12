@@ -1,6 +1,7 @@
 "use client";
 
 import { Search, Loader2, AlertCircle } from "lucide-react";
+import { Pagination } from "@/components/ui/Pagination";
 import { ClassesHeader } from "./ClassesHeader";
 import { ClassesKpiCards } from "./ClassesKpiCards";
 import { ClassesToolbar } from "./ClassesToolbar";
@@ -42,6 +43,12 @@ function TeacherClassesContent() {
     isError,
     classesList,
     filteredClasses,
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalItems,
     handleResetFilter,
     handleRefresh,
   } = useTeacherClassesContext();
@@ -112,6 +119,19 @@ function TeacherClassesContent() {
 
             {/* Mobile: Danh sách thẻ */}
             <ClassesMobileList />
+
+            {/* Phân trang: Click từng trang 1 */}
+            <div className="border-t border-slate-200">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                totalItems={totalItems}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={setPageSize}
+                itemLabel="lớp học"
+              />
+            </div>
           </>
         )}
       </div>

@@ -7,7 +7,7 @@ import { TeacherCard } from "./TeacherCard";
  */
 export function TeachersMobileList() {
   const {
-    filteredTeachers,
+    paginatedTeachers,
     handleOpenAssignClasses,
     handleOpenEditTeacher,
     handleOpenResetPassword,
@@ -21,7 +21,7 @@ export function TeachersMobileList() {
 
   return (
     <div className="md:hidden p-4 space-y-3 bg-slate-50/50">
-      {filteredTeachers.map((item) => (
+      {paginatedTeachers.map((item) => (
         <TeacherCard
           key={item.id}
           item={item}

@@ -27,7 +27,7 @@ export interface TeacherSelectProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  size?: "sm" | "md";
+  size?: "xs" | "sm" | "md";
   disabled?: boolean;
   error?: string;
   searchable?: boolean;
@@ -110,7 +110,8 @@ export function TeacherSelect({
       spaceBelow < ESTIMATED_MAX_HEIGHT && spaceAbove > spaceBelow;
 
     const screenWidth = typeof window !== "undefined" ? window.innerWidth : 1024;
-    const width = Math.min(rect.width, screenWidth - 16);
+    const minWidth = size === "xs" ? 108 : 0;
+    const width = Math.min(Math.max(rect.width, minWidth), screenWidth - 16);
     const maxLeft = Math.max(8, screenWidth - width - 8);
     const safeLeft = Math.min(Math.max(8, rect.left), maxLeft);
 
@@ -121,7 +122,7 @@ export function TeacherSelect({
       width: width,
       openUpward,
     });
-  }, []);
+  }, [size]);
 
   const handleToggleOpen = () => {
     if (disabled) return;
@@ -196,7 +197,14 @@ export function TeacherSelect({
     };
   }, [isOpen, updateMenuPosition]);
 
-  const heightClass = size === "sm" ? "h-10 text-xs sm:text-sm" : "h-11 text-sm";
+  const heightClass =
+    size === "xs"
+      ? "h-8 px-2 text-xs font-semibold"
+      : size === "sm"
+      ? "h-10 px-3.5 text-xs sm:text-sm font-semibold"
+      : "h-11 px-3.5 text-sm font-semibold";
+
+  const roundedClass = size === "xs" ? "rounded-lg" : "rounded-xl";
 
   return (
     <div ref={containerRef} className={cn("relative w-full", containerClassName)}>
@@ -213,8 +221,10 @@ export function TeacherSelect({
         disabled={disabled}
         onClick={handleToggleOpen}
         className={cn(
-          "w-full px-3.5 rounded-xl bg-white border text-left transition-all flex items-center justify-between gap-2.5 cursor-pointer select-none",
+          "w-full bg-white border text-left transition-all flex items-center justify-between cursor-pointer select-none",
           heightClass,
+          roundedClass,
+          size === "xs" ? "gap-1.5" : "gap-2.5",
           error
             ? "border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20"
             : isOpen
@@ -226,7 +236,7 @@ export function TeacherSelect({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
           {icon && (
             <span className="shrink-0 flex items-center justify-center text-slate-500">
               {icon}
@@ -252,7 +262,8 @@ export function TeacherSelect({
 
         <ChevronDown
           className={cn(
-            "w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0",
+            size === "xs" ? "w-3.5 h-3.5" : "w-4 h-4",
+            "text-slate-400 transition-transform duration-200 shrink-0",
             isOpen && "rotate-180 text-[#0A62D6]"
           )}
         />
@@ -280,7 +291,8 @@ export function TeacherSelect({
               width: `${menuPos.width}px`,
             }}
             className={cn(
-              "fixed z-[9999] rounded-xl bg-white border border-[#E2E8F0] shadow-2xl p-1.5 animate-in fade-in zoom-in-95 duration-150",
+              "fixed z-[9999] bg-white border border-[#E2E8F0] shadow-2xl animate-in fade-in zoom-in-95 duration-150",
+              size === "xs" ? "rounded-lg p-1" : "rounded-xl p-1.5",
               menuPos.openUpward ? "origin-bottom" : "origin-top"
             )}
           >
@@ -327,7 +339,10 @@ export function TeacherSelect({
                       disabled={opt.disabled}
                       onClick={() => handleSelectOption(opt)}
                       className={cn(
-                        "w-full px-3 py-2 rounded-lg text-left text-xs sm:text-sm font-medium transition-colors flex items-center justify-between gap-2 cursor-pointer select-none",
+                        "w-full text-left font-medium transition-colors flex items-center justify-between gap-2 cursor-pointer select-none",
+                        size === "xs"
+                          ? "px-2 py-1.5 rounded-md text-xs"
+                          : "px-3 py-2 rounded-lg text-xs sm:text-sm",
                         isSelected
                           ? "bg-[#EAF2FF] text-[#0A62D6] font-semibold"
                           : "text-[#0F172A] hover:bg-slate-50",
@@ -359,7 +374,12 @@ export function TeacherSelect({
                         )}
 
                         {isSelected && (
-                          <Check className="w-4 h-4 text-[#0A62D6] shrink-0 stroke-[2.5]" />
+                          <Check
+                            className={cn(
+                              size === "xs" ? "w-3.5 h-3.5" : "w-4 h-4",
+                              "text-[#0A62D6] shrink-0 stroke-[2.5]"
+                            )}
+                          />
                         )}
                       </div>
                     </button>

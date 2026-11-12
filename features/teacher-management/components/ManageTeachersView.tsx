@@ -1,6 +1,7 @@
 "use client";
 
 import { Search, Loader2, AlertCircle } from "lucide-react";
+import { Pagination } from "@/components/ui/Pagination";
 import { TeachersHeader } from "./TeachersHeader";
 import { TeachersKpiCards } from "./TeachersKpiCards";
 import { TeachersToolbar } from "./TeachersToolbar";
@@ -48,6 +49,12 @@ function ManageTeachersContent() {
     isError,
     teachersList,
     filteredTeachers,
+    currentPage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalItems,
     handleResetFilter,
     handleRefresh,
   } = useManageTeachersContext();
@@ -120,6 +127,19 @@ function ManageTeachersContent() {
 
             {/* Mobile: Danh sách thẻ */}
             <TeachersMobileList />
+
+            {/* Phân trang: Click từng trang 1 */}
+            <div className="border-t border-slate-200">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                totalItems={totalItems}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={setPageSize}
+                itemLabel="giáo viên"
+              />
+            </div>
           </>
         )}
       </div>

@@ -33,7 +33,7 @@ interface ClassesTableProps {
 
 export function ClassesTable(props?: ClassesTableProps) {
   const context = useTeacherClassesContext();
-  const items = props?.items ?? context.filteredClasses;
+  const items = props?.items ?? context.paginatedClasses;
   const sortField = props?.sortField !== undefined ? props.sortField : context.sortField;
   const sortDirection = props?.sortDirection ?? context.sortDirection;
   const onSortToggle = props?.onSortToggle ?? context.handleSortToggle;

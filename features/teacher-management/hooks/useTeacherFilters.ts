@@ -25,15 +25,29 @@ export function useTeacherFilters({
 }: UseTeacherFiltersProps) {
   const [statusFilter, setStatusFilterState] =
     useState<TeacherStatusFilter>("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQueryState] = useState("");
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const [sortField, setSortField] = useState<TeacherSortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("none");
 
-  // Đổi bộ lọc trạng thái và tự động gọi hook ngoài (xóa selection)
+  // State phân trang (Pagination)
+  const [currentPage, setCurrentPageState] = useState<number>(1);
+  const [pageSize, setPageSizeState] = useState<number>(10);
+
+  // Đổi bộ lọc trạng thái và tự động gọi hook ngoài (xóa selection) & reset về trang 1
   const setStatusFilter = useCallback(
     (filter: TeacherStatusFilter) => {
       setStatusFilterState(filter);
+      setCurrentPageState(1);
+      onFilterChange?.();
+    },
+    [onFilterChange]
+  );
+
+  const setSearchQuery = useCallback(
+    (query: string) => {
+      setSearchQueryState(query);
+      setCurrentPageState(1);
       onFilterChange?.();
     },
     [onFilterChange]
@@ -82,7 +96,7 @@ export function useTeacherFilters({
     };
   }, [teachersList]);
 
-  // Chuyển trạng thái sắp xếp cột: asc -> desc -> none
+  // Chuyển trạng thái sắp xếp cột: asc -> desc -> none & reset về trang 1
   const handleSortToggle = useCallback(
     (field: TeacherSortField) => {
       if (sortField !== field) {
@@ -96,6 +110,7 @@ export function useTeacherFilters({
       } else {
         setSortDirection("asc");
       }
+      setCurrentPageState(1);
     },
     [sortField, sortDirection]
   );
@@ -186,9 +201,36 @@ export function useTeacherFilters({
     });
   }, [teachersList, statusFilter, deferredSearchQuery, sortField, sortDirection]);
 
+  // Phân trang dữ liệu nhân sự giáo viên
+  const totalPages = Math.max(1, Math.ceil(filteredTeachers.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+
+  const paginatedTeachers = useMemo(() => {
+    const startIndex = (safePage - 1) * pageSize;
+    return filteredTeachers.slice(startIndex, startIndex + pageSize);
+  }, [filteredTeachers, safePage, pageSize]);
+
+  const setCurrentPage = useCallback(
+    (page: number) => {
+      setCurrentPageState(Math.max(1, page));
+      onFilterChange?.();
+    },
+    [onFilterChange]
+  );
+
+  const setPageSize = useCallback(
+    (size: number) => {
+      setPageSizeState(size);
+      setCurrentPageState(1);
+      onFilterChange?.();
+    },
+    [onFilterChange]
+  );
+
   const handleResetFilter = useCallback(() => {
     setStatusFilter("all");
-    setSearchQuery("");
+    setSearchQueryState("");
+    setCurrentPageState(1);
     onFilterChange?.();
   }, [setStatusFilter, onFilterChange]);
 
@@ -207,6 +249,16 @@ export function useTeacherFilters({
     assignedTeachersCount,
     unassignedTeachersCount,
     filteredTeachers,
+
+    // Phân trang
+    paginatedTeachers,
+    currentPage: safePage,
+    setCurrentPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalItems: filteredTeachers.length,
+
     handleResetFilter,
   };
 }

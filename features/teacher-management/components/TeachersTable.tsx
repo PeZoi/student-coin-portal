@@ -39,7 +39,7 @@ interface TeachersTableProps {
 
 export function TeachersTable(props?: TeachersTableProps) {
   const context = useManageTeachersContext();
-  const items = props?.items ?? context.filteredTeachers;
+  const items = props?.items ?? context.paginatedTeachers;
   const sortField =
     props?.sortField !== undefined ? props.sortField : context.sortField;
   const sortDirection = props?.sortDirection ?? context.sortDirection;

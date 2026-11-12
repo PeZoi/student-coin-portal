@@ -7,7 +7,7 @@ import { ClassCard } from "./ClassCard";
  */
 export function ClassesMobileList() {
   const {
-    filteredClasses,
+    paginatedClasses,
     handleOpenAssignTeacher,
     handleOpenEditClass,
     handleToggleClassStatus,
@@ -22,7 +22,7 @@ export function ClassesMobileList() {
 
   return (
     <div className="md:hidden p-4 space-y-3 bg-slate-50/50">
-      {filteredClasses.map((item) => (
+      {paginatedClasses.map((item) => (
         <ClassCard
           key={item.id}
           item={item}

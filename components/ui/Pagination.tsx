@@ -3,6 +3,7 @@
 import React, { useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TeacherSelect, TeacherSelectOption } from "@/components/ui/TeacherSelect";
 
 export interface PaginationProps {
   /** Trang hiện tại (1-based) */
@@ -77,6 +78,16 @@ export function Pagination({
     return pages;
   }, [currentPage, totalPages]);
 
+  // Tạo danh sách tùy chọn phân trang chuẩn TeacherSelect
+  const sizeOptions: TeacherSelectOption[] = useMemo(
+    () =>
+      pageSizeOptions.map((opt) => ({
+        label: `${opt} / trang`,
+        value: String(opt),
+      })),
+    [pageSizeOptions]
+  );
+
   const canGoPrevious = currentPage > 1;
   const canGoNext = currentPage < totalPages;
 
@@ -107,18 +118,15 @@ export function Pagination({
 
         {onPageSizeChange && (
           <div className="flex items-center gap-1.5 pl-2 sm:border-l sm:border-slate-200">
-            <span className="text-slate-400 hidden sm:inline">Xem:</span>
-            <select
-              value={pageSize}
-              onChange={(e) => onPageSizeChange(Number(e.target.value))}
-              className="h-8 px-2 py-0 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 font-semibold focus:outline-none focus:border-[#0A62D6] cursor-pointer"
-            >
-              {pageSizeOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt} / trang
-                </option>
-              ))}
-            </select>
+            <span className="text-slate-400 hidden sm:inline text-xs font-medium">Xem:</span>
+            <div className="w-[104px] sm:w-[108px]">
+              <TeacherSelect
+                size="xs"
+                value={String(pageSize)}
+                onChange={(val) => onPageSizeChange(Number(val))}
+                options={sizeOptions}
+              />
+            </div>
           </div>
         )}
       </div>
