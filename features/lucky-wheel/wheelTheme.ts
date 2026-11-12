@@ -5,4 +5,6 @@ export {
   WHEEL_CONSTANTS,
   WHEEL_THEME,
   getSliceTheme,
+  WHEEL_PRIZE_IMAGES,
+  getWheelPrizeImageUrl,
 } from "@/constants/wheel";

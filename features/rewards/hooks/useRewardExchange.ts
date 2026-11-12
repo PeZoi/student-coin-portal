@@ -72,7 +72,7 @@ export function useRewardExchange() {
       const trimmedLink = link.trim();
 
       if (!trimmedLink) {
-        toast.warning("Con hãy dán link món quà con muốn đổi nhé! 🎁");
+        toast.warning("Con hãy dán link món quà con muốn đổi nhé!");
         return false;
       }
 
@@ -87,7 +87,7 @@ export function useRewardExchange() {
         const noteInfo = giftNote.trim() ? ` - Ghi chú: ${giftNote.trim()}` : "";
 
         toast.success(
-          `🎁 Đã gửi yêu cầu đổi quà${priceInfo} thành công! Cô sẽ kiểm tra và trao quà cho con nhé!${noteInfo}`
+          `Đã gửi yêu cầu đổi quà${priceInfo} thành công! Cô sẽ kiểm tra và trao quà cho con nhé!${noteInfo}`
         );
         setIsShopeeModalOpen(false);
         return true;

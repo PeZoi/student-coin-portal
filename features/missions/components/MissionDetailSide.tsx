@@ -176,7 +176,7 @@ export function MissionDetailSide({ mission, onBack }: MissionDetailSideProps) {
             <div className="relative w-7 h-7 sm:w-8 sm:h-8 lg:w-11 lg:h-11 flex items-center justify-center my-0.5">
               <div className="absolute inset-0 bg-yellow-300/35 rounded-full blur-xs animate-pulse motion-reduce:animate-none pointer-events-none" />
               <Image
-                src="/coin.png"
+                src="/wheel/coin.webp"
                 alt="Coin"
                 fill
                 sizes="(max-width: 1024px) 36px, 48px"

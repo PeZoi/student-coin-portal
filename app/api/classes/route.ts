@@ -22,10 +22,11 @@ export async function GET(req: Request) {
         .select("class_id")
         .eq("teacher_id", session.userId);
 
-      if (assignments && assignments.length > 0) {
-        const classIds = assignments.map((a: { class_id: string }) => a.class_id);
-        query = query.in("id", classIds);
+      const classIds = assignments?.map((a: { class_id: string }) => a.class_id) ?? [];
+      if (classIds.length === 0) {
+        return apiSuccess<ClassItem[]>([]);
       }
+      query = query.in("id", classIds);
     }
     // Nếu là super_teacher hoặc admin hoặc chưa đăng nhập: Lấy toàn bộ danh sách lớp
 

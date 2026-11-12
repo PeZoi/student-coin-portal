@@ -385,7 +385,7 @@ export function StudentPinModal({
                 <div className="mt-3.5 [@media(max-height:700px)]:mt-1.5 flex items-center justify-center [@media(max-height:700px)]:justify-start gap-2 [@media(max-height:700px)]:gap-1.5 px-3.5 sm:px-4 [@media(max-height:700px)]:px-2.5 py-1.5 sm:py-2 [@media(max-height:700px)]:py-1 rounded-full bg-gradient-to-b from-[#FFA238] via-[#FF6A00] to-[#E04F00] border-2 border-white/95 shadow-[0_4px_12px_rgba(224,79,0,0.35),0_1.5px_0_#8F2800,inset_0_1.5px_2px_rgba(255,255,255,0.85),inset_0_-1.5px_2px_rgba(143,40,0,0.4)] select-none">
                   <div className="relative w-5 h-5 sm:w-6 sm:h-6 [@media(max-height:700px)]:w-4.5 [@media(max-height:700px)]:h-4.5 flex-shrink-0 drop-shadow-[0_1.5px_2px_rgba(100,25,0,0.45)]">
                     <Image
-                      src="/coin.png"
+                      src="/wheel/coin.webp"
                       alt="Xu"
                       width={24}
                       height={24}

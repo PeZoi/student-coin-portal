@@ -5,6 +5,7 @@ import {
   TeacherClassItem,
   AvailableTeacherItem,
   ClassStudentItem,
+  TeacherAssignedClassItem,
 } from "@/features/class-management/types";
 
 /**
@@ -118,6 +119,18 @@ export const teacherClassService = {
   async getClassStudents(classId: string): Promise<ClassStudentItem[]> {
     const res = await http.get<ApiResponse<ClassStudentItem[]>>(
       AppRoutes.API.TEACHER.CLASS_STUDENTS(classId)
+    );
+    return res.data ?? [];
+  },
+
+  /**
+   * Lấy danh sách lớp học theo phân quyền của giáo viên đang đăng nhập:
+   * - Admin/Super Teacher: Lấy toàn bộ lớp học đang hoạt động
+   * - Teacher thường: Chỉ lấy các lớp học được phân công phụ trách
+   */
+  async getMyClasses(): Promise<TeacherAssignedClassItem[]> {
+    const res = await http.get<ApiResponse<TeacherAssignedClassItem[]>>(
+      AppRoutes.API.TEACHER.MY_CLASSES
     );
     return res.data ?? [];
   },

@@ -1,7 +1,11 @@
 import { supabase } from "@/lib/supabase/db";
 import { getAuthSession, AuthTokenPayload } from "@/lib/auth/jwt";
 import { UserRole } from "@/constants";
-import { TeacherClassItem, AvailableTeacherItem } from "@/features/class-management/types";
+import {
+  TeacherClassItem,
+  AvailableTeacherItem,
+  TeacherAssignedClassItem,
+} from "@/features/class-management/types";
 import { format } from "date-fns";
 import { unstable_rethrow } from "next/navigation";
 
@@ -185,6 +189,99 @@ export async function getAvailableTeachersServer(
   } catch (error) {
     unstable_rethrow(error);
     console.error("Lỗi máy chủ khi tải danh sách giáo viên tại getAvailableTeachersServer:", error);
+    return [];
+  }
+}
+
+/**
+ * Lấy danh sách lớp học đang hoạt động theo phạm vi phụ trách của người dùng:
+ * - Admin & Super Teacher: Lấy TOÀN BỘ các lớp học đang hoạt động (is_active: true, is_deleted: false)
+ * - Teacher thường: CHỈ lấy các lớp học mà giáo viên đó đang được phân công phụ trách (qua bảng teacher_classes)
+ * - Danh sách trả về chỉ chứa các lớp học thực tế, KHÔNG chứa "Toàn hệ thống" hay phần tử ảo
+ */
+export async function getMyAssignedClassesServer(
+  customSession?: AuthTokenPayload | null
+): Promise<TeacherAssignedClassItem[]> {
+  try {
+    const session =
+      customSession !== undefined ? customSession : await getAuthSession();
+
+    if (
+      !session ||
+      (session.role !== UserRole.TEACHER &&
+        session.role !== UserRole.SUPER_TEACHER &&
+        session.role !== UserRole.ADMIN)
+    ) {
+      return [];
+    }
+
+    const isGlobalAccess =
+      session.role === UserRole.ADMIN || session.role === UserRole.SUPER_TEACHER;
+
+    let targetClassIds: string[] | null = null;
+
+    // Nếu là giáo viên thường: Truy vấn danh sách lớp được phân công
+    if (!isGlobalAccess) {
+      const { data: assignments, error: assignError } = await supabase
+        .from("teacher_classes")
+        .select("class_id")
+        .eq("teacher_id", session.userId);
+
+      if (assignError) {
+        console.error("Lỗi khi tải phân công lớp giáo viên:", assignError.message);
+        return [];
+      }
+
+      if (!assignments || assignments.length === 0) {
+        // Giáo viên chưa được phân công lớp nào -> Trả về danh sách rỗng
+        return [];
+      }
+
+      targetClassIds = assignments.map((a: { class_id: string }) => a.class_id);
+    }
+
+    // Truy vấn danh sách lớp đang hoạt động kèm số lượng học sinh song song
+    let classesQuery = supabase
+      .from("classes")
+      .select("id, class_name")
+      .eq("is_active", true)
+      .eq("is_deleted", false)
+      .order("class_name", { ascending: true });
+
+    if (targetClassIds !== null) {
+      classesQuery = classesQuery.in("id", targetClassIds);
+    }
+
+    const [classesRes, statsRes] = await Promise.all([
+      classesQuery,
+      supabase.from("class_statistics").select("class_id, student_count"),
+    ]);
+
+    if (classesRes.error || !classesRes.data) {
+      console.error(
+        "Lỗi khi tải danh sách lớp học theo phân quyền:",
+        classesRes.error?.message
+      );
+      return [];
+    }
+
+    const studentCountMap = new Map<string, number>();
+    if (statsRes.data) {
+      for (const row of statsRes.data) {
+        if (row.class_id) {
+          studentCountMap.set(row.class_id, Number(row.student_count) || 0);
+        }
+      }
+    }
+
+    return classesRes.data.map((c) => ({
+      id: c.id,
+      class_name: c.class_name,
+      student_count: studentCountMap.get(c.id) ?? 0,
+    }));
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    console.error("Lỗi ngoại lệ tại getMyAssignedClassesServer:", error.message);
     return [];
   }
 }

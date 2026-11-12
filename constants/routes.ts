@@ -54,6 +54,7 @@ export const AppRoutes = {
     CLASSES: "/api/classes",
     TEACHER: {
       CLASSES: "/api/teacher/classes",
+      MY_CLASSES: "/api/teacher/my-classes",
       TEACHERS: "/api/teacher/teachers",
       CLASS_DETAIL: (id: string) => `/api/teacher/classes/${id}`,
       CLASS_RESTORE: (id: string) => `/api/teacher/classes/${id}/restore`,

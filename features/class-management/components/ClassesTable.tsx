@@ -234,7 +234,7 @@ export function ClassesTable(props?: ClassesTableProps) {
                 >
                   <div className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-50/90 border border-amber-200/80 text-amber-900 text-xs font-bold tabular-nums shadow-2xs cursor-default">
                     <Image
-                      src="/coin.png"
+                      src="/wheel/coin.webp"
                       alt="Xu"
                       width={15}
                       height={15}
@@ -249,7 +249,7 @@ export function ClassesTable(props?: ClassesTableProps) {
                 <Tooltip content="Lớp chưa có xu tích lũy" side="top">
                   <div className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-50 border border-slate-200/60 text-slate-400 text-xs font-medium tabular-nums cursor-default">
                     <Image
-                      src="/coin.png"
+                      src="/wheel/coin.webp"
                       alt="Xu"
                       width={15}
                       height={15}

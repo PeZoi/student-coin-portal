@@ -271,11 +271,11 @@ export function MissionListMobile({
                       <span className="truncate">{dueInfo.text}</span>
                     </span>
 
-                    {/* Chip Xu: Icon /coin.png 16px + số xu thưởng */}
+                    {/* Chip Xu: Icon /wheel/coin.webp 16px + số xu thưởng */}
                     <div className="inline-flex items-center gap-1 flex-shrink-0 font-heading font-black text-[12px] sm:text-[13px] text-[#D97706]">
                       <span>+{mission.rewardCoins}</span>
                       <Image
-                        src="/coin.png"
+                        src="/wheel/coin.webp"
                         alt="Xu"
                         width={16}
                         height={16}

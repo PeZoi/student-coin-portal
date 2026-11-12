@@ -85,7 +85,7 @@ export function ShopeeExchangeModal({
           </span>
           <div className="flex items-center gap-1.5 font-heading font-black text-base sm:text-lg text-[#E65100]">
             <Image
-              src="/coin.png"
+              src="/wheel/coin.webp"
               alt="Xu"
               width={22}
               height={22}

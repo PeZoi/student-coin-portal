@@ -37,3 +37,12 @@ export interface ClassStudentItem {
   is_active: boolean;
   created_at: string;
 }
+
+/**
+ * Kiểu dữ liệu lớp học phụ trách của giáo viên (phục vụ Header Workspace Selector và lọc theo lớp)
+ */
+export interface TeacherAssignedClassItem {
+  id: string;
+  class_name: string;
+  student_count?: number;
+}

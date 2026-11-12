@@ -47,7 +47,7 @@ export function WheelPrizeModal({ prize, isOpen, onClose }: WheelPrizeModalProps
           ) : (
             <div className="relative w-24 h-24 sm:w-28 sm:h-28">
               <Image
-                src="/coin.png"
+                src="/wheel/coin.webp"
                 alt="Xu Vàng"
                 fill
                 unoptimized

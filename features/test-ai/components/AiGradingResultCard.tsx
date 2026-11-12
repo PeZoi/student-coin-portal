@@ -176,7 +176,7 @@ export function AiGradingResultCard({
                   +{result.coinReward}
                 </span>
                 <Image
-                  src="/coin.png"
+                  src="/wheel/coin.webp"
                   alt="Xu"
                   width={20}
                   height={20}

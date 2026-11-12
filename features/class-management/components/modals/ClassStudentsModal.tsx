@@ -43,7 +43,7 @@ interface ClassStudentsModalProps {
  * - Sử dụng SWR để tự động cache và deduplicate request
  * - Hỗ trợ tìm kiếm nhanh học sinh theo tên, SĐT hoặc username
  * - Hỗ trợ 2 chế độ hiển thị: Dạng Bảng (Table) và Dạng Lưới (Grid)
- * - Hiển thị ảnh xu vàng 3D (/coin.png) và avatar tối ưu
+ * - Hiển thị ảnh xu vàng 3D (/wheel/coin.webp) và avatar tối ưu
  */
 export function ClassStudentsModal(props?: ClassStudentsModalProps) {
   const context = useTeacherClassesContext();
@@ -137,7 +137,7 @@ function ClassStudentsModalContent({ item, onClose }: ClassStudentsModalContentP
                 <span className="text-slate-300">•</span>
                 <span className="inline-flex items-center gap-1">
                   <Image
-                    src="/coin.png"
+                    src="/wheel/coin.webp"
                     alt="Ví xu"
                     width={14}
                     height={14}
@@ -154,7 +154,7 @@ function ClassStudentsModalContent({ item, onClose }: ClassStudentsModalContentP
                 <span className="text-slate-300">•</span>
                 <span className="inline-flex items-center gap-1">
                   <Image
-                    src="/coin.png"
+                    src="/wheel/coin.webp"
                     alt="Tổng xu"
                     width={14}
                     height={14}
@@ -447,7 +447,7 @@ function ClassStudentsModalContent({ item, onClose }: ClassStudentsModalContentP
                         {/* Ô 1: Ví xu hiện tại */}
                         <div className="p-2 rounded-xl bg-gradient-to-br from-amber-50/90 to-orange-50/50 border border-amber-200/70 flex items-center gap-2">
                           <Image
-                            src="/coin.png"
+                            src="/wheel/coin.webp"
                             alt="Ví xu"
                             width={20}
                             height={20}
@@ -469,7 +469,7 @@ function ClassStudentsModalContent({ item, onClose }: ClassStudentsModalContentP
                         {/* Ô 2: Tổng tích lũy */}
                         <div className="p-2 rounded-xl bg-slate-50/80 border border-slate-200/80 flex items-center gap-2">
                           <Image
-                            src="/coin.png"
+                            src="/wheel/coin.webp"
                             alt="Tổng xu"
                             width={20}
                             height={20}

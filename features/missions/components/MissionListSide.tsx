@@ -266,11 +266,11 @@ export function MissionListSide({
                     </span>
                   </div>
 
-                  {/* Chip Xu: Icon /coin.png + số xu thưởng giống Mobile */}
+                  {/* Chip Xu: Icon /wheel/coin.webp + số xu thưởng giống Mobile */}
                   <div className="inline-flex items-center gap-1 flex-shrink-0 font-heading font-black text-[11.5px] sm:text-[12.5px] text-[#D97706] ml-1">
                     <span>+{mission.rewardCoins}</span>
                     <Image
-                      src="/coin.png"
+                      src="/wheel/coin.webp"
                       alt="Xu"
                       width={16}
                       height={16}

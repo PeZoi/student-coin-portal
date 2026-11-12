@@ -129,7 +129,7 @@ export function TeacherRewardsView() {
             <span className="text-emerald-700">KHO & ĐỔI QUÀ</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 font-heading">
-            Quản Lý Quà Tặng & Đổi Thưởng 🎁
+            Quản Lý Quà Tặng & Đổi Thưởng
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Theo dõi học sinh dùng xu đổi quà để trao tận tay tại lớp và kiểm kê kho quà tặng.

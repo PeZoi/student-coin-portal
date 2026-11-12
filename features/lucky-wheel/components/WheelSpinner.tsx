@@ -5,7 +5,7 @@ import { Gift, Smile, Star } from "lucide-react";
 import Image from "next/image";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { WheelPrize } from "../types";
-import { WHEEL_THEME, getSliceTheme } from "../wheelTheme";
+import { WHEEL_THEME, getSliceTheme, getWheelPrizeImageUrl } from "../wheelTheme";
 import { wheelAudio, AUDIO_CONFIG } from "../audio/wheelAudio";
 import { WheelDynamicDisc } from "./WheelDynamicDisc";
 
@@ -22,23 +22,28 @@ const LED_COUNT = 24;
 
 /**
  * Render Icon giải thưởng:
- * - Đồng xu: /coin.png với viền #B86E00 1px để nổi trên nền vàng.
+ * - Đồng xu: /wheel/coin.webp với viền #B86E00 1px để nổi trên nền vàng.
  * - Vật phẩm đặc biệt (gift, multiplier, luck): Gộp về MỘT tile tím duy nhất (special.from -> special.to)
  *   với viền trắng 2px và icon trắng.
  */
 function renderPrizeIcon(prize: WheelPrize) {
-	if (prize.type === "coin") {
+	const imageUrl = getWheelPrizeImageUrl(prize.type);
+	const isCoin = prize.type === "coin";
+
+	// Nếu loại có hình ảnh chính thức trong /wheel hoặc coin.png (coin, gift, luck, free_spin, deduct_coin)
+	if (["coin", "gift", "luck", "free_spin", "deduct_coin"].includes(prize.type)) {
 		return (
 			<div
 				className='relative w-7 h-7 sm:w-8.5 sm:h-8.5 md:w-9 md:h-9'
 				style={{
-					filter:
-						"drop-shadow(1px 0 0 #B86E00) drop-shadow(-1px 0 0 #B86E00) drop-shadow(0 1px 0 #B86E00) drop-shadow(0 -1px 0 #B86E00) drop-shadow(0 2px 4px rgba(0,0,0,0.3))",
+					filter: isCoin
+						? "drop-shadow(1px 0 0 #B86E00) drop-shadow(-1px 0 0 #B86E00) drop-shadow(0 1px 0 #B86E00) drop-shadow(0 -1px 0 #B86E00) drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
+						: "drop-shadow(0 2px 5px rgba(0,0,0,0.25))",
 				}}
 			>
 				<Image
-					src='/coin.png'
-					alt='Xu vàng'
+					src={imageUrl}
+					alt={prize.label}
 					fill
 					unoptimized
 					className='object-contain'
@@ -53,7 +58,7 @@ function renderPrizeIcon(prize: WheelPrize) {
 		luck: Smile,
 	};
 
-	const IconComp = iconComponentMap[prize.type] || Star;
+	const IconComp = iconComponentMap[prize.type as keyof typeof iconComponentMap] || Star;
 
 	return (
 		<div
@@ -272,7 +277,7 @@ export function WheelSpinner({
 					}
 				}
 
-				// Điều khiển chuyển động vật lý của kim chỉ bám sát vị trí divider/chốt nan quạt
+				// Điều khiển chuyển động vật lý của kim chỉ bám sát vị trí divider/chốt vòng quay
 				if (pointerRef.current) {
 					let pointerAngle = 0;
 					if (angularVelocity > 450) {
@@ -675,7 +680,7 @@ export function WheelSpinner({
 														-{spinCost.toLocaleString("vi-VN")}
 													</span>
 													<Image
-														src='/coin.png'
+														src='/wheel/coin.webp'
 														alt='Xu'
 														width={20}
 														height={20}

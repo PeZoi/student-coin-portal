@@ -7,6 +7,7 @@ import { authService } from "@/features/auth/services/authService";
 import { isPublicPage } from "@/lib/auth/routes";
 import { AppRoutes } from "@/constants/routes";
 import { useConfigStore } from "./useConfigStore";
+import { useTeacherWorkspaceStore } from "./useTeacherWorkspaceStore";
 
 export interface StudentSessionPayload {
   id?: string;
@@ -145,6 +146,7 @@ export const useUserStore = create<UserState>()(
           set({ student: null, isLoading: false });
           useUserStore.persist?.clearStorage();
           useConfigStore.getState().clearConfigs();
+          useTeacherWorkspaceStore.getState().resetWorkspace();
           return false;
         } catch {
           // Nếu lỗi mạng tạm thời mà đang có cached student thì vẫn giữ cached student
@@ -160,6 +162,7 @@ export const useUserStore = create<UserState>()(
           set({ student: null, isLoading: false });
           useUserStore.persist?.clearStorage();
           useConfigStore.getState().clearConfigs();
+          useTeacherWorkspaceStore.getState().resetWorkspace();
           if (typeof window !== "undefined") {
             window.location.href = AppRoutes.LOGIN;
           }

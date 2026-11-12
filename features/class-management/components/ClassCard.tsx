@@ -124,7 +124,7 @@ export function ClassCard({
           {item.total_coins && item.total_coins > 0 ? (
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50/90 border border-amber-200/80 text-amber-900 text-xs font-bold tabular-nums shadow-2xs">
               <Image
-                src="/coin.png"
+                src="/wheel/coin.webp"
                 alt="Xu"
                 width={14}
                 height={14}
@@ -137,7 +137,7 @@ export function ClassCard({
           ) : (
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200/60 text-slate-400 text-xs font-medium tabular-nums">
               <Image
-                src="/coin.png"
+                src="/wheel/coin.webp"
                 alt="Xu"
                 width={14}
                 height={14}

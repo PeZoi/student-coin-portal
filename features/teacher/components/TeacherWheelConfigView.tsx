@@ -104,7 +104,7 @@ export function TeacherWheelConfigView() {
             Cấu Hình Vòng Quay May Mắn 🎡
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Điều chỉnh cơ cấu 8 ô phần thưởng, thiết lập trọng số xác suất (RTP) và chi phí xu mỗi lượt quay.
+            Điều chỉnh cơ cấu 8 ô phần thưởng, thiết lập trọng số xác suất và chi phí xu mỗi lượt quay.
           </p>
         </div>
 
@@ -132,7 +132,7 @@ export function TeacherWheelConfigView() {
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-          <div className="text-xs font-bold text-slate-500 uppercase">Tỷ lệ hoàn xu (RTP)</div>
+          <div className="text-xs font-bold text-slate-500 uppercase">Tỷ lệ hoàn xu</div>
           <div className="text-xl font-black text-blue-600 mt-1">82.5%</div>
           <div className="text-[11px] text-slate-500 mt-0.5">Cân bằng kinh tế lớp học</div>
         </div>
@@ -155,7 +155,7 @@ export function TeacherWheelConfigView() {
             className="text-xs font-bold text-purple-700 hover:text-purple-800 flex items-center gap-1"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            <span>Tự động cân bằng 100%</span>
+            <span>Cân bằng</span>
           </button>
         </div>
 

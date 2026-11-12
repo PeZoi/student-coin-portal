@@ -16,7 +16,7 @@ interface WheelHistoryModalProps {
 
 /**
  * Component hiển thị Badge phần thưởng đẹp mắt:
- * - Nếu là phần thưởng xu (rewardCoins > 0): Hiển thị "+ số xu" kèm icon ảnh xu vàng (/coin.png)
+ * - Nếu là phần thưởng xu (rewardCoins > 0): Hiển thị "+ số xu" kèm icon ảnh xu vàng (/wheel/coin.webp)
  * - Nếu là vật phẩm đặc biệt: Hiển thị tên vật phẩm kèm icon Sparkles
  */
 function PrizeBadge({ rewardCoins, prizeLabel }: { rewardCoins: number; prizeLabel: string }) {
@@ -25,7 +25,7 @@ function PrizeBadge({ rewardCoins, prizeLabel }: { rewardCoins: number; prizeLab
       <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-gradient-to-r from-amber-100 via-amber-100/90 to-amber-200/90 border border-amber-300/90 shadow-2xs font-heading font-black text-xs sm:text-[13px] text-[#D97706] flex-shrink-0 transition-transform hover:scale-105 select-none">
         <span>+{rewardCoins}</span>
         <Image
-          src="/coin.png"
+          src="/wheel/coin.webp"
           alt="Xu"
           width={18}
           height={18}

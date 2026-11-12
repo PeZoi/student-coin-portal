@@ -110,7 +110,7 @@ export function LeaderboardRowItem({
           {type === "coins" ? (
             <div className="flex items-center gap-1 mt-0.5">
               <Image
-                src="/coin.png"
+                src="/wheel/coin.webp"
                 alt="Xu"
                 width={18}
                 height={18}
@@ -141,7 +141,7 @@ export function LeaderboardRowItem({
             <div className="flex items-center gap-1 font-heading font-black text-[#D97706] text-sm sm:text-base lg:text-lg whitespace-nowrap">
               <span>+{bonusCoins}</span>
               <Image
-                src="/coin.png"
+                src="/wheel/coin.webp"
                 alt="Xu thưởng"
                 width={20}
                 height={20}
@@ -157,7 +157,7 @@ export function LeaderboardRowItem({
             <div className="flex items-center gap-1 font-heading font-black text-[#D97706] text-sm sm:text-base lg:text-lg whitespace-nowrap">
               <span>+{bonusPoints}</span>
               <Image
-                src="/coin.png"
+                src="/wheel/coin.webp"
                 alt="Xu thưởng"
                 width={20}
                 height={20}

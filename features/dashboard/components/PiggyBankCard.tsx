@@ -198,7 +198,7 @@ export function PiggyBankCard({ className }: PiggyBankCardProps = {}) {
         className="absolute top-[17%] left-[6%] sm:left-[8%] w-8 h-8 sm:w-9 sm:h-9 pointer-events-none select-none drop-shadow-[0_6px_12px_rgba(160,70,0,0.38)] -rotate-12 z-10 transition-transform duration-300 hover:scale-110"
         style={{ transform: "translateZ(30px)" }}
       >
-        <Image src="/coin.png" alt="Coin" fill sizes="36px" unoptimized className="object-contain" />
+        <Image src="/wheel/coin.webp" alt="Coin" fill sizes="36px" unoptimized className="object-contain" />
       </div>
 
       {/* Coin 2: Mid-Lower Left distant background coin */}
@@ -206,7 +206,7 @@ export function PiggyBankCard({ className }: PiggyBankCardProps = {}) {
         className="absolute top-[44%] left-[4%] sm:left-[6%] w-5 h-5 sm:w-6 sm:h-6 pointer-events-none select-none drop-shadow-[0_4px_8px_rgba(160,70,0,0.28)] rotate-12 z-10 opacity-95"
         style={{ transform: "translateZ(20px)" }}
       >
-        <Image src="/coin.png" alt="Coin" fill sizes="24px" unoptimized className="object-contain" />
+        <Image src="/wheel/coin.webp" alt="Coin" fill sizes="24px" unoptimized className="object-contain" />
       </div>
 
       {/* Coin 3: Lower Left near cloud podium */}
@@ -214,7 +214,7 @@ export function PiggyBankCard({ className }: PiggyBankCardProps = {}) {
         className="absolute top-[60%] left-[10%] sm:left-[12%] w-5 h-5 sm:w-5.5 sm:h-5.5 pointer-events-none select-none drop-shadow-[0_3px_6px_rgba(160,70,0,0.28)] -rotate-15 z-10 opacity-90"
         style={{ transform: "translateZ(25px)" }}
       >
-        <Image src="/coin.png" alt="Coin" fill sizes="22px" unoptimized className="object-contain" />
+        <Image src="/wheel/coin.webp" alt="Coin" fill sizes="22px" unoptimized className="object-contain" />
       </div>
 
       {/* Coin 4: Upper Right floating hero coin */}
@@ -222,7 +222,7 @@ export function PiggyBankCard({ className }: PiggyBankCardProps = {}) {
         className="absolute top-[21%] right-[6%] sm:right-[8%] w-8 h-8 sm:w-9 sm:h-9 pointer-events-none select-none drop-shadow-[0_6px_12px_rgba(160,70,0,0.38)] rotate-15 z-10 transition-transform duration-300 hover:scale-110"
         style={{ transform: "translateZ(32px)" }}
       >
-        <Image src="/coin.png" alt="Coin" fill sizes="36px" unoptimized className="object-contain" />
+        <Image src="/wheel/coin.webp" alt="Coin" fill sizes="36px" unoptimized className="object-contain" />
       </div>
 
       {/* Coin 5: Mid Right floating coin */}
@@ -230,7 +230,7 @@ export function PiggyBankCard({ className }: PiggyBankCardProps = {}) {
         className="absolute top-[45%] right-[5%] sm:right-[7%] w-6 h-6 sm:w-7 sm:h-7 pointer-events-none select-none drop-shadow-[0_4px_8px_rgba(160,70,0,0.32)] -rotate-8 z-10"
         style={{ transform: "translateZ(24px)" }}
       >
-        <Image src="/coin.png" alt="Coin" fill sizes="28px" unoptimized className="object-contain" />
+        <Image src="/wheel/coin.webp" alt="Coin" fill sizes="28px" unoptimized className="object-contain" />
       </div>
 
       {/* Decorative Kim Tuyến Sparkles & Twinkling 3D Stars (Phân bổ tự nhiên, đa sắc độ) */}
@@ -322,7 +322,7 @@ export function PiggyBankCard({ className }: PiggyBankCardProps = {}) {
 
               {/* Đồng xu vàng 3D sắc sảo với ánh sáng vàng tỏa nhẹ quanh thân xu */}
               <div className="relative w-full h-full drop-shadow-[0_2px_4px_rgba(160,70,0,0.25)] drop-shadow-[0_0_6px_rgba(255,200,0,0.35)] z-10">
-                <Image src="/coin.png" alt="Coin" fill sizes="40px" unoptimized className="object-contain" />
+                <Image src="/wheel/coin.webp" alt="Coin" fill sizes="40px" unoptimized className="object-contain" />
               </div>
             </div>
 

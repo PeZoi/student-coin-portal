@@ -160,7 +160,7 @@ function MissionDetailSheetModal({
               <div className="shrink-0 flex items-center gap-1 bg-gradient-to-r from-amber-100 to-amber-200/90 border border-amber-300 rounded-full px-2.5 py-1 shadow-xs">
                 <div className="relative w-4 h-4 shrink-0">
                   <Image
-                    src="/coin.png"
+                    src="/wheel/coin.webp"
                     alt="Coin"
                     fill
                     sizes="16px"

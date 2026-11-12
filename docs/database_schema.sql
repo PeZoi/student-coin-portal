@@ -360,24 +360,27 @@ CREATE TABLE wheel_prizes (
     -- Nhãn ngắn gọn hiển thị vừa vặn trên nan đĩa quay (Ví dụ: '+100 Xu', '+2 Free')
     short_label VARCHAR(50) NOT NULL CHECK (length(trim(short_label)) > 0),
     
-    -- Phân loại phần thưởng: 'coin' (cộng xu), 'free_spin' (thêm lượt quay free), 'gift' (quà tặng), 'luck' (an ủi)
-    prize_type VARCHAR(20) NOT NULL CHECK (prize_type IN ('coin', 'free_spin', 'gift', 'luck')),
+    -- Phân loại phần thưởng: 'coin' (cộng xu), 'free_spin' (thêm lượt quay free), 'gift' (quà tặng), 'luck' (an ủi), 'deduct_coin' (bị trừ xu)
+    prize_type VARCHAR(20) NOT NULL CHECK (prize_type IN ('coin', 'free_spin', 'gift', 'luck', 'deduct_coin')),
     
-    -- Số lượng xu thưởng tương ứng (Ví dụ: 20, 50, 100, 200 xu; nếu là ô free_spin thì = 0)
-    reward_coins INTEGER NOT NULL DEFAULT 0 CHECK (reward_coins >= 0),
+    -- Số lượng xu thưởng tương ứng (Ví dụ: 20, 50, 100 xu; nếu là ô deduct_coin có thể là số âm; nếu là ô free_spin thì = 0)
+    reward_coins INTEGER NOT NULL DEFAULT 0 CHECK (reward_coins >= 0 OR prize_type = 'deduct_coin'),
     
     -- Số lượt quay miễn phí thưởng thêm (Ví dụ: 1 hoặc 2 lượt quay; nếu là ô cộng xu thì = 0)
     reward_free_spins INTEGER NOT NULL DEFAULT 0 CHECK (reward_free_spins >= 0),
     
-    -- Biểu tượng icon hiển thị trên nan quay: 'coins', 'gift', 'sparkles', 'star', 'smile', 'trophy', 'ticket'
+    -- Biểu tượng icon hiển thị trên nan quay: 'coins', 'gift', 'sparkles', 'star', 'smile', 'trophy', 'ticket', 'trending-down'
     icon_name VARCHAR(50) NOT NULL,
     
     -- Trọng số xác suất trúng thưởng (Số càng lớn tỉ lệ rơi vào nan này càng cao)
     probability_weight INTEGER NOT NULL DEFAULT 10 CHECK (probability_weight >= 1),
     
-    -- Thứ tự vị trí nan quay trên đĩa từ 0 đến 7 (Mỗi nan chiếm 45 độ)
-    slot_order INTEGER NOT NULL CHECK (slot_order BETWEEN 0 AND 7),
+    -- Thứ tự vị trí nan quay trên đĩa (Từ 1 trở lên, linh hoạt không giới hạn 8 ô)
+    slot_order INTEGER NOT NULL CHECK (slot_order >= 0),
     
+    -- Khóa tỷ lệ xác suất: true = cố định khi tự động cân bằng, false = tự do cân bằng
+    is_locked BOOLEAN DEFAULT FALSE,
+
     -- Khóa ngoại: Người tạo/cấu hình giải thưởng này (Giáo viên hoặc Admin)
     created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     
@@ -414,8 +417,8 @@ CREATE TABLE wheel_spins (
     -- Mức phí bị trừ cho lượt quay này (Lấy chính xác theo cấu hình tại thời điểm quay, không có giá trị hardcode)
     spin_cost INTEGER NOT NULL CHECK (spin_cost >= 0),
     
-    -- Số lượng xu nhận được từ giải thưởng (Được cộng ngay vào Heo Đất; nếu trúng free spin thì = 0)
-    reward_coins INTEGER NOT NULL DEFAULT 0 CHECK (reward_coins >= 0),
+    -- Số lượng xu nhận được từ giải thưởng (Được cộng vào Heo Đất; nếu trúng ô deduct_coin sẽ mang giá trị âm)
+    reward_coins INTEGER NOT NULL DEFAULT 0,
     
     -- Số lượt quay miễn phí nhận được từ giải thưởng (Ví dụ: +2 lượt quay free được cộng vào tài khoản)
     reward_free_spins INTEGER NOT NULL DEFAULT 0 CHECK (reward_free_spins >= 0),

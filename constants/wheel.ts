@@ -59,3 +59,30 @@ export const WHEEL_THEME = {
  * Lấy theme màu cho múi thứ i (xen kẽ chẵn/lẻ)
  */
 export const getSliceTheme = (i: number) => WHEEL_THEME.slices[i % 2];
+
+/**
+ * Đường dẫn hình ảnh 3D chính thức cho từng loại phần thưởng trên Vòng quay
+ * Tương ứng với 5 nhóm phần thưởng:
+ * - coin: Đồng xu vàng (/wheel/coin.webp)
+ * - deduct_coin: Bị Trừ Xu (/wheel/deduct-coin.webp)
+ * - free_spin: Thêm lượt quay (/wheel/free-spin.webp)
+ * - gift: Hộp quà hiện vật (/wheel/gift.webp)
+ * - luck: Chúc bạn may mắn lần sau (/wheel/luck.webp)
+ */
+export const WHEEL_PRIZE_IMAGES = {
+  coin: "/wheel/coin.webp",
+  deduct_coin: "/wheel/deduct-coin.webp",
+  free_spin: "/wheel/free-spin.webp",
+  gift: "/wheel/gift.webp",
+  luck: "/wheel/luck.webp",
+} as const;
+
+export type WheelPrizeImageType = keyof typeof WHEEL_PRIZE_IMAGES;
+
+/**
+ * Hàm tiện ích lấy URL ảnh đại diện theo loại phần thưởng
+ */
+export function getWheelPrizeImageUrl(type: string): string {
+  const normalizedType = type.replace(/-/g, "_") as WheelPrizeImageType;
+  return WHEEL_PRIZE_IMAGES[normalizedType] || WHEEL_PRIZE_IMAGES.coin;
+}

@@ -109,7 +109,7 @@ function StudentCoinTransactionsDialogContent({
               <span className="text-slate-500 font-medium">Số dư ví:</span>
               <span className="inline-flex items-center gap-1 font-heading font-black text-amber-950 tabular-nums">
                 <Image
-                  src="/coin.png"
+                  src="/wheel/coin.webp"
                   alt="Xu ví"
                   width={16}
                   height={16}
@@ -270,7 +270,7 @@ function CompactTransactionRow({ tx }: { tx: StudentCoinTransactionItem }) {
               : tx.amount.toLocaleString("vi-VN")}
           </span>
           <Image
-            src="/coin.png"
+            src="/wheel/coin.webp"
             alt="Xu"
             width={16}
             height={16}

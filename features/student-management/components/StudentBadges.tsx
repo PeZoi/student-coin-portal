@@ -231,7 +231,7 @@ export function StudentCoinsBadge({
 			{/* Dòng 1: Ví hiện có */}
 			<div className='inline-flex items-center gap-1.5 text-amber-900'>
 				<Image
-					src='/coin.png'
+					src='/wheel/coin.webp'
 					alt='Ví xu'
 					width={15}
 					height={15}
@@ -253,7 +253,7 @@ export function StudentCoinsBadge({
 			{/* Dòng 2: Tổng tích lũy */}
 			<div className='inline-flex items-center gap-1.5 text-slate-600'>
 				<Image
-					src='/coin.png'
+					src='/wheel/coin.webp'
 					alt='Tổng xu'
 					width={14}
 					height={14}
