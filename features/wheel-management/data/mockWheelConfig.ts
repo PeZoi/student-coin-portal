@@ -1,161 +1,12 @@
 import {
-  WheelSlotItem,
   WheelGeneralSettings,
   WheelStatisticsData,
 } from "../types";
 
 /**
- * 8 Ô phần thưởng mặc định trên Vòng quay may mắn (Đúng chuẩn Schema Database `wheel_prizes`)
- * Bao gồm đủ 5 nhóm phần thưởng:
- * 1. coin (Cộng xu)
- * 2. free_spin (Tặng lượt quay miễn phí)
- * 3. luck (Chúc may mắn lần sau)
- * 4. gift (Hộp quà bí mật / Hiện vật)
- * 5. deduct_coin (Bị Trừ Xu)
+ * Cấu hình tổng quát vòng quay mặc định (dùng làm fallback khi CSDL chưa có key 'wheel_setting')
  */
-export const initialMockSlots: WheelSlotItem[] = [
-  {
-    id: "slot-1",
-    slot_order: 1,
-    label: "+20 Xu Heo Đất",
-    short_label: "+20 Xu",
-    prize_type: "coin",
-    reward_coins: 20,
-    reward_free_spins: 0,
-    icon_name: "coins",
-    probability_weight: 25,
-    is_active: true,
-    stats: {
-      total_hits: 126,
-      actual_rate: 26.1,
-      recent_hit_date: "5 phút trước",
-    },
-  },
-  {
-    id: "slot-2",
-    slot_order: 2,
-    label: "Rơi Túi Xu (-10 Xu)",
-    short_label: "-10 Xu",
-    prize_type: "deduct_coin",
-    reward_coins: -10,
-    reward_free_spins: 0,
-    icon_name: "trending-down",
-    probability_weight: 12,
-    is_active: true,
-    stats: {
-      total_hits: 56,
-      actual_rate: 11.6,
-      recent_hit_date: "12 phút trước",
-    },
-  },
-  {
-    id: "slot-3",
-    slot_order: 3,
-    label: "+50 Xu May Mắn",
-    short_label: "+50 Xu",
-    prize_type: "coin",
-    reward_coins: 50,
-    reward_free_spins: 0,
-    icon_name: "sparkles",
-    probability_weight: 18,
-    is_active: true,
-    stats: {
-      total_hits: 89,
-      actual_rate: 18.5,
-      recent_hit_date: "2 phút trước",
-    },
-  },
-  {
-    id: "slot-4",
-    slot_order: 4,
-    label: "+1 Lượt Quay Thưởng",
-    short_label: "+1 Lượt",
-    prize_type: "free_spin",
-    reward_coins: 0,
-    reward_free_spins: 1,
-    icon_name: "rotate-cw",
-    probability_weight: 10,
-    is_active: true,
-    stats: {
-      total_hits: 47,
-      actual_rate: 9.7,
-      recent_hit_date: "18 phút trước",
-    },
-  },
-  {
-    id: "slot-5",
-    slot_order: 5,
-    label: "Chúc Bạn May Mắn Lần Sau",
-    short_label: "May Mắn",
-    prize_type: "luck",
-    reward_coins: 0,
-    reward_free_spins: 0,
-    icon_name: "smile",
-    probability_weight: 15,
-    is_active: true,
-    stats: {
-      total_hits: 74,
-      actual_rate: 15.3,
-      recent_hit_date: "8 phút trước",
-    },
-  },
-  {
-    id: "slot-6",
-    slot_order: 6,
-    label: "Hộp Quà Thần Kỳ",
-    short_label: "Hộp Quà",
-    prize_type: "gift",
-    reward_coins: 0,
-    reward_free_spins: 0,
-    icon_name: "gift",
-    probability_weight: 8,
-    is_active: true,
-    stats: {
-      total_hits: 39,
-      actual_rate: 8.1,
-      recent_hit_date: "35 phút trước",
-    },
-  },
-  {
-    id: "slot-7",
-    slot_order: 7,
-    label: "+100 Xu Đại Thưởng 🎉",
-    short_label: "+100 Xu!",
-    prize_type: "coin",
-    reward_coins: 100,
-    reward_free_spins: 0,
-    icon_name: "trophy",
-    probability_weight: 7,
-    is_active: true,
-    stats: {
-      total_hits: 34,
-      actual_rate: 7.0,
-      recent_hit_date: "42 phút trước",
-    },
-  },
-  {
-    id: "slot-8",
-    slot_order: 8,
-    label: "Rơi Ví Tiền (-20 Xu)",
-    short_label: "-20 Xu",
-    prize_type: "deduct_coin",
-    reward_coins: -20,
-    reward_free_spins: 0,
-    icon_name: "alert-triangle",
-    probability_weight: 5,
-    is_active: true,
-    stats: {
-      total_hits: 18,
-      actual_rate: 3.7,
-      recent_hit_date: "1 giờ trước",
-    },
-  },
-];
-
-/**
- * Cấu hình tổng quát vòng quay (khớp với public.system_settings key='wheel_setting')
- */
-export const initialMockSettings: WheelGeneralSettings = {
+export const defaultWheelSettings: WheelGeneralSettings = {
   spin_cost: 20,
   allow_free_spin: true,
   daily_free_spins: 1,
@@ -164,6 +15,7 @@ export const initialMockSettings: WheelGeneralSettings = {
 
 /**
  * Thống kê vận hành chi tiết: Tỷ lệ trúng, tần suất các item hay trúng nhất
+ * (Tạm thời lưu giữ để phục vụ UI phân tích do chưa làm API analytics riêng)
  */
 export const initialMockStatistics: WheelStatisticsData = {
   total_spins_today: 483,
@@ -208,20 +60,20 @@ export const initialMockStatistics: WheelStatisticsData = {
     },
     {
       type: "free_spin",
-      label: "Thêm Lượt Quay",
+      label: "Lượt Quay Free",
       color: "#10B981",
       badgeBg: "bg-emerald-50 border-emerald-200 text-emerald-800",
-      badgeText: "Free Spin",
+      badgeText: "Lượt Quay",
       total_weight: 10,
       percentage: 10,
       slot_count: 1,
     },
     {
       type: "gift",
-      label: "Quà Tặng Hiện Vật",
+      label: "Quà Hiện Vật",
       color: "#8B5CF6",
       badgeBg: "bg-purple-50 border-purple-200 text-purple-800",
-      badgeText: "Hiện Vật",
+      badgeText: "Quà Tặng",
       total_weight: 8,
       percentage: 8,
       slot_count: 1,
@@ -237,7 +89,7 @@ export const initialMockStatistics: WheelStatisticsData = {
       expected_rate: 25.0,
       actual_rate: 26.1,
       total_hits: 126,
-      diff_percent: +1.1,
+      diff_percent: 1.1,
     },
     {
       slot_order: 3,
@@ -248,7 +100,7 @@ export const initialMockStatistics: WheelStatisticsData = {
       expected_rate: 18.0,
       actual_rate: 18.5,
       total_hits: 89,
-      diff_percent: +0.5,
+      diff_percent: 0.5,
     },
     {
       slot_order: 5,
@@ -259,7 +111,7 @@ export const initialMockStatistics: WheelStatisticsData = {
       expected_rate: 15.0,
       actual_rate: 15.3,
       total_hits: 74,
-      diff_percent: +0.3,
+      diff_percent: 0.3,
     },
     {
       slot_order: 2,

@@ -141,7 +141,7 @@ export function TeacherSystemSettingsView() {
                   className="w-4 h-4 rounded text-purple-600 border-slate-300 focus:ring-purple-500"
                 />
                 <span className="text-xs text-slate-700 font-medium">
-                  Cho phép học sinh gửi yêu cầu đổi quà hiện vật tại lớp
+                  Cho phép học sinh gửi yêu cầu đổi quà tại lớp
                 </span>
               </label>
             </div>

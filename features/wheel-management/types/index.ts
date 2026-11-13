@@ -13,7 +13,6 @@ export interface WheelSlotItem {
   prize_type: WheelPrizeType;
   reward_coins: number;
   reward_free_spins: number;
-  icon_name: string;
   probability_weight: number;
   is_active: boolean;
   is_locked?: boolean; // Khóa tỷ lệ ô này khi tự động cân bằng xác suất

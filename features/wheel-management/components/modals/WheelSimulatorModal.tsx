@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   X,
   RotateCw,
+  RotateCcw,
   Award,
   Play,
 } from "lucide-react";
@@ -153,6 +154,17 @@ export function WheelSimulatorModal({
     }, 4200);
   };
 
+  // Đặt lại kim chỉ và góc quay về trạng thái 0 độ ban đầu
+  const handleResetSimulator = () => {
+    if (isSpinning) return;
+    setRotationAngle(0);
+    setLastWonSlot(null);
+    setIsWinningFlash(false);
+    toast.info("Đã đặt lại vòng quay về vị trí ban đầu!", {
+      id: "reset-simulator",
+    });
+  };
+
   // Tính toán vector SVG cho các múi quạt (Theme chuẩn Vàng kem / Xanh dương xen kẽ)
   const slicesData = useMemo(() => {
     return activeSlots.map((slot, i) => {
@@ -221,9 +233,6 @@ export function WheelSimulatorModal({
           <h2 className="text-xl sm:text-2xl font-black text-slate-900 font-heading">
             Vòng Quay May Mắn Thử Nghiệm 🎡
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Mô phỏng trải nghiệm thực tế của học sinh ({activeSlots.length} ô kích hoạt • 100% tỷ lệ)
-          </p>
         </div>
 
         {/* KHUNG VÒNG QUAY TO LỚN (ĐƯỜNG KÍNH 360px - 420px) - CHUẨN PHONG CÁCH /student/wheel */}
@@ -456,30 +465,45 @@ export function WheelSimulatorModal({
           <WheelPointerSvg isSpinning={isSpinning} />
         </div>
 
-        {/* Nút bấm lớn phía dưới */}
+        {/* Nút bấm quay và nút Đặt lại vòng quay */}
         <div className="mt-4 flex flex-col items-center gap-2 w-full">
-          <button
-            type="button"
-            onClick={handleTestSpin}
-            disabled={isSpinning || activeSlots.length === 0}
-            className={`w-full sm:w-auto min-w-[240px] inline-flex items-center justify-center gap-2 h-11 px-6 rounded-2xl font-bold text-sm transition-all shadow-md cursor-pointer ${
-              isSpinning
-                ? "bg-slate-200 text-slate-500 cursor-not-allowed"
-                : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white hover:scale-[1.02] active:scale-98"
-            }`}
-          >
-            {isSpinning ? (
-              <>
-                <RotateCw className="w-4 h-4 animate-spin" />
-                <span>Đang quay thử...</span>
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4 fill-white" />
-                <span>Bấm Để Quay Thử</span>
-              </>
+          <div className="flex items-center gap-2 flex-wrap justify-center">
+            <button
+              type="button"
+              onClick={handleTestSpin}
+              disabled={isSpinning || activeSlots.length === 0}
+              className={`w-full sm:w-auto min-w-[200px] inline-flex items-center justify-center gap-2 h-11 px-6 rounded-2xl font-bold text-sm transition-all shadow-md cursor-pointer ${
+                isSpinning
+                  ? "bg-slate-200 text-slate-500 cursor-not-allowed"
+                  : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white hover:scale-[1.02] active:scale-98"
+              }`}
+            >
+              {isSpinning ? (
+                <>
+                  <RotateCw className="w-4 h-4 animate-spin" />
+                  <span>Đang quay thử...</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4 fill-white" />
+                  <span>Bấm Để Quay Thử</span>
+                </>
+              )}
+            </button>
+
+            {/* Nút Đặt lại vòng quay về vị trí ban đầu */}
+            {rotationAngle > 0 && !isSpinning && (
+              <button
+                type="button"
+                onClick={handleResetSimulator}
+                className="inline-flex items-center justify-center gap-1.5 h-11 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold transition-all cursor-pointer active:scale-98 shadow-xs"
+                title="Đặt lại kim chỉ và góc quay về trạng thái 0 độ ban đầu"
+              >
+                <RotateCcw className="w-4 h-4 text-slate-500" />
+                <span>Đặt lại vị trí</span>
+              </button>
             )}
-          </button>
+          </div>
 
           {/* Kết quả quay thử gần nhất */}
           {lastWonSlot && !isSpinning && (

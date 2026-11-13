@@ -5,30 +5,57 @@ import {
   Trash2,
   Lock,
   Unlock,
+  GripVertical,
+  ArrowLeftRight,
 } from "lucide-react";
-import { WheelSlotItem, WheelPrizeType } from "../types";
+import { Tooltip } from "@/components/ui/tooltip";
+import { WheelSlotItem } from "../types";
 import { WheelPrizeImage } from "./WheelPrizeImage";
+import {
+  getWheelPrizeConfig,
+  formatWheelPrizeValue,
+} from "../constants/prizeConfig";
+
+export type DropMode = "insert-before" | "insert-after" | "swap";
 
 interface WheelSlotCardProps {
   slot: WheelSlotItem;
   totalWeight: number;
   isSelected: boolean;
+  totalSlotsCount?: number;
+  isDirty?: boolean;
+  isDragging?: boolean;
+  dropMode?: DropMode | null;
   onSelect: () => void;
   onEdit: () => void;
   onToggleActive: () => void;
   onToggleLock: () => void;
   onDelete: () => void;
+  onMoveSlot?: (id: string, newOrder: number) => void;
+  onDragStart?: (id: string) => void;
+  onDragOver?: (id: string, mode: DropMode) => void;
+  onDragLeave?: (id: string) => void;
+  onDrop?: (id: string, mode: DropMode) => void;
+  onDragEnd?: () => void;
 }
 
 export function WheelSlotCard({
   slot,
   totalWeight,
   isSelected,
+  isDirty = false,
+  isDragging = false,
+  dropMode = null,
   onSelect,
   onEdit,
   onToggleActive,
   onToggleLock,
   onDelete,
+  onDragStart,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  onDragEnd,
 }: WheelSlotCardProps) {
   // Tính tỷ lệ % theo tổng trọng số
   const percentage =
@@ -36,74 +63,141 @@ export function WheelSlotCard({
       ? ((slot.probability_weight / totalWeight) * 100).toFixed(1)
       : "0.0";
 
-  // Cấu hình hiển thị theo từng loại phần thưởng
-  const getTypeBadge = (type: WheelPrizeType) => {
-    switch (type) {
-      case "coin":
-        return {
-          icon: <WheelPrizeImage type="coin" size={15} hasShadow={false} />,
-          label: "Cộng Xu",
-          bg: "bg-amber-50 text-amber-800 border-amber-200",
-        };
-      case "deduct_coin":
-        return {
-          icon: <WheelPrizeImage type="deduct_coin" size={15} hasShadow={false} />,
-          label: "Bị Trừ Xu",
-          bg: "bg-rose-50 text-rose-800 border-rose-200",
-        };
-      case "free_spin":
-        return {
-          icon: <WheelPrizeImage type="free_spin" size={15} hasShadow={false} />,
-          label: "Lượt Quay",
-          bg: "bg-emerald-50 text-emerald-800 border-emerald-200",
-        };
-      case "gift":
-        return {
-          icon: <WheelPrizeImage type="gift" size={15} hasShadow={false} />,
-          label: "Quà Tặng",
-          bg: "bg-purple-50 text-purple-800 border-purple-200",
-        };
-      case "luck":
-      default:
-        return {
-          icon: <WheelPrizeImage type="luck" size={15} hasShadow={false} />,
-          label: "May Mắn",
-          bg: "bg-slate-100 text-slate-700 border-slate-200",
-        };
-    }
-  };
+  const prizeConfig = getWheelPrizeConfig(slot.prize_type);
 
-  const badge = getTypeBadge(slot.prize_type);
+  // Phân biệt: Thả vào khoảng cách mép 2 bên (Chèn giữa) HOẶC Thả vào thân ô (Swap)
+  const getDropMode = (e: React.DragEvent<HTMLDivElement>): DropMode => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const edge = Math.min(44, rect.width * 0.18);
+    if (mouseX <= edge) return "insert-before";
+    if (mouseX >= rect.width - edge) return "insert-after";
+    return "swap";
+  };
 
   return (
     <div
       onClick={onSelect}
-      className={`group relative bg-white rounded-2xl p-4.5 border transition-all cursor-pointer flex flex-col justify-between ${
-        isSelected
-          ? "border-[#0A62D6] ring-2 ring-[#0A62D6]/20 shadow-md bg-blue-50/10"
-          : "border-slate-200/80 hover:border-slate-300 shadow-xs hover:shadow-md"
+      draggable
+      onDragStart={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest("button") || target.closest("input") || target.closest("label")) {
+          e.preventDefault();
+          return;
+        }
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", slot.id);
+        onDragStart?.(slot.id);
+      }}
+      onDragEnd={() => onDragEnd?.()}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        const mode = getDropMode(e);
+        onDragOver?.(slot.id, mode);
+      }}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+          onDragLeave?.(slot.id);
+        }
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        const mode = getDropMode(e);
+        onDrop?.(slot.id, mode);
+      }}
+      className={`group relative bg-white rounded-2xl p-4.5 border transition-all flex flex-col justify-between ${
+        isDragging
+          ? "opacity-30 scale-95 border-2 border-dashed border-[#0A62D6] bg-blue-50/20 shadow-none cursor-grabbing"
+          : dropMode === "swap"
+          ? "border-2 border-dashed border-[#0A62D6] bg-blue-50/40 ring-2 ring-[#0A62D6]/20 shadow-md scale-[1.01]"
+          : dropMode === "insert-before"
+          ? "border-l-2 border-l-[#0A62D6] bg-blue-50/15 shadow-sm"
+          : dropMode === "insert-after"
+          ? "border-r-2 border-r-[#0A62D6] bg-blue-50/15 shadow-sm"
+          : isSelected
+          ? "border-[#0A62D6] ring-2 ring-[#0A62D6]/20 shadow-md bg-blue-50/10 cursor-pointer"
+          : isDirty
+          ? "border-amber-300 ring-1 ring-amber-300/40 shadow-xs hover:shadow-md cursor-pointer"
+          : "border-slate-200/80 hover:border-slate-300 shadow-xs hover:shadow-md cursor-pointer"
       } ${!slot.is_active ? "opacity-60 bg-slate-50/70" : ""}`}
     >
+      {/* 1. Khi ở khoảng cách mép TRÁI: Vạch chèn giữa tinh tế */}
+      {dropMode === "insert-before" && (
+        <div className="absolute -left-2.5 top-0 bottom-0 z-30 flex flex-col items-center justify-center pointer-events-none">
+          <div className="w-2 h-2 rounded-full bg-[#0A62D6] mb-[-1px] shadow-xs" />
+          <div className="w-[3px] h-full bg-[#0A62D6] rounded-full shadow-xs" />
+          <div className="w-2 h-2 rounded-full bg-[#0A62D6] mt-[-1px] shadow-xs" />
+          <div className="absolute top-1/2 -translate-y-1/2 px-2 py-0.5 rounded-full bg-[#0A62D6] text-white text-[10px] font-bold shadow-md whitespace-nowrap">
+            + Chèn vào giữa
+          </div>
+        </div>
+      )}
+
+      {/* 2. Khi ở khoảng cách mép PHẢI: Vạch chèn giữa tinh tế */}
+      {dropMode === "insert-after" && (
+        <div className="absolute -right-2.5 top-0 bottom-0 z-30 flex flex-col items-center justify-center pointer-events-none">
+          <div className="w-2 h-2 rounded-full bg-[#0A62D6] mb-[-1px] shadow-xs" />
+          <div className="w-[3px] h-full bg-[#0A62D6] rounded-full shadow-xs" />
+          <div className="w-2 h-2 rounded-full bg-[#0A62D6] mt-[-1px] shadow-xs" />
+          <div className="absolute top-1/2 -translate-y-1/2 px-2 py-0.5 rounded-full bg-[#0A62D6] text-white text-[10px] font-bold shadow-md whitespace-nowrap">
+            + Chèn vào giữa
+          </div>
+        </div>
+      )}
+
+      {/* 3. Khi ở thân ô cần thay thế: Overlay Hoán đổi (SWAP) */}
+      {dropMode === "swap" && (
+        <div className="absolute inset-0 z-30 rounded-2xl bg-blue-600/10 backdrop-blur-[0.5px] border-2 border-dashed border-[#0A62D6] flex flex-col items-center justify-center pointer-events-none p-3 animate-in fade-in duration-100">
+          <div className="px-3.5 py-1.5 rounded-xl bg-[#0A62D6] text-white text-xs font-bold shadow-md flex items-center gap-1.5 animate-pulse">
+            <ArrowLeftRight className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span>Hoán đổi với ô #{slot.slot_order}</span>
+          </div>
+          <span className="text-[10px] font-medium text-slate-500 mt-1 bg-white/90 px-2 py-0.5 rounded-full shadow-2xs">
+            Thả để đổi chỗ 2 ô này
+          </span>
+        </div>
+      )}
+
       {/* 1. Header của Thẻ Card: Số thứ tự ô, Badge loại và Switch Bật/Tắt */}
       <div>
         <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
-          <div className="flex items-center gap-2">
-            <span
-              className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black shadow-xs ${
-                (slot.slot_order - 1) % 2 === 0
-                  ? "bg-[#FFC93C] text-[#7A4300]"
-                  : "bg-[#1B66E0] text-white"
-              }`}
+          <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+            {/* Badge thứ tự kèm Grip Kéo Thả (Draggable Handle) */}
+            <Tooltip
+              content="Cầm và kéo ô này thả vào giữa các ô khác để sắp xếp lại thứ tự"
+              side="top"
             >
-              #{slot.slot_order}
+              <div
+                className={`flex items-center gap-1 h-7 px-2.5 rounded-xl text-xs font-black shadow-xs cursor-grab active:cursor-grabbing select-none transition-transform hover:scale-105 shrink-0 ${
+                  (slot.slot_order - 1) % 2 === 0
+                    ? "bg-[#FFC93C] text-[#7A4300]"
+                    : "bg-[#1B66E0] text-white"
+                }`}
+              >
+                <GripVertical className="w-3.5 h-3.5 opacity-70 group-hover:opacity-100 shrink-0" />
+                <span>#{slot.slot_order}</span>
+              </div>
+            </Tooltip>
+
+            {/* Badge Loại phần thưởng */}
+            <span
+              className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${prizeConfig.badgeBg} shrink-0`}
+            >
+              <WheelPrizeImage type={slot.prize_type} size={15} hasShadow={false} />
+              <span className="truncate max-w-[70px]">{prizeConfig.badgeLabel}</span>
             </span>
 
-            <span
-              className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${badge.bg}`}
-            >
-              {badge.icon}
-              <span>{badge.label}</span>
-            </span>
+            {/* Badge Trạng thái Chưa lưu */}
+            {isDirty && (
+              <span
+                title="Ô này có thay đổi thông tin/vị trí chưa lưu vào CSDL"
+                className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300 animate-pulse shadow-2xs shrink-0"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                <span>Chưa lưu</span>
+              </span>
+            )}
           </div>
 
           {/* Toggle Lock và Switch Active */}
@@ -112,43 +206,77 @@ export function WheelSlotCard({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Nút Khóa / Mở khóa tỷ lệ khi tự động cân bằng */}
-            <button
-              type="button"
-              onClick={onToggleLock}
-              title={
+            <Tooltip
+              content={
                 slot.is_locked
-                  ? "Tỷ lệ ô này đang được KHÓA CỐ ĐỊNH khi tự động cân bằng (Nhấn để mở khóa)"
-                  : "Nhấn để KHÓA CỐ ĐỊNH tỷ lệ ô này (không bị thay đổi khi tự động cân bằng)"
+                  ? "Tỷ lệ ô này đang được KHÓA CỐ ĐỊNH (Nhấn để mở)"
+                  : "Khóa CỐ ĐỊNH tỷ lệ khi cân bằng"
               }
-              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                slot.is_locked
-                  ? "bg-amber-100 text-amber-800 border border-amber-300 shadow-xs"
-                  : "text-slate-400 hover:text-slate-600 hover:bg-slate-100 border border-transparent"
-              }`}
+              side="top"
+              wrapperClassName="shrink-0"
             >
-              {slot.is_locked ? (
-                <Lock className="w-3.5 h-3.5 text-amber-600" />
-              ) : (
-                <Unlock className="w-3.5 h-3.5" />
-              )}
-            </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleLock();
+                }}
+                className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                  slot.is_locked
+                    ? "bg-amber-100 text-amber-800 border border-amber-300 shadow-xs"
+                    : "text-slate-400 hover:text-slate-600 hover:bg-slate-100 border border-transparent"
+                }`}
+              >
+                {slot.is_locked ? (
+                  <Lock className="w-3.5 h-3.5 text-amber-600" />
+                ) : (
+                  <Unlock className="w-3.5 h-3.5" />
+                )}
+              </button>
+            </Tooltip>
 
             {/* Toggle Switch Active */}
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={slot.is_active}
-                onChange={onToggleActive}
-                className="sr-only peer"
-              />
-              <div className="w-8 h-4.5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-emerald-500" />
-            </label>
+            <Tooltip
+              content={
+                slot.is_active
+                  ? "Đang bật ô này trên vòng quay (Nhấn để tạm ẩn)"
+                  : "Ô này đang bị ẩn (Nhấn để kích hoạt)"
+              }
+              side="top"
+              wrapperClassName="shrink-0"
+            >
+              <button
+                type="button"
+                role="switch"
+                aria-checked={slot.is_active}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleActive();
+                }}
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  slot.is_active ? "bg-emerald-500" : "bg-slate-300"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                    slot.is_active ? "translate-x-4" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </Tooltip>
           </div>
         </div>
 
-        {/* 2. Thân thẻ Card: Tên hiển thị, Giá trị thưởng/phạt */}
-        <div className="mt-3">
-          <h4 className="font-extrabold text-sm text-slate-900 group-hover:text-[#0A62D6] transition-colors line-clamp-1">
+        {/* 2. Thân thẻ Card: Tên hiển thị, Giá trị thưởng/phạt - Click vào để chỉnh sửa ngay */}
+        <div
+          className="mt-3 cursor-pointer group/content"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit();
+          }}
+          title="Nhấn vào đây để chỉnh sửa thông tin ô này"
+        >
+          <h4 className="font-extrabold text-sm text-slate-900 group-hover/content:text-[#0A62D6] transition-colors line-clamp-1">
             {slot.label}
           </h4>
 
@@ -166,28 +294,8 @@ export function WheelSlotCard({
             </span>
             <div className="flex items-center gap-1.5">
               <WheelPrizeImage type={slot.prize_type} size={20} />
-              <span
-                className={`text-xs font-black ${
-                  slot.prize_type === "coin"
-                    ? "text-amber-600"
-                    : slot.prize_type === "deduct_coin"
-                    ? "text-rose-600"
-                    : slot.prize_type === "free_spin"
-                    ? "text-emerald-600"
-                    : slot.prize_type === "gift"
-                    ? "text-purple-600"
-                    : "text-slate-600"
-                }`}
-              >
-                {slot.prize_type === "coin"
-                  ? `+${slot.reward_coins} Xu`
-                  : slot.prize_type === "deduct_coin"
-                  ? `${slot.reward_coins} Xu`
-                  : slot.prize_type === "free_spin"
-                  ? `+${slot.reward_free_spins} Lượt quay`
-                  : slot.prize_type === "gift"
-                  ? "Quà Hiện Vật"
-                  : "Chúc May Mắn"}
+              <span className={`text-xs font-black ${prizeConfig.textColor}`}>
+                {formatWheelPrizeValue(slot)}
               </span>
             </div>
           </div>
@@ -253,14 +361,15 @@ export function WheelSlotCard({
           <span>Chỉnh sửa</span>
         </button>
 
-        <button
-          type="button"
-          onClick={onDelete}
-          title="Xóa ô phần thưởng này"
-          className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+        <Tooltip content="Xóa ô phần thưởng này" side="top" wrapperClassName="shrink-0">
+          <button
+            type="button"
+            onClick={onDelete}
+            className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </Tooltip>
       </div>
     </div>
   );

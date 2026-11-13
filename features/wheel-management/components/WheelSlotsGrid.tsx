@@ -1,14 +1,18 @@
 "use client";
 
-import { useMemo } from "react";
-import { Plus, SlidersHorizontal, RotateCcw, Save, Scale, Lock } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, SlidersHorizontal, RotateCcw, Save, Scale, Lock, Undo2 } from "lucide-react";
+import { Tooltip } from "@/components/ui/tooltip";
 import { WheelSlotItem } from "../types";
-import { WheelSlotCard } from "./WheelSlotCard";
+import { WheelSlotCard, DropMode } from "./WheelSlotCard";
 
 interface WheelSlotsGridProps {
   slots: WheelSlotItem[];
+  savedSlots?: WheelSlotItem[];
   totalWeight: number;
   selectedSlotId: string | null;
+  isDirty?: boolean;
+  isSaving?: boolean;
   onSelectSlot: (id: string) => void;
   onAddSlot: () => void;
   onEditSlot: (slot: WheelSlotItem) => void;
@@ -17,13 +21,39 @@ interface WheelSlotsGridProps {
   onDeleteSlot: (id: string) => void;
   onEqualize: () => void;
   onAutoBalance: () => void;
+  onResetSlots?: () => void;
   onSaveSlots: () => void;
+  onReorderSlots: (draggedId: string, targetId: string, mode: DropMode) => void;
+  onMoveSlot?: (id: string, newOrder: number) => void;
+}
+
+/**
+ * Kiểm tra xem một ô có sự thay đổi so với bản đã lưu hay không
+ */
+function checkIsSlotModified(slot: WheelSlotItem, savedSlots?: WheelSlotItem[]): boolean {
+  if (!savedSlots) return false;
+  const original = savedSlots.find((s) => s.id === slot.id);
+  if (!original) return true; // Ô mới tạo
+  return (
+    original.slot_order !== slot.slot_order ||
+    original.label !== slot.label ||
+    original.short_label !== slot.short_label ||
+    original.prize_type !== slot.prize_type ||
+    original.reward_coins !== slot.reward_coins ||
+    original.reward_free_spins !== slot.reward_free_spins ||
+    original.probability_weight !== slot.probability_weight ||
+    original.is_active !== slot.is_active ||
+    !!original.is_locked !== !!slot.is_locked
+  );
 }
 
 export function WheelSlotsGrid({
   slots,
+  savedSlots,
   totalWeight,
   selectedSlotId,
+  isDirty = false,
+  isSaving = false,
   onSelectSlot,
   onAddSlot,
   onEditSlot,
@@ -32,8 +62,18 @@ export function WheelSlotsGrid({
   onDeleteSlot,
   onEqualize,
   onAutoBalance,
+  onResetSlots,
   onSaveSlots,
+  onReorderSlots,
+  onMoveSlot,
 }: WheelSlotsGridProps) {
+  // Quản lý trạng thái Kéo Thả (Drag and Drop Reordering)
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [dragOverTarget, setDragOverTarget] = useState<{
+    id: string;
+    mode: DropMode;
+  } | null>(null);
+
   // Đếm số ô đang được khóa cố định tỷ lệ
   const lockedCount = useMemo(
     () => slots.filter((s) => s.is_active && s.is_locked).length,
@@ -66,86 +106,115 @@ export function WheelSlotsGrid({
 
           {/* Badge hiển thị số lượng ô đang khóa cố định (nếu có) */}
           {lockedCount > 0 && (
-            <span
-              title="Các ô này sẽ được giữ nguyên 100% tỷ lệ khi bạn nhấn 'Tự động cân bằng'"
-              className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300"
+            <Tooltip
+              content="Các ô có biểu tượng 🔒 sẽ được giữ nguyên 100% tỷ lệ khi bạn nhấn 'Cân bằng'"
+              side="top"
+              wrapperClassName="shrink-0"
             >
-              <Lock className="w-3 h-3 text-amber-600" />
-              <span>Đang khóa {lockedCount} ô cố định</span>
-            </span>
+              <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300 cursor-help">
+                <Lock className="w-3 h-3 text-amber-600" />
+                <span>Đang khóa {lockedCount} ô cố định</span>
+              </span>
+            </Tooltip>
           )}
         </div>
 
         {/* Nhóm nút hành động đặt ngay tại khối số liệu ô thưởng */}
         <div className="flex flex-wrap items-center gap-2 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-100">
           {/* Nút 1: Chia đều phẳng 100% cho mọi ô */}
-          <button
-            type="button"
-            onClick={onEqualize}
-            title="Chia đều tỷ lệ % cho tất cả các ô bằng phẳng nhau (Ví dụ: 8 ô mỗi ô ~12.5%)"
-            className="inline-flex items-center justify-center gap-1.5 h-8.5 px-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-98 shrink-0"
+          <Tooltip
+            content="Chia đều 100% tỷ lệ cho tất cả ô"
+            wrapperClassName="shrink-0"
+            side="top"
           >
-            <Scale className="w-3.5 h-3.5 text-blue-600" />
-            <span>Chia đều</span>
-          </button>
+            <button
+              type="button"
+              onClick={onEqualize}
+              className="inline-flex items-center justify-center gap-1.5 h-8.5 px-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-98 shrink-0"
+            >
+              <Scale className="w-3.5 h-3.5 text-blue-600" />
+              <span>Chia đều</span>
+            </button>
+          </Tooltip>
 
           {/* Nút 2: Tự động cân bằng thông minh (Giữ nguyên các ô đã khóa) */}
-          <button
-            type="button"
-            onClick={onAutoBalance}
-            title={
+          <Tooltip
+            content={
               lockedCount > 0
-                ? `Cân bằng về 100%, giữ nguyên ${lockedCount} ô đã khóa 🔒 và tự bù trừ các ô còn lại`
-                : "Tự động chuẩn hóa tổng trọng số của các ô về đúng 100% (Click biểu tượng 🔒 trên thẻ nếu muốn cố định ô nào)"
+                ? `Cân bằng về 100% (giữ ${lockedCount} ô 🔒)`
+                : "Tự động cân bằng tỷ lệ về 100%"
             }
-            className="inline-flex items-center justify-center gap-1.5 h-8.5 px-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-98 shrink-0"
+            wrapperClassName="shrink-0"
+            side="top"
           >
-            <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
-            <span>
-              Cân bằng
-              {lockedCount > 0 ? ` (giữ ${lockedCount} ô 🔒)` : ""}
+            <button
+              type="button"
+              onClick={onAutoBalance}
+              className="inline-flex items-center justify-center gap-1.5 h-8.5 px-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-98 shrink-0"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+              <span>
+                Cân bằng
+                {lockedCount > 0 ? ` (giữ ${lockedCount} ô 🔒)` : ""}
+              </span>
+            </button>
+          </Tooltip>
+
+          {/* Badge Thông báo Chưa Lưu Thay Đổi */}
+          {isDirty && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300 animate-pulse shadow-2xs shrink-0">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+              <span>Chưa lưu thay đổi</span>
             </span>
-          </button>
+          )}
 
-          {/* Nút 3: Thêm ô phần thưởng */}
-          <button
-            type="button"
-            onClick={onAddSlot}
-            className="inline-flex items-center justify-center gap-1.5 h-8.5 px-3.5 rounded-xl bg-[#0A62D6] hover:bg-[#0850B0] text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-98 shrink-0"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Thêm ô phần thưởng</span>
-          </button>
+          {/* Nút Đặt lại ban đầu: Luôn luôn hiển thị, kích hoạt khi có thay đổi chưa lưu */}
+          {onResetSlots && (
+            <Tooltip
+              content={
+                isDirty
+                  ? "Hủy bỏ toàn bộ thay đổi chưa lưu (thứ tự, tỷ lệ, thông tin) và khôi phục về trạng thái ban đầu"
+                  : "Hiện chưa có thay đổi nào để đặt lại"
+              }
+              wrapperClassName="shrink-0"
+              side="top"
+            >
+              <button
+                type="button"
+                onClick={onResetSlots}
+                disabled={!isDirty}
+                className={`inline-flex items-center justify-center gap-1.5 h-8.5 px-3 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                  isDirty
+                    ? "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-300 shadow-xs cursor-pointer active:scale-98"
+                    : "bg-slate-50 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60"
+                }`}
+              >
+                <Undo2 className="w-3.5 h-3.5 text-slate-500" />
+                <span>Đặt lại ban đầu</span>
+              </button>
+            </Tooltip>
+          )}
 
-          {/* Nút 4: Lưu cơ cấu ô thưởng */}
+          {/* Nút: Lưu cơ cấu ô thưởng */}
           <button
             type="button"
             onClick={onSaveSlots}
-            className="inline-flex items-center justify-center gap-1.5 h-8.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-98 shrink-0"
+            disabled={isSaving}
+            className={`inline-flex items-center justify-center gap-1.5 h-8.5 px-3.5 rounded-xl text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-98 shrink-0 disabled:opacity-60 ${
+              isDirty
+                ? "bg-emerald-600 hover:bg-emerald-700 ring-2 ring-emerald-500/40 ring-offset-1 shadow-md shadow-emerald-600/20"
+                : "bg-emerald-600 hover:bg-emerald-700"
+            }`}
           >
             <Save className="w-3.5 h-3.5" />
-            <span>Lưu cơ cấu ô</span>
+            <span>{isSaving ? "Đang lưu..." : "Lưu cơ cấu ô"}</span>
           </button>
         </div>
       </div>
 
-      {/* Lưới các Thẻ Ô Số Visual Cards (Hiển thị đầy đủ tất cả các ô, không chia tab) */}
+      {/* Lưới các Thẻ Ô Số Visual Cards (Hỗ trợ Kéo Thả Reorder Drag & Drop) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {slots.map((slot) => (
-          <WheelSlotCard
-            key={slot.id}
-            slot={slot}
-            totalWeight={totalWeight}
-            isSelected={slot.id === selectedSlotId}
-            onSelect={() => onSelectSlot(slot.id)}
-            onEdit={() => onEditSlot(slot)}
-            onToggleActive={() => onToggleActive(slot.id)}
-            onToggleLock={() => onToggleLock(slot.id)}
-            onDelete={() => onDeleteSlot(slot.id)}
-          />
-        ))}
-
-        {/* Thẻ Thêm Ô Mới (Dashed Border Card) */}
+        {/* Thẻ Thêm Ô Mới (Được đưa lên ĐẦU DANH SÁCH theo yêu cầu) */}
         <button
           type="button"
           onClick={onAddSlot}
@@ -164,6 +233,51 @@ export function WheelSlotsGrid({
             </div>
           </div>
         </button>
+
+        {slots.map((slot) => (
+          <WheelSlotCard
+            key={slot.id}
+            slot={slot}
+            totalWeight={totalWeight}
+            isSelected={slot.id === selectedSlotId}
+            totalSlotsCount={slots.length}
+            isDirty={checkIsSlotModified(slot, savedSlots)}
+            isDragging={draggedId === slot.id}
+            dropMode={
+              dragOverTarget?.id === slot.id && draggedId !== slot.id
+                ? dragOverTarget.mode
+                : null
+            }
+            onSelect={() => onSelectSlot(slot.id)}
+            onEdit={() => onEditSlot(slot)}
+            onToggleActive={() => onToggleActive(slot.id)}
+            onToggleLock={() => onToggleLock(slot.id)}
+            onDelete={() => onDeleteSlot(slot.id)}
+            onMoveSlot={onMoveSlot}
+            onDragStart={() => setDraggedId(slot.id)}
+            onDragOver={(id, mode) => {
+              if (draggedId && draggedId !== id) {
+                setDragOverTarget({ id, mode });
+              }
+            }}
+            onDragLeave={(id) => {
+              if (dragOverTarget?.id === id) {
+                setDragOverTarget(null);
+              }
+            }}
+            onDrop={(id, mode) => {
+              if (draggedId && draggedId !== id) {
+                onReorderSlots(draggedId, id, mode);
+              }
+              setDraggedId(null);
+              setDragOverTarget(null);
+            }}
+            onDragEnd={() => {
+              setDraggedId(null);
+              setDragOverTarget(null);
+            }}
+          />
+        ))}
       </div>
     </div>
   );

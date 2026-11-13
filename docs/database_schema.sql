@@ -369,9 +369,6 @@ CREATE TABLE wheel_prizes (
     -- Số lượt quay miễn phí thưởng thêm (Ví dụ: 1 hoặc 2 lượt quay; nếu là ô cộng xu thì = 0)
     reward_free_spins INTEGER NOT NULL DEFAULT 0 CHECK (reward_free_spins >= 0),
     
-    -- Biểu tượng icon hiển thị trên nan quay: 'coins', 'gift', 'sparkles', 'star', 'smile', 'trophy', 'ticket', 'trending-down'
-    icon_name VARCHAR(50) NOT NULL,
-    
     -- Trọng số xác suất trúng thưởng (Số càng lớn tỉ lệ rơi vào nan này càng cao)
     probability_weight INTEGER NOT NULL DEFAULT 10 CHECK (probability_weight >= 1),
     

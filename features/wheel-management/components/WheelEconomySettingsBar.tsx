@@ -1,12 +1,15 @@
 "use client";
 
-import { Settings, Play, Save } from "lucide-react";
+import { Settings, Play, Save, Undo2 } from "lucide-react";
 import { WheelGeneralSettings } from "../types";
 
 interface WheelEconomySettingsBarProps {
   settings: WheelGeneralSettings;
+  isDirty?: boolean;
+  isSaving?: boolean;
   onUpdateSettings: (newSettings: WheelGeneralSettings) => void;
   onSaveEconomy: () => void;
+  onResetEconomy?: () => void;
   onOpenSimulator: () => void;
 }
 
@@ -18,8 +21,11 @@ interface WheelEconomySettingsBarProps {
  */
 export function WheelEconomySettingsBar({
   settings,
+  isDirty = false,
+  isSaving = false,
   onUpdateSettings,
   onSaveEconomy,
+  onResetEconomy,
   onOpenSimulator,
 }: WheelEconomySettingsBarProps) {
   return (
@@ -30,7 +36,7 @@ export function WheelEconomySettingsBar({
           <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#0A62D6] flex items-center justify-center">
             <Settings className="w-4 h-4" />
           </div>
-          <span>Thiết Lập Kinh Tế:</span>
+          <span>Cấu hình:</span>
         </div>
 
         {/* Phí mỗi lượt quay */}
@@ -53,10 +59,8 @@ export function WheelEconomySettingsBar({
           </div>
         </div>
 
-        <div className="h-5 w-px bg-slate-200 hidden sm:block" />
-
         {/* Free Spin mỗi ngày */}
-        <div className="flex items-center gap-2 text-xs">
+        {/* <div className="flex items-center gap-2 text-xs">
           <label className="flex items-center gap-2 cursor-pointer select-none">
             <input
               type="checkbox"
@@ -95,16 +99,51 @@ export function WheelEconomySettingsBar({
             />
             <span className="font-bold text-emerald-600">lượt / ngày</span>
           </div>
-        </div>
+        </div> */}
+
+        {/* Badge Chưa lưu kinh tế */}
+        {isDirty && (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300 animate-pulse shadow-2xs shrink-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+            <span>Chưa lưu</span>
+          </span>
+        )}
+
+        {/* Nút Đặt lại cấu hình kinh tế ban đầu */}
+        {onResetEconomy && (
+          <button
+            type="button"
+            onClick={onResetEconomy}
+            disabled={!isDirty}
+            title={
+              isDirty
+                ? "Hủy bỏ thay đổi chi phí và khôi phục về thiết lập ban đầu"
+                : "Hiện chưa có thay đổi nào để đặt lại"
+            }
+            className={`inline-flex items-center justify-center gap-1.5 h-8.5 px-3 rounded-xl text-xs font-bold transition-all shrink-0 ml-1 ${
+              isDirty
+                ? "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-300 shadow-xs cursor-pointer active:scale-98"
+                : "bg-slate-50 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60"
+            }`}
+          >
+            <Undo2 className="w-3.5 h-3.5 text-slate-500" />
+            <span>Đặt lại</span>
+          </button>
+        )}
 
         {/* Nút Lưu Cấu Hình Kinh Tế - Đặt ngay tại nơi có số liệu */}
         <button
           type="button"
           onClick={onSaveEconomy}
-          className="inline-flex items-center justify-center gap-1.5 h-8.5 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-98 shrink-0 ml-1"
+          disabled={isSaving}
+          className={`inline-flex items-center justify-center gap-1.5 h-8.5 px-3.5 rounded-xl text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-98 shrink-0 disabled:opacity-60 ${
+            isDirty
+              ? "bg-emerald-600 hover:bg-emerald-700 ring-2 ring-emerald-500/40 ring-offset-1 shadow-md shadow-emerald-600/20"
+              : "bg-emerald-600 hover:bg-emerald-700"
+          }`}
         >
           <Save className="w-3.5 h-3.5" />
-          <span>Lưu thiết lập</span>
+          <span>{isSaving ? "Đang lưu..." : "Lưu thiết lập"}</span>
         </button>
       </div>
 

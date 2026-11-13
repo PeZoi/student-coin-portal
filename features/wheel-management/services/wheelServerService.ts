@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase/db";
-import { getAuthSession, AuthTokenPayload } from "@/lib/auth/jwt";
-import { UserRole } from "@/constants";
+import { AuthTokenPayload } from "@/lib/auth/jwt";
 import { unstable_rethrow } from "next/navigation";
 import {
   WheelSlotItem,
@@ -8,7 +7,7 @@ import {
   WheelStatisticsData,
   WheelPrizeType,
 } from "../types";
-import { initialMockStatistics, initialMockSettings } from "../data/mockWheelConfig";
+import { initialMockStatistics, defaultWheelSettings } from "../data/mockWheelConfig";
 
 export interface InitialWheelConfigData {
   slots: WheelSlotItem[];
@@ -21,17 +20,16 @@ export interface InitialWheelConfigData {
  * Tối ưu hóa 0ms độ trễ mạng client, áp dụng mô hình Server Component
  */
 export async function getInitialWheelConfigServer(
-  customSession?: AuthTokenPayload | null
+  _customSession?: AuthTokenPayload | null
 ): Promise<InitialWheelConfigData> {
+  void _customSession;
   try {
-    const session = customSession !== undefined ? customSession : await getAuthSession();
-
     // 1. Tải song song danh sách giải thưởng và thiết lập kinh tế từ DB
     const [prizesRes, settingsRes, spinsRes] = await Promise.all([
       supabase
         .from("wheel_prizes")
         .select(
-          "id, slot_order, label, short_label, prize_type, reward_coins, reward_free_spins, icon_name, probability_weight, is_active, is_locked"
+          "id, slot_order, label, short_label, prize_type, reward_coins, reward_free_spins, probability_weight, is_active, is_locked"
         )
         .order("slot_order", { ascending: true }),
 
@@ -74,7 +72,6 @@ export async function getInitialWheelConfigServer(
           prize_type: p.prize_type as WheelPrizeType,
           reward_coins: p.reward_coins || 0,
           reward_free_spins: p.reward_free_spins || 0,
-          icon_name: p.icon_name || "coins",
           probability_weight: p.probability_weight || 10,
           is_active: p.is_active ?? true,
           is_locked: p.is_locked ?? false,
@@ -87,7 +84,7 @@ export async function getInitialWheelConfigServer(
     }
 
     // 3. Xử lý thiết lập kinh tế vòng quay
-    let settings: WheelGeneralSettings = initialMockSettings;
+    let settings: WheelGeneralSettings = defaultWheelSettings;
     if (settingsRes.data && settingsRes.data.value) {
       const val = settingsRes.data.value as Record<string, unknown>;
       settings = {
@@ -111,7 +108,7 @@ export async function getInitialWheelConfigServer(
     console.error("Lỗi khi tải cấu hình vòng quay trên server:", error);
     return {
       slots: [],
-      settings: initialMockSettings,
+      settings: defaultWheelSettings,
       stats: initialMockStatistics,
     };
   }

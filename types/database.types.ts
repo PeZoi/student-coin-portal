@@ -982,9 +982,9 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
-          icon_name: string
           id: string
           is_active: boolean | null
+          is_locked: boolean | null
           label: string
           prize_type: string
           probability_weight: number
@@ -998,9 +998,9 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by?: string | null
-          icon_name: string
           id: string
           is_active?: boolean | null
+          is_locked?: boolean | null
           label: string
           prize_type: string
           probability_weight?: number
@@ -1014,9 +1014,9 @@ export type Database = {
         Update: {
           created_at?: string | null
           created_by?: string | null
-          icon_name?: string
           id?: string
           is_active?: boolean | null
+          is_locked?: boolean | null
           label?: string
           prize_type?: string
           probability_weight?: number

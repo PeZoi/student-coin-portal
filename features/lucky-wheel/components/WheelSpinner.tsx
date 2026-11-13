@@ -30,7 +30,7 @@ function renderPrizeIcon(prize: WheelPrize) {
 	const imageUrl = getWheelPrizeImageUrl(prize.type);
 	const isCoin = prize.type === "coin";
 
-	// Nếu loại có hình ảnh chính thức trong /wheel hoặc coin.png (coin, gift, luck, free_spin, deduct_coin)
+	// Nếu loại có hình ảnh chính thức trong /wheel (coin, gift, luck, free_spin, deduct_coin)
 	if (["coin", "gift", "luck", "free_spin", "deduct_coin"].includes(prize.type)) {
 		return (
 			<div
@@ -46,6 +46,7 @@ function renderPrizeIcon(prize: WheelPrize) {
 					alt={prize.label}
 					fill
 					unoptimized
+					sizes='36px'
 					className='object-contain'
 				/>
 			</div>

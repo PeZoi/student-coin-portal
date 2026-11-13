@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   X,
   Check,
 } from "lucide-react";
 import { WheelSlotItem, WheelPrizeType } from "../../types";
 import { WheelPrizeImage } from "../WheelPrizeImage";
+import { WHEEL_PRIZE_TYPES_LIST } from "../../constants/prizeConfig";
+import { TeacherSelect, TeacherSelectOption } from "@/components/ui/TeacherSelect";
 
 interface EditWheelSlotModalProps {
   isOpen: boolean;
@@ -40,9 +42,28 @@ export function EditWheelSlotModal({
   const [probabilityWeight, setProbabilityWeight] = useState<number>(
     initialData?.probability_weight ?? 15
   );
-  const [isActive, setIsActive] = useState<boolean>(
-    initialData?.is_active ?? true
+  const isActive = initialData?.is_active ?? true;
+  const [slotOrder, setSlotOrder] = useState<number>(
+    initialData?.slot_order ?? (totalSlotsCount + 1)
   );
+
+  // Danh sách các tùy chọn vị trí thứ tự ô chuẩn theo TeacherSelect
+  const slotOrderOptions: TeacherSelectOption[] = useMemo(() => {
+    const total = isEditing ? totalSlotsCount : totalSlotsCount + 1;
+    return Array.from({ length: total }, (_, i) => {
+      const pos = i + 1;
+      let label = `Vị trí #${pos}`;
+      if (pos === 1) {
+        label = `Vị trí #1 (Đầu vòng quay)`;
+      } else if (pos === total) {
+        label = `Vị trí #${pos} (Cuối vòng quay)`;
+      }
+      return {
+        label,
+        value: String(pos),
+      };
+    });
+  }, [isEditing, totalSlotsCount]);
 
   if (!isOpen) return null;
 
@@ -53,7 +74,7 @@ export function EditWheelSlotModal({
 
     onSave({
       id: initialData?.id || `slot-${Date.now()}`,
-      slot_order: initialData?.slot_order || totalSlotsCount + 1,
+      slot_order: slotOrder,
       label: label.trim(),
       short_label: shortLabel.trim(),
       prize_type: prizeType,
@@ -65,16 +86,6 @@ export function EditWheelSlotModal({
           : 0,
       reward_free_spins:
         prizeType === "free_spin" ? Math.max(1, rewardFreeSpins) : 0,
-      icon_name:
-        prizeType === "coin"
-          ? "coins"
-          : prizeType === "deduct_coin"
-          ? "trending-down"
-          : prizeType === "free_spin"
-          ? "rotate-cw"
-          : prizeType === "gift"
-          ? "gift"
-          : "smile",
       probability_weight: Math.max(1, probabilityWeight),
       is_active: isActive,
     });
@@ -118,51 +129,20 @@ export function EditWheelSlotModal({
               Loại Phần Thưởng:
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {[
-                {
-                  id: "coin",
-                  label: "Cộng Xu",
-                  icon: <WheelPrizeImage type="coin" size={26} />,
-                  desc: "Tặng xu heo đất",
-                },
-                {
-                  id: "deduct_coin",
-                  label: "Bị Trừ Xu",
-                  icon: <WheelPrizeImage type="deduct_coin" size={26} />,
-                  desc: "Phạt trừ xu",
-                },
-                {
-                  id: "free_spin",
-                  label: "Free Spin",
-                  icon: <WheelPrizeImage type="free_spin" size={26} />,
-                  desc: "Tặng thêm lượt",
-                },
-                {
-                  id: "gift",
-                  label: "Quà Hiện Vật",
-                  icon: <WheelPrizeImage type="gift" size={26} />,
-                  desc: "Hộp quà, bút, thước",
-                },
-                {
-                  id: "luck",
-                  label: "Chúc May Mắn",
-                  icon: <WheelPrizeImage type="luck" size={26} />,
-                  desc: "May mắn lần sau",
-                },
-              ].map((item) => (
+              {WHEEL_PRIZE_TYPES_LIST.map((item) => (
                 <button
-                  key={item.id}
+                  key={item.type}
                   type="button"
-                  onClick={() => setPrizeType(item.id as WheelPrizeType)}
+                  onClick={() => setPrizeType(item.type)}
                   className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                    prizeType === item.id
+                    prizeType === item.type
                       ? "border-[#0A62D6] bg-blue-50/40 ring-2 ring-[#0A62D6]/20"
                       : "border-slate-200 hover:border-slate-300 bg-white"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    {item.icon}
-                    {prizeType === item.id && (
+                    <WheelPrizeImage type={item.type} size={26} />
+                    {prizeType === item.type && (
                       <span className="w-4 h-4 rounded-full bg-[#0A62D6] text-white flex items-center justify-center">
                         <Check className="w-2.5 h-2.5 stroke-[3]" />
                       </span>
@@ -173,7 +153,7 @@ export function EditWheelSlotModal({
                       {item.label}
                     </div>
                     <div className="text-[10px] text-slate-400">
-                      {item.desc}
+                      {item.description}
                     </div>
                   </div>
                 </button>
@@ -266,7 +246,21 @@ export function EditWheelSlotModal({
             </div>
           )}
 
-          {/* 4. Trọng số xác suất */}
+          {/* 4. Vị trí thứ tự ô (Chèn vào vị trí) */}
+          <div>
+            <TeacherSelect
+              label={isEditing ? "Vị trí ô trên vòng quay:" : "Chèn vào vị trí:"}
+              options={slotOrderOptions}
+              value={String(slotOrder)}
+              onChange={(val) => setSlotOrder(Number(val))}
+              size="sm"
+            />
+            <span className="text-[10px] text-slate-400 mt-1.5 block">
+              * Ô này sẽ được chèn vào đúng số thứ tự đã chọn, các ô khác sẽ tự động dời tương ứng.
+            </span>
+          </div>
+
+          {/* 5. Trọng số xác suất */}
           <div>
             <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1">
               <span>Trọng số xác suất (Weight):</span>

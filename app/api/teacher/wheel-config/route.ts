@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
@@ -82,7 +81,6 @@ export async function POST(req: Request) {
           : 0,
       reward_free_spins:
         slot.prize_type === "free_spin" ? Math.max(1, slot.reward_free_spins) : 0,
-      icon_name: slot.icon_name || "coins",
       probability_weight: slot.probability_weight,
       is_active: slot.is_active,
       is_locked: slot.is_locked || false,
@@ -101,10 +99,21 @@ export async function POST(req: Request) {
 
     // 2. Tạm ẩn các ô không còn trong danh sách (thay vì xóa cứng để bảo vệ liên kết khóa ngoại wheel_spins)
     const activeIds = slots.map((s) => s.id);
-    await supabase
+    const { data: allExisting } = await supabase
       .from("wheel_prizes")
-      .update({ is_active: false })
-      .not("id", "in", `(${activeIds.map((id) => `'${id}'`).join(",")})`);
+      .select("id")
+      .eq("is_active", true);
+
+    const idsToDeactivate = (allExisting || [])
+      .map((p) => p.id)
+      .filter((id) => !activeIds.includes(id));
+
+    if (idsToDeactivate.length > 0) {
+      await supabase
+        .from("wheel_prizes")
+        .update({ is_active: false })
+        .in("id", idsToDeactivate);
+    }
 
     return apiSuccess(
       { updated_count: slots.length },
