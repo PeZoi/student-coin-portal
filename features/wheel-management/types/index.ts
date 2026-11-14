@@ -56,6 +56,7 @@ export interface TopFrequentItem {
 
 export interface WheelStatisticsData {
   total_spins_today: number;
+  total_historical_spins?: number;
   spins_change_vs_yesterday: number;
   total_coins_rewarded_today: number;
   total_coins_deducted_today: number;
@@ -66,4 +67,37 @@ export interface WheelStatisticsData {
   is_weight_balanced: boolean; // Tổng trọng số có đạt chuẩn 100 hay không
   categories: WheelCategoryDistribution[];
   top_frequent_items: TopFrequentItem[];
+}
+
+/**
+ * Bản ghi lịch sử lượt quay thực tế của học sinh (ánh xạ trực tiếp từ bảng wheel_spins + users)
+ */
+export interface WheelSpinHistoryItem {
+  id: string;
+  student_id: string;
+  student_name: string;
+  class_name: string;
+  avatar_url: string;
+  prize_id: string | null;
+  prize_label_snapshot: string;
+  prize_short_label_snapshot: string;
+  prize_type_snapshot: WheelPrizeType;
+  spin_cost: number;
+  reward_coins: number;
+  reward_free_spins: number;
+  is_free_spin: boolean;
+  created_at: string;
+}
+
+/**
+ * Dữ liệu phân trang cho danh sách Lịch sử vòng quay (Infinite Scroll 20 bản ghi / trang)
+ */
+export interface WheelSpinHistoryPageData {
+  items: WheelSpinHistoryItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    has_more: boolean;
+  };
 }

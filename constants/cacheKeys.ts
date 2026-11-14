@@ -37,6 +37,17 @@ export const CACHE_KEYS = {
         ? `student-transactions-${studentId}-p${page}`
         : `student-transactions-${studentId}`,
   },
+
+  // 4. Vòng quay may mắn (Lucky Wheel)
+  WHEEL: {
+    /** Cấu hình vòng quay may mắn của giáo viên / quản trị viên */
+    CONFIG: "teacher-wheel-config",
+    /** Lịch sử lượt quay thực tế của học sinh (Infinite Scroll) */
+    SPIN_HISTORY: (page?: number) =>
+      page !== undefined
+        ? `teacher-wheel-spins-p${page}`
+        : "teacher-wheel-spins",
+  },
 } as const;
 
 export type CacheKeysType = typeof CACHE_KEYS;

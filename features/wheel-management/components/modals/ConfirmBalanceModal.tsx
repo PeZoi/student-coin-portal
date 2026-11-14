@@ -1,62 +1,77 @@
 "use client";
 
 import { useMemo } from "react";
-import { Scale, RotateCcw, Lock, AlertTriangle, Lightbulb, CheckCircle2 } from "lucide-react";
+import {
+  Scale,
+  RotateCcw,
+  Lock,
+  AlertTriangle,
+  Lightbulb,
+  CheckCircle2,
+} from "lucide-react";
 import {
   Modal,
   ModalHeader,
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
-import { WheelSlotItem } from "../../types";
+import { WHEEL_CONSTANTS } from "@/constants/wheel";
+import { useWheelConfigContext } from "../../contexts/WheelConfigContext";
 
 export type BalanceMode = "equalize" | "auto_balance";
 
-interface ConfirmBalanceModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  mode: BalanceMode | null;
-  onConfirm: () => void;
-  slots: WheelSlotItem[];
-  totalWeight: number;
-}
-
 /**
  * Modal Popup Xác Nhận & Hướng Dẫn Chi Tiết Khi Chia Đều Hoặc Cân Bằng Tỷ Lệ
- * - Giúp người dùng xác nhận thao tác trước khi ghi đè trọng số các ô
- * - Cung cấp tips hướng dẫn đầy đủ, dễ hiểu mà không làm che khuất giao diện
+ * - Tự truy xuất state từ WheelConfigContext (Quy tắc 10)
  */
-export function ConfirmBalanceModal({
-  isOpen,
-  onClose,
-  mode,
-  onConfirm,
-  slots,
-  totalWeight,
-}: ConfirmBalanceModalProps) {
-  // Lọc các ô đang hoạt động
-  const activeSlots = useMemo(() => slots.filter((s) => s.is_active), [slots]);
-  const lockedSlots = useMemo(() => activeSlots.filter((s) => s.is_locked), [activeSlots]);
-  const unlockedSlots = useMemo(() => activeSlots.filter((s) => !s.is_locked), [activeSlots]);
+export function ConfirmBalanceModal() {
+  const {
+    confirmBalanceMode: mode,
+    setConfirmBalanceMode,
+    handleEqualize,
+    handleAutoBalance,
+    slots,
+    totalWeight,
+  } = useWheelConfigContext();
 
-  // Tổng tỷ lệ các ô đã khóa
+  const activeSlots = useMemo(
+    () => slots.filter((s) => s.is_active),
+    [slots]
+  );
+  const lockedSlots = useMemo(
+    () => activeSlots.filter((s) => s.is_locked),
+    [activeSlots]
+  );
+  const unlockedSlots = useMemo(
+    () => activeSlots.filter((s) => !s.is_locked),
+    [activeSlots]
+  );
+
   const lockedTotal = useMemo(
     () => lockedSlots.reduce((sum, s) => sum + s.probability_weight, 0),
     [lockedSlots]
   );
 
-  const isLockedInvalid = mode === "auto_balance" && lockedSlots.length > 0 && lockedTotal >= 100;
+  const isLockedInvalid =
+    mode === "auto_balance" &&
+    lockedSlots.length > 0 &&
+    lockedTotal >= WHEEL_CONSTANTS.TARGET_TOTAL_WEIGHT;
 
-  if (!isOpen || !mode) return null;
+  if (!mode) return null;
+
+  const handleClose = () => setConfirmBalanceMode(null);
+
+  const handleConfirm = () => {
+    if (mode === "equalize") {
+      handleEqualize();
+    } else if (mode === "auto_balance") {
+      handleAutoBalance();
+    }
+    setConfirmBalanceMode(null);
+  };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      maxWidth="md"
-      closeOnBackdrop
-    >
-      {/* 1. Header */}
+    <Modal isOpen={!!mode} onClose={handleClose} maxWidth="md" closeOnBackdrop>
       <ModalHeader
         icon={
           mode === "equalize" ? (
@@ -73,17 +88,14 @@ export function ConfirmBalanceModal({
         description={
           mode === "equalize"
             ? "Đặt lại xác suất trúng thưởng bằng nhau cho mọi ô"
-            : `Chuẩn hóa tổng xác suất từ ${totalWeight}% về đúng 100%`
+            : `Chuẩn hóa tổng xác suất từ ${totalWeight}% về đúng ${WHEEL_CONSTANTS.TARGET_TOTAL_WEIGHT}%`
         }
-        onClose={onClose}
+        onClose={handleClose}
       />
 
-      {/* 2. Thân Modal & Tips Hướng Dẫn */}
       <ModalBody className="space-y-4">
         {mode === "equalize" ? (
-          /* NỘI DUNG XÁC NHẬN CHIA ĐỀU */
           <>
-            {/* Thẻ thống kê tóm tắt */}
             <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4">
               <div className="grid grid-cols-2 gap-3 text-center">
                 <div className="p-2.5 rounded-xl bg-white border border-slate-200/60 shadow-2xs">
@@ -114,7 +126,6 @@ export function ConfirmBalanceModal({
               </p>
             </div>
 
-            {/* Hộp Tips / Hướng dẫn */}
             <div className="bg-blue-50/70 border border-blue-200/70 rounded-2xl p-4 flex gap-3 items-start">
               <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
                 <Lightbulb className="w-4 h-4" />
@@ -126,16 +137,11 @@ export function ConfirmBalanceModal({
                 <p className="text-blue-900/80 leading-relaxed">
                   Phù hợp khi bạn muốn thiết lập lại vòng quay từ đầu, đảm bảo cơ hội trúng của tất cả các phần thưởng là hoàn toàn ngang nhau.
                 </p>
-                <p className="text-blue-900/80 leading-relaxed">
-                  Sau khi chia đều, bạn có thể bấm 🔒 để khóa các ô cố định rồi điều chỉnh các ô còn lại.
-                </p>
               </div>
             </div>
           </>
         ) : (
-          /* NỘI DUNG XÁC NHẬN CÂN BẰNG TỰ ĐỘNG */
           <>
-            {/* Thẻ thống kê tổng tỷ lệ */}
             <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-200/60">
                 <div className="flex items-center gap-2">
@@ -159,7 +165,6 @@ export function ConfirmBalanceModal({
                 </div>
               </div>
 
-              {/* Thông tin ô khóa */}
               <div className="mt-3">
                 {lockedSlots.length > 0 ? (
                   <div className="space-y-2">
@@ -170,7 +175,6 @@ export function ConfirmBalanceModal({
                       </span>
                     </div>
 
-                    {/* Danh sách các ô khóa */}
                     <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto p-2 bg-amber-50/70 border border-amber-200/70 rounded-xl">
                       {lockedSlots.map((s) => (
                         <span
@@ -178,8 +182,12 @@ export function ConfirmBalanceModal({
                           className="inline-flex items-center gap-1 text-[11px] font-bold bg-white text-amber-900 border border-amber-200 px-2 py-0.5 rounded-md shadow-2xs"
                         >
                           <Lock className="w-2.5 h-2.5 text-amber-600" />
-                          <span className="truncate max-w-[120px]">{s.short_label || s.label}:</span>
-                          <span className="text-[#0A62D6]">{s.probability_weight}%</span>
+                          <span className="truncate max-w-[120px]">
+                            {s.short_label || s.label}:
+                          </span>
+                          <span className="text-[#0A62D6]">
+                            {s.probability_weight}%
+                          </span>
                         </span>
                       ))}
                     </div>
@@ -188,7 +196,7 @@ export function ConfirmBalanceModal({
                       <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2">
                         <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
                         <span>
-                          Tổng tỷ lệ các ô đã khóa đã đạt hoặc vượt quá 100% ({lockedTotal}%). Không thể tự cân bằng các ô còn lại. Vui lòng mở khóa bớt ô hoặc giảm tỷ lệ trước khi cân bằng!
+                          Tổng tỷ lệ các ô đã khóa đã đạt hoặc vượt quá 100% ({lockedTotal}%). Vui lòng mở khóa bớt ô hoặc giảm tỷ lệ trước khi cân bằng!
                         </span>
                       </div>
                     ) : (
@@ -205,7 +213,6 @@ export function ConfirmBalanceModal({
               </div>
             </div>
 
-            {/* Hộp Tips / Hướng dẫn */}
             <div className="bg-amber-50/70 border border-amber-200/70 rounded-2xl p-4 flex gap-3 items-start">
               <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
                 <Lightbulb className="w-4 h-4" />
@@ -223,11 +230,10 @@ export function ConfirmBalanceModal({
         )}
       </ModalBody>
 
-      {/* 3. Footer */}
       <ModalFooter
         showCancel
         cancelLabel="Hủy bỏ"
-        onCancel={onClose}
+        onCancel={handleClose}
         showSubmit
         submitLabel={
           mode === "equalize"
@@ -236,9 +242,9 @@ export function ConfirmBalanceModal({
             ? `Cân bằng (giữ ${lockedSlots.length} ô 🔒)`
             : "Xác nhận cân bằng"
         }
-        onSubmit={onConfirm}
+        onSubmit={handleConfirm}
         submitDisabled={isLockedInvalid}
-        submitVariant={mode === "equalize" ? "primary" : "primary"}
+        submitVariant="primary"
       />
     </Modal>
   );

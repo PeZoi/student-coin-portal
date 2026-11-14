@@ -6,18 +6,15 @@ import {
   Coins,
   Percent,
 } from "lucide-react";
-import { WheelStatisticsData } from "../types";
-
-interface WheelConfigStatsKPIProps {
-  stats: WheelStatisticsData;
-}
+import { useWheelConfigContext } from "../contexts/WheelConfigContext";
 
 /**
  * Thẻ KPI Thống Kê của Cấu hình vòng quay
- * - Đồng bộ 100% phong cách thiết kế với Quản lý học sinh, Quản lý lớp học và Quản lý giáo viên
- * - Thiết kế tối giản, sạch sẽ, typography font-heading font-extrabold text-3xl
+ * - Tự truy xuất dynamicStats từ WheelConfigContext (Quy tắc 10)
  */
-export function WheelConfigStatsKPI({ stats }: WheelConfigStatsKPIProps) {
+export function WheelConfigStatsKPI() {
+  const { dynamicStats: stats } = useWheelConfigContext();
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {/* 1. Cân bằng xác suất */}
@@ -46,11 +43,11 @@ export function WheelConfigStatsKPI({ stats }: WheelConfigStatsKPIProps) {
         </div>
       </div>
 
-      {/* 2. Lượt quay hôm nay */}
+      {/* 2. Tổng lượt quay */}
       <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-2xs text-left">
         <div className="flex items-start justify-between gap-2">
           <span className="text-sm font-semibold text-[#475569]">
-            Lượt quay hôm nay
+            Tổng lượt quay
           </span>
           <div className="w-10 h-10 rounded-xl bg-[#EAF2FF] text-[#0A62D6] flex items-center justify-center shrink-0">
             <RotateCw className="w-5 h-5" />
@@ -58,7 +55,7 @@ export function WheelConfigStatsKPI({ stats }: WheelConfigStatsKPIProps) {
         </div>
         <div className="mt-3 flex items-baseline gap-1.5">
           <span className="text-3xl font-heading font-extrabold text-[#0F172A] tracking-tight">
-            {stats.total_spins_today.toLocaleString("vi-VN")}
+            {(stats.total_historical_spins ?? 0).toLocaleString("vi-VN")}
           </span>
           <span className="text-sm font-semibold text-slate-500">lượt</span>
         </div>
@@ -76,7 +73,8 @@ export function WheelConfigStatsKPI({ stats }: WheelConfigStatsKPIProps) {
         </div>
         <div className="mt-3 flex items-baseline gap-1.5">
           <span className="text-3xl font-heading font-extrabold text-[#0F172A] tracking-tight">
-            +{stats.net_coins_flow.toLocaleString("vi-VN")}
+            {stats.net_coins_flow > 0 ? "+" : ""}
+            {stats.net_coins_flow.toLocaleString("vi-VN")}
           </span>
           <span className="text-sm font-semibold text-slate-500">xu</span>
         </div>

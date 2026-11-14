@@ -1,9 +1,8 @@
 import React, { useMemo } from "react";
-import { WheelPrize } from "../types";
-import { WHEEL_THEME, getSliceTheme } from "../wheelTheme";
+import { WHEEL_THEME, getSliceTheme } from "@/constants/wheel";
 
 interface WheelDynamicDiscProps {
-  prizes: WheelPrize[];
+  prizes: { id: string }[];
 }
 
 /**
@@ -12,7 +11,7 @@ interface WheelDynamicDiscProps {
  * hướng gradient tỏa từ tâm ra rìa, đường chia nan trắng 2px và chốt tròn viền trắng.
  */
 export function WheelDynamicDisc({ prizes }: WheelDynamicDiscProps) {
-  const totalSlices = prizes.length;
+  const totalSlices = Math.max(1, prizes.length);
   const segmentAngle = 360 / totalSlices;
   const RADIUS = 200;
 

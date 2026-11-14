@@ -107,3 +107,15 @@ export async function authorizeTeacherRequest(
   );
 }
 
+/**
+ * Helper xác thực quyền Học sinh trong Route Handlers
+ * - Áp dụng cho: STUDENT
+ */
+export async function authorizeStudentRequest(
+  req: Request,
+  forbiddenMessage = "Tính năng này chỉ dành cho tài khoản học sinh."
+): Promise<ApiAuthResult> {
+  return authorizeRequest(req, [UserRole.STUDENT], forbiddenMessage);
+}
+
+

@@ -2,7 +2,21 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { X, History, Users, User, Clock, Gift, Coins, Sparkles } from "lucide-react";
+import {
+  X,
+  History,
+  Users,
+  User,
+  Clock,
+  Gift,
+  Coins,
+  Sparkles,
+} from "lucide-react";
+import {
+  WHEEL_PRIZE_TYPES,
+  WHEEL_PRIZE_IMAGES,
+  WHEEL_ASSETS,
+} from "@/constants/wheel";
 import { WheelWinner } from "../types";
 import { Button3D } from "@/components/ui/Button3D";
 import { cn } from "@/lib/utils";
@@ -16,16 +30,26 @@ interface WheelHistoryModalProps {
 
 /**
  * Component hiển thị Badge phần thưởng đẹp mắt:
- * - Nếu là phần thưởng xu (rewardCoins > 0): Hiển thị "+ số xu" kèm icon ảnh xu vàng (/wheel/coin.webp)
- * - Nếu là vật phẩm đặc biệt: Hiển thị tên vật phẩm kèm icon Sparkles
+ * - Sử dụng hoàn toàn hằng số WHEEL_PRIZE_TYPES và WHEEL_PRIZE_IMAGES, không hardcode
  */
-function PrizeBadge({ rewardCoins, prizeLabel }: { rewardCoins: number; prizeLabel: string }) {
-  if (rewardCoins > 0) {
+function PrizeBadge({
+  reward_coins,
+  reward_free_spins,
+  prize_label_snapshot,
+  prize_type_snapshot,
+}: Pick<
+  WheelWinner,
+  | "reward_coins"
+  | "reward_free_spins"
+  | "prize_label_snapshot"
+  | "prize_type_snapshot"
+>) {
+  if (reward_coins > 0) {
     return (
       <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-gradient-to-r from-amber-100 via-amber-100/90 to-amber-200/90 border border-amber-300/90 shadow-2xs font-heading font-black text-xs sm:text-[13px] text-[#D97706] flex-shrink-0 transition-transform hover:scale-105 select-none">
-        <span>+{rewardCoins}</span>
+        <span>+{reward_coins}</span>
         <Image
-          src="/wheel/coin.webp"
+          src={WHEEL_PRIZE_IMAGES[WHEEL_PRIZE_TYPES.COIN]}
           alt="Xu"
           width={18}
           height={18}
@@ -37,8 +61,66 @@ function PrizeBadge({ rewardCoins, prizeLabel }: { rewardCoins: number; prizeLab
     );
   }
 
-  // Đối với thẻ nhân đôi xu hoặc vật phẩm đặc biệt
-  const isCard = prizeLabel.toLowerCase().includes("thẻ");
+  if (
+    reward_coins < 0 ||
+    prize_type_snapshot === WHEEL_PRIZE_TYPES.DEDUCT_COIN
+  ) {
+    return (
+      <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-gradient-to-r from-rose-50 to-rose-100/90 border border-rose-300 shadow-2xs font-heading font-black text-xs sm:text-[13px] text-rose-700 flex-shrink-0 transition-transform hover:scale-105 select-none">
+        <span>{reward_coins < 0 ? reward_coins : prize_label_snapshot}</span>
+        <Image
+          src={WHEEL_PRIZE_IMAGES[WHEEL_PRIZE_TYPES.DEDUCT_COIN]}
+          alt="Trừ xu"
+          width={18}
+          height={18}
+          unoptimized
+          style={{ height: "auto" }}
+          className="w-4 h-4 inline-block object-contain drop-shadow-2xs"
+        />
+      </div>
+    );
+  }
+
+  if (
+    prize_type_snapshot === WHEEL_PRIZE_TYPES.FREE_SPIN ||
+    (reward_free_spins && reward_free_spins > 0)
+  ) {
+    return (
+      <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-gradient-to-r from-emerald-50 to-emerald-100/90 border border-emerald-300 shadow-2xs font-heading font-black text-[11px] sm:text-xs text-emerald-800 flex-shrink-0 transition-transform hover:scale-105 select-none">
+        <span>+{reward_free_spins || 1} Lượt quay</span>
+        <Image
+          src={WHEEL_PRIZE_IMAGES[WHEEL_PRIZE_TYPES.FREE_SPIN]}
+          alt="Lượt quay"
+          width={16}
+          height={16}
+          unoptimized
+          style={{ height: "auto" }}
+          className="w-3.5 h-3.5 inline-block object-contain drop-shadow-2xs"
+        />
+      </div>
+    );
+  }
+
+  if (prize_type_snapshot === WHEEL_PRIZE_TYPES.LUCK) {
+    return (
+      <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-slate-100 border border-slate-300 shadow-2xs font-heading font-bold text-[11px] sm:text-xs text-slate-600 flex-shrink-0 select-none">
+        <Image
+          src={WHEEL_PRIZE_IMAGES[WHEEL_PRIZE_TYPES.LUCK]}
+          alt="May mắn"
+          width={16}
+          height={16}
+          unoptimized
+          style={{ height: "auto" }}
+          className="w-3.5 h-3.5 inline-block object-contain"
+        />
+        <span className="truncate max-w-[130px] sm:max-w-[160px]">
+          {prize_label_snapshot || "May mắn lần sau"}
+        </span>
+      </div>
+    );
+  }
+
+  const isCard = prize_label_snapshot.toLowerCase().includes("thẻ");
   return (
     <div
       className={cn(
@@ -48,8 +130,18 @@ function PrizeBadge({ rewardCoins, prizeLabel }: { rewardCoins: number; prizeLab
           : "bg-gradient-to-r from-purple-50 to-fuchsia-100/90 border-purple-300 text-purple-900"
       )}
     >
-      <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
-      <span className="truncate max-w-[130px] sm:max-w-[160px]">{prizeLabel || "Quà đặc biệt"}</span>
+      <Image
+        src={WHEEL_PRIZE_IMAGES[WHEEL_PRIZE_TYPES.GIFT]}
+        alt="Quà tặng"
+        width={16}
+        height={16}
+        unoptimized
+        style={{ height: "auto" }}
+        className="w-3.5 h-3.5 inline-block object-contain"
+      />
+      <span className="truncate max-w-[130px] sm:max-w-[160px]">
+        {prize_label_snapshot || "Quà đặc biệt"}
+      </span>
     </div>
   );
 }
@@ -141,8 +233,8 @@ export function WheelHistoryModal({
                   <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full p-[2px] bg-gradient-to-b from-[#FDE047] to-[#F59E0B] flex-shrink-0 shadow-[0_2px_0_#B45309]">
                     <div className="relative w-full h-full rounded-full overflow-hidden bg-amber-100">
                       <Image
-                        src={winner.avatarUrl || "/avatar.jpg"}
-                        alt={winner.studentName}
+                        src={winner.avatar_url || WHEEL_ASSETS.DEFAULT_AVATAR}
+                        alt={winner.student_name}
                         fill
                         unoptimized
                         className="object-cover"
@@ -153,20 +245,27 @@ export function WheelHistoryModal({
                   {/* Tên, lớp, thời gian */}
                   <div className="min-w-0 flex-1">
                     <div className="font-heading font-black text-slate-800 text-xs sm:text-[13px] leading-tight truncate">
-                      {winner.studentName}
+                      {winner.student_name}
                     </div>
                     <div className="flex items-center gap-1.5 font-heading font-bold text-[10.5px] text-slate-500 mt-0.5">
-                      <span className="text-amber-700 whitespace-nowrap">{winner.classGroup}</span>
+                      <span className="text-amber-700 whitespace-nowrap">
+                        {winner.class_name}
+                      </span>
                       <span className="text-slate-300">•</span>
                       <span className="flex items-center gap-0.5 whitespace-nowrap">
                         <Clock className="w-2.5 h-2.5" />
-                        {winner.wonAt}
+                        {winner.created_at}
                       </span>
                     </div>
                   </div>
 
-                  {/* Badge phần thưởng style mới */}
-                  <PrizeBadge rewardCoins={winner.rewardCoins} prizeLabel={winner.prizeLabel} />
+                  {/* Badge phần thưởng */}
+                  <PrizeBadge
+                    reward_coins={winner.reward_coins}
+                    reward_free_spins={winner.reward_free_spins}
+                    prize_label_snapshot={winner.prize_label_snapshot}
+                    prize_type_snapshot={winner.prize_type_snapshot}
+                  />
                 </div>
               ))
             )
@@ -192,7 +291,7 @@ export function WheelHistoryModal({
                 >
                   {/* Icon quà */}
                   <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 flex items-center justify-center shadow-[0_2px_0_#B45309] flex-shrink-0 text-white">
-                    {item.rewardCoins > 0 ? (
+                    {item.reward_coins > 0 ? (
                       <Coins className="w-5 h-5 text-amber-950" />
                     ) : (
                       <Gift className="w-5 h-5 text-white" />
@@ -202,22 +301,27 @@ export function WheelHistoryModal({
                   {/* Chi tiết phần thưởng */}
                   <div className="min-w-0 flex-1">
                     <div className="font-heading font-black text-slate-800 text-xs sm:text-[13px] leading-tight truncate">
-                      {item.prizeLabel}
+                      {item.prize_label_snapshot}
                     </div>
                     <div className="flex items-center gap-1.5 font-heading font-bold text-[10.5px] text-slate-500 mt-0.5">
                       <span className="text-emerald-600 flex items-center gap-0.5 whitespace-nowrap">
-                        ✓ Đã nhận thưởng
+                        ✓ Đã ghi nhận
                       </span>
                       <span className="text-slate-300">•</span>
                       <span className="flex items-center gap-0.5 whitespace-nowrap">
                         <Clock className="w-2.5 h-2.5" />
-                        {item.wonAt}
+                        {item.created_at}
                       </span>
                     </div>
                   </div>
 
-                  {/* Badge phần thưởng style mới */}
-                  <PrizeBadge rewardCoins={item.rewardCoins} prizeLabel={item.prizeLabel} />
+                  {/* Badge phần thưởng */}
+                  <PrizeBadge
+                    reward_coins={item.reward_coins}
+                    reward_free_spins={item.reward_free_spins}
+                    prize_label_snapshot={item.prize_label_snapshot}
+                    prize_type_snapshot={item.prize_type_snapshot}
+                  />
                 </div>
               ))
             )

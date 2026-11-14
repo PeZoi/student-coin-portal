@@ -1,25 +1,38 @@
-export type PrizeType = "coin" | "gift" | "luck" | "multiplier";
+export type PrizeType =
+  | "coin"
+  | "gift"
+  | "luck"
+  | "free_spin"
+  | "deduct_coin"
+  | "multiplier";
 
+/**
+ * Ô phần thưởng trên Vòng quay may mắn (Tên trường đồng bộ 100% với bảng public.wheel_prizes)
+ */
 export interface WheelPrize {
   id: string;
+  slot_order?: number;
   label: string;
-  shortLabel: string;
-  type: PrizeType;
-  rewardCoins: number;
-  bgGradient?: string; // Không bắt buộc, màu múi quay được quản lý tự động theo palette cố định
-  textColor?: string;
-  iconName: "coins" | "gift" | "sparkles" | "star" | "smile" | "trophy";
-  probabilityWeight: number; // Trọng số xác suất trúng
+  short_label: string;
+  prize_type: PrizeType;
+  reward_coins: number;
+  reward_free_spins?: number;
+  probability_weight: number;
 }
 
+/**
+ * Lịch sử lượt quay trúng thưởng (Tên trường đồng bộ với bảng public.wheel_spins & public.users)
+ */
 export interface WheelWinner {
   id: string;
-  studentName: string;
-  classGroup: string;
-  avatarUrl: string;
-  prizeLabel: string;
-  rewardCoins: number;
-  wonAt: string; // ISO 8601 string hoặc relative
+  student_name: string;
+  class_name: string;
+  avatar_url: string;
+  prize_label_snapshot: string;
+  prize_type_snapshot?: PrizeType;
+  reward_coins: number;
+  reward_free_spins?: number;
+  created_at: string;
 }
 
 export interface WheelRule {
@@ -29,20 +42,24 @@ export interface WheelRule {
   icon: "ticket" | "coin" | "refresh" | "shield";
 }
 
-export interface SpinState {
-  isSpinning: boolean;
-  rotation: number;
-  winningPrize: WheelPrize | null;
-  showPrizeModal: boolean;
-  freeSpinsLeft: number;
+/**
+ * Cấu hình động cho Vòng quay may mắn (Tên trường đồng bộ với system_settings.value)
+ */
+export interface WheelConfig {
+  spin_cost: number;
+  allow_free_spin: boolean;
+  daily_free_spins: number;
+  is_maintenance?: boolean;
+  prizes: WheelPrize[];
 }
 
 /**
- * Cấu hình động cho Vòng quay may mắn (do giáo viên / quản trị viên thiết lập)
+ * Dữ liệu khởi tạo Vòng quay cho Học sinh (Tên trường đồng bộ với bảng public.users)
  */
-export interface WheelConfig {
-  spinCost: number; // Chi phí mỗi lượt quay (ví dụ: 500 xu)
-  allowFreeSpin: boolean; // Có cho phép lượt quay miễn phí hàng ngày không
-  dailyFreeSpins: number; // Số lượt miễn phí hàng ngày (nếu allowFreeSpin = true)
-  prizes: WheelPrize[]; // Danh sách vật phẩm & trọng số tỷ lệ trúng
+export interface StudentWheelInitialData {
+  config: WheelConfig;
+  allWinners: WheelWinner[];
+  myHistory: WheelWinner[];
+  free_spins: number;
+  current_coins: number;
 }

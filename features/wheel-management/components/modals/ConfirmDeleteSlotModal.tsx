@@ -1,45 +1,39 @@
 "use client";
 
 import { ConfirmDeleteModal } from "@/components/ui/modal";
-import { WheelSlotItem } from "../../types";
+import { WHEEL_CONSTANTS } from "@/constants/wheel";
+import { useWheelConfigContext } from "../../contexts/WheelConfigContext";
 import { WheelPrizeImage } from "../WheelPrizeImage";
-
-interface ConfirmDeleteSlotModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  slot: WheelSlotItem | null;
-  totalSlots: number;
-}
 
 /**
  * Modal Xác Nhận Xóa Ô Phần Thưởng Vòng Quay
- * - Hiển thị chi tiết ô chuẩn bị xóa: Tên, loại giải, trọng số tỷ lệ
- * - Cảnh báo dồn thứ tự ô và điều kiện tối thiểu 4 ô
+ * - Tự truy xuất state từ WheelConfigContext (Quy tắc 10)
  */
-export function ConfirmDeleteSlotModal({
-  isOpen,
-  onClose,
-  onConfirm,
-  slot,
-  totalSlots,
-}: ConfirmDeleteSlotModalProps) {
+export function ConfirmDeleteSlotModal() {
+  const {
+    slotToDelete: slot,
+    setSlotToDelete,
+    handleConfirmDeleteSlot,
+    slots,
+  } = useWheelConfigContext();
+
   if (!slot) return null;
 
-  const isMinSlots = totalSlots <= 4;
+  const totalSlots = slots.length;
+  const isMinSlots = totalSlots <= WHEEL_CONSTANTS.MIN_SLOTS;
 
   return (
     <ConfirmDeleteModal
-      isOpen={isOpen}
-      onClose={onClose}
-      onConfirm={isMinSlots ? () => {} : onConfirm}
+      isOpen={!!slot}
+      onClose={() => setSlotToDelete(null)}
+      onConfirm={isMinSlots ? () => {} : handleConfirmDeleteSlot}
       title={`Xóa Ô #${slot.slot_order}: "${slot.label}"`}
       description="Xác nhận xóa bỏ ô phần thưởng này khỏi cơ cấu vòng quay"
       confirmLabel={isMinSlots ? "Không thể xóa ô" : "Xác nhận xóa"}
       warningText={
         isMinSlots
-          ? "Vòng quay cần duy trì tối thiểu 4 ô để đảm bảo tính mỹ thuật. Hệ thống không cho phép xóa thêm ô!"
-          : "Sau khi xóa, các ô còn lại sẽ tự động dồn lại số thứ tự. Vui lòng nhấn 'Cân bằng' nếu tổng tỷ lệ bị lệch khỏi chuẩn 100%."
+          ? `Vòng quay cần duy trì tối thiểu ${WHEEL_CONSTANTS.MIN_SLOTS} ô để đảm bảo tính mỹ thuật. Hệ thống không cho phép xóa thêm ô!`
+          : `Sau khi xóa, các ô còn lại sẽ tự động dồn lại số thứ tự. Vui lòng nhấn 'Cân bằng' nếu tổng tỷ lệ bị lệch khỏi chuẩn ${WHEEL_CONSTANTS.TARGET_TOTAL_WEIGHT}%.`
       }
     >
       <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 flex items-center gap-3.5 mb-3">

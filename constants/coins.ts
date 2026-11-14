@@ -73,6 +73,9 @@ export const COIN_TX_DESCRIPTIONS = {
 
   /** Lý do mặc định khi trừ lượt quay */
   DEFAULT_SPIN_DEDUCT: "Khấu trừ lượt quay may mắn",
+
+  /** Phí quay Vòng Quay May Mắn */
+  WHEEL_SPIN_FEE: "Phí quay Vòng Quay May Mắn",
 } as const;
 
 /**
@@ -278,5 +281,23 @@ export function formatCoinTxDescription(
   const spinText = spinsChange > 0 ? `+${spinsChange}` : `${spinsChange}`;
   return `${baseReason} (Kèm ${spinText} lượt quay)`;
 }
+
+/**
+ * Helper tạo mô tả chuẩn cho giao dịch nhận thưởng / phạt xu từ Vòng Quay May Mắn
+ */
+export function formatWheelPrizeTxDescription(
+  prizeLabel: string,
+  rewardCoins: number
+): string {
+  const cleanLabel = prizeLabel.trim();
+  if (rewardCoins > 0) {
+    return `Trúng thưởng Vòng Quay May Mắn: ${cleanLabel}`;
+  }
+  if (rewardCoins < 0) {
+    return `Bị trừ xu từ Vòng Quay May Mắn: ${cleanLabel}`;
+  }
+  return `Kết quả Vòng Quay May Mắn: ${cleanLabel}`;
+}
+
 
 

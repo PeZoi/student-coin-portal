@@ -1,13 +1,16 @@
 import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
-import { HttpStatus } from "@/constants";
+import { HttpStatus, WHEEL_CONSTANTS } from "@/constants";
 import { getInitialWheelConfigServer } from "@/features/wheel-management/services/wheelServerService";
-import { WheelSlotItem, WheelGeneralSettings } from "@/features/wheel-management/types";
+import {
+  saveWheelSlotsSchema,
+  wheelGeneralSettingsSchema,
+} from "@/features/wheel-management/schemas/wheelSchemas";
 
 /**
  * GET /api/teacher/wheel-config
- * Lấy toàn bộ thông tin cấu hình vòng quay, bao gồm danh sách ô, tham số kinh tế và thống kê
+ * Lấy toàn bộ thông tin cấu hình vòng quay, bao gồm danh sách ô (chưa xóa mềm), tham số kinh tế và thống kê thực tế
  */
 export async function GET(req: Request) {
   try {
@@ -30,7 +33,7 @@ export async function GET(req: Request) {
 
 /**
  * POST /api/teacher/wheel-config
- * Lưu cơ cấu danh sách các ô phần thưởng trên vòng quay
+ * Lưu cơ cấu danh sách các ô phần thưởng trên vòng quay (Hỗ trợ Soft Delete với is_deleted, deleted_by, deleted_at)
  */
 export async function POST(req: Request) {
   try {
@@ -42,31 +45,21 @@ export async function POST(req: Request) {
       return auth.response;
     }
 
-    const body = await req.json();
-    const slots = body.slots as WheelSlotItem[];
+    const rawBody: unknown = await req.json();
+    const validation = saveWheelSlotsSchema.safeParse(rawBody);
 
-    if (!Array.isArray(slots) || slots.length < 4) {
+    if (!validation.success) {
+      const firstIssue = validation.error.issues[0];
       return apiError(
-        "Vòng quay cần có tối thiểu 4 ô giải thưởng để đảm bảo tính mỹ thuật.",
+        firstIssue?.message || "Dữ liệu cơ cấu ô giải thưởng không hợp lệ.",
         HttpStatus.BAD_REQUEST
       );
     }
 
-    // Kiểm tra tổng xác suất các ô đang kích hoạt
-    const activeSlots = slots.filter((s) => s.is_active);
-    const totalWeight = activeSlots.reduce(
-      (sum, s) => sum + (s.probability_weight || 0),
-      0
-    );
+    const { slots } = validation.data;
+    const nowIso = new Date().toISOString();
 
-    if (totalWeight !== 100) {
-      return apiError(
-        `Tổng xác suất các ô kích hoạt phải đúng 100% (Hiện tại là ${totalWeight}%).`,
-        HttpStatus.BAD_REQUEST
-      );
-    }
-
-    // 1. Chuẩn bị payload để Upsert vào bảng wheel_prizes
+    // 1. Chuẩn bị payload để Upsert vào bảng wheel_prizes (khôi phục trạng thái is_deleted = false)
     const upsertData = slots.map((slot, idx) => ({
       id: slot.id,
       slot_order: idx + 1,
@@ -80,43 +73,60 @@ export async function POST(req: Request) {
           ? Math.abs(slot.reward_coins)
           : 0,
       reward_free_spins:
-        slot.prize_type === "free_spin" ? Math.max(1, slot.reward_free_spins) : 0,
+        slot.prize_type === "free_spin"
+          ? Math.max(1, slot.reward_free_spins)
+          : 0,
       probability_weight: slot.probability_weight,
       is_active: slot.is_active,
       is_locked: slot.is_locked || false,
+      is_deleted: false,
+      deleted_by: null,
+      deleted_at: null,
       updated_by: auth.session.userId,
-      updated_at: new Date().toISOString(),
+      updated_at: nowIso,
     }));
 
-    const { error: upsertError } = await supabase
-      .from("wheel_prizes")
-      .upsert(upsertData, { onConflict: "id" });
+    const currentSlotIds = slots.map((s) => s.id);
+    const notInFilter = `(${currentSlotIds.map((id) => `"${id}"`).join(",")})`;
 
-    if (upsertError) {
-      console.error("Lỗi khi lưu các ô giải thưởng vào DB:", upsertError.message);
-      return apiError(`Lỗi lưu CSDL: ${upsertError.message}`);
+    // 2. Thực thi song song (1 round-trip duy nhất): Upsert các ô hiện tại VÀ Soft Delete các ô bị gỡ bỏ
+    const [upsertRes, softDeleteRes] = await Promise.all([
+      supabase.from("wheel_prizes").upsert(upsertData, { onConflict: "id" }),
+      supabase
+        .from("wheel_prizes")
+        .update({
+          is_deleted: true,
+          is_active: false,
+          deleted_by: auth.session.userId,
+          deleted_at: nowIso,
+          updated_by: auth.session.userId,
+          updated_at: nowIso,
+        })
+        .eq("is_deleted", false)
+        .not("id", "in", notInFilter)
+        .select("id"),
+    ]);
+
+    if (upsertRes.error) {
+      console.error(
+        "Lỗi khi lưu các ô giải thưởng vào DB:",
+        upsertRes.error.message
+      );
+      return apiError(`Lỗi lưu CSDL: ${upsertRes.error.message}`);
     }
 
-    // 2. Tạm ẩn các ô không còn trong danh sách (thay vì xóa cứng để bảo vệ liên kết khóa ngoại wheel_spins)
-    const activeIds = slots.map((s) => s.id);
-    const { data: allExisting } = await supabase
-      .from("wheel_prizes")
-      .select("id")
-      .eq("is_active", true);
-
-    const idsToDeactivate = (allExisting || [])
-      .map((p) => p.id)
-      .filter((id) => !activeIds.includes(id));
-
-    if (idsToDeactivate.length > 0) {
-      await supabase
-        .from("wheel_prizes")
-        .update({ is_active: false })
-        .in("id", idsToDeactivate);
+    if (softDeleteRes.error) {
+      console.error(
+        "Lỗi khi xóa mềm các ô giải thưởng:",
+        softDeleteRes.error.message
+      );
     }
 
     return apiSuccess(
-      { updated_count: slots.length },
+      {
+        updated_count: slots.length,
+        deleted_count: softDeleteRes.data?.length ?? 0,
+      },
       "Đã lưu thành công cơ cấu ô phần thưởng vòng quay!"
     );
   } catch (err: unknown) {
@@ -128,7 +138,7 @@ export async function POST(req: Request) {
 
 /**
  * PUT /api/teacher/wheel-config
- * Lưu thiết lập kinh tế vòng quay (spin_cost, allow_free_spin, daily_free_spins)
+ * Lưu thiết lập kinh tế vòng quay (spin_cost, allow_free_spin, daily_free_spins, is_maintenance)
  */
 export async function PUT(req: Request) {
   try {
@@ -140,28 +150,24 @@ export async function PUT(req: Request) {
       return auth.response;
     }
 
-    const body = (await req.json()) as WheelGeneralSettings;
+    const rawBody: unknown = await req.json();
+    const validation = wheelGeneralSettingsSchema.safeParse(rawBody);
 
-    const spinCost = Number(body.spin_cost);
-    if (isNaN(spinCost) || spinCost < 0) {
+    if (!validation.success) {
+      const firstIssue = validation.error.issues[0];
       return apiError(
-        "Phí mỗi lượt quay không hợp lệ (phải >= 0).",
+        firstIssue?.message || "Thiết lập kinh tế vòng quay không hợp lệ.",
         HttpStatus.BAD_REQUEST
       );
     }
 
-    const newSettingValue = {
-      spin_cost: spinCost,
-      allow_free_spin: Boolean(body.allow_free_spin),
-      daily_free_spins: Math.max(1, Number(body.daily_free_spins) || 1),
-      is_maintenance: Boolean(body.is_maintenance),
-    };
+    const newSettingValue = validation.data;
 
     const { error } = await supabase
       .from("system_settings")
       .upsert(
         {
-          key: "wheel_setting",
+          key: WHEEL_CONSTANTS.SYSTEM_SETTING_KEY,
           value: newSettingValue,
           description:
             "Cấu hình chi phí 1 lượt quay và quyền quay miễn phí vòng quay may mắn",

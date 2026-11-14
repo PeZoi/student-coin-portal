@@ -80,6 +80,9 @@ export const AppRoutes = {
       STUDENT_STATUS: (id: string) => `/api/teacher/students/${id}/status`,
       STUDENT_UNLOCK: (id: string) => `/api/teacher/students/${id}/unlock`,
       STUDENT_COIN_TRANSACTIONS: (id: string) => `/api/teacher/students/${id}/coin-transactions`,
+      // Quản lý Vòng quay may mắn
+      WHEEL_CONFIG: "/api/teacher/wheel-config",
+      WHEEL_SPINS_HISTORY: "/api/teacher/wheel-config/spins",
     },
     SYSTEM: {
       CONFIG: "/api/system/config",

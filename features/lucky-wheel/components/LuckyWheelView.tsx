@@ -9,15 +9,20 @@ import { WheelSpinner } from "./WheelSpinner";
 import { WheelPrizeModal } from "./WheelPrizeModal";
 import { WheelRulesModal } from "./WheelRulesModal";
 import { WheelHistoryModal } from "./WheelHistoryModal";
+import { WHEEL_ASSETS } from "@/constants/wheel";
 import { useLuckyWheel } from "../hooks/useLuckyWheel";
-import { WheelConfig } from "../types";
+import { StudentWheelInitialData, WheelConfig } from "../types";
 import { useWheelAudio } from "../audio/useWheelAudio";
 
 interface LuckyWheelViewProps {
+  initialData?: StudentWheelInitialData;
   initialConfig?: Partial<WheelConfig>;
 }
 
-export function LuckyWheelView({ initialConfig }: LuckyWheelViewProps = {}) {
+export function LuckyWheelView({
+  initialData,
+  initialConfig,
+}: LuckyWheelViewProps = {}) {
   const {
     config,
     prizes,
@@ -32,7 +37,7 @@ export function LuckyWheelView({ initialConfig }: LuckyWheelViewProps = {}) {
     currentCoins,
     handleSpin,
     handleClosePrizeModal,
-  } = useLuckyWheel(initialConfig);
+  } = useLuckyWheel(initialData, initialConfig);
 
   const audio = useWheelAudio();
 
@@ -78,7 +83,7 @@ export function LuckyWheelView({ initialConfig }: LuckyWheelViewProps = {}) {
           <div className="h-8 sm:h-9 flex items-center gap-1.5 px-2.5 sm:px-3.5 rounded-full bg-gradient-to-b from-[#FFA238] via-[#FF6A00] to-[#E04F00] border-2 border-white/95 shadow-[0_3px_8px_rgba(224,79,0,0.35),0_1.5px_0_#8F2800,inset_0_1.5px_2px_rgba(255,255,255,0.85),inset_0_-1.5px_2px_rgba(143,40,0,0.4)] select-none flex-shrink-0">
             <div className="relative w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 drop-shadow-[0_1.5px_2px_rgba(100,25,0,0.45)]">
               <Image
-                src="/wheel/coin.webp"
+                src={WHEEL_ASSETS.COIN}
                 alt="Xu"
                 width={20}
                 height={20}

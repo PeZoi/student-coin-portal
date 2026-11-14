@@ -48,6 +48,12 @@ export function WheelConfigSkeleton() {
           </div>
         ))}
       </div>
+
+      {/* 6. Simulator & History 2-Column Skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div className="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs h-[540px]" />
+        <div className="lg:col-span-7 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs h-[540px]" />
+      </div>
     </div>
   );
 }
