@@ -255,7 +255,7 @@ export function TeacherHeader({ onToggleSidebar }: TeacherHeaderProps) {
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
-            placeholder="Tìm học sinh, nhiệm vụ, lớp..."
+            placeholder="Tìm học sinh, bài tập, lớp..."
             className="w-full h-9 pl-9 pr-3 rounded-xl bg-slate-100/80 hover:bg-slate-100 focus:bg-white text-xs text-slate-800 placeholder-slate-400 border border-transparent focus:border-[#0A62D6] focus:ring-2 focus:ring-[#0A62D6]/20 transition-all outline-none"
           />
         </div>

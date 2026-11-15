@@ -67,7 +67,7 @@ export function TeacherDashboardView() {
               href={AppRoutes.TEACHER.MISSIONS}
               className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors border border-slate-200"
             >
-              <span>+ Giao nhiệm vụ</span>
+              <span>+ Giao bài tập</span>
             </Link>
           </div>
         </div>
@@ -176,7 +176,7 @@ export function TeacherDashboardView() {
                         Toán học
                       </span>
                     </div>
-                    <p className="text-xs text-slate-600 mt-0.5 font-medium">Nhiệm vụ: Bảng nhân 7 và bài tập ứng dụng</p>
+                    <p className="text-xs text-slate-600 mt-0.5 font-medium">Bài tập: Bảng nhân 7 và bài tập ứng dụng</p>
                     <div className="flex items-center gap-3 text-[11px] text-slate-600 mt-1">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" /> 15 phút trước
@@ -217,7 +217,7 @@ export function TeacherDashboardView() {
                         Tiếng Việt
                       </span>
                     </div>
-                    <p className="text-xs text-slate-600 mt-0.5 font-medium">Nhiệm vụ: Luyện viết chính tả bài 12</p>
+                    <p className="text-xs text-slate-600 mt-0.5 font-medium">Bài tập: Luyện viết chính tả bài 12</p>
                     <div className="flex items-center gap-3 text-[11px] text-slate-600 mt-1">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" /> 45 phút trước
@@ -258,7 +258,7 @@ export function TeacherDashboardView() {
                         Rèn luyện
                       </span>
                     </div>
-                    <p className="text-xs text-slate-600 mt-0.5 font-medium">Nhiệm vụ: Đọc sách 20 phút mỗi tối</p>
+                    <p className="text-xs text-slate-600 mt-0.5 font-medium">Bài tập: Đọc sách 20 phút mỗi tối</p>
                     <div className="flex items-center gap-3 text-[11px] text-slate-600 mt-1">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" /> 2 giờ trước

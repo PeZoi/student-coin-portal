@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1050" width="800" height="1050">
+  <defs>
+    <filter id="blurFilter" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="5" />
+    </filter>
+  </defs>
+  <rect width="800" height="1050" rx="16" fill="#cbd5e1"/>
+  <g filter="url(#blurFilter)">
+    <rect x="40" y="40" width="720" height="970" rx="12" fill="#e2e8f0"/>
+    <line x1="110" y1="40" x2="110" y2="1010" stroke="#94a3b8" stroke-width="3"/>
+    <text x="140" y="180" font-family="cursive, sans-serif" font-size="24" fill="#64748b">My weekend activity with family...</text>
+    <text x="140" y="260" font-family="cursive, sans-serif" font-size="24" fill="#64748b">On Saturday morning I go to park...</text>
+    <text x="140" y="340" font-family="cursive, sans-serif" font-size="24" fill="#64748b">We play football and eat ice cream...</text>
+    <text x="140" y="420" font-family="cursive, sans-serif" font-size="24" fill="#64748b">In the evening I do my homework...</text>
+  </g>
+  <!-- Warning overlay -->
+  <rect x="120" y="460" width="560" height="120" rx="16" fill="#fff1f2" stroke="#f43f5e" stroke-width="2.5"/>
+  <text x="400" y="510" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#be123c" text-anchor="middle">⚠️ ẢNH CHỤP BỊ MỜ &amp; THIẾU SÁNG</text>
+  <text x="400" y="545" font-family="Arial, sans-serif" font-size="15" fill="#9f1239" text-anchor="middle">AI OCR không thể nhận diện rõ chữ viết ở nửa dưới trang vở</text>
+</svg>
