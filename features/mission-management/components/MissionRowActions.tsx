@@ -40,6 +40,7 @@ export function MissionRowActions({
     canSoftDelete,
     restoringId,
     handleOpenEditMission,
+    handleOpenProgressModal,
     handleOpenSubmissionsModal,
     handleToggleMissionStatus,
     handleOpenDeleteModal,
@@ -259,12 +260,12 @@ export function MissionRowActions({
                   type="button"
                   onClick={() => {
                     setIsOpen(false);
-                    handleOpenSubmissionsModal(item);
+                    handleOpenProgressModal(item);
                   }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[#0F172A] hover:bg-slate-100 transition-colors text-left font-medium cursor-pointer"
                 >
                   <FileCheck2 className="w-4 h-4 text-[#0A62D6] shrink-0" />
-                  <span>Xem bài nộp & Tiến độ</span>
+                  <span>Xem danh sách</span>
                 </button>
 
                 <button

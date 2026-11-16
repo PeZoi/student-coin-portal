@@ -1,29 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import {
-  School,
-  Clock,
-  Sparkles,
-  MonitorCheck,
-  PenTool,
-  AlertCircle,
-  CheckCircle2,
-  Plus,
-} from "lucide-react";
+import { Clock, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
-import {
-  MissionIconType,
-  MissionSubmissionType,
-  MissionAssignedClass,
-  MissionCategory,
-  MissionDifficulty,
-} from "../types";
-import {
-  MISSION_ICON_OPTIONS,
-  MISSION_CATEGORY_CONFIG,
-  MISSION_DIFFICULTY_CONFIG,
-} from "../constants";
+import { cn } from "@/lib/utils";
+import { MissionSubmissionType } from "../types";
+import { SUBMISSION_TYPE_CONFIG } from "../constants";
 import {
   formatRewardCoinsLabel,
   getMissionDeadlineMeta,
@@ -31,22 +13,116 @@ import {
 } from "../utils";
 
 /**
- * 1. Icon đại diện của Bài tập (`missions.icon_type`)
+ * 1. Hàm tiện ích tính toán các tỷ lệ phần trăm tiến độ nộp và duyệt bài
+ */
+export function calculateMissionProgressPercents(
+  submittedCount: number,
+  totalStudents: number,
+  approvedCount: number
+) {
+  const percentSubmitted =
+    totalStudents > 0
+      ? Math.min(100, Math.round((submittedCount / totalStudents) * 100))
+      : 0;
+
+  const percentApproved =
+    totalStudents > 0
+      ? Math.min(
+          percentSubmitted,
+          Math.round((approvedCount / totalStudents) * 100)
+        )
+      : 0;
+
+  const percentPending = Math.max(0, percentSubmitted - percentApproved);
+
+  return {
+    percentSubmitted,
+    percentApproved,
+    percentPending,
+  };
+}
+
+/**
+ * 2. Component thanh tiến độ 2 màu dùng chung toàn bộ phân hệ Bài tập:
+ * - Màu xanh lá (bg-emerald-500): Tỷ lệ bài đã duyệt
+ * - Màu vàng hổ phách (bg-amber-400): Tỷ lệ bài chờ duyệt
+ */
+export function MissionStackedProgressBar({
+  percentApproved,
+  percentPending,
+  approvedCount,
+  pendingCount,
+  heightClass = "h-2",
+  bgClass = "bg-slate-100 border border-slate-200/60",
+  className,
+}: {
+  percentApproved: number;
+  percentPending: number;
+  approvedCount?: number;
+  pendingCount?: number;
+  heightClass?: string;
+  bgClass?: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "w-full rounded-full overflow-hidden flex",
+        heightClass,
+        bgClass,
+        className
+      )}
+    >
+      {percentApproved > 0 && (
+        <div
+          className="h-full bg-emerald-500 transition-all duration-300"
+          style={{ width: `${percentApproved}%` }}
+          title={
+            approvedCount !== undefined
+              ? `Đã duyệt: ${approvedCount} bài (${percentApproved}%)`
+              : `Đã duyệt: ${percentApproved}%`
+          }
+        />
+      )}
+      {percentPending > 0 && (
+        <div
+          className="h-full bg-amber-400 transition-all duration-300"
+          style={{ width: `${percentPending}%` }}
+          title={
+            pendingCount !== undefined
+              ? `Chờ duyệt: ${pendingCount} bài (${percentPending}%)`
+              : `Chờ duyệt: ${percentPending}%`
+          }
+        />
+      )}
+    </div>
+  );
+}
+
+/**
+ * 3. Icon đại diện của Bài tập theo hình thức nộp bài (`missions.submission_type`)
  */
 export function MissionIconAvatar({
-  iconType,
+  submissionType = "subjective_writing",
   isDeleted,
   isActive,
   size = "md",
+  iconType,
 }: {
-  iconType: MissionIconType | null;
+  submissionType?: MissionSubmissionType | null;
   isDeleted?: boolean;
   isActive?: boolean;
   size?: "sm" | "md" | "lg";
+  iconType?: string | null;
 }) {
-  const iconConfig =
-    MISSION_ICON_OPTIONS.find((opt) => opt.value === iconType) ||
-    MISSION_ICON_OPTIONS[0];
+  const safeType: MissionSubmissionType =
+    submissionType && SUBMISSION_TYPE_CONFIG[submissionType]
+      ? submissionType
+      : iconType === "capture" || iconType === "notebook"
+      ? "platform_proof"
+      : "subjective_writing";
+
+  const config = SUBMISSION_TYPE_CONFIG[safeType];
 
   const sizeClass =
     size === "sm"
@@ -62,22 +138,22 @@ export function MissionIconAvatar({
           ? "bg-rose-50 border-rose-200 grayscale opacity-60"
           : !isActive
           ? "bg-slate-100 border-slate-200 grayscale opacity-70"
-          : `${iconConfig.bgClass} ${iconConfig.borderClass}`
+          : `${config.bgClass} ${config.borderClass}`
       }`}
     >
       <Image
-        src={iconConfig.imageSrc}
-        alt={iconConfig.label}
-        width={28}
-        height={28}
+        src={config.iconSrc}
+        alt={config.label}
+        width={32}
+        height={32}
         unoptimized
         style={{ height: "auto" }}
         className={
           size === "sm"
-            ? "w-5 h-5 object-contain drop-shadow-2xs"
+            ? "w-6 h-6 object-contain drop-shadow-2xs"
             : size === "lg"
-            ? "w-7 h-7 object-contain drop-shadow-2xs"
-            : "w-6 h-6 object-contain drop-shadow-2xs"
+            ? "w-8 h-8 object-contain drop-shadow-2xs"
+            : "w-7 h-7 object-contain drop-shadow-2xs"
         }
       />
     </div>
@@ -85,46 +161,7 @@ export function MissionIconAvatar({
 }
 
 /**
- * 2. Badge Cơ chế nộp bài (`missions.submission_type`)
- * - `platform_proof`: Minh chứng nền tảng khác (Quizizz, Wordwall, Azota...)
- * - `subjective_writing`: Đoạn văn / Tự luận viết tay (AI OCR & Chấm lỗi)
- */
-export function MissionSubmissionTypeBadge({
-  type,
-  compact = false,
-}: {
-  type: MissionSubmissionType;
-  compact?: boolean;
-}) {
-  if (type === "platform_proof") {
-    return (
-      <Tooltip
-        content="Học sinh chụp ảnh điểm số từ nền tảng trắc nghiệm (Quizizz, Wordwall, Azota...)"
-        side="top"
-      >
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50/90 text-sky-800 border border-sky-200/80 text-xs font-semibold whitespace-nowrap">
-          <MonitorCheck className="w-3.5 h-3.5 text-sky-600 shrink-0" />
-          <span>{compact ? "Ảnh điểm Online" : "Minh chứng nền tảng"}</span>
-        </span>
-      </Tooltip>
-    );
-  }
-
-  return (
-    <Tooltip
-      content="Học sinh chụp ảnh vở viết tay, AI trợ giảng chấm lỗi chính tả/ngữ pháp & cô giáo duyệt cuối ngày"
-      side="top"
-    >
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-50/90 text-purple-800 border border-purple-200/80 text-xs font-semibold whitespace-nowrap">
-        <PenTool className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-        <span>{compact ? "Tự luận (AI)" : "Vở viết tay (AI chấm)"}</span>
-      </span>
-    </Tooltip>
-  );
-}
-
-/**
- * 3. Badge Mức thưởng Xu (`min_reward_coins` ~ `max_reward_coins`)
+ * 4. Badge Mức thưởng Xu (`min_reward_coins` ~ `max_reward_coins`)
  */
 export function MissionRewardCoinsBadge({
   minCoins,
@@ -162,118 +199,8 @@ export function MissionRewardCoinsBadge({
 }
 
 /**
- * 4. Badge Nhóm bài tập (`category`) & Độ khó (`difficulty`)
- */
-export function MissionMetaBadges({
-  category,
-  difficulty,
-  hasCustomAiPrompt,
-}: {
-  category?: MissionCategory;
-  difficulty?: MissionDifficulty;
-  hasCustomAiPrompt?: boolean;
-}) {
-  const catConfig = category ? MISSION_CATEGORY_CONFIG[category] : null;
-  const diffConfig = difficulty ? MISSION_DIFFICULTY_CONFIG[difficulty] : null;
-
-  return (
-    <div className="flex items-center gap-1.5 flex-wrap">
-      {catConfig && (
-        <span
-          className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[11px] font-semibold ${catConfig.badgeClass}`}
-        >
-          {catConfig.label}
-        </span>
-      )}
-      {diffConfig && (
-        <span
-          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[11px] font-semibold ${diffConfig.badgeClass}`}
-        >
-          <span className={`w-1.5 h-1.5 rounded-full ${diffConfig.dotClass}`} />
-          <span>{diffConfig.label}</span>
-        </span>
-      )}
-      {hasCustomAiPrompt && (
-        <Tooltip
-          content="Bài tập này có thiết lập chỉ dẫn AI chấm điểm riêng của giáo viên"
-          side="top"
-        >
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-[11px] font-semibold">
-            <Sparkles className="w-3 h-3 text-indigo-600" />
-            <span>AI Prompt</span>
-          </span>
-        </Tooltip>
-      )}
-    </div>
-  );
-}
-
-/**
- * 5. Danh sách Lớp học được giao (`mission_classes`)
- * - Hiển thị tối đa 2 lớp + badge "+N lớp", click vào mở ngay Modal Phân công lớp
- */
-export function MissionAssignedClassesCell({
-  classes,
-  onClickAssign,
-  disabled = false,
-}: {
-  classes: MissionAssignedClass[];
-  onClickAssign?: () => void;
-  disabled?: boolean;
-}) {
-  if (!classes || classes.length === 0) {
-    return (
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={onClickAssign}
-        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-50 hover:bg-[#EAF2FF] text-slate-500 hover:text-[#0A62D6] border border-dashed border-slate-300 hover:border-[#0A62D6]/40 text-xs font-semibold transition-colors cursor-pointer disabled:pointer-events-none"
-      >
-        <Plus className="w-3.5 h-3.5" />
-        <span>Chưa giao lớp</span>
-      </button>
-    );
-  }
-
-  const visibleClasses = classes.slice(0, 2);
-  const remainingCount = classes.length - visibleClasses.length;
-  const allNames = classes.map((c) => c.class_name).join(", ");
-
-  return (
-    <Tooltip
-      content={`Được giao cho: ${allNames} (Bấm để chỉnh sửa phân công lớp)`}
-      side="top"
-    >
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={onClickAssign}
-        className="inline-flex items-center gap-1.5 flex-wrap text-left group cursor-pointer disabled:pointer-events-none"
-      >
-        {visibleClasses.map((cls) => (
-          <span
-            key={cls.id}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F0F6FE] group-hover:bg-[#E1EDFD] border border-[#CFE1FB] text-[#0A62D6] text-xs font-semibold transition-colors max-w-[165px] truncate"
-          >
-            <School className="w-3 h-3 shrink-0" />
-            <span className="truncate">
-              {cls.class_name.split(" - ")[0] || cls.class_name}
-            </span>
-          </span>
-        ))}
-        {remainingCount > 0 && (
-          <span className="inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 group-hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-bold tabular-nums transition-colors">
-            +{remainingCount}
-          </span>
-        )}
-      </button>
-    </Tooltip>
-  );
-}
-
-/**
- * 6. Ô Tiến độ nộp & Duyệt bài (`homework_submissions` aggregate)
- * - Hiển thị thanh tiến độ + số bài chờ duyệt + nút click mở Modal Bài nộp
+ * 5. Ô Tiến độ nộp & Duyệt bài (`homework_submissions` aggregate)
+ * - Tái sử dụng component `MissionStackedProgressBar`
  */
 export function MissionProgressCell({
   submittedCount,
@@ -290,14 +217,16 @@ export function MissionProgressCell({
   lateCount: number;
   onClickViewSubmissions?: () => void;
 }) {
-  const percent =
-    totalStudents > 0
-      ? Math.min(100, Math.round((submittedCount / totalStudents) * 100))
-      : 0;
+  const { percentSubmitted, percentApproved, percentPending } =
+    calculateMissionProgressPercents(
+      submittedCount,
+      totalStudents,
+      approvedCount
+    );
 
   return (
     <Tooltip
-      content={`Đã nộp: ${submittedCount}/${totalStudents} HS (${percent}%) • Đã duyệt: ${approvedCount} • Chờ duyệt: ${pendingReviewCount}. Bấm để xem danh sách bài nộp!`}
+      content={`Tiến độ nộp bài: ${submittedCount}/${totalStudents} HS (${percentSubmitted}%) • Đã duyệt: ${approvedCount} HS (${percentApproved}%) • Chờ duyệt: ${pendingReviewCount} HS (${percentPending}%). Click để xem danh sách học sinh đã làm và chưa làm bài!`}
       side="top"
     >
       <button
@@ -311,37 +240,39 @@ export function MissionProgressCell({
             <span className="font-medium text-slate-500">HS</span>
           </span>
           <span className="font-bold text-slate-700 tabular-nums">
-            {percent}%
+            {percentSubmitted}%
           </span>
         </div>
 
-        {/* Thanh Progress Bar */}
-        <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden border border-slate-200/60">
-          <div
-            className={`h-full rounded-full transition-all ${
-              percent >= 80
-                ? "bg-emerald-500"
-                : percent >= 40
-                ? "bg-[#0A62D6]"
-                : "bg-amber-500"
-            }`}
-            style={{ width: `${percent}%` }}
-          />
-        </div>
+        {/* Thanh Progress Bar 2 màu dùng chung */}
+        <MissionStackedProgressBar
+          percentApproved={percentApproved}
+          percentPending={percentPending}
+          approvedCount={approvedCount}
+          pendingCount={pendingReviewCount}
+        />
 
         {/* Dòng trạng thái phụ: Chờ cô duyệt / Đã duyệt / Nộp trễ */}
         <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-          {pendingReviewCount > 0 ? (
+          {pendingReviewCount > 0 && (
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200/80 text-[10px] font-bold">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
               <span>Chờ duyệt: {pendingReviewCount}</span>
             </span>
-          ) : submittedCount > 0 ? (
+          )}
+
+          {approvedCount > 0 && (
             <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700">
               <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-              <span>Đã duyệt đủ ({approvedCount})</span>
+              <span>
+                {pendingReviewCount === 0
+                  ? `Đã duyệt đủ (${approvedCount})`
+                  : `Đã duyệt: ${approvedCount}`}
+              </span>
             </span>
-          ) : (
+          )}
+
+          {submittedCount === 0 && (
             <span className="text-[10px] text-slate-400 font-medium">
               Chưa có bài nộp
             </span>
@@ -359,7 +290,7 @@ export function MissionProgressCell({
 }
 
 /**
- * 7. Ô Hạn chót nộp bài (`missions.due_at`)
+ * 6. Ô Hạn chót nộp bài (`missions.due_at`)
  */
 export function MissionDeadlineCell({
   dueAt,
@@ -400,7 +331,7 @@ export function MissionDeadlineCell({
 }
 
 /**
- * 8. Huy hiệu Trạng thái Bài tập (`is_active`, `is_deleted`, `due_at`)
+ * 7. Huy hiệu Trạng thái Bài tập (`is_active`, `is_deleted`, `due_at`)
  * - Đồng bộ hoàn toàn phong cách với StatusBadge của Quản lý lớp học
  */
 export function MissionStatusBadge({

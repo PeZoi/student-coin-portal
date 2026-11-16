@@ -29,6 +29,12 @@ export function useMissionModals(selectedCount: number) {
   const [isBatchPermanentModalOpen, setIsBatchPermanentModalOpen] =
     useState(false);
 
+  // 4. Modal Danh sách tiến độ làm bài (Học sinh nào đã làm, học sinh nào chưa làm)
+  const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
+  const [viewingProgressMission, setViewingProgressMission] =
+    useState<TeacherMissionItem | null>(null);
+
+
   // --- Handlers Modal 1: Tạo / Sửa ---
   const handleOpenCreateMission = useCallback(() => {
     setEditingMission(null);
@@ -89,6 +95,17 @@ export function useMissionModals(selectedCount: number) {
     setIsBatchPermanentModalOpen(false);
   }, []);
 
+  // --- Handlers Modal 5: Tiến độ làm bài (Ai đã làm, ai chưa làm) ---
+  const handleOpenProgressModal = useCallback((mission: TeacherMissionItem) => {
+    setViewingProgressMission(mission);
+    setIsProgressModalOpen(true);
+  }, []);
+
+  const handleCloseProgressModal = useCallback(() => {
+    setIsProgressModalOpen(false);
+    setViewingProgressMission(null);
+  }, []);
+
   return {
     isMissionFormOpen,
     editingMission,
@@ -98,6 +115,11 @@ export function useMissionModals(selectedCount: number) {
     handleCloseMissionForm,
 
     handleOpenSubmissionsModal,
+
+    isProgressModalOpen,
+    viewingProgressMission,
+    handleOpenProgressModal,
+    handleCloseProgressModal,
 
     isDeleteModalOpen,
     deletingMission,

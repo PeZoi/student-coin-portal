@@ -1,22 +1,22 @@
 "use client";
 
-import { useMemo } from "react";
-import {
-  BarChart3,
-  Sparkles,
-  Play,
-  RotateCw,
-  RotateCcw,
-  Award,
-  Settings,
-  Save,
-  Undo2,
-  Coins,
-  TrendingUp,
-  ShieldCheck,
-} from "lucide-react";
 import { WHEEL_CONSTANTS, WHEEL_PRIZE_TYPES } from "@/constants/wheel";
 import { WheelSpinner } from "@/features/lucky-wheel/components/WheelSpinner";
+import {
+  Award,
+  BarChart3,
+  Coins,
+  Play,
+  RotateCcw,
+  RotateCw,
+  Save,
+  Settings,
+  ShieldCheck,
+  Sparkles,
+  TrendingUp,
+  Undo2,
+} from "lucide-react";
+import { useMemo } from "react";
 import { useWheelConfigContext } from "../contexts/WheelConfigContext";
 import { useWheelSimulator } from "../hooks/useWheelSimulator";
 import { WheelPrizeImage } from "./WheelPrizeImage";
@@ -225,11 +225,6 @@ export function WheelConfigAnalytics() {
             </div>
           </div>
 
-          <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-            <span>
-              * Kỳ vọng toán học (EV) tính theo phí lượt quay và trọng số hiện tại.
-            </span>
-          </div>
         </div>
 
         {/* THẺ TRÁI - DƯỚI: Cơ Cấu Tỷ Lệ Theo Loại Giải (Nằm dưới phí lượt quay) */}

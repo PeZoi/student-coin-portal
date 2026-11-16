@@ -10,6 +10,8 @@ import {
   MissionRewardCoinsBadge,
   MissionDeadlineCell,
   MissionStatusBadge,
+  MissionStackedProgressBar,
+  calculateMissionProgressPercents,
 } from "./MissionBadges";
 import { MissionRowActions } from "./MissionRowActions";
 
@@ -23,17 +25,19 @@ export function MissionCard({ item }: MissionCardProps) {
     selectedIds,
     handleToggleSelect,
     handleOpenEditMission,
-    handleOpenSubmissionsModal,
+    handleOpenProgressModal,
   } = useManageMissionsContext();
 
   const checked = selectedIds.includes(item.id);
-  const progressPercent =
-    item.total_students > 0
-      ? Math.min(
-          100,
-          Math.round((item.submitted_count / item.total_students) * 100)
-        )
-      : 0;
+  const {
+    percentSubmitted: progressPercent,
+    percentApproved,
+    percentPending,
+  } = calculateMissionProgressPercents(
+    item.submitted_count,
+    item.total_students,
+    item.approved_count
+  );
 
   return (
     <div
@@ -58,7 +62,7 @@ export function MissionCard({ item }: MissionCardProps) {
               />
             )}
             <MissionIconAvatar
-              iconType={item.icon_type}
+              submissionType={item.submission_type}
               isDeleted={item.is_deleted}
               isActive={item.is_active}
               size="md"
@@ -89,10 +93,12 @@ export function MissionCard({ item }: MissionCardProps) {
           </div>
         </div>
 
-        {/* Hướng dẫn làm bài cho học sinh */}
-        <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed line-clamp-2">
-          {item.description}
-        </p>
+        {/* Hướng dẫn làm bài cho học sinh (nếu có) */}
+        {item.description ? (
+          <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed line-clamp-2">
+            {item.description}
+          </p>
+        ) : null}
 
         {/* Tiêu chí AI chấm bài (nếu có) */}
         {item.grading_focus && item.grading_focus.length > 0 && (
@@ -143,7 +149,7 @@ export function MissionCard({ item }: MissionCardProps) {
 
         {/* Hộp tiến độ nộp bài & duyệt thưởng */}
         <div
-          onClick={() => handleOpenSubmissionsModal(item)}
+          onClick={() => handleOpenProgressModal(item)}
           className="rounded-xl bg-slate-50/90 hover:bg-[#F4F8FE] border border-slate-200/70 hover:border-blue-200 p-3 transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between text-xs mb-1.5">
@@ -156,18 +162,14 @@ export function MissionCard({ item }: MissionCardProps) {
             </span>
           </div>
 
-          <div className="w-full h-2 rounded-full bg-slate-200/80 overflow-hidden mb-2.5">
-            <div
-              style={{ width: `${progressPercent}%` }}
-              className={`h-full rounded-full transition-all duration-300 ${
-                progressPercent >= 80
-                  ? "bg-emerald-500"
-                  : progressPercent >= 40
-                  ? "bg-[#0A62D6]"
-                  : "bg-amber-500"
-              }`}
-            />
-          </div>
+          {/* Thanh Progress Bar 2 màu tái sử dụng */}
+          <MissionStackedProgressBar
+            percentApproved={percentApproved}
+            percentPending={percentPending}
+            approvedCount={item.approved_count}
+            pendingCount={item.pending_review_count}
+            bgClass="bg-slate-200/80 mb-2.5"
+          />
 
           <div className="flex items-center justify-between gap-2 text-[11px] flex-wrap">
             <span className="inline-flex items-center gap-1 font-medium text-emerald-700">

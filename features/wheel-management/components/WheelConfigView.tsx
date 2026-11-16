@@ -49,10 +49,9 @@ export function WheelConfigView({ initialData }: WheelConfigViewProps) {
 }
 
 function WheelConfigContent() {
-	const { activeTab, setActiveTab, hasUnsavedChanges, dynamicStats } =
+	const { activeTab, setActiveTab, hasUnsavedChanges } =
 		useWheelConfigContext();
 
-	const totalSpinsCount = dynamicStats.total_historical_spins ?? 0;
 
 	return (
 		<div className='space-y-5'>
@@ -100,23 +99,8 @@ function WheelConfigContent() {
 					>
 						<BarChart3 className='w-4 h-4' />
 						<span>Top Ô Trúng & Lịch Sử Quay Thưởng</span>
-						<span
-							className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-								activeTab === "analytics"
-									? "bg-white/20 text-white"
-									: "bg-slate-100 text-slate-600"
-							}`}
-						>
-							{totalSpinsCount.toLocaleString("vi-VN")} lượt
-						</span>
 					</button>
 				</div>
-
-				<span className='hidden md:inline-block text-[11px] font-medium text-slate-400 pr-2'>
-					{activeTab === "config"
-						? "Thiết lập chi phí, phân bổ tỷ lệ, mô phỏng vòng quay và quản lý các ô phần thưởng"
-						: "Theo dõi top ô hay trúng thực tế so với lý thuyết và lịch sử học sinh quay thưởng"}
-				</span>
 			</div>
 
 			{/* 4. Nội dung theo Tab (0 dòng Prop Drilling) */}

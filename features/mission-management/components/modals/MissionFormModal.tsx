@@ -6,6 +6,7 @@ import {
   Plus,
   Pencil,
   Sparkles,
+  GraduationCap,
 } from "lucide-react";
 import {
   Modal,
@@ -13,13 +14,14 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
+import { useTeacherWorkspaceStore } from "@/stores/useTeacherWorkspaceStore";
 import {
   TeacherMissionItem,
   MissionFormValues,
   AiGradingErrorType,
 } from "../../types";
 import {
-  MISSION_ICON_OPTIONS,
+  SUBMISSION_TYPE_OPTIONS,
   AI_GRADING_FOCUS_OPTIONS,
 } from "../../constants";
 import { toDatetimeLocalValue } from "../../utils";
@@ -65,6 +67,10 @@ function MissionFormDialogContent({
   onSubmit,
   isSubmitting,
 }: MissionFormDialogContentProps) {
+  const currentWorkspaceClass = useTeacherWorkspaceStore((state) =>
+    state.getSelectedClass()
+  );
+
   // Khởi tạo trực tiếp từ props qua thuộc tính key (Quy tắc 8 - Không dùng useEffect)
   const [formValues, setFormValues] = useState<MissionFormValues>(() => {
     if (editingMission) {
@@ -74,17 +80,13 @@ function MissionFormDialogContent({
         submission_type: editingMission.submission_type ?? "subjective_writing",
         min_reward_coins: editingMission.min_reward_coins,
         max_reward_coins: editingMission.max_reward_coins,
-        icon_type: editingMission.icon_type ?? "book-pen",
         due_at: toDatetimeLocalValue(editingMission.due_at),
         is_active: editingMission.is_active ?? true,
         assigned_class_ids: editingMission.assigned_class_ids ?? [],
-        category: editingMission.category ?? "homework",
-        difficulty: editingMission.difficulty ?? "medium",
-        theme_color: editingMission.theme_color ?? "blue",
-        teacher_assignment: editingMission.teacher_assignment || "",
-        custom_ai_prompt: editingMission.custom_ai_prompt || "",
         grading_focus: editingMission.grading_focus || ["spelling", "grammar"],
+        custom_ai_prompt: editingMission.custom_ai_prompt || "",
         allow_late_submission: editingMission.allow_late_submission ?? true,
+        ai_prompt_template_id: editingMission.ai_prompt_template_id ?? null,
       };
     }
 
@@ -93,18 +95,16 @@ function MissionFormDialogContent({
       description: "",
       submission_type: "subjective_writing",
       min_reward_coins: 20,
-      max_reward_coins: 50,
-      icon_type: "book-pen",
+      max_reward_coins: 40,
       due_at: toDatetimeLocalValue(null),
       is_active: true,
-      assigned_class_ids: [],
-      category: "homework",
-      difficulty: "medium",
-      theme_color: "blue",
-      teacher_assignment: "",
-      custom_ai_prompt: "",
+      assigned_class_ids: currentWorkspaceClass
+        ? [currentWorkspaceClass.id]
+        : [],
       grading_focus: ["spelling", "grammar"],
+      custom_ai_prompt: "",
       allow_late_submission: true,
+      ai_prompt_template_id: null,
     };
   });
 
@@ -136,10 +136,6 @@ function MissionFormDialogContent({
   const handleFormSubmit = async () => {
     if (!formValues.title.trim()) {
       setErrorMsg("Vui lòng nhập tên bài tập cho học sinh.");
-      return;
-    }
-    if (!formValues.description.trim()) {
-      setErrorMsg("Vui lòng nhập hướng dẫn làm bài cho học sinh.");
       return;
     }
     if (formValues.max_reward_coins <= 0) {
@@ -181,41 +177,69 @@ function MissionFormDialogContent({
           </div>
         )}
 
-        {/* 1. Chọn Biểu tượng bài tập (icon_type) */}
+        {/* Thông tin lớp học nhận bài tập: Tự động phân công theo lớp đang chọn ở Header */}
+        <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200/80 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+              <GraduationCap className="w-4 h-4 text-[#0A62D6]" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[11px] font-semibold text-blue-600 block uppercase tracking-wider">
+                Lớp học nhận bài tập
+              </span>
+              <span className="text-xs font-bold text-slate-800 truncate block">
+                {currentWorkspaceClass
+                  ? `${currentWorkspaceClass.class_name} (${currentWorkspaceClass.student_count} học sinh)`
+                  : "Tự động phân công theo lớp đang chọn ở Header"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* 1. Chọn Hình thức nộp bài (submission_type) */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-            Biểu tượng bài tập
+            Hình thức nộp bài <span className="text-rose-500">*</span>
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {MISSION_ICON_OPTIONS.map((opt) => {
-              const active = formValues.icon_type === opt.value;
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {SUBMISSION_TYPE_OPTIONS.map((opt) => {
+              const active = formValues.submission_type === opt.type;
               return (
                 <button
-                  key={opt.value}
+                  key={opt.type}
                   type="button"
-                  onClick={() => updateField("icon_type", opt.value)}
-                  className={`p-2.5 rounded-xl border flex flex-col items-center text-center gap-1.5 transition-all cursor-pointer ${
+                  onClick={() => updateField("submission_type", opt.type)}
+                  className={`p-3 rounded-xl border flex items-center gap-3 transition-all cursor-pointer text-left ${
                     active
                       ? "bg-[#F0F6FE] border-[#0A62D6] ring-2 ring-[#0A62D6]/20 shadow-2xs"
                       : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                   }`}
                 >
-                  <Image
-                    src={opt.imageSrc}
-                    alt={opt.label}
-                    width={32}
-                    height={32}
-                    unoptimized
-                    style={{ height: "auto" }}
-                    className="w-8 h-8 object-contain"
-                  />
-                  <span
-                    className={`text-xs font-bold truncate max-w-full ${
-                      active ? "text-[#0A62D6]" : "text-slate-700"
-                    }`}
+                  <div
+                    className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border ${opt.bgClass} ${opt.borderClass}`}
                   >
-                    {opt.label}
-                  </span>
+                    <Image
+                      src={opt.iconSrc}
+                      alt={opt.label}
+                      width={36}
+                      height={36}
+                      unoptimized
+                      style={{ height: "auto" }}
+                      className="w-8 h-8 object-contain"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span
+                      className={`text-xs font-bold block ${
+                        active ? "text-[#0A62D6]" : "text-slate-800"
+                      }`}
+                    >
+                      {opt.label}
+                    </span>
+                    <span className="text-[11px] text-slate-500 line-clamp-1 block mt-0.5">
+                      {opt.description}
+                    </span>
+                  </div>
                 </button>
               );
             })}
@@ -239,7 +263,7 @@ function MissionFormDialogContent({
         {/* 3. Hướng dẫn làm bài */}
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Hướng dẫn làm bài cho học sinh <span className="text-rose-500">*</span>
+            Hướng dẫn làm bài cho học sinh (Tùy chọn)
           </label>
           <textarea
             rows={3}
@@ -258,7 +282,7 @@ function MissionFormDialogContent({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-amber-900 mb-1">
-                Xu tối thiểu (min_coins)
+                Xu tối thiểu
               </label>
               <input
                 type="number"
@@ -277,7 +301,7 @@ function MissionFormDialogContent({
 
             <div>
               <label className="block text-xs font-semibold text-amber-900 mb-1">
-                Xu tối đa (max_coins)
+                Xu tối đa
               </label>
               <input
                 type="number"
@@ -308,8 +332,8 @@ function MissionFormDialogContent({
           />
         </div>
 
-        {/* 6. Tiêu chí AI Chấm bài (Tùy chọn) */}
-        <div className="pt-3 border-t border-slate-100 space-y-3">
+        {/* 6. Tiêu chí AI Chấm bài (Khớp DB grading_focus) */}
+        <div className="pt-3 border-t border-slate-100 space-y-2.5">
           <label className="text-xs font-bold text-indigo-700 uppercase tracking-wider flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Tiêu chí AI hỗ trợ chấm bài</span>
@@ -340,18 +364,17 @@ function MissionFormDialogContent({
             </div>
           </div>
 
+          {/* Lời dặn / Prompt tùy chỉnh của giáo viên cho AI */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Đề bài gốc hoặc lời giải mẫu để AI đối chiếu (Tùy chọn)
+              Lời dặn riêng cho AI khi chấm bài này (Tùy chọn)
             </label>
             <textarea
               rows={2}
-              value={formValues.teacher_assignment}
-              onChange={(e) =>
-                updateField("teacher_assignment", e.target.value)
-              }
-              placeholder="VD: Viết đoạn văn 5-7 câu về chủ đề Weekend, dùng thì Hiện tại đơn..."
-              className="w-full p-2.5 rounded-xl bg-white border border-slate-300 text-xs text-[#0F172A] placeholder-slate-400 focus:outline-none focus:border-[#0A62D6] resize-none"
+              value={formValues.custom_ai_prompt}
+              onChange={(e) => updateField("custom_ai_prompt", e.target.value)}
+              placeholder="VD: Học sinh lớp 3 mới học bài này, không trừ điểm lỗi thì quá khứ. Hãy khen ngợi các câu học sinh viết sáng tạo và giải thích lỗi bằng tiếng Việt dễ hiểu..."
+              className="w-full p-2.5 rounded-xl bg-white border border-slate-300 text-xs text-[#0F172A] placeholder-slate-400 focus:outline-none focus:border-[#0A62D6] focus:ring-2 focus:ring-[#0A62D6]/20 resize-none leading-relaxed"
             />
           </div>
         </div>

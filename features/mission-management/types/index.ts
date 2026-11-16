@@ -21,9 +21,13 @@
 export type MissionSubmissionType = "platform_proof" | "subjective_writing";
 
 /**
- * Biểu tượng bài tập hiển thị trên thẻ bài tập của học sinh (Cột `missions.icon_type` trong DB)
+ * Biểu tượng bài tập theo hình thức nộp bài (Cột `missions.icon_type` trong DB)
+ * - `write`: Vở viết tay (/submissions/write.webp) -> Dành cho subjective_writing (AI chấm)
+ * - `capture`: Chụp ảnh minh chứng (/submissions/capture.webp) -> Dành cho platform_proof (Quizizz, Wordwall...)
  */
 export type MissionIconType =
+  | "write"
+  | "capture"
   | "notebook"
   | "book-pen"
   | "flags-en-vi"
@@ -80,7 +84,6 @@ export interface TeacherMissionItem {
   submission_type: MissionSubmissionType;
   min_reward_coins: number;
   max_reward_coins: number;
-  icon_type: MissionIconType | null;
   due_at: string; // ISO 8601 DateTime (TIMESTAMP WITH TIME ZONE)
   created_by: string; // UUID giáo viên tạo
   is_active: boolean;
@@ -90,6 +93,10 @@ export interface TeacherMissionItem {
   updated_by: string | null;
   updated_at: string | null;
   created_at: string;
+  grading_focus: AiGradingErrorType[]; // Tiêu chí AI tập trung bắt lỗi (spelling, grammar...)
+  allow_late_submission: boolean; // Cho phép nộp sau hạn due_at hay khóa nộp bài
+  ai_prompt_template_id: string | null; // Liên kết tới bảng ai_prompt_templates
+  custom_ai_prompt: string | null; // Lời dặn / chỉ dẫn riêng của giáo viên dành cho AI khi chấm bài này
 
   // --- 2. DỮ LIỆU QUAN HỆ & THỐNG KÊ TỔNG HỢP (JOIN / AGGREGATE) ---
   creator_name: string; // JOIN từ `users.full_name`
@@ -103,15 +110,6 @@ export interface TeacherMissionItem {
   late_count: number; // Số bài nộp muộn (`is_late = true`)
   total_coins_awarded: number; // Tổng số xu thực tế đã phát thưởng (`SUM(final_coins)`)
   avg_ai_score: number | null; // Điểm AI chấm trung bình thang 10 (`AVG(ai_score)`)
-
-  // --- 3. CÁC TRƯỜNG SÁNG TẠO / ĐỀ XUẤT MỞ RỘNG DB (`missions`) ---
-  category?: MissionCategory; // Nhóm bài tập (Bài tập, Từ vựng, Viết văn, Đọc sách, Rèn luyện)
-  difficulty?: MissionDifficulty; // Độ khó: easy | medium | hard
-  theme_color?: MissionThemeColor; // Màu thẻ học sinh: blue | purple | green | orange
-  teacher_assignment?: string | null; // Đề bài gốc / Câu hỏi cụ thể để AI đối chiếu ngữ cảnh
-  custom_ai_prompt?: string | null; // Chỉ dẫn riêng của giáo viên dành cho AI khi chấm bài này
-  grading_focus?: AiGradingErrorType[]; // Các tiêu chí AI tập trung bắt lỗi (spelling, grammar...)
-  allow_late_submission?: boolean; // Cho phép nộp sau hạn due_at (đánh dấu is_late = true) hay khóa nộp
 }
 
 /**
@@ -186,19 +184,13 @@ export interface MissionFormValues {
   submission_type: MissionSubmissionType;
   min_reward_coins: number;
   max_reward_coins: number;
-  icon_type: MissionIconType;
   due_at: string;
   is_active: boolean;
   assigned_class_ids: string[];
-
-  // Trường sáng tạo mở rộng cho AI & UI Học sinh
-  category: MissionCategory;
-  difficulty: MissionDifficulty;
-  theme_color: MissionThemeColor;
-  teacher_assignment: string;
-  custom_ai_prompt: string;
   grading_focus: AiGradingErrorType[];
+  custom_ai_prompt: string;
   allow_late_submission: boolean;
+  ai_prompt_template_id?: string | null;
 }
 
 /**
@@ -247,3 +239,35 @@ export interface MissionQuickTemplate {
   badge: string;
   values: Omit<MissionFormValues, "due_at" | "assigned_class_ids" | "is_active">;
 }
+
+/**
+ * Tab lọc trạng thái làm bài trong Modal Tiến độ làm bài
+ */
+export type MissionProgressFilterTab = "all" | "submitted" | "not_submitted";
+
+/**
+ * Bản ghi chi tiết tiến độ làm bài của từng học sinh (ai làm rồi, ai chưa làm)
+ */
+export interface MissionStudentProgressItem {
+  id: string; // ID học sinh
+  student_name: string;
+  student_avatar: string | null;
+  student_phone: string | null;
+  class_id: string;
+  class_name: string;
+
+  // Trạng thái nộp bài: Đã nộp hoặc Chưa nộp
+  submission_status: "submitted" | "not_submitted";
+
+  // Thông tin bài nộp (nếu submission_status === "submitted")
+  submission_id?: string;
+  submitted_at?: string;
+  is_late?: boolean;
+  approval_status?: SubmissionApprovalStatus;
+  ai_score?: number | null;
+  final_coins?: number | null;
+  ai_suggested_coins?: number;
+  teacher_feedback?: string | null;
+  proof_image_urls?: string[];
+}
+

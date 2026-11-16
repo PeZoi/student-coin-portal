@@ -59,7 +59,7 @@ export function MissionsToolbar(props?: MissionsToolbarProps) {
     deletedMissionsCount,
   } = context;
 
-  // Tùy chọn lọc Trạng thái bài tập
+  // Tùy chọn lọc Trạng thái bài tập (Tham khảo chuẩn Quản lý lớp học)
   const statusFilterOptions: TeacherSelectOption[] = useMemo(
     () => [
       {
@@ -82,22 +82,12 @@ export function MissionsToolbar(props?: MissionsToolbarProps) {
         value: "inactive",
         badge: `${inactiveMissionsCount}`,
       },
-      ...(deletedMissionsCount > 0
-        ? [
-            {
-              label: "Thùng rác đã xóa",
-              value: "deleted",
-              badge: `${deletedMissionsCount}`,
-            },
-          ]
-        : []),
     ],
     [
       totalMissions,
       activeMissionsCount,
       expiredMissionsCount,
       inactiveMissionsCount,
-      deletedMissionsCount,
     ]
   );
 
@@ -105,14 +95,15 @@ export function MissionsToolbar(props?: MissionsToolbarProps) {
 
   return (
     <div className="p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-      {/* 1. Bên trái: Select Trạng thái + Nút Thùng rác nhanh */}
+      {/* 1. Bên trái: Select Trạng thái (Width rộng rãi chuẩn Quản lý lớp học) + Nút Thùng rác nhanh */}
       <div className="flex items-center gap-2">
-        <div className="w-full sm:w-52 shrink-0">
+        <div className="w-full sm:w-56 shrink-0">
           <TeacherSelect
             icon={<Filter className="w-3.5 h-3.5 text-slate-500" />}
             size="sm"
             options={statusFilterOptions}
-            value={statusFilter}
+            value={statusFilter === "deleted" ? "" : statusFilter}
+            placeholder={statusFilter === "deleted" ? "Lọc trạng thái" : undefined}
             onChange={(val) => onStatusFilterChange(val as MissionStatusFilter)}
           />
         </div>

@@ -3,7 +3,7 @@ import {
   MissionAvailableClass,
   MissionSubmissionItem,
   MissionQuickTemplate,
-  MissionIconType,
+  MissionSubmissionType,
   MissionCategory,
   MissionDifficulty,
   MissionThemeColor,
@@ -13,49 +13,51 @@ import {
 export const DEFAULT_MISSION_PAGE_SIZE = 10;
 
 /**
- * Danh sách biểu tượng bài tập (Khớp với `missions.icon_type` và Sách Bài Tập học sinh)
+ * Hằng số đường dẫn hình ảnh icon theo hình thức nộp bài
  */
-export const MISSION_ICON_OPTIONS: {
-  value: MissionIconType;
+export const SUBMISSION_ICON_PATHS = {
+  WRITE: "/submissions/write.webp",
+  CAPTURE: "/submissions/capture.webp",
+} as const;
+
+export interface SubmissionTypeConfigItem {
+  type: MissionSubmissionType;
   label: string;
   description: string;
-  imageSrc: string;
+  iconSrc: string;
   bgClass: string;
   borderClass: string;
-}[] = [
+}
+
+/**
+ * Cấu hình hiển thị theo hình thức nộp bài (`missions.submission_type`)
+ */
+export const SUBMISSION_TYPE_OPTIONS: SubmissionTypeConfigItem[] = [
   {
-    value: "notebook",
-    label: "Sổ tay & Bút chì",
-    description: "Bài tập trắc nghiệm, Toán, Quizizz, Wordwall",
-    imageSrc: "/pencil.png",
-    bgClass: "bg-sky-50",
-    borderClass: "border-sky-200",
-  },
-  {
-    value: "book-pen",
-    label: "Vở viết & Bút máy",
-    description: "Viết đoạn văn, chép chính tả, đọc sách",
-    imageSrc: "/pen.png",
+    type: "subjective_writing",
+    label: "Vở viết tay (AI chấm)",
+    description: "Học sinh viết vào vở ô ly, AI tự động quét lỗi & giáo viên duyệt",
+    iconSrc: SUBMISSION_ICON_PATHS.WRITE,
     bgClass: "bg-purple-50",
     borderClass: "border-purple-200",
   },
   {
-    value: "flags-en-vi",
-    label: "Dịch Anh ➔ Việt",
-    description: "Từ vựng, đọc hiểu và dịch thuật Anh - Việt",
-    imageSrc: "/en-vi.png",
-    bgClass: "bg-emerald-50",
-    borderClass: "border-emerald-200",
-  },
-  {
-    value: "flags-vi-en",
-    label: "Dịch Việt ➔ Anh",
-    description: "Viết câu, dịch đoạn văn Việt - Anh nâng cao",
-    imageSrc: "/vi-en.png",
-    bgClass: "bg-orange-50",
-    borderClass: "border-orange-200",
+    type: "platform_proof",
+    label: "Chụp ảnh minh chứng",
+    description: "Ảnh chụp màn hình điểm số Quizizz, Wordwall, Azota, Kahoot...",
+    iconSrc: SUBMISSION_ICON_PATHS.CAPTURE,
+    bgClass: "bg-sky-50",
+    borderClass: "border-sky-200",
   },
 ];
+
+export const SUBMISSION_TYPE_CONFIG: Record<
+  MissionSubmissionType,
+  SubmissionTypeConfigItem
+> = {
+  subjective_writing: SUBMISSION_TYPE_OPTIONS[0],
+  platform_proof: SUBMISSION_TYPE_OPTIONS[1],
+};
 
 /**
  * Danh sách phân nhóm bài tập (Category)
@@ -161,32 +163,32 @@ export const AI_GRADING_FOCUS_OPTIONS: {
   label: string;
   desc: string;
 }[] = [
-  {
-    id: "spelling",
-    label: "Chính tả (Spelling)",
-    desc: "Phát hiện viết sai chữ cái, thiếu nét, nhầm từ",
-  },
-  {
-    id: "grammar",
-    label: "Ngữ pháp (Grammar)",
-    desc: "Chia động từ, số ít/số nhiều, cấu trúc câu",
-  },
-  {
-    id: "vocab",
-    label: "Từ vựng (Vocabulary)",
-    desc: "Dùng từ đúng ngữ cảnh và chủ đề bài học",
-  },
-  {
-    id: "punctuation",
-    label: "Dấu câu & Viết hoa",
-    desc: "Chấm câu, viết hoa đầu câu và tên riêng",
-  },
-  {
-    id: "content",
-    label: "Đúng yêu cầu đề bài",
-    desc: "Đảm bảo đủ số câu và sát với đề bài cô giao",
-  },
-];
+    {
+      id: "spelling",
+      label: "Chính tả (Spelling)",
+      desc: "Phát hiện viết sai chữ cái, thiếu nét, nhầm từ",
+    },
+    {
+      id: "grammar",
+      label: "Ngữ pháp (Grammar)",
+      desc: "Chia động từ, số ít/số nhiều, cấu trúc câu",
+    },
+    {
+      id: "vocab",
+      label: "Từ vựng (Vocabulary)",
+      desc: "Dùng từ đúng ngữ cảnh và chủ đề bài học",
+    },
+    {
+      id: "punctuation",
+      label: "Dấu câu & Viết hoa",
+      desc: "Chấm câu, viết hoa đầu câu và tên riêng",
+    },
+    {
+      id: "content",
+      label: "Đúng yêu cầu đề bài",
+      desc: "Đảm bảo đủ số câu và sát với đề bài cô giao",
+    },
+  ];
 
 /**
  * Mẫu bài tập tạo nhanh (1-Click Quick Templates) dành cho Giáo viên
@@ -203,16 +205,10 @@ export const MISSION_QUICK_TEMPLATES: MissionQuickTemplate[] = [
       submission_type: "platform_proof",
       min_reward_coins: 20,
       max_reward_coins: 40,
-      icon_type: "notebook",
-      category: "homework",
-      difficulty: "easy",
-      theme_color: "blue",
-      teacher_assignment:
-        "Bài trắc nghiệm 20 câu chủ đề Unit 6: Our School. Đúng 20/20 nhận 40 xu, đạt từ 10-19/20 nhận 20 xu.",
-      custom_ai_prompt:
-        "Đọc chính xác tỷ lệ số câu đúng trên tổng số câu hiển thị trong ảnh chụp màn hình.",
       grading_focus: ["content"],
+      custom_ai_prompt: "Đọc chính xác tỷ lệ số câu đúng trên tổng số câu hiển thị trong ảnh chụp màn hình.",
       allow_late_submission: true,
+      ai_prompt_template_id: null,
     },
   },
   {
@@ -226,16 +222,10 @@ export const MISSION_QUICK_TEMPLATES: MissionQuickTemplate[] = [
       submission_type: "subjective_writing",
       min_reward_coins: 30,
       max_reward_coins: 60,
-      icon_type: "book-pen",
-      category: "writing",
-      difficulty: "medium",
-      theme_color: "purple",
-      teacher_assignment:
-        "Write a short paragraph (5-7 sentences) about your family using Simple Present tense (father, mother, brother/sister, jobs, hobbies).",
-      custom_ai_prompt:
-        "Chấm nhẹ tay với học sinh tiểu học, khen ngợi các câu có mở rộng ý và giải thích lỗi ngữ pháp bằng tiếng Việt thật dễ hiểu.",
       grading_focus: ["spelling", "grammar", "vocab", "punctuation"],
+      custom_ai_prompt: "Chấm nhẹ tay với học sinh tiểu học, khen ngợi các câu có mở rộng ý và giải thích lỗi ngữ pháp bằng tiếng Việt thật dễ hiểu.",
       allow_late_submission: true,
+      ai_prompt_template_id: null,
     },
   },
   {
@@ -249,16 +239,10 @@ export const MISSION_QUICK_TEMPLATES: MissionQuickTemplate[] = [
       submission_type: "subjective_writing",
       min_reward_coins: 25,
       max_reward_coins: 50,
-      icon_type: "flags-en-vi",
-      category: "vocabulary",
-      difficulty: "medium",
-      theme_color: "green",
-      teacher_assignment:
-        "Dịch bài hội thoại Unit 6 (At the Playground) sang tiếng Việt tự nhiên, đúng nghĩa từ vựng.",
-      custom_ai_prompt:
-        "Kiểm tra xem học sinh có dịch đủ các câu trong bài hội thoại và viết đúng chính tả từ vựng tiếng Anh hay không.",
       grading_focus: ["spelling", "vocab", "content"],
+      custom_ai_prompt: "Kiểm tra xem học sinh có dịch đủ các câu trong bài hội thoại và viết đúng chính tả từ vựng tiếng Anh hay không.",
       allow_late_submission: true,
+      ai_prompt_template_id: null,
     },
   },
   {
@@ -272,16 +256,10 @@ export const MISSION_QUICK_TEMPLATES: MissionQuickTemplate[] = [
       submission_type: "subjective_writing",
       min_reward_coins: 50,
       max_reward_coins: 100,
-      icon_type: "flags-vi-en",
-      category: "vocabulary",
-      difficulty: "hard",
-      theme_color: "orange",
-      teacher_assignment:
-        "Dịch 8 câu từ tiếng Việt sang tiếng Anh sử dụng thì Present Continuous (am/is/are + V-ing).",
-      custom_ai_prompt:
-        "Tập trung bắt lỗi thiếu động từ to-be (am/is/are) hoặc chia sai đuôi -ing của động từ.",
       grading_focus: ["grammar", "spelling", "vocab", "punctuation"],
+      custom_ai_prompt: "Tập trung bắt lỗi thiếu động từ to-be (am/is/are) hoặc chia sai đuôi -ing của động từ.",
       allow_late_submission: false,
+      ai_prompt_template_id: null,
     },
   },
 ];
@@ -328,7 +306,6 @@ export const MOCK_TEACHER_MISSIONS: TeacherMissionItem[] = [
     submission_type: "subjective_writing",
     min_reward_coins: 30,
     max_reward_coins: 60,
-    icon_type: "book-pen",
     due_at: "2026-11-15T21:30:00+07:00",
     created_by: "usr-teacher-01",
     creator_name: "Cô Mai Anh",
@@ -352,15 +329,10 @@ export const MOCK_TEACHER_MISSIONS: TeacherMissionItem[] = [
     late_count: 1,
     total_coins_awarded: 1420,
     avg_ai_score: 8.8,
-    category: "writing",
-    difficulty: "medium",
-    theme_color: "purple",
-    teacher_assignment:
-      "Write 5-7 sentences about your weekend activities with your family. Use Present Simple or Present Continuous.",
-    custom_ai_prompt:
-      "Chú ý lỗi chia động từ ngôi thứ 3 số ít (s/es) và lỗi viết hoa đầu câu. Giải thích ngắn gọn, khích lệ học sinh.",
     grading_focus: ["grammar", "spelling", "vocab", "punctuation"],
+    custom_ai_prompt: "Chú ý lỗi chia động từ ngôi thứ 3 số ít (s/es) và lỗi viết hoa đầu câu. Giải thích ngắn gọn, khích lệ học sinh.",
     allow_late_submission: true,
+    ai_prompt_template_id: null,
   },
   {
     id: "msn-002",
@@ -370,7 +342,6 @@ export const MOCK_TEACHER_MISSIONS: TeacherMissionItem[] = [
     submission_type: "platform_proof",
     min_reward_coins: 20,
     max_reward_coins: 40,
-    icon_type: "notebook",
     due_at: "2026-11-16T21:00:00+07:00",
     created_by: "usr-teacher-01",
     creator_name: "Cô Mai Anh",
@@ -394,15 +365,10 @@ export const MOCK_TEACHER_MISSIONS: TeacherMissionItem[] = [
     late_count: 0,
     total_coins_awarded: 960,
     avg_ai_score: 9.4,
-    category: "homework",
-    difficulty: "easy",
-    theme_color: "blue",
-    teacher_assignment:
-      "Bài trắc nghiệm Quizizz 20 câu Unit 7. Đúng 20/20 nhận tối đa 40 xu, đúng từ 12-19/20 nhận 20 xu.",
-    custom_ai_prompt:
-      "Bóc tách chính xác số câu đúng (correct_count) và tổng số câu (total_questions) từ ảnh chụp màn hình Quizizz.",
     grading_focus: ["content"],
+    custom_ai_prompt: "Bóc tách chính xác số câu đúng (correct_count) và tổng số câu (total_questions) từ ảnh chụp màn hình Quizizz.",
     allow_late_submission: true,
+    ai_prompt_template_id: null,
   },
   {
     id: "msn-003",
@@ -412,7 +378,6 @@ export const MOCK_TEACHER_MISSIONS: TeacherMissionItem[] = [
     submission_type: "subjective_writing",
     min_reward_coins: 40,
     max_reward_coins: 80,
-    icon_type: "flags-vi-en",
     due_at: "2026-11-17T22:00:00+07:00",
     created_by: "usr-teacher-02",
     creator_name: "Thầy Hoàng Nam",
@@ -435,15 +400,10 @@ export const MOCK_TEACHER_MISSIONS: TeacherMissionItem[] = [
     late_count: 0,
     total_coins_awarded: 580,
     avg_ai_score: 8.5,
-    category: "vocabulary",
-    difficulty: "hard",
-    theme_color: "orange",
-    teacher_assignment:
-      "1. Đây là chiếc cặp sách mới của tớ. 2. Những cây bút chì màu này của bạn phải không? 3. Trên bàn có 3 quyển vở và 1 cục tẩy...",
-    custom_ai_prompt:
-      "Đối chiếu từng câu dịch từ 1 đến 10. Trừ 0.5 điểm cho lỗi chính tả nhỏ, 1.0 điểm nếu sai cấu trúc ngữ pháp this/that/these/those.",
     grading_focus: ["grammar", "vocab", "spelling", "punctuation", "content"],
+    custom_ai_prompt: "Đối chiếu từng câu dịch từ 1 đến 10. Trừ 0.5 điểm cho lỗi chính tả nhỏ, 1.0 điểm nếu sai cấu trúc ngữ pháp this/that/these/those.",
     allow_late_submission: false,
+    ai_prompt_template_id: null,
   },
   {
     id: "msn-004",
@@ -453,7 +413,6 @@ export const MOCK_TEACHER_MISSIONS: TeacherMissionItem[] = [
     submission_type: "subjective_writing",
     min_reward_coins: 25,
     max_reward_coins: 50,
-    icon_type: "flags-en-vi",
     due_at: "2026-11-13T21:00:00+07:00", // Đã qua hạn nộp
     created_by: "usr-teacher-01",
     creator_name: "Cô Mai Anh",
@@ -470,21 +429,16 @@ export const MOCK_TEACHER_MISSIONS: TeacherMissionItem[] = [
     ],
     total_students: 18,
     submitted_count: 18,
-    pending_review_count: 0,
-    approved_count: 18,
+    pending_review_count: 3,
+    approved_count: 15,
     rejected_count: 0,
     late_count: 3,
     total_coins_awarded: 820,
     avg_ai_score: 9.1,
-    category: "reading",
-    difficulty: "medium",
-    theme_color: "green",
-    teacher_assignment:
-      "Bản dịch tiếng Việt bài đọc A Day at the Zoo (SGK trang 50). Yêu cầu dịch mượt mà, đúng tên các loài động vật.",
-    custom_ai_prompt:
-      "Kiểm tra độ chính xác của bản dịch tiếng Việt và khen ngợi cách diễn đạt tự nhiên.",
     grading_focus: ["vocab", "content"],
+    custom_ai_prompt: "Kiểm tra độ chính xác của bản dịch tiếng Việt và khen ngợi cách diễn đạt tự nhiên.",
     allow_late_submission: true,
+    ai_prompt_template_id: null,
   },
   {
     id: "msn-005",
@@ -494,7 +448,6 @@ export const MOCK_TEACHER_MISSIONS: TeacherMissionItem[] = [
     submission_type: "platform_proof",
     min_reward_coins: 30,
     max_reward_coins: 30, // Mức xu cố định (min = max)
-    icon_type: "notebook",
     due_at: "2026-11-20T21:00:00+07:00",
     created_by: "usr-teacher-02",
     creator_name: "Thầy Hoàng Nam",
@@ -518,14 +471,10 @@ export const MOCK_TEACHER_MISSIONS: TeacherMissionItem[] = [
     late_count: 0,
     total_coins_awarded: 0,
     avg_ai_score: null,
-    category: "vocabulary",
-    difficulty: "medium",
-    theme_color: "blue",
-    teacher_assignment:
-      "Hoàn thành bảng ghép 30 động từ bất quy tắc (go-went, see-saw, buy-bought...).",
-    custom_ai_prompt: "",
     grading_focus: ["content"],
+    custom_ai_prompt: "Bóc tách số điểm đạt được trong trò chơi lật thẻ ghép từ.",
     allow_late_submission: true,
+    ai_prompt_template_id: null,
   },
   {
     id: "msn-006",
@@ -535,7 +484,6 @@ export const MOCK_TEACHER_MISSIONS: TeacherMissionItem[] = [
     submission_type: "platform_proof",
     min_reward_coins: 20,
     max_reward_coins: 40,
-    icon_type: "notebook",
     due_at: "2026-10-30T21:00:00+07:00",
     created_by: "usr-teacher-01",
     creator_name: "Cô Mai Anh",
@@ -558,13 +506,10 @@ export const MOCK_TEACHER_MISSIONS: TeacherMissionItem[] = [
     late_count: 2,
     total_coins_awarded: 780,
     avg_ai_score: 8.9,
-    category: "homework",
-    difficulty: "easy",
-    theme_color: "blue",
-    teacher_assignment: "Đề ôn tập giữa kỳ I - 25 câu trắc nghiệm.",
-    custom_ai_prompt: "",
     grading_focus: ["content"],
+    custom_ai_prompt: "Đề ôn tập giữa kỳ I - 25 câu trắc nghiệm.",
     allow_late_submission: true,
+    ai_prompt_template_id: null,
   },
 ];
 

@@ -31,6 +31,12 @@ const PermanentDeleteMissionModal = dynamic(
     ),
   { ssr: false }
 );
+const MissionProgressModal = dynamic(
+  () =>
+    import("./modals/MissionProgressModal").then((m) => m.MissionProgressModal),
+  { ssr: false }
+);
+
 
 interface ManageMissionsViewProps {
   initialMissions?: TeacherMissionItem[];
@@ -148,7 +154,10 @@ function ManageMissionsContent() {
       {/* 7. Modal Xác nhận xóa vĩnh viễn */}
       <PermanentDeleteMissionModal />
 
-      {/* 8. Thanh tác vụ hàng loạt nổi (Floating Batch Action Bar) */}
+      {/* 8. Modal Danh sách tiến độ làm bài (Ai đã làm, ai chưa làm) */}
+      <MissionProgressModal />
+
+      {/* 9. Thanh tác vụ hàng loạt nổi (Floating Batch Action Bar) */}
       <MissionsBatchBar />
     </div>
   );

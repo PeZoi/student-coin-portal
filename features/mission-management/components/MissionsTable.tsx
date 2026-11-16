@@ -32,7 +32,7 @@ export function MissionsTable() {
 		handleToggleSelect,
 		handleSelectAll,
 		handleOpenEditMission,
-		handleOpenSubmissionsModal,
+		handleOpenProgressModal,
 	} = useManageMissionsContext();
 
 	const allVisibleSelected =
@@ -154,7 +154,7 @@ export function MissionsTable() {
 							<TableCell className='max-w-[380px]'>
 								<div className='flex items-center gap-3 py-0.5'>
 									<MissionIconAvatar
-										iconType={item.icon_type}
+										submissionType={item.submission_type}
 										isDeleted={item.is_deleted}
 										isActive={item.is_active}
 									/>
@@ -204,7 +204,7 @@ export function MissionsTable() {
 									approvedCount={item.approved_count}
 									lateCount={item.late_count}
 									onClickViewSubmissions={() =>
-										handleOpenSubmissionsModal(item)
+										handleOpenProgressModal(item)
 									}
 								/>
 							</TableCell>

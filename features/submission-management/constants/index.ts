@@ -125,7 +125,7 @@ export const MOCK_GRADING_SUBMISSIONS: TeacherGradingSubmissionItem[] = [
     mission_title: "Viết đoạn văn ngắn (5-7 câu) miêu tả hoạt động cuối tuần",
     mission_description:
       "Các con viết tay vào vở ô ly đoạn văn từ 5 đến 7 câu tiếng Anh kể về các hoạt động của con và gia đình vào dịp cuối tuần.",
-    mission_icon_type: "book-pen",
+    mission_icon_type: "write",
     min_reward_coins: 30,
     max_reward_coins: 60,
     mission_due_at: "2026-11-15T21:30:00+07:00",
@@ -184,7 +184,7 @@ export const MOCK_GRADING_SUBMISSIONS: TeacherGradingSubmissionItem[] = [
     mission_title: "Viết đoạn văn ngắn (5-7 câu) miêu tả hoạt động cuối tuần",
     mission_description:
       "Các con viết tay vào vở ô ly đoạn văn từ 5 đến 7 câu tiếng Anh kể về các hoạt động của con và gia đình vào dịp cuối tuần.",
-    mission_icon_type: "book-pen",
+    mission_icon_type: "write",
     min_reward_coins: 30,
     max_reward_coins: 60,
     mission_due_at: "2026-11-15T21:30:00+07:00",
@@ -248,7 +248,7 @@ export const MOCK_GRADING_SUBMISSIONS: TeacherGradingSubmissionItem[] = [
     mission_title: "Viết đoạn văn ngắn (5-7 câu) miêu tả hoạt động cuối tuần",
     mission_description:
       "Các con viết tay vào vở ô ly đoạn văn từ 5 đến 7 câu tiếng Anh kể về các hoạt động của con và gia đình vào dịp cuối tuần.",
-    mission_icon_type: "book-pen",
+    mission_icon_type: "write",
     min_reward_coins: 30,
     max_reward_coins: 60,
     mission_due_at: "2026-11-15T21:30:00+07:00",
@@ -291,7 +291,7 @@ export const MOCK_GRADING_SUBMISSIONS: TeacherGradingSubmissionItem[] = [
     mission_title: "Hoàn thành bài Quizizz Unit 7: My Favorite Food (20 câu)",
     mission_description:
       "Truy cập link bài tập Quizizz cô đã ghim, làm hết 20 câu hỏi và chụp ảnh màn hình kết quả nộp lên.",
-    mission_icon_type: "notebook",
+    mission_icon_type: "capture",
     min_reward_coins: 20,
     max_reward_coins: 40,
     mission_due_at: "2026-11-16T21:00:00+07:00",
@@ -336,7 +336,7 @@ export const MOCK_GRADING_SUBMISSIONS: TeacherGradingSubmissionItem[] = [
     mission_title: "Dịch Việt → Anh: 10 câu giao tiếp chủ đề School Things",
     mission_description:
       "Các con chép đề 10 câu tiếng Việt trong phiếu bài tập và dịch sang tiếng Anh vào vở ô ly.",
-    mission_icon_type: "flags-vi-en",
+    mission_icon_type: "write",
     min_reward_coins: 40,
     max_reward_coins: 80,
     mission_due_at: "2026-11-17T22:00:00+07:00",
@@ -390,7 +390,7 @@ export const MOCK_GRADING_SUBMISSIONS: TeacherGradingSubmissionItem[] = [
     mission_title: "Viết đoạn văn ngắn (5-7 câu) miêu tả hoạt động cuối tuần",
     mission_description:
       "Các con viết tay vào vở ô ly đoạn văn từ 5 đến 7 câu tiếng Anh kể về các hoạt động của con và gia đình vào dịp cuối tuần.",
-    mission_icon_type: "book-pen",
+    mission_icon_type: "write",
     min_reward_coins: 30,
     max_reward_coins: 60,
     mission_due_at: "2026-11-15T21:30:00+07:00",
@@ -426,7 +426,7 @@ export const MOCK_GRADING_SUBMISSIONS: TeacherGradingSubmissionItem[] = [
     mission_title: "Viết đoạn văn ngắn (5-7 câu) miêu tả hoạt động cuối tuần",
     mission_description:
       "Các con viết tay vào vở ô ly đoạn văn từ 5 đến 7 câu tiếng Anh kể về các hoạt động của con và gia đình vào dịp cuối tuần.",
-    mission_icon_type: "book-pen",
+    mission_icon_type: "write",
     min_reward_coins: 30,
     max_reward_coins: 60,
     mission_due_at: "2026-11-15T21:30:00+07:00",

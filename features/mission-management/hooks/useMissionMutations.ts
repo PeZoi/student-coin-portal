@@ -2,6 +2,7 @@
 
 import { useState, useCallback, Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
+import { useTeacherWorkspaceStore } from "@/stores/useTeacherWorkspaceStore";
 import {
   TeacherMissionItem,
   MissionFormValues,
@@ -58,17 +59,18 @@ export function useMissionMutations({
                     ...m,
                     title: values.title,
                     description: values.description,
+                    submission_type: values.submission_type,
                     min_reward_coins: values.min_reward_coins,
                     max_reward_coins: values.max_reward_coins,
-                    icon_type: values.icon_type,
                     due_at: values.due_at
                       ? new Date(values.due_at).toISOString()
                       : m.due_at,
                     is_active: values.is_active,
-                    teacher_assignment: values.teacher_assignment,
-                    custom_ai_prompt: values.custom_ai_prompt,
                     grading_focus: values.grading_focus,
+                    custom_ai_prompt: values.custom_ai_prompt,
                     allow_late_submission: values.allow_late_submission,
+                    ai_prompt_template_id:
+                      values.ai_prompt_template_id ?? m.ai_prompt_template_id,
                     updated_at: nowIso,
                   }
                 : m
@@ -76,7 +78,25 @@ export function useMissionMutations({
           );
           toast.success("Đã cập nhật bài tập thành công!");
         } else {
-          // Tạo mới bài tập
+          // Tạo mới bài tập: Tự động phân công vào lớp đang chọn ở Header (Workspace)
+          const currentWorkspaceClass =
+            useTeacherWorkspaceStore.getState().getSelectedClass();
+          const assignedClassIds = currentWorkspaceClass
+            ? [currentWorkspaceClass.id]
+            : values.assigned_class_ids.length > 0
+            ? values.assigned_class_ids
+            : [];
+          const assignedClasses = currentWorkspaceClass
+            ? [
+                {
+                  id: currentWorkspaceClass.id,
+                  class_name: currentWorkspaceClass.class_name,
+                  student_count: currentWorkspaceClass.student_count ?? 0,
+                },
+              ]
+            : [];
+          const totalStudents = currentWorkspaceClass?.student_count ?? 24;
+
           const newMission: TeacherMissionItem = {
             id: `msn-${Date.now()}`,
             title: values.title,
@@ -84,7 +104,6 @@ export function useMissionMutations({
             submission_type: values.submission_type || "subjective_writing",
             min_reward_coins: values.min_reward_coins,
             max_reward_coins: values.max_reward_coins,
-            icon_type: values.icon_type,
             due_at: values.due_at
               ? new Date(values.due_at).toISOString()
               : new Date(Date.now() + 86400000).toISOString(),
@@ -97,9 +116,9 @@ export function useMissionMutations({
             updated_by: null,
             updated_at: nowIso,
             created_at: nowIso,
-            assigned_class_ids: [],
-            assigned_classes: [],
-            total_students: 24, // Sĩ số mặc định của lớp hiện tại
+            assigned_class_ids: assignedClassIds,
+            assigned_classes: assignedClasses,
+            total_students: totalStudents,
             submitted_count: 0,
             pending_review_count: 0,
             approved_count: 0,
@@ -107,17 +126,18 @@ export function useMissionMutations({
             late_count: 0,
             total_coins_awarded: 0,
             avg_ai_score: null,
-            category: values.category || "homework",
-            difficulty: values.difficulty || "medium",
-            theme_color: values.theme_color || "blue",
-            teacher_assignment: values.teacher_assignment,
-            custom_ai_prompt: values.custom_ai_prompt,
             grading_focus: values.grading_focus,
+            custom_ai_prompt: values.custom_ai_prompt,
             allow_late_submission: values.allow_late_submission,
+            ai_prompt_template_id: values.ai_prompt_template_id ?? null,
           };
 
           setMissionsList((prev) => [newMission, ...prev]);
-          toast.success("Đã giao bài tập mới cho lớp thành công!");
+          toast.success(
+            currentWorkspaceClass
+              ? `Đã giao bài tập mới cho ${currentWorkspaceClass.class_name} thành công!`
+              : "Đã giao bài tập mới thành công!"
+          );
         }
 
         modals.handleCloseMissionForm();
