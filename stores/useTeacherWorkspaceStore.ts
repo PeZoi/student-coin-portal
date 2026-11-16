@@ -14,9 +14,21 @@ interface TeacherWorkspaceState {
   resetWorkspace: () => void;
 }
 
+export const TEACHER_WORKSPACE_COOKIE_NAME = "teacher_selected_class_id";
+
+function syncWorkspaceClassCookie(classId: string | null) {
+  if (typeof document === "undefined") return;
+  if (classId) {
+    document.cookie = `${TEACHER_WORKSPACE_COOKIE_NAME}=${classId}; path=/; max-age=31536000; SameSite=Lax`;
+  } else {
+    document.cookie = `${TEACHER_WORKSPACE_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`;
+  }
+}
+
 /**
  * Store quản lý không gian làm việc (Workspace / Lớp phụ trách) của Giáo viên & Quản trị viên
  * - Tự động ghi nhớ lớp học đang chọn vào localStorage (persist)
+ * - Tự động đồng bộ cookie teacher_selected_class_id để Server Components đọc được trực tiếp
  * - Tự động đồng bộ danh sách lớp học theo phân quyền (/api/teacher/my-classes)
  */
 export const useTeacherWorkspaceStore = create<TeacherWorkspaceState>()(
@@ -29,6 +41,7 @@ export const useTeacherWorkspaceStore = create<TeacherWorkspaceState>()(
 
       setSelectedClassId: (id: string) => {
         set({ selectedClassId: id });
+        syncWorkspaceClassCookie(id);
       },
 
       fetchMyClasses: async () => {
@@ -51,6 +64,7 @@ export const useTeacherWorkspaceStore = create<TeacherWorkspaceState>()(
             selectedClassId: nextSelectedId,
             isLoading: false,
           });
+          syncWorkspaceClassCookie(nextSelectedId);
         } catch (err: unknown) {
           const error = err instanceof Error ? err : new Error(String(err));
           set({ error: error.message, isLoading: false });
@@ -64,12 +78,18 @@ export const useTeacherWorkspaceStore = create<TeacherWorkspaceState>()(
 
       resetWorkspace: () => {
         set({ classes: [], selectedClassId: null, error: null, isLoading: false });
+        syncWorkspaceClassCookie(null);
         useTeacherWorkspaceStore.persist?.clearStorage();
       },
     }),
     {
       name: "teacher-workspace-storage",
       partialize: (state) => ({ selectedClassId: state.selectedClassId }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.selectedClassId) {
+          syncWorkspaceClassCookie(state.selectedClassId);
+        }
+      },
     }
   )
 );

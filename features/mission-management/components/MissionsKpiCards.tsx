@@ -13,6 +13,7 @@ interface MissionsKpiCardsProps {
   totalAssignedStudentsSum?: number;
   pendingReviewTotal?: number;
   totalCoinsAwardedAll?: number;
+  isLoading?: boolean;
 }
 
 /**
@@ -36,6 +37,29 @@ export function MissionsKpiCards(props?: MissionsKpiCardsProps) {
     props?.pendingReviewTotal ?? context.pendingReviewTotal;
   const totalCoinsAwardedAll =
     props?.totalCoinsAwardedAll ?? context.totalCoinsAwardedAll;
+  const isLoading = props?.isLoading ?? context.isLoading;
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="h-4 w-28 bg-slate-100 rounded-md" />
+              <div className="w-10 h-10 rounded-xl bg-slate-100 shrink-0" />
+            </div>
+            <div className="mt-4 flex items-baseline gap-2">
+              <div className="h-8 w-16 bg-slate-200 rounded-lg" />
+              <div className="h-4 w-12 bg-slate-100 rounded-md" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

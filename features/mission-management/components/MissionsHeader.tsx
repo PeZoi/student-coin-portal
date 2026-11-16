@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 import { useManageMissionsContext } from "../contexts/ManageMissionsContext";
 
 interface MissionsHeaderProps {
@@ -14,7 +15,17 @@ interface MissionsHeaderProps {
  */
 export function MissionsHeader(props?: MissionsHeaderProps) {
   const context = useManageMissionsContext();
-  const onOpenCreate = props?.onOpenCreate ?? context.handleOpenCreateMission;
+  const { handleOpenCreateMission, availableClasses, isAdmin } = context;
+  const onOpenCreate = props?.onOpenCreate ?? handleOpenCreateMission;
+  const hasNoClasses = !isAdmin && availableClasses.length === 0;
+
+  const handleCreateClick = () => {
+    if (hasNoClasses) {
+      toast.error("Bạn chưa được phân công lớp học nào để giao bài tập.");
+      return;
+    }
+    onOpenCreate();
+  };
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -29,8 +40,8 @@ export function MissionsHeader(props?: MissionsHeaderProps) {
 
       <button
         type="button"
-        onClick={onOpenCreate}
-        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-[#0A62D6] hover:bg-[#0850B0] text-white text-sm font-semibold transition-all shadow-xs cursor-pointer active:scale-98 shrink-0"
+        onClick={handleCreateClick}
+        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-[#0A62D6] hover:bg-[#0850B0] text-white text-sm font-semibold transition-all shadow-xs cursor-pointer active:scale-98 shrink-0 disabled:opacity-50"
       >
         <Plus className="w-4 h-4" />
         <span>Giao bài tập mới</span>

@@ -10,14 +10,12 @@ import {
   Clock,
   AlertCircle,
   Search,
-  Copy,
   Phone,
   GraduationCap,
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
 } from "lucide-react";
-import { toast } from "sonner";
 import { AppRoutes } from "@/constants";
 import { formatDate } from "@/lib/date";
 import {
@@ -38,10 +36,11 @@ import {
   TeacherMissionItem,
   MissionProgressFilterTab,
 } from "../../types";
+import useSWR from "swr";
+import { missionService } from "../../services/missionService";
 import { MissionStackedProgressBar } from "../MissionBadges";
 import { useManageMissionsContext } from "../../contexts/ManageMissionsContext";
 import {
-  generateMissionStudentProgressList,
   getMissionDeadlineMeta,
   normalizeText,
   getInitials,
@@ -91,9 +90,17 @@ function MissionProgressModalContent({
   onClose,
 }: MissionProgressModalContentProps) {
   const router = useRouter();
-  const { submissionsByMission } = useManageMissionsContext();
 
-  // 1. Quản lý bộ lọc & tìm kiếm
+  // 1. Tải danh sách tiến độ làm bài thực tế từ database qua SWR
+  const { data: allStudents = [], isLoading } = useSWR(
+    ["mission-progress", mission.id],
+    () => missionService.getMissionProgress(mission.id),
+    {
+      revalidateOnFocus: false,
+    }
+  );
+
+  // 2. Quản lý bộ lọc & tìm kiếm
   const [activeTab, setActiveTab] =
     useState<MissionProgressFilterTab>("all");
   const [selectedClassId, setSelectedClassId] = useState<string>("all");
@@ -147,19 +154,6 @@ function MissionProgressModalContent({
       <ChevronDown className="w-3.5 h-3.5 text-[#0A62D6] ml-1 shrink-0" />
     );
   };
-
-
-
-
-  // 2. Lấy danh sách bài nộp và sinh danh sách học sinh đầy đủ
-  const existingSubs = useMemo(
-    () => submissionsByMission[mission.id] || [],
-    [submissionsByMission, mission.id]
-  );
-
-  const allStudents = useMemo(() => {
-    return generateMissionStudentProgressList(mission, existingSubs);
-  }, [mission, existingSubs]);
 
   // 3. Tính toán các chỉ số KPI
   const totalCount = allStudents.length;
@@ -281,51 +275,7 @@ function MissionProgressModalContent({
     mission.is_deleted
   );
 
-  // 5. Hàm sao chép danh sách học sinh CHƯA NỘP để gửi Zalo phụ huynh
-  const handleCopyUnsubmittedList = () => {
-    const unsubmittedStudents = allStudents.filter(
-      (s) => s.submission_status === "not_submitted"
-    );
-
-    if (unsubmittedStudents.length === 0) {
-      toast.info("Tất cả học sinh đều đã nộp bài tập này rồi!");
-      return;
-    }
-
-    const classNames =
-      assignedClasses.map((c) => c.class_name).join(", ") || "Lớp học";
-
-    const lines = [
-      `📢 [NHẮC NHỞ NỘP BÀI TẬP]`,
-      `📚 Bài tập: ${mission.title}`,
-      `🏫 Lớp: ${classNames}`,
-      `⏰ Hạn nộp: ${deadlineMeta.formattedTime} - ${deadlineMeta.formattedDate} (${deadlineMeta.relativeLabel})`,
-      `---------------------------------`,
-      `Danh sách ${unsubmittedStudents.length} bạn chưa nộp bài:`,
-      ...unsubmittedStudents.map(
-        (s, idx) =>
-          `${idx + 1}. ${s.student_name} (${s.class_name.split(" - ")[0] || s.class_name})${
-            s.student_phone ? ` - SĐT: ${s.student_phone}` : ""
-          }`
-      ),
-      `---------------------------------`,
-      `Quý phụ huynh vui lòng nhắc các con hoàn thành và gửi bài sớm lên hệ thống Heo Đất để nhận xu thưởng nhé!`,
-    ];
-
-    const copyText = lines.join("\n");
-    navigator.clipboard
-      .writeText(copyText)
-      .then(() => {
-        toast.success(
-          `Đã sao chép danh sách ${unsubmittedStudents.length} học sinh chưa nộp bài vào bộ nhớ tạm!`
-        );
-      })
-      .catch(() => {
-        toast.error("Không thể tự động sao chép. Vui lòng thử lại!");
-      });
-  };
-
-  // 6. Điều hướng sang Studio Duyệt bài
+  // 5. Điều hướng sang Studio Duyệt bài
   const handleGoToStudio = (studentId?: string) => {
     onClose();
     const query = studentId
@@ -500,16 +450,6 @@ function MissionProgressModalContent({
                 <span>Chưa làm ({notSubmittedCount})</span>
               </button>
             </div>
-
-            {/* Nút hành động: Sao chép danh sách chưa nộp */}
-            <button
-              type="button"
-              onClick={handleCopyUnsubmittedList}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 text-xs font-semibold transition-colors cursor-pointer"
-            >
-              <Copy className="w-3.5 h-3.5 shrink-0" />
-              <span>Sao chép DS chưa nộp (gửi Zalo)</span>
-            </button>
           </div>
 
           {/* Bộ lọc chi tiết: Lọc theo lớp, Lọc theo duyệt, Ô tìm kiếm */}
@@ -607,7 +547,30 @@ function MissionProgressModalContent({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredStudents.length === 0 ? (
+              {isLoading ? (
+                [1, 2, 3, 4, 5].map((i) => (
+                  <TableRow key={i} className="animate-pulse">
+                    <TableCell className="w-12 text-center text-xs text-slate-300">
+                      -
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2.5 py-1">
+                        <div className="w-8.5 h-8.5 rounded-full bg-slate-200" />
+                        <div className="space-y-1.5 flex-1">
+                          <div className="h-3.5 w-28 bg-slate-200 rounded" />
+                          <div className="h-2.5 w-20 bg-slate-100 rounded" />
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-5 w-24 bg-slate-200 rounded-full" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-5 w-20 bg-slate-100 rounded-full" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : filteredStudents.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={4}

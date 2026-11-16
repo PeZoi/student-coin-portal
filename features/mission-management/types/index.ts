@@ -21,9 +21,7 @@
 export type MissionSubmissionType = "platform_proof" | "subjective_writing";
 
 /**
- * Biểu tượng bài tập theo hình thức nộp bài (Cột `missions.icon_type` trong DB)
- * - `write`: Vở viết tay (/submissions/write.webp) -> Dành cho subjective_writing (AI chấm)
- * - `capture`: Chụp ảnh minh chứng (/submissions/capture.webp) -> Dành cho platform_proof (Quizizz, Wordwall...)
+ * Biểu tượng bài tập theo hình thức nộp bài
  */
 export type MissionIconType =
   | "write"
@@ -32,26 +30,6 @@ export type MissionIconType =
   | "book-pen"
   | "flags-en-vi"
   | "flags-vi-en";
-
-/**
- * [Đề xuất DB] Độ khó của bài tập (Đồng bộ với giao diện Sách Bài Tập học sinh)
- */
-export type MissionDifficulty = "easy" | "medium" | "hard";
-
-/**
- * [Đề xuất DB] Màu chủ đề của thẻ bài tập trên giao diện học sinh
- */
-export type MissionThemeColor = "blue" | "purple" | "green" | "orange";
-
-/**
- * [Đề xuất DB] Phân loại nhóm bài tập / môn học giúp giáo viên lọc nhanh
- */
-export type MissionCategory =
-  | "homework"
-  | "vocabulary"
-  | "writing"
-  | "reading"
-  | "habit";
 
 /**
  * Tiêu chí trọng tâm để AI chấm lỗi (Khớp với `ai_submission_errors.error_type` trong DB)

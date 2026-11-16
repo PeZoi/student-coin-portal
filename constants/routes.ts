@@ -83,6 +83,14 @@ export const AppRoutes = {
       // Quản lý Vòng quay may mắn
       WHEEL_CONFIG: "/api/teacher/wheel-config",
       WHEEL_SPINS_HISTORY: "/api/teacher/wheel-config/spins",
+      // Quản lý Giao bài tập
+      MISSIONS: "/api/teacher/missions",
+      MISSION_DETAIL: (id: string) => `/api/teacher/missions/${id}`,
+      MISSION_STATUS: (id: string) => `/api/teacher/missions/${id}/status`,
+      MISSION_RESTORE: (id: string) => `/api/teacher/missions/${id}/restore`,
+      MISSION_PERMANENT: (id: string) => `/api/teacher/missions/${id}/permanent`,
+      MISSION_BATCH: "/api/teacher/missions/batch",
+      MISSION_PROGRESS: (id: string) => `/api/teacher/missions/${id}/progress`,
     },
     SYSTEM: {
       CONFIG: "/api/system/config",

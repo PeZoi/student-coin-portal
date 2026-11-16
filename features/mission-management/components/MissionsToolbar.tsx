@@ -52,6 +52,7 @@ export function MissionsToolbar(props?: MissionsToolbarProps) {
   const isRefreshing = props?.isRefreshing ?? context.isRefreshing;
 
   const {
+    isAdmin,
     totalMissions,
     activeMissionsCount,
     expiredMissionsCount,
@@ -108,7 +109,8 @@ export function MissionsToolbar(props?: MissionsToolbarProps) {
           />
         </div>
 
-        {deletedMissionsCount > 0 && (
+        {/* Nút Đã xóa riêng biệt (Chỉ hiển thị cho Admin, cảnh báo màu đỏ) */}
+        {isAdmin && (
           <Tooltip
             content={
               isDeletedTab
@@ -123,29 +125,14 @@ export function MissionsToolbar(props?: MissionsToolbarProps) {
                 onStatusFilterChange(isDeletedTab ? "all" : "deleted")
               }
               className={cn(
-                "h-10 px-3 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 border select-none",
+                "h-10 px-3.5 rounded-xl text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap cursor-pointer shrink-0 flex items-center gap-1.5",
                 isDeletedTab
-                  ? "bg-rose-600 text-white border-rose-600 shadow-xs"
-                  : "bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 border-slate-300 hover:border-rose-300 shadow-2xs"
+                  ? "bg-rose-600 text-white shadow-2xs"
+                  : "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80"
               )}
             >
-              <Trash2
-                className={cn(
-                  "w-3.5 h-3.5 shrink-0",
-                  isDeletedTab ? "text-white" : "text-rose-500"
-                )}
-              />
-              <span className="hidden sm:inline">Thùng rác</span>
-              <span
-                className={cn(
-                  "px-1.5 py-0.5 rounded-full text-[10px] font-bold tabular-nums leading-none",
-                  isDeletedTab
-                    ? "bg-rose-700 text-white"
-                    : "bg-rose-100 text-rose-700"
-                )}
-              >
-                {deletedMissionsCount}
-              </span>
+              <Trash2 className="w-3.5 h-3.5 shrink-0" />
+              <span>Đã xóa ({deletedMissionsCount})</span>
             </button>
           </Tooltip>
         )}
@@ -209,7 +196,7 @@ export function MissionsToolbar(props?: MissionsToolbarProps) {
 
         {/* Nút Làm mới danh sách */}
         <Tooltip
-          content={isRefreshing ? "Đang đồng bộ..." : "Làm mới danh sách"}
+          content={isRefreshing ? "Đang đồng bộ..." : "Làm mới danh sách bài tập"}
           side="top"
         >
           <button
@@ -219,10 +206,7 @@ export function MissionsToolbar(props?: MissionsToolbarProps) {
             className="w-10 h-10 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 hover:text-[#0A62D6] hover:border-[#0A62D6]/40 flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-2xs disabled:opacity-50"
           >
             <RotateCw
-              className={cn(
-                "w-4 h-4",
-                isRefreshing && "animate-spin text-[#0A62D6]"
-              )}
+              className={`w-4 h-4 ${isRefreshing ? "animate-spin text-[#0A62D6]" : ""}`}
             />
           </button>
         </Tooltip>
