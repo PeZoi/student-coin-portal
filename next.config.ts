@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   experimental: {
+    agentUpgrade: "security",
     // Tối ưu Router Cache khi chuyển trang và Back lại (Next.js 15/16)
     // Giữ cache trang động 60s để chuyển tab tức thì 0ms, không bị nháy lại Skeleton loading
     staleTimes: {
