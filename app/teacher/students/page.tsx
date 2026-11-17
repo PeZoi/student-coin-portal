@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { TeacherStudentsView } from "@/features/teacher/components/TeacherStudentsView";
+import { StudentRosterView } from "@/features/student-roster/components/StudentRosterView";
 
 export const metadata: Metadata = {
   title: "Hồ Sơ Học Sinh | Góc Giáo Viên",
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function StudentsPage() {
-  return <TeacherStudentsView />;
+  return <StudentRosterView />;
 }

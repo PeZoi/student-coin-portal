@@ -70,7 +70,7 @@ export function TeacherSidebar({
 			badgeColor: "bg-rose-100 text-rose-800 border-rose-200",
 		},
 		{
-			label: "Học sinh & Lớp",
+			label: "Danh sách học sinh",
 			href: AppRoutes.TEACHER.STUDENTS,
 			icon: Users,
 		},
@@ -140,7 +140,7 @@ export function TeacherSidebar({
 						href={AppRoutes.TEACHER.DASHBOARD}
 						className='group flex items-center gap-3 focus:outline-none'
 					>
-						<div className='relative w-10 h-10 rounded-xl bg-gradient-to-br from-[#0A62D6] to-[#074799] text-white flex items-center justify-center shadow-[0_4px_12px_-2px_rgba(10,98,214,0.4)] ring-1 ring-[#0A62D6]/20 shrink-0 group-hover:scale-[1.03] transition-transform'>
+						<div className='relative w-10 h-10 rounded-xl bg-linear-to-br from-[#0A62D6] to-[#074799] text-white flex items-center justify-center shadow-[0_4px_12px_-2px_rgba(10,98,214,0.4)] ring-1 ring-[#0A62D6]/20 shrink-0 group-hover:scale-[1.03] transition-transform'>
 							<GraduationCap className='w-5 h-5 text-white stroke-[2.2]' />
 							<span className='absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white' />
 						</div>
