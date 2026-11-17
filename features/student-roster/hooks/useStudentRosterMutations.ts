@@ -47,7 +47,11 @@ export function useStudentRosterMutations({
             teacherStudentService.adjustCoins({
               ...values,
               student_id: id,
-              tx_type: values.tx_type || CoinTxType.SPEAKING_REWARD,
+              tx_type:
+                values.tx_type ||
+                (values.type === "add"
+                  ? CoinTxType.SPEAKING_REWARD
+                  : CoinTxType.MANUAL_ADJUST),
             })
           )
         );

@@ -16,6 +16,7 @@ import {
   ChevronDown,
   ChevronsUpDown,
   ShieldCheck,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppRoutes } from "@/constants";
@@ -186,11 +187,18 @@ function MissionProgressModalContent({
     effectiveTotal > 0 ? Math.round((approvedCount / effectiveTotal) * 100) : 0;
   const percentPending = Math.max(0, percentSubmitted - percentApproved);
 
+  // State theo dõi học sinh đang được xử lý miễn bài tập (loading button)
+  const [exemptingStudentId, setExemptingStudentId] = useState<string | null>(
+    null
+  );
+
   // Xử lý bật/tắt miễn bài tập cho học sinh
   const handleToggleExempt = async (
     studentId: string,
     currentExempt: boolean
   ) => {
+    if (exemptingStudentId) return;
+    setExemptingStudentId(studentId);
     try {
       const nextExempt = !currentExempt;
       await mutate(
@@ -216,6 +224,8 @@ function MissionProgressModalContent({
     } catch {
       toast.error("Không thể cập nhật trạng thái miễn bài tập.");
       mutate();
+    } finally {
+      setExemptingStudentId(null);
     }
   };
 
@@ -791,6 +801,7 @@ function MissionProgressModalContent({
                         ) : (
                           <button
                             type="button"
+                            disabled={exemptingStudentId === student.id}
                             onClick={() =>
                               handleToggleExempt(
                                 student.id,
@@ -802,15 +813,23 @@ function MissionProgressModalContent({
                                 ? "Click để hủy miễn bài tập cho học sinh này"
                                 : "Click để miễn bài tập này cho học sinh"
                             }
-                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
                               student.is_exempt
                                 ? "bg-purple-100 hover:bg-purple-200 text-purple-800 border border-purple-300"
                                 : "bg-slate-100 hover:bg-purple-50 text-slate-600 hover:text-purple-700 border border-slate-200 hover:border-purple-200"
                             }`}
                           >
-                            <ShieldCheck className="w-3.5 h-3.5" />
+                            {exemptingStudentId === student.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-600" />
+                            ) : (
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                            )}
                             <span>
-                              {student.is_exempt ? "Bỏ miễn" : "Miễn bài"}
+                              {exemptingStudentId === student.id
+                                ? "Đang xử lý..."
+                                : student.is_exempt
+                                ? "Bỏ miễn"
+                                : "Miễn bài"}
                             </span>
                           </button>
                         )}

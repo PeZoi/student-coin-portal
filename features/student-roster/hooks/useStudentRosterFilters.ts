@@ -7,6 +7,7 @@ import {
   StudentRosterStatusFilter,
   TeacherRosterStudent,
 } from "../types";
+import { DEFAULT_ROSTER_PAGE_SIZE } from "../constants";
 
 interface UseStudentRosterFiltersProps {
   students: TeacherRosterStudent[];
@@ -29,7 +30,7 @@ export function useStudentRosterFilters({
 
   // State phân trang
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(DEFAULT_ROSTER_PAGE_SIZE);
 
   // 1. Thống kê KPI tổng quan
   const kpiData = useMemo(() => {
@@ -43,14 +44,18 @@ export function useStudentRosterFilters({
       (sum, s) => sum + s.total_missions_count,
       0
     );
-    const completedMissionsAll = students.reduce(
-      (sum, s) => sum + s.completed_missions_count,
+    const handledMissionsAll = students.reduce(
+      (sum, s) =>
+        sum +
+        s.completed_missions_count +
+        (s.pending_missions_count ?? 0) +
+        (s.exempt_missions_count ?? 0),
       0
     );
 
     const completionRate =
       totalMissionsAll > 0
-        ? Math.round((completedMissionsAll / totalMissionsAll) * 1000) / 10
+        ? Math.round((handledMissionsAll / totalMissionsAll) * 1000) / 10
         : 0;
 
     return {
@@ -95,7 +100,15 @@ export function useStudentRosterFilters({
         } else if (sortField === "redeemed_rewards_count") {
           diff = a.redeemed_rewards_count - b.redeemed_rewards_count;
         } else if (sortField === "completed_missions_count") {
-          diff = a.completed_missions_count - b.completed_missions_count;
+          const handledA =
+            a.completed_missions_count +
+            (a.pending_missions_count ?? 0) +
+            (a.exempt_missions_count ?? 0);
+          const handledB =
+            b.completed_missions_count +
+            (b.pending_missions_count ?? 0) +
+            (b.exempt_missions_count ?? 0);
+          diff = handledA - handledB;
         }
         return sortOrder === "asc" ? diff : -diff;
       });

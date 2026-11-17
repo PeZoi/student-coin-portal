@@ -2,12 +2,14 @@
 
 import { useMemo, useEffect, useRef, useCallback } from "react";
 import useSWRInfinite from "swr/infinite";
+import { useSWRConfig } from "swr";
 import { toast } from "sonner";
 import {
   TeacherRosterStudent,
   RosterMissionProgressStatus,
 } from "../types";
 import { studentRosterService, StudentAssignedMissionsResponse } from "../services/studentRosterService";
+import { calculateStudentMissionProgress } from "../utils/missionProgress";
 
 export type MissionFilterTab = "all" | RosterMissionProgressStatus;
 
@@ -24,6 +26,7 @@ export function useRosterAssignedMissionsInfinite(
 ) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const { mutate: globalMutate } = useSWRConfig();
   const studentId = student?.id;
 
   const getKey = (
@@ -75,23 +78,25 @@ export function useRosterAssignedMissionsInfinite(
   }, [data]);
 
   const stats = useMemo(() => {
-    const total = summary.total;
-    const approved = summary.completed;
-    const submitted = summary.pending;
-    const assigned = summary.unsubmitted;
-    const totalCoins = summary.total_earned_coins;
-    const rejected = 0;
     const exempt = visibleMissions.filter((m) => m.status === "exempt").length;
+    const progress = calculateStudentMissionProgress({
+      total: summary.total,
+      approved: summary.completed,
+      submitted: summary.pending,
+      exempt,
+    });
 
     return {
-      total,
-      approved,
-      submitted,
-      assigned,
-      rejected,
-      exempt,
-      totalCoins,
-      progressPercent: total > 0 ? Math.round((approved / total) * 100) : 0,
+      total: progress.total,
+      approved: progress.approved,
+      submitted: progress.submitted,
+      assigned: progress.unsubmitted,
+      exempt: progress.exempt,
+      totalCoins: summary.total_earned_coins,
+      progressPercent: progress.progressPercent,
+      approvedPercent: progress.approvedPercent,
+      submittedPercent: progress.submittedPercent,
+      exemptPercent: progress.exemptPercent,
     };
   }, [summary, visibleMissions]);
 
@@ -123,6 +128,12 @@ export function useRosterAssignedMissionsInfinite(
           willExempt
         );
         await mutate();
+        // Revalidate ngầm danh sách roster để thanh tiến độ và số lượng bài ở bảng tự động cập nhật mượt mà
+        globalMutate(
+          (key) => Array.isArray(key) && key[0] === "roster-students",
+          undefined,
+          { revalidate: true }
+        );
         return { status: nextStatus, title: target.title };
       } catch (err: unknown) {
         const errObj = err instanceof Error ? err : new Error(String(err));
@@ -130,7 +141,7 @@ export function useRosterAssignedMissionsInfinite(
         return null;
       }
     },
-    [studentId, visibleMissions, mutate]
+    [studentId, visibleMissions, mutate, globalMutate]
   );
 
   // IntersectionObserver tự động tăng size khi cuộn tới sentinel

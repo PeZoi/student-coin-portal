@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { X, Trash2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type ModalMaxWidth = "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl";
+export type ModalMaxWidth = "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
 
 const MAX_WIDTH_CLASSES: Record<ModalMaxWidth, string> = {
 	sm: "max-w-sm",
@@ -15,6 +15,7 @@ const MAX_WIDTH_CLASSES: Record<ModalMaxWidth, string> = {
 	"2xl": "max-w-2xl",
 	"3xl": "max-w-3xl",
 	"4xl": "max-w-4xl",
+	"5xl": "max-w-5xl",
 };
 
 export interface ModalProps {
@@ -151,6 +152,7 @@ export function ModalHeader({
 }
 
 export interface ModalBodyProps extends React.HTMLAttributes<HTMLDivElement> {
+	ref?: React.Ref<HTMLDivElement>;
 	children: React.ReactNode;
 }
 

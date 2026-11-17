@@ -5,6 +5,7 @@ import { School } from "lucide-react";
 import { Pagination } from "@/components/ui/Pagination";
 import { useTeacherWorkspaceStore } from "@/stores/useTeacherWorkspaceStore";
 import { TeacherRosterStudent } from "../types";
+import { ROSTER_PAGE_SIZE_OPTIONS } from "../constants";
 import {
   StudentRosterProvider,
   useStudentRosterContext,
@@ -120,7 +121,6 @@ function StudentRosterContent() {
     missionsStudent,
     isMissionsModalOpen,
     handleCloseMissionsModal,
-    mutate,
     awardStudent,
     isAwardModalOpen,
     handleCloseAwardModal,
@@ -178,7 +178,7 @@ function StudentRosterContent() {
                   setPageSize(newSize);
                   setCurrentPage(1);
                 }}
-                pageSizeOptions={[10, 20, 50]}
+                pageSizeOptions={ROSTER_PAGE_SIZE_OPTIONS}
                 itemLabel="học sinh"
               />
             </div>
@@ -207,10 +207,7 @@ function StudentRosterContent() {
       {/* Modal 3: Danh sách bài tập đã giao và duyệt bài ngoại lệ */}
       <StudentAssignedMissionsModal
         isOpen={isMissionsModalOpen}
-        onClose={() => {
-          handleCloseMissionsModal();
-          mutate();
-        }}
+        onClose={handleCloseMissionsModal}
         student={missionsStudent}
       />
 

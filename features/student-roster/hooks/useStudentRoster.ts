@@ -64,6 +64,7 @@ export function useStudentRoster({
       revalidateOnMount: !(isMatchingInitialClass && initialStudents.length > 0),
       revalidateIfStale: !(isMatchingInitialClass && initialStudents.length > 0),
       revalidateOnFocus: false,
+      keepPreviousData: true,
     }
   );
 

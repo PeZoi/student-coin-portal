@@ -11,3 +11,4 @@ export * from "./components/modals/StudentAssignedMissionsModal";
 export * from "./contexts/StudentRosterContext";
 export * from "./hooks/useStudentRoster";
 export * from "./constants";
+export * from "./utils/missionProgress";

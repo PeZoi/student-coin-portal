@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
 import {
@@ -16,6 +16,12 @@ import {
   X,
   ShieldBan,
   RotateCcw,
+  Table2,
+  LayoutGrid,
+  ChevronsUpDown,
+  ChevronUp,
+  ChevronDown,
+  Eye,
 } from "lucide-react";
 import {
   Modal,
@@ -24,13 +30,20 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
+import {
   TeacherRosterStudent,
   RosterAssignedMissionItem,
   RosterMissionProgressStatus,
 } from "../../types";
 import {
   useRosterAssignedMissionsInfinite,
-  MissionFilterTab,
 } from "../../hooks/useRosterAssignedMissionsInfinite";
 import { formatDate } from "@/lib/date";
 
@@ -56,6 +69,10 @@ export function StudentAssignedMissionsModal({
   );
 }
 
+type MissionViewMode = "table" | "card";
+type MissionSortField = "title" | "deadline" | "reward_coins" | "status";
+type SortDirection = "asc" | "desc" | "none";
+
 interface DialogContentProps {
   student: TeacherRosterStudent;
   onClose: () => void;
@@ -65,10 +82,13 @@ function StudentAssignedMissionsDialogContent({
   student,
   onClose,
 }: DialogContentProps) {
-  const [activeTab, setActiveTab] = useState<MissionFilterTab>("all");
+  const [viewMode, setViewMode] = useState<MissionViewMode>("table");
+
+  // Sắp xếp cột trên bảng
+  const [sortField, setSortField] = useState<MissionSortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>("none");
 
   const {
-    handleTabChange,
     visibleMissions,
     totalFilteredCount,
     stats,
@@ -78,36 +98,118 @@ function StudentAssignedMissionsDialogContent({
     containerRef,
     sentinelRef,
     toggleExemptMission,
-  } = useRosterAssignedMissionsInfinite(student, activeTab, setActiveTab);
+  } = useRosterAssignedMissionsInfinite(student, "all", () => {});
+
+  // Thao tác đổi thứ tự sắp xếp
+  const handleSortToggle = useCallback((field: MissionSortField) => {
+    if (sortField !== field) {
+      setSortField(field);
+      setSortDirection("asc");
+    } else {
+      if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else if (sortDirection === "desc") {
+        setSortDirection("none");
+        setSortField(null);
+      } else {
+        setSortDirection("asc");
+      }
+    }
+  }, [sortField, sortDirection]);
+
+  // Icon hiển thị chiều sắp xếp ở header bảng
+  const renderSortIcon = useCallback(
+    (field: MissionSortField) => {
+      if (sortField !== field || sortDirection === "none") {
+        return (
+          <ChevronsUpDown className="w-3.5 h-3.5 text-slate-400 opacity-60" />
+        );
+      }
+      if (sortDirection === "asc") {
+        return <ChevronUp className="w-3.5 h-3.5 text-[#0A62D6]" />;
+      }
+      return <ChevronDown className="w-3.5 h-3.5 text-[#0A62D6]" />;
+    },
+    [sortField, sortDirection]
+  );
+
+  // Danh sách bài tập đã được sắp xếp
+  const displayedMissions = useMemo(() => {
+    if (!sortField || sortDirection === "none") {
+      return visibleMissions;
+    }
+
+    return [...visibleMissions].sort((a, b) => {
+      let comparison = 0;
+      if (sortField === "title") {
+        comparison = a.title.localeCompare(b.title, "vi");
+      } else if (sortField === "deadline") {
+        const timeA = a.deadline ? new Date(a.deadline).getTime() : 0;
+        const timeB = b.deadline ? new Date(b.deadline).getTime() : 0;
+        comparison = timeA - timeB;
+      } else if (sortField === "reward_coins") {
+        const coinsA =
+          a.status === "approved"
+            ? a.earned_coins || a.reward_coins
+            : a.reward_coins;
+        const coinsB =
+          b.status === "approved"
+            ? b.earned_coins || b.reward_coins
+            : b.reward_coins;
+        comparison = coinsA - coinsB;
+      } else if (sortField === "status") {
+        const rankMap: Record<string, number> = {
+          submitted: 4,
+          approved: 3,
+          assigned: 2,
+          rejected: 1,
+          exempt: 0,
+        };
+        comparison = (rankMap[a.status] ?? 0) - (rankMap[b.status] ?? 0);
+      }
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+  }, [visibleMissions, sortField, sortDirection]);
 
   // State xem phóng to ảnh minh chứng
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
+  // State theo dõi id bài tập đang xử lý miễn làm (để loading nút tương ứng)
+  const [exemptingMissionId, setExemptingMissionId] = useState<string | null>(
+    null
+  );
+
   // Xử lý miễn làm bài ngoại lệ
   const handleToggleExempt = useCallback(
     async (missionId: string) => {
-      const res = await toggleExemptMission(missionId);
-      if (res) {
-        if (res.status === "exempt") {
-          toast.success(
-            `Đã miễn làm bài "${res.title}" cho học sinh ${student.full_name} (ngoại lệ).`
-          );
-        } else {
-          toast.info(
-            `Đã hủy miễn làm, mở lại bài "${res.title}" cho học sinh ${student.full_name}.`
-          );
+      if (exemptingMissionId) return;
+      setExemptingMissionId(missionId);
+      try {
+        const res = await toggleExemptMission(missionId);
+        if (res) {
+          if (res.status === "exempt") {
+            toast.success(
+              `Đã miễn làm bài "${res.title}" cho học sinh ${student.full_name} (ngoại lệ).`
+            );
+          } else {
+            toast.info(
+              `Đã hủy miễn làm, mở lại bài "${res.title}" cho học sinh ${student.full_name}.`
+            );
+          }
         }
+      } finally {
+        setExemptingMissionId(null);
       }
     },
-    [toggleExemptMission, student.full_name]
+    [toggleExemptMission, student.full_name, exemptingMissionId]
   );
 
   return (
     <>
       <Modal
-        maxWidth="3xl"
+        maxWidth="5xl"
         onClose={onClose}
-        className="h-[88vh] max-h-[820px] flex flex-col"
+        className="h-[88vh] max-h-[840px] flex flex-col"
       >
         <ModalHeader
           icon={<BookOpenCheck className="w-6 h-6 text-[#0A62D6]" />}
@@ -127,20 +229,40 @@ function StudentAssignedMissionsDialogContent({
           onClose={onClose}
         />
 
-        {/* ModalBody không cuộn, chỉ flex-1 để giữ thanh KPI + Filter cố định và danh sách con cuộn */}
-        <ModalBody className="p-4 sm:p-5 flex-1 min-h-0 overflow-hidden flex flex-col gap-3">
-          {/* 1. Thanh tóm tắt tiến độ bài tập (Cố định ở trên) */}
+        {/* ModalBody cuộn tự nhiên toàn bộ modal */}
+        <ModalBody
+          ref={containerRef}
+          className="p-4 sm:p-6 flex-1 min-h-0 overflow-y-auto space-y-4"
+        >
+          {/* 1. Thanh tóm tắt tiến độ bài tập */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-slate-50/90 border border-slate-200/90 text-xs shrink-0">
             <div className="flex flex-col">
               <span className="text-slate-500 font-medium">Tiến độ hoàn thành:</span>
               <span className="font-heading font-black text-[#0F172A] text-sm sm:text-base mt-0.5">
-                {stats.approved}/{stats.total} bài ({stats.progressPercent}%)
+                {stats.approved + stats.submitted + stats.exempt}/{stats.total} bài ({stats.progressPercent}%)
               </span>
-              <div className="w-full h-1.5 bg-slate-200 rounded-full mt-1.5 overflow-hidden">
-                <div
-                  className="h-full bg-emerald-500 rounded-full transition-all duration-300"
-                  style={{ width: `${stats.progressPercent}%` }}
-                />
+              <div className="w-full h-1.5 bg-slate-200 rounded-full mt-1.5 overflow-hidden flex">
+                {stats.approvedPercent > 0 && (
+                  <div
+                    className="h-full bg-emerald-500 transition-all duration-300"
+                    style={{ width: `${stats.approvedPercent}%` }}
+                    title={`Đã duyệt: ${stats.approved} bài (${stats.approvedPercent}%)`}
+                  />
+                )}
+                {stats.submittedPercent > 0 && (
+                  <div
+                    className="h-full bg-amber-400 transition-all duration-300"
+                    style={{ width: `${stats.submittedPercent}%` }}
+                    title={`Chờ chấm: ${stats.submitted} bài (${stats.submittedPercent}%)`}
+                  />
+                )}
+                {stats.exemptPercent > 0 && (
+                  <div
+                    className="h-full bg-purple-500 transition-all duration-300"
+                    style={{ width: `${stats.exemptPercent}%` }}
+                    title={`Miễn làm: ${stats.exempt} bài (${stats.exemptPercent}%)`}
+                  />
+                )}
               </div>
             </div>
 
@@ -175,107 +297,169 @@ function StudentAssignedMissionsDialogContent({
             </div>
           </div>
 
-          {/* 2. Thanh lọc theo trạng thái bài tập - Dạng Segmented Control siêu gọn (Cố định ở trên) */}
-          <div className="bg-slate-100/90 p-1 rounded-xl flex items-center gap-1 overflow-x-auto scrollbar-none shrink-0 border border-slate-200/60">
-            <CompactFilterTab
-              label="Tất cả"
-              count={stats.total}
-              isActive={activeTab === "all"}
-              onClick={() => handleTabChange("all")}
-            />
-            <CompactFilterTab
-              label="Hoàn thành"
-              count={stats.approved}
-              isActive={activeTab === "approved"}
-              activeText="text-emerald-700"
-              onClick={() => handleTabChange("approved")}
-            />
-            <CompactFilterTab
-              label="Chờ chấm"
-              count={stats.submitted}
-              isActive={activeTab === "submitted"}
-              activeText="text-amber-700"
-              onClick={() => handleTabChange("submitted")}
-            />
-            <CompactFilterTab
-              label="Chưa nộp"
-              count={stats.assigned}
-              isActive={activeTab === "assigned"}
-              activeText="text-blue-700"
-              onClick={() => handleTabChange("assigned")}
-            />
-            {stats.rejected > 0 && (
-              <CompactFilterTab
-                label="Cần làm lại"
-                count={stats.rejected}
-                isActive={activeTab === "rejected"}
-                activeText="text-rose-700"
-                onClick={() => handleTabChange("rejected")}
-              />
-            )}
-            {stats.exempt > 0 && (
-              <CompactFilterTab
-                label="Miễn làm"
-                count={stats.exempt}
-                isActive={activeTab === "exempt"}
-                activeText="text-purple-700"
-                onClick={() => handleTabChange("exempt")}
-              />
-            )}
+          {/* 2. Tiêu đề danh sách & Chuyển đổi chế độ xem (Bảng / Thẻ) */}
+          <div className="flex items-center justify-between gap-2 flex-wrap pt-0.5">
+            <div className="flex items-center gap-2">
+              <span className="text-xs sm:text-sm font-bold text-[#0F172A]">
+                Danh sách bài tập ({stats.total} bài)
+              </span>
+            </div>
+
+            {/* Chuyển đổi chế độ xem: Bảng (Table) hoặc Thẻ (Card) */}
+            <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1 border border-slate-200/60 shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  viewMode === "table"
+                    ? "bg-white text-[#0A62D6] font-bold shadow-2xs"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
+                }`}
+                title="Chế độ xem Bảng"
+              >
+                <Table2 className="w-3.5 h-3.5" />
+                <span>Bảng</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("card")}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  viewMode === "card"
+                    ? "bg-white text-[#0A62D6] font-bold shadow-2xs"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
+                }`}
+                title="Chế độ xem Thẻ"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span>Thẻ</span>
+              </button>
+            </div>
           </div>
 
-          {/* 3. Danh sách bài tập - VÙNG CUỘN DUY NHẤT (Infinite Scroll) */}
-          <div
-            ref={containerRef}
-            className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-3"
-          >
-            {isLoading ? (
-              <div className="py-14 flex flex-col items-center justify-center gap-2.5 text-slate-400">
-                <Loader2 className="w-6 h-6 animate-spin text-[#0A62D6]" />
-                <span className="text-xs sm:text-sm font-medium">Đang tải danh sách bài tập...</span>
+          {/* 3. Danh sách bài tập (Table hoặc Card) */}
+          {isLoading ? (
+            <div className="py-14 flex flex-col items-center justify-center gap-2.5 text-slate-400">
+              <Loader2 className="w-6 h-6 animate-spin text-[#0A62D6]" />
+              <span className="text-xs sm:text-sm font-medium">
+                Đang tải danh sách bài tập...
+              </span>
+            </div>
+          ) : displayedMissions.length === 0 ? (
+            <div className="py-14 flex flex-col items-center justify-center text-center p-4 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-2.5 text-slate-400">
+                <Inbox className="w-6 h-6" />
               </div>
-            ) : visibleMissions.length === 0 ? (
-              <div className="py-14 flex flex-col items-center justify-center text-center p-4 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-2.5 text-slate-400">
-                  <Inbox className="w-6 h-6" />
-                </div>
-                <p className="text-sm font-bold text-slate-700">
-                  Không có bài tập nào trong mục này
-                </p>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Học sinh chưa có bài tập phù hợp với bộ lọc đã chọn.
-                </p>
-              </div>
-            ) : (
-              <>
-                {visibleMissions.map((item) => (
-                  <MissionCardItem
-                    key={item.id}
-                    item={item}
-                    onPreviewImage={setPreviewImage}
-                    onToggleExempt={handleToggleExempt}
-                  />
-                ))}
-
-                {/* Sentinel trigger infinite scroll khi cuộn tới cuối */}
-                <div
-                  ref={sentinelRef}
-                  className="py-3 flex items-center justify-center"
+              <p className="text-sm font-bold text-slate-700">
+                Không có bài tập nào
+              </p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Học sinh chưa có bài tập nào được giao.
+              </p>
+            </div>
+          ) : (
+            <>
+              {viewMode === "table" ? (
+                <Table
+                  containerClassName="border border-slate-200 rounded-xl overflow-x-auto md:overflow-x-hidden bg-white shadow-2xs"
+                  className="w-full table-fixed"
                 >
-                  {isLoadingMore ? (
-                    <div className="flex items-center gap-2 text-xs font-medium text-slate-500 py-1">
-                      <Loader2 className="w-4 h-4 animate-spin text-[#0A62D6]" />
-                      <span>Đang tải thêm các bài tập cũ hơn...</span>
-                    </div>
-                  ) : isReachingEnd && visibleMissions.length > 0 ? (
-                    <span className="text-[11px] font-medium text-slate-400 py-0.5">
-                      Đã hiển thị toàn bộ {totalFilteredCount} bài tập
-                    </span>
-                  ) : null}
+                  <TableHeader className="bg-slate-50/95 border-b border-slate-200 sticky top-0 z-10">
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead
+                        className="w-[34%] cursor-pointer hover:bg-slate-100/80 transition-colors select-none py-2.5 px-3"
+                        onClick={() => handleSortToggle("title")}
+                      >
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                          <span>Bài tập</span>
+                          {renderSortIcon("title")}
+                        </div>
+                      </TableHead>
+
+                      <TableHead
+                        className="w-[17%] cursor-pointer hover:bg-slate-100/80 transition-colors select-none py-2.5 px-2.5 sm:px-3"
+                        onClick={() => handleSortToggle("deadline")}
+                      >
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                          <span>Giao - Hạn nộp</span>
+                          {renderSortIcon("deadline")}
+                        </div>
+                      </TableHead>
+
+                      <TableHead
+                        align="right"
+                        className="w-[12%] cursor-pointer hover:bg-slate-100/80 transition-colors select-none py-2.5 px-2 sm:px-2.5 text-right"
+                        onClick={() => handleSortToggle("reward_coins")}
+                      >
+                        <div className="flex items-center justify-end gap-1.5 text-xs font-bold text-slate-700">
+                          <span>Thưởng xu</span>
+                          {renderSortIcon("reward_coins")}
+                        </div>
+                      </TableHead>
+
+                      <TableHead
+                        className="w-[21%] cursor-pointer hover:bg-slate-100/80 transition-colors select-none py-2.5 px-2.5 sm:px-3"
+                        onClick={() => handleSortToggle("status")}
+                      >
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                          <span>Trạng thái</span>
+                          {renderSortIcon("status")}
+                        </div>
+                      </TableHead>
+
+                      <TableHead
+                        align="right"
+                        className="w-[16%] py-2.5 px-2.5 sm:px-3 text-right"
+                      >
+                        <span className="text-xs font-bold text-slate-700 select-none">
+                          Thao tác
+                        </span>
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {displayedMissions.map((item) => (
+                      <MissionTableItem
+                        key={item.id}
+                        item={item}
+                        onPreviewImage={setPreviewImage}
+                        onToggleExempt={handleToggleExempt}
+                        isExempting={exemptingMissionId === item.id}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="space-y-3">
+                  {displayedMissions.map((item) => (
+                    <MissionCardItem
+                      key={item.id}
+                      item={item}
+                      onPreviewImage={setPreviewImage}
+                      onToggleExempt={handleToggleExempt}
+                      isExempting={exemptingMissionId === item.id}
+                    />
+                  ))}
                 </div>
-              </>
-            )}
-          </div>
+              )}
+
+              {/* Sentinel trigger infinite scroll khi cuộn tới cuối */}
+              <div
+                ref={sentinelRef}
+                className="py-3 flex items-center justify-center"
+              >
+                {isLoadingMore ? (
+                  <div className="flex items-center gap-2 text-xs font-medium text-slate-500 py-1">
+                    <Loader2 className="w-4 h-4 animate-spin text-[#0A62D6]" />
+                    <span>Đang tải thêm các bài tập cũ hơn...</span>
+                  </div>
+                ) : isReachingEnd && displayedMissions.length > 0 ? (
+                  <span className="text-[11px] font-medium text-slate-400 py-0.5">
+                    Đã hiển thị toàn bộ {totalFilteredCount} bài tập
+                  </span>
+                ) : null}
+              </div>
+            </>
+          )}
         </ModalBody>
 
         <ModalFooter>
@@ -326,41 +510,189 @@ function StudentAssignedMissionsDialogContent({
   );
 }
 
-/** Component nút lọc trạng thái dạng Compact Segmented Tab */
-function CompactFilterTab({
-  label,
-  count,
-  isActive,
-  activeText = "text-[#0A62D6]",
-  onClick,
+/** Component hàng hiển thị 1 bài tập trong chế độ Bảng */
+function MissionTableItem({
+  item,
+  onPreviewImage,
+  onToggleExempt,
+  isExempting = false,
 }: {
-  label: string;
-  count: number;
-  isActive: boolean;
-  activeText?: string;
-  onClick: () => void;
+  item: RosterAssignedMissionItem;
+  onPreviewImage: (url: string) => void;
+  onToggleExempt: (missionId: string) => void;
+  isExempting?: boolean;
 }) {
+  const statusBadge = getStatusBadge(item.status);
+  const isExempt = item.status === "exempt";
+
+  const isWriting = item.submission_type === "subjective_writing";
+  const missionIconSrc = isWriting
+    ? "/submissions/write.webp"
+    : "/submissions/capture.webp";
+  const missionIconBg = isWriting
+    ? "bg-purple-50 border-purple-200 text-purple-700"
+    : "bg-sky-50 border-sky-200 text-sky-700";
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 select-none ${
-        isActive
-          ? `bg-white ${activeText} font-bold shadow-2xs`
-          : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
-      }`}
+    <TableRow
+      className={
+        isExempt
+          ? "bg-purple-50/25 hover:bg-purple-50/50"
+          : undefined
+      }
     >
-      <span>{label}</span>
-      <span
-        className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-          isActive
-            ? "bg-slate-100 text-slate-800"
-            : "bg-slate-200/70 text-slate-500"
-        }`}
-      >
-        {count}
-      </span>
-    </button>
+      {/* 1. avatar + tên bài làm có thể warp 2 dòng */}
+      <TableCell className="py-2.5 px-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div
+            className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${missionIconBg} shadow-2xs`}
+            title={isWriting ? "Vở viết tay (AI chấm)" : "Ảnh chụp minh chứng"}
+          >
+            <Image
+              src={missionIconSrc}
+              alt={isWriting ? "Viết vở" : "Minh chứng"}
+              width={24}
+              height={24}
+              unoptimized
+              style={{ height: "auto" }}
+              className="w-5.5 h-5.5 object-contain drop-shadow-2xs"
+            />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h4
+              className="text-xs sm:text-[13px] font-bold text-[#0F172A] leading-snug line-clamp-2 break-words"
+              title={item.title}
+            >
+              {item.title}
+            </h4>
+            {item.teacher_feedback ? (
+              <div
+                className="inline-flex items-center gap-1 text-[11px] text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/80 mt-1 max-w-[260px] truncate"
+                title={`Nhận xét của cô: ${item.teacher_feedback}`}
+              >
+                <MessageSquare className="w-3 h-3 text-amber-600 shrink-0" />
+                <span className="truncate">{item.teacher_feedback}</span>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </TableCell>
+
+      {/* 2. giao - hạn nộp */}
+      <TableCell className="py-2.5 px-2.5 sm:px-3 whitespace-nowrap">
+        <div className="space-y-0.5 text-[11px]">
+          <div className="flex items-center gap-1 text-slate-500">
+            <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
+            <span>Giao: {formatDate(item.assigned_at, "dd/MM/yyyy")}</span>
+          </div>
+          <div className="flex items-center gap-1 font-semibold text-slate-700">
+            <Clock className="w-3 h-3 text-amber-500 shrink-0" />
+            <span>
+              Hạn: {item.deadline ? formatDate(item.deadline, "dd/MM/yyyy") : "Không có"}
+            </span>
+          </div>
+        </div>
+      </TableCell>
+
+      {/* 3. số xu sẽ nhận */}
+      <TableCell className="py-2.5 px-2 sm:px-2.5 text-right whitespace-nowrap">
+        <span className="inline-flex items-center gap-1 text-xs font-heading font-black text-amber-950 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200 shadow-2xs">
+          <Image
+            src="/wheel/coin.webp"
+            alt="Xu"
+            width={14}
+            height={14}
+            unoptimized
+            style={{ height: "auto" }}
+            className="w-3.5 h-3.5 object-contain shrink-0 drop-shadow-2xs"
+          />
+          {item.status === "approved"
+            ? `+${(item.earned_coins || item.reward_coins).toLocaleString("vi-VN")} xu`
+            : `${item.reward_coins} xu`}
+        </span>
+      </TableCell>
+
+      {/* 4. trạng thái + đã nộp (vừa badge và ở dưới là ngày giờ đã nộp) */}
+      <TableCell className="py-2.5 px-2.5 sm:px-3 whitespace-nowrap">
+        <div className="space-y-1">
+          <div>
+            <span
+              className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md border ${statusBadge.className}`}
+            >
+              {statusBadge.icon}
+              {statusBadge.label}
+            </span>
+          </div>
+          {item.submitted_at && (
+            <div className="text-[11px] text-[#0A62D6] font-medium flex items-center gap-1">
+              <Clock className="w-3 h-3 text-[#0A62D6] shrink-0" />
+              <span>Nộp: {formatDate(item.submitted_at, "HH:mm, dd/MM")}</span>
+            </div>
+          )}
+        </div>
+      </TableCell>
+
+      {/* 5. action miễn làm nếu có */}
+      <TableCell className="py-2.5 px-2.5 sm:px-3 text-right whitespace-nowrap">
+        {item.status === "assigned" || isExempt ? (
+          <div>
+            {isExempt ? (
+              <button
+                type="button"
+                disabled={isExempting}
+                onClick={() => onToggleExempt(item.id)}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer shadow-2xs disabled:opacity-60 disabled:cursor-not-allowed group"
+                title="Hủy miễn làm và mở lại bài tập này cho học sinh"
+              >
+                {isExempting ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin text-emerald-600" />
+                    <span>Đang xử lý...</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-3 h-3 text-emerald-600" />
+                    <span>Bỏ miễn</span>
+                  </>
+                )}
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled={isExempting}
+                onClick={() => onToggleExempt(item.id)}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 transition-colors cursor-pointer shadow-2xs disabled:opacity-60 disabled:cursor-not-allowed group"
+                title="Miễn làm bài tập này cho học sinh"
+              >
+                {isExempting ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin text-slate-600" />
+                    <span>Đang xử lý...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldBan className="w-3 h-3 text-slate-500 group-hover:text-purple-600" />
+                    <span>Miễn làm</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        ) : item.proof_image_urls && item.proof_image_urls.length > 0 ? (
+          <button
+            type="button"
+            onClick={() => onPreviewImage(item.proof_image_urls![0])}
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-[#0A62D6] hover:bg-[#EAF2FF] transition-colors cursor-pointer"
+            title="Bấm để xem ảnh minh chứng bài làm"
+          >
+            <Eye className="w-3.5 h-3.5" />
+            <span>Xem ảnh ({item.proof_image_urls.length})</span>
+          </button>
+        ) : (
+          <span className="text-slate-300 text-xs">-</span>
+        )}
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -369,10 +701,12 @@ function MissionCardItem({
   item,
   onPreviewImage,
   onToggleExempt,
+  isExempting = false,
 }: {
   item: RosterAssignedMissionItem;
   onPreviewImage: (url: string) => void;
   onToggleExempt: (missionId: string) => void;
+  isExempting?: boolean;
 }) {
   const statusBadge = getStatusBadge(item.status);
   const isExempt = item.status === "exempt";
@@ -478,22 +812,42 @@ function MissionCardItem({
             {isExempt ? (
               <button
                 type="button"
+                disabled={isExempting}
                 onClick={() => onToggleExempt(item.id)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer shadow-2xs disabled:opacity-60 disabled:cursor-not-allowed"
                 title="Hủy miễn làm và mở lại bài tập này cho học sinh"
               >
-                <RotateCcw className="w-3 h-3" />
-                <span>Hủy miễn làm</span>
+                {isExempting ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin text-emerald-600" />
+                    <span>Đang xử lý...</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Hủy miễn làm</span>
+                  </>
+                )}
               </button>
             ) : (
               <button
                 type="button"
+                disabled={isExempting}
                 onClick={() => onToggleExempt(item.id)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200 border border-slate-200 transition-colors cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200 border border-slate-200 transition-colors cursor-pointer shadow-2xs disabled:opacity-60 disabled:cursor-not-allowed"
                 title="Học sinh không cần làm bài này vì ngoại lệ (mới chuyển vào lớp, nghỉ ốm...)"
               >
-                <ShieldBan className="w-3 h-3 text-slate-500 group-hover:text-purple-600" />
-                <span>Miễn làm bài này</span>
+                {isExempting ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin text-purple-600" />
+                    <span>Đang miễn làm...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldBan className="w-3 h-3 text-slate-500 group-hover:text-purple-600" />
+                    <span>Miễn làm bài này</span>
+                  </>
+                )}
               </button>
             )}
           </div>
@@ -573,7 +927,7 @@ function getStatusBadge(status: RosterMissionProgressStatus) {
       };
     case "exempt":
       return {
-        label: "Miễn làm (Ngoại lệ)",
+        label: "Miễn làm",
         className: "bg-purple-50 text-purple-700 border-purple-200",
         icon: <ShieldBan className="w-3 h-3 text-purple-600" />,
       };

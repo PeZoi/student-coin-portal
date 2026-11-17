@@ -82,12 +82,12 @@ function StudentCoinTransactionsDialogContent({
   } = useStudentCoinTransactionsInfinite(studentItem?.id);
 
   return (
-    <Modal maxWidth="lg" onClose={onClose}>
+    <Modal maxWidth="xl" onClose={onClose}>
       <ModalHeader
-        icon={<Coins className="w-6 h-6 text-[#0A62D6]" />}
+        icon={<Coins className="w-5 h-5 text-amber-500" />}
         title="Lịch sử giao dịch ví xu"
         description={
-          <span className="text-xs sm:text-sm">
+          <span className="text-xs text-slate-500">
             Học sinh:{" "}
             <span className="font-bold text-[#0F172A]">
               {studentItem.full_name}
@@ -101,104 +101,100 @@ function StudentCoinTransactionsDialogContent({
         onClose={onClose}
       />
 
-      <ModalBody>
-        <div className="space-y-4">
-          {/* Thanh tóm tắt ngang (Summary Ribbon) rõ ràng, dễ nhìn */}
-          <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-slate-50/90 border border-slate-200/90 text-xs sm:text-sm">
-            <div className="flex items-center gap-1.5">
-              <span className="text-slate-500 font-medium">Số dư ví:</span>
-              <span className="inline-flex items-center gap-1 font-heading font-black text-amber-950 tabular-nums">
-                <Image
-                  src="/wheel/coin.webp"
-                  alt="Xu ví"
-                  width={16}
-                  height={16}
-                  unoptimized
-                  style={{ height: "auto" }}
-                  className="w-4 h-4 object-contain shrink-0"
-                />
+      <ModalBody className="p-3.5 sm:p-5 space-y-3">
+        {/* Thanh tóm tắt 3 chỉ số nhỏ gọn, hiện đại */}
+        <div className="grid grid-cols-3 gap-2">
+          <div className="px-3 py-2 rounded-xl bg-amber-50/70 border border-amber-200/80">
+            <span className="text-[11px] font-medium text-amber-800 block">Số dư hiện tại</span>
+            <div className="inline-flex items-center gap-1 mt-0.5">
+              <Image
+                src="/wheel/coin.webp"
+                alt="Xu ví"
+                width={14}
+                height={14}
+                unoptimized
+                style={{ height: "auto" }}
+                className="w-3.5 h-3.5 object-contain shrink-0"
+              />
+              <span className="font-heading font-black text-amber-950 text-xs sm:text-sm tabular-nums">
                 {studentItem.current_coins.toLocaleString("vi-VN")} xu
               </span>
             </div>
-
-            <span className="text-slate-300">•</span>
-
-            <div className="flex items-center gap-1.5">
-              <span className="text-slate-500 font-medium">Đã tích lũy:</span>
-              <span className="font-bold text-slate-800 tabular-nums">
-                {studentItem.total_earned_coins.toLocaleString("vi-VN")} xu
-              </span>
-            </div>
-
-            <span className="text-slate-300">•</span>
-
-            <div className="flex items-center gap-1.5">
-              <span className="text-slate-500 font-medium">Tổng GD:</span>
-              <span className="font-bold text-slate-700 tabular-nums">
-                {totalCount} lần
-              </span>
-            </div>
           </div>
 
-          {/* Vùng danh sách giao dịch dạng Infinite Scroll */}
-          <div
-            ref={containerRef}
-            className="max-h-[420px] overflow-y-auto pr-1 divide-y divide-slate-100 border border-slate-200/90 rounded-xl bg-white shadow-2xs overflow-hidden"
-          >
-            {isInitialLoading ? (
-              <div className="py-14 flex flex-col items-center justify-center gap-2.5 text-slate-400">
-                <Loader2 className="w-6 h-6 animate-spin text-[#0A62D6]" />
-                <span className="text-xs sm:text-sm font-medium">Đang tải lịch sử giao dịch...</span>
-              </div>
-            ) : error ? (
-              <div className="py-10 text-center text-xs sm:text-sm text-rose-600 font-medium">
-                Không thể tải lịch sử giao dịch. Vui lòng thử lại sau.
-              </div>
-            ) : transactions.length === 0 ? (
-              <div className="py-12 flex flex-col items-center justify-center text-center p-4">
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-2.5 text-slate-400">
-                  <Inbox className="w-6 h-6" />
-                </div>
-                <p className="text-sm font-bold text-slate-700">
-                  Chưa có giao dịch xu nào
-                </p>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Học sinh chưa có biến động cộng hoặc trừ xu.
-                </p>
-              </div>
-            ) : (
-              <>
-                {transactions.map((tx) => (
-                  <CompactTransactionRow key={tx.id} tx={tx} />
-                ))}
-
-                {/* Sentinel trigger infinite scroll khi cuộn tới cuối */}
-                <div
-                  ref={sentinelRef}
-                  className="py-2.5 px-3 flex items-center justify-center bg-slate-50/50"
-                >
-                  {isLoadingMore ? (
-                    <div className="flex items-center gap-2 text-xs font-medium text-slate-500 py-1">
-                      <Loader2 className="w-4 h-4 animate-spin text-[#0A62D6]" />
-                      <span>Đang tải thêm giao dịch cũ hơn...</span>
-                    </div>
-                  ) : isReachingEnd && transactions.length > 0 ? (
-                    <span className="text-[11px] font-medium text-slate-400 py-0.5">
-                      Đã hiển thị toàn bộ {totalCount} giao dịch
-                    </span>
-                  ) : null}
-                </div>
-              </>
-            )}
+          <div className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/80">
+            <span className="text-[11px] font-medium text-slate-500 block">Đã tích lũy</span>
+            <span className="font-heading font-bold text-slate-800 text-xs sm:text-sm tabular-nums mt-0.5 block">
+              {studentItem.total_earned_coins.toLocaleString("vi-VN")} xu
+            </span>
           </div>
+
+          <div className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/80">
+            <span className="text-[11px] font-medium text-slate-500 block">Tổng giao dịch</span>
+            <span className="font-heading font-bold text-slate-700 text-xs sm:text-sm tabular-nums mt-0.5 block">
+              {totalCount} lần
+            </span>
+          </div>
+        </div>
+
+        {/* Vùng danh sách giao dịch dạng Infinite Scroll */}
+        <div
+          ref={containerRef}
+          className="max-h-[350px] overflow-y-auto divide-y divide-slate-100 border border-slate-200/90 rounded-xl bg-white shadow-2xs"
+        >
+          {isInitialLoading ? (
+            <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
+              <Loader2 className="w-5 h-5 animate-spin text-[#0A62D6]" />
+              <span className="text-xs font-medium">Đang tải lịch sử giao dịch...</span>
+            </div>
+          ) : error ? (
+            <div className="py-8 text-center text-xs text-rose-600 font-medium">
+              Không thể tải lịch sử giao dịch. Vui lòng thử lại sau.
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="py-10 flex flex-col items-center justify-center text-center p-4">
+              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mb-2 text-slate-400">
+                <Inbox className="w-5 h-5" />
+              </div>
+              <p className="text-xs sm:text-sm font-bold text-slate-700">
+                Chưa có giao dịch xu nào
+              </p>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Học sinh chưa có biến động cộng hoặc trừ xu.
+              </p>
+            </div>
+          ) : (
+            <>
+              {transactions.map((tx) => (
+                <CompactTransactionRow key={tx.id} tx={tx} />
+              ))}
+
+              {/* Sentinel trigger infinite scroll khi cuộn tới cuối */}
+              <div
+                ref={sentinelRef}
+                className="py-2 px-3 flex items-center justify-center bg-slate-50/50"
+              >
+                {isLoadingMore ? (
+                  <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 py-0.5">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-[#0A62D6]" />
+                    <span>Đang tải thêm giao dịch cũ hơn...</span>
+                  </div>
+                ) : isReachingEnd && transactions.length > 0 ? (
+                  <span className="text-[11px] font-medium text-slate-400 py-0.5">
+                    Đã hiển thị toàn bộ {totalCount} giao dịch
+                  </span>
+                ) : null}
+              </div>
+            </>
+          )}
         </div>
       </ModalBody>
 
-      <ModalFooter>
+      <ModalFooter className="flex items-center justify-end pt-2 pb-0">
         <button
           type="button"
           onClick={onClose}
-          className="h-10 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-sm font-semibold transition-colors cursor-pointer"
+          className="h-9 px-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
         >
           Đóng
         </button>
@@ -208,7 +204,7 @@ function StudentCoinTransactionsDialogContent({
 }
 
 /**
- * Dòng giao dịch tối ưu, to rõ, dễ nhìn:
+ * Dòng giao dịch tối ưu, thanh lịch, chuẩn UI/UX:
  * Dòng 1: [Badge nguồn] Mô tả / Lý do                 +XX xu
  * Dòng 2: Thời gian • Người điều chỉnh / Hệ thống • Trước → Sau
  */
@@ -224,34 +220,37 @@ function CompactTransactionRow({ tx }: { tx: StudentCoinTransactionItem }) {
     : "Hệ thống";
 
   return (
-    <div className="p-3 px-3.5 hover:bg-slate-50/90 transition-colors flex items-center gap-3.5">
-      {/* Icon riêng biệt cho từng nguồn với màu sắc đặc trưng (kích thước lớn hơn) */}
+    <div className="py-2.5 px-3 sm:px-3.5 hover:bg-slate-50/80 transition-colors flex items-center gap-3">
+      {/* Icon riêng biệt cho từng nguồn */}
       <div
-        className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 ${config.iconBg}`}
+        className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${config.iconBg}`}
         title={config.label}
       >
-        <IconComponent className={`w-4.5 h-4.5 sm:w-5 sm:h-5 ${config.iconColor}`} />
+        <IconComponent className={`w-4 h-4 ${config.iconColor}`} />
       </div>
 
-      {/* Thông tin chính (2 dòng to rõ) */}
+      {/* Thông tin chính */}
       <div className="flex-1 min-w-0">
         {/* Dòng 1: Tag nguồn + Mô tả / Lý do */}
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0">
           <span
-            className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold shrink-0 border ${config.badgeBg} ${config.badgeBorder} ${config.badgeText}`}
+            className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 border ${config.badgeBg} ${config.badgeBorder} ${config.badgeText}`}
           >
             {config.shortLabel}
           </span>
-          <p className="text-xs sm:text-sm font-semibold text-[#0F172A] truncate">
+          <p
+            className="text-xs sm:text-[13px] font-semibold text-[#0F172A] truncate"
+            title={tx.description}
+          >
             {tx.description}
           </p>
         </div>
 
         {/* Dòng 2: Metadata phụ */}
-        <div className="text-xs text-slate-500 flex items-center gap-1.5 flex-wrap mt-1 font-sans">
+        <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5 font-sans">
           <span>{formatDate(tx.created_at, "HH:mm, dd/MM/yyyy")}</span>
           <span className="text-slate-300">•</span>
-          <span className={tx.creator_name ? "text-[#0A62D6] font-medium" : "text-slate-600 font-medium"}>
+          <span className={tx.creator_name ? "text-[#0A62D6] font-medium" : "text-slate-500 font-medium"}>
             Bởi {actorText}
           </span>
         </div>
@@ -260,7 +259,7 @@ function CompactTransactionRow({ tx }: { tx: StudentCoinTransactionItem }) {
       {/* Cột phải: Mức biến động xu & Số dư Trước -> Sau */}
       <div className="text-right shrink-0">
         <span
-          className={`inline-flex items-center gap-1 text-sm sm:text-base font-heading font-black tabular-nums ${
+          className={`inline-flex items-center gap-1 text-xs sm:text-sm font-heading font-black tabular-nums ${
             isPositive ? "text-emerald-600" : "text-rose-600"
           }`}
         >
@@ -272,20 +271,20 @@ function CompactTransactionRow({ tx }: { tx: StudentCoinTransactionItem }) {
           <Image
             src="/wheel/coin.webp"
             alt="Xu"
-            width={16}
-            height={16}
+            width={14}
+            height={14}
             unoptimized
             style={{ height: "auto" }}
-            className="w-4 h-4 object-contain shrink-0 drop-shadow-2xs"
+            className="w-3.5 h-3.5 object-contain shrink-0 drop-shadow-2xs"
           />
         </span>
 
         {/* Hiển thị rõ số dư: Trước -> Sau */}
-        <div className="text-xs text-slate-400 font-mono tabular-nums leading-none mt-1">
+        <div className="text-[11px] text-slate-400 font-mono tabular-nums leading-tight mt-0.5">
           <span>{tx.balance_before.toLocaleString("vi-VN")}</span>
-          <span className="mx-1 text-slate-300">→</span>
-          <strong className="font-bold text-slate-700">{tx.balance_after.toLocaleString("vi-VN")}</strong>
-          <span className="ml-0.5 text-[11px] text-slate-400 font-sans">xu</span>
+          <span className="mx-0.5 text-slate-300">→</span>
+          <strong className="font-semibold text-slate-700">{tx.balance_after.toLocaleString("vi-VN")}</strong>
+          <span className="ml-0.5 text-[10px] text-slate-400 font-sans">xu</span>
         </div>
       </div>
     </div>

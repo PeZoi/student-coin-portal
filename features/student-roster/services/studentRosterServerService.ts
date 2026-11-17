@@ -96,13 +96,13 @@ export async function getTeacherStudentRosterServer(
     // Map thống kê bài tập theo student_id
     const missionStatsMap = new Map<
       string,
-      { total: number; approved: number; submitted: number }
+      { total: number; approved: number; submitted: number; exempt: number }
     >();
 
     for (const sm of missionsAggData || []) {
       const sid = sm.student_id;
       if (!missionStatsMap.has(sid)) {
-        missionStatsMap.set(sid, { total: 0, approved: 0, submitted: 0 });
+        missionStatsMap.set(sid, { total: 0, approved: 0, submitted: 0, exempt: 0 });
       }
       const st = missionStatsMap.get(sid)!;
       st.total++;
@@ -110,6 +110,8 @@ export async function getTeacherStudentRosterServer(
         st.approved++;
       } else if (sm.status === "submitted") {
         st.submitted++;
+      } else if (sm.status === "exempt") {
+        st.exempt++;
       }
     }
 
@@ -134,7 +136,12 @@ export async function getTeacherStudentRosterServer(
     const now = new Date();
 
     return studentsData.map((s) => {
-      const mStats = missionStatsMap.get(s.id) || { total: 0, approved: 0, submitted: 0 };
+      const mStats = missionStatsMap.get(s.id) || {
+        total: 0,
+        approved: 0,
+        submitted: 0,
+        exempt: 0,
+      };
       const redeemedCount = redeemedCountsMap.get(s.id) || 0;
 
       // Xác định trạng thái mã PIN
@@ -173,6 +180,7 @@ export async function getTeacherStudentRosterServer(
         completed_missions_count: mStats.approved,
         total_missions_count: mStats.total,
         pending_missions_count: mStats.submitted,
+        exempt_missions_count: mStats.exempt,
         last_login_at: lastLoginText,
         pin_status: pinStatus,
         failed_login_attempts: s.failed_login_attempts ?? 0,

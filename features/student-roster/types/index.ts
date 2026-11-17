@@ -63,6 +63,7 @@ export interface TeacherRosterStudent {
   completed_missions_count: number; // Đếm số bài đã duyệt từ student_missions
   total_missions_count: number; // Tổng số bài được giao từ student_missions
   pending_missions_count?: number; // Số bài đã nộp đang chờ giáo viên chấm duyệt
+  exempt_missions_count?: number; // Số bài tập được miễn làm (ngoại lệ)
   last_login_at: string; // users.last_login_at
   pin_status: "ok" | "locked" | "failed_attempts"; // Trạng thái PIN
   failed_login_attempts: number; // users.failed_login_attempts

@@ -1,5 +1,6 @@
 import { http } from "@/lib/http/httpClient";
 import { ApiResponse } from "@/types/api";
+import { AppRoutes } from "@/constants/routes";
 import { TeacherRosterStudent, MonthlyExchangeRequestItem, RosterAssignedMissionItem } from "../types";
 
 export interface StudentAssignedMissionsResponse {
@@ -46,7 +47,9 @@ export const studentRosterService = {
     if (search) params.append("search", search);
 
     const qs = params.toString() ? `?${params.toString()}` : "";
-    const res = await http.get<ApiResponse<TeacherRosterStudent[]>>(`/api/teacher/roster${qs}`);
+    const res = await http.get<ApiResponse<TeacherRosterStudent[]>>(
+      `${AppRoutes.API.TEACHER.ROSTER}${qs}`
+    );
     return res.data ?? [];
   },
 
@@ -66,7 +69,7 @@ export const studentRosterService = {
     });
 
     const res = await http.get<ApiResponse<StudentAssignedMissionsResponse>>(
-      `/api/teacher/students/${studentId}/assigned-missions?${params.toString()}`
+      `${AppRoutes.API.TEACHER.STUDENT_ASSIGNED_MISSIONS(studentId)}?${params.toString()}`
     );
 
     if (!res.data) {
@@ -85,9 +88,12 @@ export const studentRosterService = {
   ): Promise<{ student_id: string; mission_id: string; status: string }> {
     const res = await http.patch<
       ApiResponse<{ student_id: string; mission_id: string; status: string }>
-    >(`/api/teacher/students/${studentId}/assigned-missions/${missionId}/exempt`, {
-      is_exempt: isExempt,
-    });
+    >(
+      AppRoutes.API.TEACHER.STUDENT_ASSIGNED_MISSION_EXEMPT(studentId, missionId),
+      {
+        is_exempt: isExempt,
+      }
+    );
 
     if (!res.data) {
       throw new Error(res.message || "Không thể cập nhật trạng thái bài tập.");
@@ -102,7 +108,7 @@ export const studentRosterService = {
     studentId: string
   ): Promise<StudentExchangeRequestsResponse> {
     const res = await http.get<ApiResponse<StudentExchangeRequestsResponse>>(
-      `/api/teacher/students/${studentId}/exchange-requests`
+      AppRoutes.API.TEACHER.STUDENT_EXCHANGE_REQUESTS(studentId)
     );
 
     if (!res.data) {

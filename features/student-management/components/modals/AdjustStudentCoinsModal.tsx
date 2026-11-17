@@ -128,7 +128,10 @@ function AdjustStudentCoinsDialogContent({
 				student_name: studentItem.full_name,
 				type: coinType,
 				amount: parsedAmount,
-				tx_type: CoinTxType.MANUAL_ADJUST,
+				tx_type:
+					coinType === "add"
+						? CoinTxType.SPEAKING_REWARD
+						: CoinTxType.MANUAL_ADJUST,
 				reason:
 					coinReason.trim() ||
 					(coinType === "add"

@@ -80,6 +80,10 @@ export const AppRoutes = {
       STUDENT_STATUS: (id: string) => `/api/teacher/students/${id}/status`,
       STUDENT_UNLOCK: (id: string) => `/api/teacher/students/${id}/unlock`,
       STUDENT_COIN_TRANSACTIONS: (id: string) => `/api/teacher/students/${id}/coin-transactions`,
+      STUDENT_ASSIGNED_MISSIONS: (id: string) => `/api/teacher/students/${id}/assigned-missions`,
+      STUDENT_ASSIGNED_MISSION_EXEMPT: (studentId: string, missionId: string) => `/api/teacher/students/${studentId}/assigned-missions/${missionId}/exempt`,
+      STUDENT_EXCHANGE_REQUESTS: (id: string) => `/api/teacher/students/${id}/exchange-requests`,
+      ROSTER: "/api/teacher/roster",
       // Quản lý Vòng quay may mắn
       WHEEL_CONFIG: "/api/teacher/wheel-config",
       WHEEL_SPINS_HISTORY: "/api/teacher/wheel-config/spins",

@@ -50,16 +50,20 @@ export function calculateMissionProgressPercents(
 export function MissionStackedProgressBar({
 	percentApproved,
 	percentPending,
+	percentExempt = 0,
 	approvedCount,
 	pendingCount,
+	exemptCount,
 	heightClass = "h-2",
 	bgClass = "bg-slate-100 border border-slate-200/60",
 	className,
 }: {
 	percentApproved: number;
 	percentPending: number;
+	percentExempt?: number;
 	approvedCount?: number;
 	pendingCount?: number;
+	exemptCount?: number;
 	heightClass?: string;
 	bgClass?: string;
 	className?: string;
@@ -92,6 +96,17 @@ export function MissionStackedProgressBar({
 						pendingCount !== undefined
 							? `Chờ duyệt: ${pendingCount} bài (${percentPending}%)`
 							: `Chờ duyệt: ${percentPending}%`
+					}
+				/>
+			)}
+			{percentExempt > 0 && (
+				<div
+					className='h-full bg-purple-500 transition-all duration-300'
+					style={{ width: `${percentExempt}%` }}
+					title={
+						exemptCount !== undefined
+							? `Miễn làm: ${exemptCount} bài (${percentExempt}%)`
+							: `Miễn làm: ${percentExempt}%`
 					}
 				/>
 			)}

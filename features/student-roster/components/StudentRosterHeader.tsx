@@ -8,7 +8,6 @@ interface StudentRosterHeaderProps {
   onRefresh?: () => void;
   isRefreshing?: boolean;
   onExportExcel?: () => void;
-  onQuickAward?: () => void;
 }
 
 /**

@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/table";
 import { StudentCoinsBadge } from "@/features/student-management/components/StudentBadges";
 import { useOptionalStudentRosterContext } from "../contexts/StudentRosterContext";
+import { calculateStudentMissionProgress } from "../utils/missionProgress";
 
 interface StudentRosterTableProps {
   students?: TeacherRosterStudent[];
@@ -179,24 +180,12 @@ export function StudentRosterTable(props?: StudentRosterTableProps) {
         ) : (
           students.map((st) => {
             const isSelected = selectedIds.includes(st.id);
-            const totalMissions = st.total_missions_count || 0;
-            const completedMissions = st.completed_missions_count || 0;
-            const pendingMissions = st.pending_missions_count ?? 0;
-            const unsubmittedMissions = Math.max(
-              0,
-              totalMissions - completedMissions - pendingMissions
-            );
-
-            const percentApproved = totalMissions > 0
-              ? Math.min(100, Math.round((completedMissions / totalMissions) * 100))
-              : 0;
-
-            const percentPending = totalMissions > 0
-              ? Math.min(
-                  100 - percentApproved,
-                  Math.round((pendingMissions / totalMissions) * 100)
-                )
-              : 0;
+            const progress = calculateStudentMissionProgress({
+              total: st.total_missions_count,
+              approved: st.completed_missions_count,
+              submitted: st.pending_missions_count,
+              exempt: st.exempt_missions_count,
+            });
 
             return (
               <TableRow
@@ -294,49 +283,56 @@ export function StudentRosterTable(props?: StudentRosterTableProps) {
                     title="Bấm để xem danh sách bài tập đã giao của học sinh"
                   >
                     <div className="space-y-1.5 min-w-[155px] max-w-[185px]">
-                      {/* Dòng 1: Số bài / Tổng bài + Tỷ lệ % */}
+                      {/* Dòng 1: Số bài đã làm / Tổng bài + Tỷ lệ % */}
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-bold text-[#0F172A] group-hover:text-[#0A62D6] transition-colors">
-                          {completedMissions}/{totalMissions} bài
+                          {progress.handled}/{progress.total} bài
                         </span>
                         <span className="text-[11px] font-bold text-emerald-600">
-                          {percentApproved}%
+                          {progress.progressPercent}%
                         </span>
                       </div>
 
-                      {/* Dòng 2: Thanh tiến độ theo màu (Stacked Progress Bar: Xanh lá = Đã duyệt, Cam = Chờ duyệt) */}
+                      {/* Dòng 2: Thanh tiến độ theo màu (Stacked Progress Bar: Xanh lá = Đã duyệt, Vàng cam = Chờ duyệt, Tím = Miễn làm) */}
                       <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60 flex">
-                        {percentApproved > 0 && (
+                        {progress.approvedPercent > 0 && (
                           <div
                             className="h-full bg-emerald-500 transition-all duration-300"
-                            style={{ width: `${percentApproved}%` }}
-                            title={`Đã duyệt: ${completedMissions} bài (${percentApproved}%)`}
+                            style={{ width: `${progress.approvedPercent}%` }}
+                            title={`Đã duyệt: ${progress.approved} bài (${progress.approvedPercent}%)`}
                           />
                         )}
-                        {percentPending > 0 && (
+                        {progress.submittedPercent > 0 && (
                           <div
                             className="h-full bg-amber-400 transition-all duration-300"
-                            style={{ width: `${percentPending}%` }}
-                            title={`Chờ duyệt: ${pendingMissions} bài (${percentPending}%)`}
+                            style={{ width: `${progress.submittedPercent}%` }}
+                            title={`Chờ duyệt: ${progress.submitted} bài (${progress.submittedPercent}%)`}
+                          />
+                        )}
+                        {progress.exemptPercent > 0 && (
+                          <div
+                            className="h-full bg-purple-500 transition-all duration-300"
+                            style={{ width: `${progress.exemptPercent}%` }}
+                            title={`Miễn làm: ${progress.exempt} bài (${progress.exemptPercent}%)`}
                           />
                         )}
                       </div>
 
-                      {/* Dòng 3: Badges nếu có bài chờ duyệt hoặc có bài chưa làm */}
-                      {(pendingMissions > 0 || unsubmittedMissions > 0) && (
+                      {/* Dòng 3: Badges nếu có bài chờ duyệt hoặc có bài chưa làm (Miễn làm không hiển thị badge theo yêu cầu) */}
+                      {(progress.submitted > 0 || progress.unsubmitted > 0) && (
                         <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
                           {/* Badge nếu có bài chờ duyệt */}
-                          {pendingMissions > 0 && (
+                          {progress.submitted > 0 && (
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/80 shrink-0">
                               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                              <span>Chờ duyệt: {pendingMissions}</span>
+                              <span>Chờ duyệt: {progress.submitted}</span>
                             </span>
                           )}
 
                           {/* Badge nếu có bài chưa làm */}
-                          {unsubmittedMissions > 0 && (
+                          {progress.unsubmitted > 0 && (
                             <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200/80 shrink-0">
-                              <span>Chưa làm: {unsubmittedMissions}</span>
+                              <span>Chưa làm: {progress.unsubmitted}</span>
                             </span>
                           )}
                         </div>
