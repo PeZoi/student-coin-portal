@@ -29,6 +29,12 @@ export async function DELETE(req: Request, { params }: RouteParams) {
       .delete()
       .eq("mission_id", missionId);
 
+    // 1b. Xóa phân bổ học sinh
+    await supabase
+      .from("student_missions")
+      .delete()
+      .eq("mission_id", missionId);
+
     // 2. Xóa bài nộp liên quan (nếu có)
     await supabase
       .from("homework_submissions")

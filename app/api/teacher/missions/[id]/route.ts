@@ -72,13 +72,33 @@ export async function PUT(req: Request, { params }: RouteParams) {
 
     // 2. Đồng bộ danh sách lớp được giao nếu có truyền assigned_class_ids
     if (data.assigned_class_ids !== undefined) {
-      // Xóa các phân công cũ
+      // 2.1. Tìm các lớp bị gỡ bỏ để dọn dẹp bài chưa nộp của học sinh các lớp đó
+      const { data: existingMC } = await supabase
+        .from("mission_classes")
+        .select("class_id")
+        .eq("mission_id", missionId);
+
+      const existingClassIds = (existingMC || []).map((mc) => mc.class_id);
+      const removedClassIds = existingClassIds.filter(
+        (cid) => !data.assigned_class_ids!.includes(cid)
+      );
+
+      if (removedClassIds.length > 0) {
+        await supabase
+          .from("student_missions")
+          .delete()
+          .eq("mission_id", missionId)
+          .in("class_id", removedClassIds)
+          .eq("status", "assigned");
+      }
+
+      // 2.2. Xóa các phân công cũ trong mission_classes
       await supabase
         .from("mission_classes")
         .delete()
         .eq("mission_id", missionId);
 
-      // Thêm các phân công mới
+      // 2.3. Thêm các phân công mới (Trigger trg_auto_assign_mission_to_students sẽ tự động gán cho học sinh lớp mới)
       if (data.assigned_class_ids.length > 0) {
         const classRows = data.assigned_class_ids.map((classId) => ({
           mission_id: missionId,

@@ -122,18 +122,22 @@ export async function getTeacherMissionsServer(
       query = query.ilike("title", `%${options.search.trim()}%`);
     }
 
-    // 2. Thực thi song song: Missions, Tổng hợp Submissions và Sĩ số học sinh từng lớp
-    const [missionsRes, submissionsRes, studentsCountRes] = await Promise.all([
-      query,
-      supabase
-        .from("homework_submissions")
-        .select("mission_id, approval_status, is_late, final_coins, ai_score"),
-      supabase
-        .from("users")
-        .select("class_id")
-        .eq("role", UserRole.STUDENT)
-        .eq("is_deleted", false),
-    ]);
+    // 2. Thực thi song song: Missions, Tổng hợp Submissions, Sĩ số học sinh từng lớp và Số học sinh thực tế được giao từ student_missions
+    const [missionsRes, submissionsRes, studentsCountRes, studentMissionsRes] =
+      await Promise.all([
+        query,
+        supabase
+          .from("homework_submissions")
+          .select("mission_id, approval_status, is_late, final_coins, ai_score"),
+        supabase
+          .from("users")
+          .select("class_id")
+          .eq("role", UserRole.STUDENT)
+          .eq("is_deleted", false),
+        supabase
+          .from("student_missions")
+          .select("mission_id, status, is_exempt"),
+      ]);
 
     if (missionsRes.error || !missionsRes.data) {
       console.error(
@@ -141,6 +145,16 @@ export async function getTeacherMissionsServer(
         missionsRes.error?.message
       );
       return [];
+    }
+
+    // 2.1. Xây dựng Map số học sinh được giao bài thực tế theo mission_id (từ bảng student_missions)
+    const missionAssignedCountMap = new Map<string, number>();
+    if (studentMissionsRes.data) {
+      for (const sm of studentMissionsRes.data) {
+        if (!sm.mission_id || sm.is_exempt) continue;
+        const cur = missionAssignedCountMap.get(sm.mission_id) ?? 0;
+        missionAssignedCountMap.set(sm.mission_id, cur + 1);
+      }
     }
 
     // 3. Xây dựng Map sĩ số học sinh theo từng lớp
@@ -244,11 +258,12 @@ export async function getTeacherMissionsServer(
         continue;
       }
 
-      // Tổng sĩ số học sinh của các lớp được giao
-      const totalStudents = assignedClasses.reduce(
-        (sum, c) => sum + c.student_count,
-        0
-      );
+      // Tổng số học sinh thực tế được phân công (ưu tiên lấy từ student_missions, fallback về tổng sĩ số lớp)
+      const realAssignedCount = missionAssignedCountMap.get(raw.id);
+      const totalStudents =
+        realAssignedCount !== undefined
+          ? realAssignedCount
+          : assignedClasses.reduce((sum, c) => sum + c.student_count, 0);
 
       // Thống kê bài nộp
       const stats = missionStatsMap.get(raw.id);
@@ -398,17 +413,33 @@ export async function getMissionStudentProgressServer(
       }
     }
 
-    // 2. Lấy toàn bộ học sinh thuộc các lớp được giao và bài nộp song song
-    const [studentsRes, submissionsRes] = await Promise.all([
-      classIds.length > 0
-        ? supabase
-            .from("users")
-            .select("id, full_name, avatar_url, phone_zalo, class_id")
-            .in("class_id", classIds)
-            .eq("role", UserRole.STUDENT)
-            .eq("is_deleted", false)
-            .order("full_name", { ascending: true })
-        : Promise.resolve({ data: [], error: null }),
+    // 2. Lấy danh sách học sinh được giao bài từ student_missions kết hợp bài nộp song song
+    const [assignedMissionsRes, submissionsRes] = await Promise.all([
+      supabase
+        .from("student_missions")
+        .select(
+          `
+          student_id,
+          class_id,
+          status,
+          is_late,
+          is_exempt,
+          submitted_at,
+          completed_at,
+          users:student_id (
+            id,
+            full_name,
+            avatar_url,
+            phone_zalo,
+            is_deleted
+          ),
+          classes:class_id (
+            id,
+            class_name
+          )
+        `
+        )
+        .eq("mission_id", missionId),
       supabase
         .from("homework_submissions")
         .select(
@@ -430,13 +461,13 @@ export async function getMissionStudentProgressServer(
           created_at
         `
         )
-        .eq("mission_id", missionId),
+        .eq("mission_id", missionId)
+        .order("created_at", { ascending: false }),
     ]);
 
-    const students = studentsRes.data || [];
     const submissions = submissionsRes.data || [];
 
-    // Map bài nộp theo student_id
+    // Map bài nộp theo student_id (lấy bài mới nhất)
     interface RawSub {
       id: string;
       student_id: string;
@@ -457,55 +488,143 @@ export async function getMissionStudentProgressServer(
 
     const subByStudent = new Map<string, RawSub>();
     for (const sub of (submissions as unknown as RawSub[])) {
-      subByStudent.set(sub.student_id, sub);
+      if (!subByStudent.has(sub.student_id)) {
+        subByStudent.set(sub.student_id, sub);
+      }
     }
 
-    // 3. Ghép nối danh sách học sinh: Đã nộp hoặc Chưa nộp
+    // 3. Ghép nối danh sách học sinh: Ưu tiên nguồn chuẩn xác từ bảng student_missions
     const result: MissionStudentProgressItem[] = [];
 
-    for (const student of students) {
-      const sub = subByStudent.get(student.id);
-      const studentClassName =
-        student.class_id && classNameMap.has(student.class_id)
-          ? classNameMap.get(student.class_id)!
-          : "Lớp học";
+    if (assignedMissionsRes.data && assignedMissionsRes.data.length > 0) {
+      for (const sm of assignedMissionsRes.data) {
+        const studentUser = sm.users as unknown as {
+          id: string;
+          full_name: string;
+          avatar_url: string | null;
+          phone_zalo: string | null;
+          is_deleted: boolean;
+        } | null;
 
-      if (sub) {
-        // Học sinh đã nộp bài
-        let proofUrls: string[] = [];
-        if (Array.isArray(sub.proof_image_urls)) {
-          proofUrls = sub.proof_image_urls as string[];
+        if (!studentUser || studentUser.is_deleted) {
+          continue;
         }
 
-        result.push({
-          id: student.id,
-          student_name: student.full_name,
-          student_avatar: student.avatar_url,
-          student_phone: student.phone_zalo,
-          class_id: student.class_id || "",
-          class_name: studentClassName,
-          submission_status: "submitted",
-          submission_id: sub.id,
-          submitted_at: sub.created_at,
-          is_late: sub.is_late,
-          approval_status: (sub.approval_status as SubmissionApprovalStatus) || "pending_approval",
-          ai_score: sub.ai_score,
-          final_coins: sub.final_coins,
-          ai_suggested_coins: sub.ai_suggested_coins,
-          teacher_feedback: sub.teacher_feedback,
-          proof_image_urls: proofUrls,
-        });
-      } else {
-        // Học sinh chưa nộp bài
-        result.push({
-          id: student.id,
-          student_name: student.full_name,
-          student_avatar: student.avatar_url,
-          student_phone: student.phone_zalo,
-          class_id: student.class_id || "",
-          class_name: studentClassName,
-          submission_status: "not_submitted",
-        });
+        const sub = subByStudent.get(sm.student_id);
+        const rawClass = sm.classes as unknown as { id: string; class_name: string } | null;
+        const studentClassName =
+          rawClass?.class_name ||
+          (sm.class_id && classNameMap.has(sm.class_id)
+            ? classNameMap.get(sm.class_id)!
+            : "Lớp học");
+
+        const isSubmitted =
+          sm.status === "submitted" ||
+          sm.status === "approved" ||
+          sm.status === "rejected" ||
+          Boolean(sub);
+
+        if (isSubmitted) {
+          let proofUrls: string[] = [];
+          if (sub && Array.isArray(sub.proof_image_urls)) {
+            proofUrls = sub.proof_image_urls as string[];
+          }
+
+          let resolvedApproval: SubmissionApprovalStatus = "pending_approval";
+          if (sm.status === "approved" || sub?.approval_status === "approved") {
+            resolvedApproval = "approved";
+          } else if (sm.status === "rejected" || sub?.approval_status === "rejected") {
+            resolvedApproval = "rejected";
+          }
+
+          result.push({
+            id: studentUser.id,
+            student_name: studentUser.full_name,
+            student_avatar: studentUser.avatar_url,
+            student_phone: studentUser.phone_zalo,
+            class_id: sm.class_id || "",
+            class_name: studentClassName,
+            submission_status: "submitted",
+            submission_id: sub?.id,
+            submitted_at: sm.submitted_at || sub?.created_at,
+            is_late: sm.is_late ?? sub?.is_late ?? false,
+            approval_status: resolvedApproval,
+            ai_score: sub?.ai_score,
+            final_coins: sub?.final_coins,
+            ai_suggested_coins: sub?.ai_suggested_coins,
+            teacher_feedback: sub?.teacher_feedback,
+            proof_image_urls: proofUrls,
+            is_exempt: Boolean(sm.is_exempt),
+          });
+        } else {
+          result.push({
+            id: studentUser.id,
+            student_name: studentUser.full_name,
+            student_avatar: studentUser.avatar_url,
+            student_phone: studentUser.phone_zalo,
+            class_id: sm.class_id || "",
+            class_name: studentClassName,
+            submission_status: "not_submitted",
+            is_exempt: Boolean(sm.is_exempt),
+          });
+        }
+      }
+    } else {
+      // Fallback: Nếu bài tập chưa được đồng bộ vào student_missions, truy vấn danh sách học sinh lớp như cũ
+      if (classIds.length > 0) {
+        const { data: students } = await supabase
+          .from("users")
+          .select("id, full_name, avatar_url, phone_zalo, class_id")
+          .in("class_id", classIds)
+          .eq("role", UserRole.STUDENT)
+          .eq("is_deleted", false)
+          .order("full_name", { ascending: true });
+
+        for (const student of students || []) {
+          const sub = subByStudent.get(student.id);
+          const studentClassName =
+            student.class_id && classNameMap.has(student.class_id)
+              ? classNameMap.get(student.class_id)!
+              : "Lớp học";
+
+          if (sub) {
+            let proofUrls: string[] = [];
+            if (Array.isArray(sub.proof_image_urls)) {
+              proofUrls = sub.proof_image_urls as string[];
+            }
+
+            result.push({
+              id: student.id,
+              student_name: student.full_name,
+              student_avatar: student.avatar_url,
+              student_phone: student.phone_zalo,
+              class_id: student.class_id || "",
+              class_name: studentClassName,
+              submission_status: "submitted",
+              submission_id: sub.id,
+              submitted_at: sub.created_at,
+              is_late: sub.is_late,
+              approval_status:
+                (sub.approval_status as SubmissionApprovalStatus) ||
+                "pending_approval",
+              ai_score: sub.ai_score,
+              final_coins: sub.final_coins,
+              ai_suggested_coins: sub.ai_suggested_coins,
+              teacher_feedback: sub.teacher_feedback,
+              proof_image_urls: proofUrls,
+            });
+          } else {
+            result.push({
+              id: student.id,
+              student_name: student.full_name,
+              student_avatar: student.avatar_url,
+              student_phone: student.phone_zalo,
+              class_id: student.class_id || "",
+              class_name: studentClassName,
+              submission_status: "not_submitted",
+            });
+          }
+        }
       }
     }
 

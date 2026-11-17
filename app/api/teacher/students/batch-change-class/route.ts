@@ -149,6 +149,12 @@ export async function POST(req: Request) {
           .in("student_id", student_ids);
       }
 
+      // 3.1b. Xóa sổ phân bổ bài tập student_missions hàng loạt
+      await supabase
+        .from("student_missions")
+        .delete()
+        .in("student_id", student_ids);
+
       // 3.2. Xóa các bảng liên quan
       // await supabase
       //   .from("monthly_exchange_requests")
@@ -169,6 +175,24 @@ export async function POST(req: Request) {
         .from("monthly_leaderboard")
         .delete()
         .in("student_id", student_ids);
+    } else {
+      // 4. Nếu chuyển lớp bảo lưu dữ liệu (reset_progress = false):
+      // Dọn dẹp các bài tập chưa nộp ở lớp cũ để học sinh không bị gánh nợ bài lớp cũ
+      if (new_class_id && new_class_id.trim() !== "") {
+        await supabase
+          .from("student_missions")
+          .delete()
+          .in("student_id", student_ids)
+          .neq("class_id", new_class_id)
+          .eq("status", "assigned");
+      } else {
+        // Chuyển về "Chưa phân lớp": dọn dẹp các bài chưa làm
+        await supabase
+          .from("student_missions")
+          .delete()
+          .in("student_id", student_ids)
+          .eq("status", "assigned");
+      }
     }
 
     const message = reset_progress

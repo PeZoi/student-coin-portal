@@ -116,6 +116,7 @@ export async function POST(req: Request) {
       }
 
       await supabase.from("mission_classes").delete().in("mission_id", ids);
+      await supabase.from("student_missions").delete().in("mission_id", ids);
       await supabase.from("homework_submissions").delete().in("mission_id", ids);
       const { error } = await supabase.from("missions").delete().in("id", ids);
 

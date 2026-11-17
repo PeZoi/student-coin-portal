@@ -236,6 +236,7 @@ export interface MissionStudentProgressItem {
 
   // Trạng thái nộp bài: Đã nộp hoặc Chưa nộp
   submission_status: "submitted" | "not_submitted";
+  is_exempt?: boolean; // Học sinh được miễn bài tập này (không tính vào tiến độ)
 
   // Thông tin bài nộp (nếu submission_status === "submitted")
   submission_id?: string;

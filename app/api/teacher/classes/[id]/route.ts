@@ -208,6 +208,13 @@ export async function DELETE(req: Request, { params }: RouteParams) {
         return apiError("Không thể xóa liên kết bài tập của lớp học. Vui lòng thử lại sau.");
       }
 
+      // c2. Dọn dẹp các bài tập chưa nộp của lớp bị xóa trong student_missions
+      await supabase
+        .from("student_missions")
+        .delete()
+        .eq("class_id", id)
+        .eq("status", "assigned");
+
       // d. Xóa vĩnh viễn lớp học khỏi cơ sở dữ liệu
       const { error: hardDeleteError } = await supabase
         .from("classes")

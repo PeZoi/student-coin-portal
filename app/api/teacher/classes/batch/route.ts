@@ -130,6 +130,13 @@ export async function POST(req: Request) {
         return apiError("Không thể xóa bài tập liên quan của các lớp học.");
       }
 
+      // c2. Dọn dẹp bài tập chưa nộp của các lớp bị xóa trong student_missions
+      await supabase
+        .from("student_missions")
+        .delete()
+        .in("class_id", validTrashIds)
+        .eq("status", "assigned");
+
       // d. Xóa vĩnh viễn các bản ghi lớp học và đếm số lượng thực tế
       const { data: deletedList, error: hardDeleteError } = await supabase
         .from("classes")

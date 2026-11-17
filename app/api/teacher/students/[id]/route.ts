@@ -102,6 +102,16 @@ export async function PATCH(req: Request, { params }: RouteParams) {
       } else {
         updatePayload.class_id = null;
       }
+
+      // Nếu chuyển lớp khác: dọn dẹp các bài tập chưa nộp ở lớp cũ
+      if (existingStudent.class_id && existingStudent.class_id !== class_id) {
+        await supabase
+          .from("student_missions")
+          .delete()
+          .eq("student_id", id)
+          .eq("class_id", existingStudent.class_id)
+          .eq("status", "assigned");
+      }
     }
 
     const { data: updatedStudent, error: updateError } = await supabase
@@ -216,6 +226,7 @@ export async function DELETE(req: Request, { params }: RouteParams) {
       // Xóa các bảng liên kết trước khi xóa users để đảm bảo toàn vẹn dữ liệu
       await Promise.all([
         supabase.from("coin_transactions").delete().eq("user_id", id),
+        supabase.from("student_missions").delete().eq("student_id", id),
         supabase.from("homework_submissions").delete().eq("student_id", id),
         supabase.from("wheel_spins").delete().eq("student_id", id),
         supabase.from("auth_logs").delete().eq("user_id", id),

@@ -154,4 +154,26 @@ export const missionService = {
     >(AppRoutes.API.TEACHER.MISSION_PROGRESS(id));
     return res.data?.students ?? [];
   },
+
+  /**
+   * Bật / Tắt trạng thái miễn bài tập cho một học sinh
+   */
+  async toggleExemptStudent(
+    missionId: string,
+    studentId: string,
+    isExempt: boolean
+  ): Promise<{ student_id: string; is_exempt: boolean }> {
+    const res = await http.patch<
+      ApiResponse<{ student_id: string; is_exempt: boolean }>
+    >(AppRoutes.API.TEACHER.MISSION_PROGRESS(missionId), {
+      student_id: studentId,
+      is_exempt: isExempt,
+    });
+    if (!res.data) {
+      throw new Error(
+        res.message || "Không thể cập nhật trạng thái miễn bài tập."
+      );
+    }
+    return res.data;
+  },
 };

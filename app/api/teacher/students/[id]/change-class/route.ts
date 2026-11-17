@@ -139,6 +139,12 @@ export async function POST(req: Request, { params }: RouteParams) {
           .eq("student_id", id);
       }
 
+      // 4.1b. Xóa sổ phân bổ bài tập student_missions
+      await supabase
+        .from("student_missions")
+        .delete()
+        .eq("student_id", id);
+
       // 4.2. Xóa yêu cầu đổi quà nếu có trước khi xóa coin_transactions
       // await supabase
       //   .from("monthly_exchange_requests")
@@ -162,6 +168,18 @@ export async function POST(req: Request, { params }: RouteParams) {
         .from("monthly_leaderboard")
         .delete()
         .eq("student_id", id);
+    } else {
+      // 5. Nếu chuyển lớp bảo lưu dữ liệu (reset_progress = false):
+      // Dọn dẹp các bài tập chưa nộp ở lớp cũ để học sinh không bị gánh nợ bài lớp cũ
+      const oldClassId = studentRecord.class_id;
+      if (oldClassId && oldClassId !== new_class_id) {
+        await supabase
+          .from("student_missions")
+          .delete()
+          .eq("student_id", id)
+          .eq("class_id", oldClassId)
+          .eq("status", "assigned");
+      }
     }
 
     const message = reset_progress

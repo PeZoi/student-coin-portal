@@ -15,7 +15,9 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
+  ShieldCheck,
 } from "lucide-react";
+import { toast } from "sonner";
 import { AppRoutes } from "@/constants";
 import { formatDate } from "@/lib/date";
 import {
@@ -92,7 +94,11 @@ function MissionProgressModalContent({
   const router = useRouter();
 
   // 1. Tải danh sách tiến độ làm bài thực tế từ database qua SWR
-  const { data: allStudents = [], isLoading } = useSWR(
+  const {
+    data: allStudents = [],
+    isLoading,
+    mutate,
+  } = useSWR(
     ["mission-progress", mission.id],
     () => missionService.getMissionProgress(mission.id),
     {
@@ -157,10 +163,13 @@ function MissionProgressModalContent({
 
   // 3. Tính toán các chỉ số KPI
   const totalCount = allStudents.length;
+  const exemptCount = allStudents.filter((s) => s.is_exempt).length;
   const submittedCount = allStudents.filter(
     (s) => s.submission_status === "submitted"
   ).length;
-  const notSubmittedCount = totalCount - submittedCount;
+  const notSubmittedCount = allStudents.filter(
+    (s) => s.submission_status === "not_submitted" && !s.is_exempt
+  ).length;
 
   const approvedCount = allStudents.filter(
     (s) => s.approval_status === "approved"
@@ -170,11 +179,45 @@ function MissionProgressModalContent({
   ).length;
   const lateCount = allStudents.filter((s) => s.is_late).length;
 
+  const effectiveTotal = Math.max(0, totalCount - exemptCount);
   const percentSubmitted =
-    totalCount > 0 ? Math.round((submittedCount / totalCount) * 100) : 0;
+    effectiveTotal > 0 ? Math.round((submittedCount / effectiveTotal) * 100) : 0;
   const percentApproved =
-    totalCount > 0 ? Math.round((approvedCount / totalCount) * 100) : 0;
+    effectiveTotal > 0 ? Math.round((approvedCount / effectiveTotal) * 100) : 0;
   const percentPending = Math.max(0, percentSubmitted - percentApproved);
+
+  // Xử lý bật/tắt miễn bài tập cho học sinh
+  const handleToggleExempt = async (
+    studentId: string,
+    currentExempt: boolean
+  ) => {
+    try {
+      const nextExempt = !currentExempt;
+      await mutate(
+        (prev) =>
+          prev
+            ? prev.map((s) =>
+                s.id === studentId ? { ...s, is_exempt: nextExempt } : s
+              )
+            : [],
+        false
+      );
+      await missionService.toggleExemptStudent(
+        mission.id,
+        studentId,
+        nextExempt
+      );
+      mutate();
+      toast.success(
+        nextExempt
+          ? "Đã đánh dấu miễn bài tập cho học sinh!"
+          : "Đã hủy đánh dấu miễn bài tập!"
+      );
+    } catch {
+      toast.error("Không thể cập nhật trạng thái miễn bài tập.");
+      mutate();
+    }
+  };
 
   // 4. Lọc và Sắp xếp danh sách học sinh theo các tiêu chí
   const filteredStudents = useMemo(() => {
@@ -448,6 +491,11 @@ function MissionProgressModalContent({
               >
                 <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
                 <span>Chưa làm ({notSubmittedCount})</span>
+                {exemptCount > 0 && (
+                  <span className="text-[10px] px-1 py-0.2 rounded bg-purple-100 text-purple-700 font-bold">
+                    {exemptCount} miễn
+                  </span>
+                )}
               </button>
             </div>
           </div>
@@ -680,6 +728,16 @@ function MissionProgressModalContent({
                               </span>
                             )}
                           </div>
+                        ) : student.is_exempt ? (
+                          <div className="space-y-0.5">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-50 text-purple-800 border border-purple-200/80 text-[11px] font-bold">
+                              <ShieldCheck className="w-3 h-3 text-purple-600" />
+                              <span>Được miễn bài</span>
+                            </span>
+                            <span className="text-[10px] block font-medium text-purple-600">
+                              Không tính nợ bài
+                            </span>
+                          </div>
                         ) : (
                           <div className="space-y-0.5">
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200/80 text-[11px] font-bold">
@@ -731,7 +789,30 @@ function MissionProgressModalContent({
                             </span>
                           )
                         ) : (
-                          <span className="text-slate-400 text-xs">—</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleToggleExempt(
+                                student.id,
+                                Boolean(student.is_exempt)
+                              )
+                            }
+                            title={
+                              student.is_exempt
+                                ? "Click để hủy miễn bài tập cho học sinh này"
+                                : "Click để miễn bài tập này cho học sinh"
+                            }
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
+                              student.is_exempt
+                                ? "bg-purple-100 hover:bg-purple-200 text-purple-800 border border-purple-300"
+                                : "bg-slate-100 hover:bg-purple-50 text-slate-600 hover:text-purple-700 border border-slate-200 hover:border-purple-200"
+                            }`}
+                          >
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            <span>
+                              {student.is_exempt ? "Bỏ miễn" : "Miễn bài"}
+                            </span>
+                          </button>
                         )}
                       </TableCell>
                     </TableRow>
