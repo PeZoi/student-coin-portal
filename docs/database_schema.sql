@@ -215,12 +215,58 @@ CREATE TABLE mission_classes (
 );
 
 -- ==============================================================================
+-- 4.1. BẢNG PHÂN BỔ BÀI TẬP & TIẾN ĐỘ TỪNG HỌC SINH (STUDENT_MISSIONS)
+-- Quản lý bài tập gán cho từng học sinh, giải quyết bài toán chuyển lớp & vào giữa kỳ
+-- ==============================================================================
+CREATE TABLE student_missions (
+    -- Khóa chính: Mã định danh phân bổ bài tập
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    
+    -- Khóa ngoại: Học sinh được giao bài
+    student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    
+    -- Khóa ngoại: Bài tập được giao
+    mission_id UUID NOT NULL REFERENCES missions(id) ON DELETE CASCADE,
+    
+    -- Khóa ngoại: Lớp học của học sinh tại thời điểm được giao bài
+    class_id UUID NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+    
+    -- Trạng thái tiến độ bài tập của học sinh:
+    -- 'assigned': Đang làm (chưa nộp)
+    -- 'submitted': Đã nộp bài (đang chờ cô chấm)
+    -- 'approved': Đã hoàn thành (cô duyệt cộng xu)
+    -- 'rejected': Cô từ chối (yêu cầu nộp lại)
+    -- 'exempt': Miễn làm (học sinh mới vào lớp sau khi bài hết hạn hoặc nghỉ ốm)
+    status VARCHAR(30) NOT NULL DEFAULT 'assigned' 
+        CHECK (status IN ('assigned', 'submitted', 'approved', 'rejected', 'exempt')),
+
+    -- Cờ nộp trễ hạn / quá hạn
+    is_late BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- Thời điểm giao bài cho học sinh
+    assigned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Thời điểm nộp bài gần nhất
+    submitted_at TIMESTAMP WITH TIME ZONE,
+    
+    -- Thời điểm cô duyệt hoàn thành bài
+    completed_at TIMESTAMP WITH TIME ZONE,
+
+    -- Đảm bảo mỗi học sinh chỉ có duy nhất 1 bản ghi tiến độ cho 1 bài tập
+    CONSTRAINT uq_student_mission UNIQUE(student_id, mission_id)
+);
+
+-- ==============================================================================
 -- 5. BẢNG LƯỢT NỘP BÀI TẬP & DUYỆT XU CUỐI NGÀY (HOMEWORK_SUBMISSIONS)
 -- Quản lý bài nộp của học sinh (Online & Viết tay), AI chấm gợi ý và giáo viên duyệt
+-- Lưu lại toàn bộ lịch sử các lần nộp bài (attempt_number 1, 2, 3...)
 -- ==============================================================================
 CREATE TABLE homework_submissions (
     -- Khóa chính: Mã định danh bài nộp
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    
+    -- Số thứ tự lần nộp bài (1: nộp lần đầu, 2: nộp lại sau khi bị reject...)
+    attempt_number INTEGER NOT NULL DEFAULT 1,
     
     -- Khóa ngoại: Thuộc nhiệm vụ nào trong bảng missions (có thể NULL nếu nhiệm vụ bị xóa hoặc nộp tự do)
     mission_id UUID REFERENCES missions(id) ON DELETE SET NULL,
