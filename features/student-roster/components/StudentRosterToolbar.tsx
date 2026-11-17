@@ -5,17 +5,18 @@ import { Search, X, RotateCw, Filter } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
 import { StudentRosterStatusFilter } from "../types";
 import { TeacherSelect, TeacherSelectOption } from "@/components/ui/TeacherSelect";
+import { useOptionalStudentRosterContext } from "../contexts/StudentRosterContext";
 
 interface StudentRosterToolbarProps {
-  searchQuery: string;
-  onSearchQueryChange: (query: string) => void;
-  statusFilter: StudentRosterStatusFilter;
-  onStatusFilterChange: (filter: StudentRosterStatusFilter) => void;
-  totalStudents: number;
-  activeCount: number;
-  lockedCount: number;
-  onResetFilters: () => void;
-  hasActiveFilters: boolean;
+  searchQuery?: string;
+  onSearchQueryChange?: (query: string) => void;
+  statusFilter?: StudentRosterStatusFilter;
+  onStatusFilterChange?: (filter: StudentRosterStatusFilter) => void;
+  totalStudents?: number;
+  activeCount?: number;
+  lockedCount?: number;
+  onResetFilters?: () => void;
+  hasActiveFilters?: boolean;
   onRefresh?: () => void;
   isRefreshing?: boolean;
 }
@@ -23,23 +24,35 @@ interface StudentRosterToolbarProps {
 /**
  * Toolbar tìm kiếm, lọc trạng thái danh sách học sinh
  * - Đồng bộ 100% bố cục với các trang quản lý (ClassesToolbar, TeachersToolbar, StudentsToolbar)
- * - Đã lược bỏ dropdown sắp xếp theo vì người dùng có thể sort trực tiếp tại tiêu đề các cột của bảng
- * - Bên trái: Dropdown Trạng thái + Nút Đặt lại
- * - Bên phải: Ô Tìm kiếm + Nút Làm mới
+ * - Tự động kết nối StudentRosterContext (Quy tắc 10)
  */
-export function StudentRosterToolbar({
-  searchQuery,
-  onSearchQueryChange,
-  statusFilter,
-  onStatusFilterChange,
-  totalStudents,
-  activeCount,
-  lockedCount,
-  onResetFilters,
-  hasActiveFilters,
-  onRefresh,
-  isRefreshing = false,
-}: StudentRosterToolbarProps) {
+export function StudentRosterToolbar(props?: StudentRosterToolbarProps) {
+  const context = useOptionalStudentRosterContext();
+
+  const searchQuery = props?.searchQuery ?? context?.searchQuery ?? "";
+  const onSearchQueryChange =
+    props?.onSearchQueryChange ?? context?.setSearchQuery ?? (() => {});
+  const statusFilter = props?.statusFilter ?? context?.statusFilter ?? "all";
+  const onStatusFilterChange =
+    props?.onStatusFilterChange ?? context?.setStatusFilter ?? (() => {});
+  const totalStudents =
+    props?.totalStudents ?? context?.students.length ?? 0;
+  const activeCount =
+    props?.activeCount ??
+    context?.students.filter((s) => s.pin_status === "ok").length ??
+    0;
+  const lockedCount =
+    props?.lockedCount ??
+    context?.students.filter(
+      (s) => s.pin_status === "locked" || s.pin_status === "failed_attempts"
+    ).length ??
+    0;
+  const onResetFilters =
+    props?.onResetFilters ?? context?.handleResetFilters ?? (() => {});
+  const hasActiveFilters =
+    props?.hasActiveFilters ?? context?.hasActiveFilters ?? false;
+  const onRefresh = props?.onRefresh ?? context?.handleRefresh;
+  const isRefreshing = props?.isRefreshing ?? context?.isRefreshing ?? false;
   // Tùy chọn lọc trạng thái (kèm badge số lượng học sinh)
   const statusOptions: TeacherSelectOption[] = useMemo(
     () => [

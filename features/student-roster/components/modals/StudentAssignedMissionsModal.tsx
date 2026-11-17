@@ -28,7 +28,10 @@ import {
   RosterAssignedMissionItem,
   RosterMissionProgressStatus,
 } from "../../types";
-import { useRosterAssignedMissionsInfinite } from "../../hooks/useRosterAssignedMissionsInfinite";
+import {
+  useRosterAssignedMissionsInfinite,
+  MissionFilterTab,
+} from "../../hooks/useRosterAssignedMissionsInfinite";
 import { formatDate } from "@/lib/date";
 
 interface StudentAssignedMissionsModalProps {
@@ -62,26 +65,28 @@ function StudentAssignedMissionsDialogContent({
   student,
   onClose,
 }: DialogContentProps) {
+  const [activeTab, setActiveTab] = useState<MissionFilterTab>("all");
+
   const {
-    activeTab,
     handleTabChange,
     visibleMissions,
     totalFilteredCount,
     stats,
+    isLoading,
     isLoadingMore,
     isReachingEnd,
     containerRef,
     sentinelRef,
     toggleExemptMission,
-  } = useRosterAssignedMissionsInfinite(student);
+  } = useRosterAssignedMissionsInfinite(student, activeTab, setActiveTab);
 
   // State xem phóng to ảnh minh chứng
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   // Xử lý miễn làm bài ngoại lệ
   const handleToggleExempt = useCallback(
-    (missionId: string) => {
-      const res = toggleExemptMission(missionId);
+    async (missionId: string) => {
+      const res = await toggleExemptMission(missionId);
       if (res) {
         if (res.status === "exempt") {
           toast.success(
@@ -224,7 +229,12 @@ function StudentAssignedMissionsDialogContent({
             ref={containerRef}
             className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-3"
           >
-            {visibleMissions.length === 0 ? (
+            {isLoading ? (
+              <div className="py-14 flex flex-col items-center justify-center gap-2.5 text-slate-400">
+                <Loader2 className="w-6 h-6 animate-spin text-[#0A62D6]" />
+                <span className="text-xs sm:text-sm font-medium">Đang tải danh sách bài tập...</span>
+              </div>
+            ) : visibleMissions.length === 0 ? (
               <div className="py-14 flex flex-col items-center justify-center text-center p-4 border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
                 <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-2.5 text-slate-400">
                   <Inbox className="w-6 h-6" />

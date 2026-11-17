@@ -1,7 +1,8 @@
 "use client";
 
-import { Download, RotateCw, Coins } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
+import { Download, RotateCw } from "lucide-react";
+import { useOptionalStudentRosterContext } from "../contexts/StudentRosterContext";
 
 interface StudentRosterHeaderProps {
   onRefresh?: () => void;
@@ -13,14 +14,13 @@ interface StudentRosterHeaderProps {
 /**
  * Header của trang Danh sách học sinh (Góc giáo viên)
  * - Đồng bộ 100% phong cách thiết kế với Quản lý học sinh, Quản lý lớp học và Giao bài tập
- * - Hiển thị tiêu đề và các nút thao tác nhanh
+ * - Tự động kết nối StudentRosterContext (Quy tắc 10)
  */
-export function StudentRosterHeader({
-  onRefresh,
-  isRefreshing = false,
-  onExportExcel,
-  onQuickAward,
-}: StudentRosterHeaderProps) {
+export function StudentRosterHeader(props?: StudentRosterHeaderProps) {
+  const context = useOptionalStudentRosterContext();
+  const onRefresh = props?.onRefresh ?? context?.handleRefresh;
+  const isRefreshing = props?.isRefreshing ?? context?.isRefreshing ?? false;
+  const onExportExcel = props?.onExportExcel ?? context?.handleExportExcel;
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
@@ -60,15 +60,6 @@ export function StudentRosterHeader({
         >
           <Download className="w-4 h-4 text-slate-600" />
           <span>Xuất Excel</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={onQuickAward}
-          className="h-10 px-4 rounded-xl bg-[#0A62D6] hover:bg-[#0850B0] text-white text-xs sm:text-sm font-semibold transition-all shadow-xs flex items-center gap-2 cursor-pointer active:scale-98"
-        >
-          <Coins className="w-4 h-4" />
-          <span>Thưởng nóng xu</span>
         </button>
       </div>
     </div>

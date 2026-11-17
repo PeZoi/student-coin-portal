@@ -1,68 +1,87 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useMemo, useEffect, useRef, useCallback } from "react";
+import useSWRInfinite from "swr/infinite";
+import { toast } from "sonner";
 import {
   TeacherRosterStudent,
   RosterMissionProgressStatus,
-  RosterAssignedMissionItem,
 } from "../types";
-import { getMockAssignedMissions } from "../constants/mockAssignedMissions";
+import { studentRosterService, StudentAssignedMissionsResponse } from "../services/studentRosterService";
 
 export type MissionFilterTab = "all" | RosterMissionProgressStatus;
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 8;
 
+/**
+ * Custom Hook tải danh sách bài tập đã giao dạng Infinite Scroll bằng useSWRInfinite
+ * - Tuân thủ tuyệt đối Quy tắc 8 & 9 AGENTS.md: Không gọi setState đồng bộ trong useEffect
+ */
 export function useRosterAssignedMissionsInfinite(
-  student: TeacherRosterStudent | null
+  student: TeacherRosterStudent | null,
+  activeTab: MissionFilterTab,
+  onTabChange: (tab: MissionFilterTab) => void
 ) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const studentId = student?.id;
 
-  // Danh sách bài tập có state để hỗ trợ giáo viên chuyển trạng thái "Miễn làm (ngoại lệ)"
-  const [missionsList, setMissionsList] = useState<RosterAssignedMissionItem[]>(
-    () => (student ? getMockAssignedMissions(student) : [])
+  const getKey = (
+    pageIndex: number,
+    previousPageData: StudentAssignedMissionsResponse | null
+  ) => {
+    if (!studentId) return null;
+    if (previousPageData && (!previousPageData.items || previousPageData.items.length === 0)) {
+      return null;
+    }
+    if (previousPageData && !previousPageData.pagination.has_more) {
+      return null;
+    }
+    return [`roster-assigned-missions-${studentId}-${activeTab}`, pageIndex + 1] as const;
+  };
+
+  const { data, error, isLoading, isValidating, size, setSize, mutate } =
+    useSWRInfinite<StudentAssignedMissionsResponse>(
+      getKey,
+      async ([, page]: readonly [string, number]) => {
+        return studentRosterService.getStudentAssignedMissions(
+          studentId!,
+          page,
+          PAGE_SIZE,
+          activeTab
+        );
+      },
+      {
+        revalidateOnFocus: false,
+        revalidateFirstPage: false,
+      }
+    );
+
+  const visibleMissions = useMemo(
+    () => (data ? data.flatMap((page) => page.items ?? []) : []),
+    [data]
   );
 
-  const [activeTab, setActiveTab] = useState<MissionFilterTab>("all");
-  const [page, setPage] = useState(1);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const summary = useMemo(() => {
+    return (
+      data?.[0]?.summary || {
+        total: 0,
+        completed: 0,
+        pending: 0,
+        unsubmitted: 0,
+        total_earned_coins: 0,
+      }
+    );
+  }, [data]);
 
-  // Thao tác chuyển đổi Miễn làm ngoại lệ (exempt)
-  const toggleExemptMission = useCallback(
-    (missionId: string): { status: RosterMissionProgressStatus; title: string } | null => {
-      let result: { status: RosterMissionProgressStatus; title: string } | null = null;
-
-      setMissionsList((prev) =>
-        prev.map((item) => {
-          if (item.id === missionId) {
-            const nextStatus: RosterMissionProgressStatus =
-              item.status === "exempt" ? "assigned" : "exempt";
-            result = { status: nextStatus, title: item.title };
-            return {
-              ...item,
-              status: nextStatus,
-            };
-          }
-          return item;
-        })
-      );
-
-      return result;
-    },
-    []
-  );
-
-  // Thống kê nhanh
   const stats = useMemo(() => {
-    const total = missionsList.length;
-    const approved = missionsList.filter((m) => m.status === "approved").length;
-    const submitted = missionsList.filter((m) => m.status === "submitted").length;
-    const assigned = missionsList.filter((m) => m.status === "assigned").length;
-    const rejected = missionsList.filter((m) => m.status === "rejected").length;
-    const exempt = missionsList.filter((m) => m.status === "exempt").length;
-    const totalCoins = missionsList
-      .filter((m) => m.status === "approved")
-      .reduce((sum, m) => sum + (m.earned_coins || m.reward_coins || 0), 0);
+    const total = summary.total;
+    const approved = summary.completed;
+    const submitted = summary.pending;
+    const assigned = summary.unsubmitted;
+    const totalCoins = summary.total_earned_coins;
+    const rejected = 0;
+    const exempt = visibleMissions.filter((m) => m.status === "exempt").length;
 
     return {
       total,
@@ -74,49 +93,55 @@ export function useRosterAssignedMissionsInfinite(
       totalCoins,
       progressPercent: total > 0 ? Math.round((approved / total) * 100) : 0,
     };
-  }, [missionsList]);
+  }, [summary, visibleMissions]);
 
-  // Lọc bài tập theo tab hiện tại
-  const filteredMissions = useMemo(() => {
-    if (activeTab === "all") return missionsList;
-    return missionsList.filter((m) => m.status === activeTab);
-  }, [missionsList, activeTab]);
+  const isInitialLoading = !data && isLoading;
+  const isLoadingMore =
+    isLoading ||
+    (size > 0 && data && typeof data[size - 1] === "undefined") ||
+    (size > 1 && isValidating);
+  const isEmpty = data?.[0]?.items?.length === 0;
+  const isReachingEnd =
+    isEmpty ||
+    (data && !data[data.length - 1]?.pagination?.has_more) ||
+    false;
 
-  // Reset trang khi đổi tab
-  const handleTabChange = useCallback((tab: MissionFilterTab) => {
-    setActiveTab(tab);
-    setPage(1);
-  }, []);
+  // Thao tác chuyển đổi Miễn làm ngoại lệ (exempt)
+  const toggleExemptMission = useCallback(
+    async (missionId: string): Promise<{ status: RosterMissionProgressStatus; title: string } | null> => {
+      if (!studentId) return null;
+      const target = visibleMissions.find((m) => m.id === missionId);
+      if (!target) return null;
 
-  // Danh sách bài tập hiển thị theo trang
-  const visibleMissions = useMemo(() => {
-    return filteredMissions.slice(0, page * PAGE_SIZE);
-  }, [filteredMissions, page]);
+      const willExempt = target.status !== "exempt";
+      const nextStatus: RosterMissionProgressStatus = willExempt ? "exempt" : "assigned";
 
-  const totalFilteredCount = filteredMissions.length;
-  const isReachingEnd = visibleMissions.length >= totalFilteredCount;
+      try {
+        await studentRosterService.toggleExemptMission(
+          studentId,
+          target.mission_id,
+          willExempt
+        );
+        await mutate();
+        return { status: nextStatus, title: target.title };
+      } catch (err: unknown) {
+        const errObj = err instanceof Error ? err : new Error(String(err));
+        toast.error(errObj.message || "Không thể cập nhật trạng thái miễn làm.");
+        return null;
+      }
+    },
+    [studentId, visibleMissions, mutate]
+  );
 
-  const loadMore = useCallback(() => {
-    if (isLoadingMore || isReachingEnd) return;
-    setIsLoadingMore(true);
-
-    const timer = setTimeout(() => {
-      setPage((prev) => prev + 1);
-      setIsLoadingMore(false);
-    }, 350);
-
-    return () => clearTimeout(timer);
-  }, [isLoadingMore, isReachingEnd]);
-
-  // IntersectionObserver cho sentinel ở cuối danh sách
+  // IntersectionObserver tự động tăng size khi cuộn tới sentinel
   useEffect(() => {
     const sentinel = sentinelRef.current;
-    if (!sentinel || isReachingEnd) return;
+    if (!sentinel || isReachingEnd || isLoadingMore) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
-          loadMore();
+        if (entries[0]?.isIntersecting) {
+          setSize((prev) => prev + 1);
         }
       },
       {
@@ -128,16 +153,18 @@ export function useRosterAssignedMissionsInfinite(
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [loadMore, isReachingEnd]);
+  }, [isReachingEnd, isLoadingMore, setSize]);
 
   return {
     activeTab,
-    handleTabChange,
+    handleTabChange: onTabChange,
     visibleMissions,
-    totalFilteredCount,
+    totalFilteredCount: data?.[0]?.pagination?.total ?? visibleMissions.length,
     stats,
+    isLoading: isInitialLoading,
     isLoadingMore,
     isReachingEnd,
+    error,
     containerRef,
     sentinelRef,
     toggleExemptMission,

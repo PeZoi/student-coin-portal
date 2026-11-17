@@ -2,12 +2,14 @@
 
 import { useState, useMemo } from "react";
 import Image from "next/image";
+import useSWR from "swr";
 import {
   ExternalLink,
   Calendar,
   CheckCircle2,
   Clock,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 import {
   Modal,
@@ -16,6 +18,7 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { TeacherRosterStudent } from "../../types";
+import { studentRosterService } from "../../services/studentRosterService";
 
 interface StudentExchangeGiftsModalProps {
   isOpen: boolean;
@@ -39,9 +42,17 @@ export function StudentExchangeGiftsModal({
 }: StudentExchangeGiftsModalProps) {
   const [filterTab, setFilterTab] = useState<GiftFilterTab>("all");
 
+  const { data: exchangeData, isLoading } = useSWR(
+    isOpen && student?.id ? `exchange-requests-${student.id}` : null,
+    () => studentRosterService.getStudentExchangeRequests(student!.id),
+    {
+      revalidateOnFocus: false,
+    }
+  );
+
   const requests = useMemo(() => {
-    return student?.exchange_requests || [];
-  }, [student]);
+    return exchangeData?.requests || student?.exchange_requests || [];
+  }, [exchangeData, student]);
 
   // Thống kê nhanh
   const cashRequests = useMemo(
@@ -222,7 +233,12 @@ export function StudentExchangeGiftsModal({
         </div>
 
         {/* Danh sách các lần đổi quà */}
-        {filteredRequests.length === 0 ? (
+        {isLoading && !exchangeData ? (
+          <div className="py-14 flex flex-col items-center justify-center gap-2.5 text-slate-400">
+            <Loader2 className="w-6 h-6 animate-spin text-[#0A62D6]" />
+            <span className="text-xs sm:text-sm font-medium">Đang tải lịch sử đổi quà...</span>
+          </div>
+        ) : filteredRequests.length === 0 ? (
           <div className="py-12 text-center rounded-2xl bg-slate-50 border border-slate-200">
             <div className="w-14 h-14 mx-auto mb-2 flex items-center justify-center">
               <Image

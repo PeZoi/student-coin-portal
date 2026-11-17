@@ -1,24 +1,34 @@
 "use client";
 
 import { Users, Coins, CheckCircle2, ShieldAlert } from "lucide-react";
+import { StudentRosterKpiSkeleton } from "./StudentRosterSkeleton";
+import { useOptionalStudentRosterContext } from "../contexts/StudentRosterContext";
 
 interface StudentRosterKpiCardsProps {
   totalStudents?: number;
   totalCoins?: number;
   completionRate?: number;
   lockedPinCount?: number;
+  isLoading?: boolean;
 }
 
 /**
  * Các thẻ thống kê KPI lớp học
  * - Thiết kế tối giản, sạch sẽ, đồng bộ 100% với hệ thống quản lý
+ * - Tự động kết nối StudentRosterContext (Quy tắc 10)
  */
-export function StudentRosterKpiCards({
-  totalStudents = 32,
-  totalCoins = 24850,
-  completionRate = 87.5,
-  lockedPinCount = 1,
-}: StudentRosterKpiCardsProps) {
+export function StudentRosterKpiCards(props?: StudentRosterKpiCardsProps) {
+  const context = useOptionalStudentRosterContext();
+  const totalStudents = props?.totalStudents ?? context?.kpiData.totalStudents ?? 0;
+  const totalCoins = props?.totalCoins ?? context?.kpiData.totalCoins ?? 0;
+  const completionRate = props?.completionRate ?? context?.kpiData.completionRate ?? 0;
+  const lockedPinCount = props?.lockedPinCount ?? context?.kpiData.lockedPinCount ?? 0;
+  const isLoading = props?.isLoading ?? context?.isLoading ?? false;
+
+  if (isLoading) {
+    return <StudentRosterKpiSkeleton />;
+  }
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {/* 1. Sĩ số lớp */}

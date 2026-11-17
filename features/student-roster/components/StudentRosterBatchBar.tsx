@@ -1,10 +1,11 @@
 "use client";
 
 import { Award, KeyRound, X } from "lucide-react";
+import { useOptionalStudentRosterContext } from "../contexts/StudentRosterContext";
 
 interface StudentRosterBatchBarProps {
-  selectedCount: number;
-  onClearSelection: () => void;
+  selectedCount?: number;
+  onClearSelection?: () => void;
   onBatchAward?: () => void;
   onBatchResetPin?: () => void;
 }
@@ -12,13 +13,31 @@ interface StudentRosterBatchBarProps {
 /**
  * Thanh tác vụ hàng loạt nổi bật khi giáo viên chọn học sinh bằng checkbox
  * - Đồng bộ với MissionsBatchBar và StudentsBatchBar
+ * - Tự động kết nối StudentRosterContext (Quy tắc 10)
  */
-export function StudentRosterBatchBar({
-  selectedCount,
-  onClearSelection,
-  onBatchAward,
-  onBatchResetPin,
-}: StudentRosterBatchBarProps) {
+export function StudentRosterBatchBar(props?: StudentRosterBatchBarProps) {
+  const context = useOptionalStudentRosterContext();
+
+  const selectedCount =
+    props?.selectedCount ?? context?.selectedIds.length ?? 0;
+  const onClearSelection =
+    props?.onClearSelection ?? context?.handleClearSelection ?? (() => {});
+  const onBatchAward =
+    props?.onBatchAward ??
+    (() => {
+      context?.handleQuickAward();
+    });
+  const onBatchResetPin =
+    props?.onBatchResetPin ??
+    (() => {
+      if (context && context.selectedIds.length === 1) {
+        const found = context.students.find(
+          (s) => s.id === context.selectedIds[0]
+        );
+        if (found) context.handleResetPin(found);
+      }
+    });
+
   if (selectedCount === 0) return null;
 
   return (

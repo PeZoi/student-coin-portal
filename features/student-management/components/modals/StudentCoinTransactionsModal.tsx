@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { StudentItem, StudentCoinTransactionItem } from "../../types";
-import { useManageStudentsContext } from "../../contexts/ManageStudentsContext";
+import { useOptionalManageStudentsContext } from "../../contexts/ManageStudentsContext";
 import { useStudentCoinTransactionsInfinite } from "../../hooks/useStudentCoinTransactionsInfinite";
 import { getCoinSourceConfig } from "@/constants/coins";
 import { formatDate } from "@/lib/date";
@@ -42,13 +42,13 @@ interface StudentCoinTransactionsModalProps {
 export function StudentCoinTransactionsModal(
   props?: StudentCoinTransactionsModalProps
 ) {
-  const context = useManageStudentsContext();
-  const isOpen = props?.isOpen ?? context.isTransactionsOpen;
-  const onClose = props?.onClose ?? context.handleCloseTransactions;
+  const context = useOptionalManageStudentsContext();
+  const isOpen = props?.isOpen ?? context?.isTransactionsOpen ?? false;
+  const onClose = props?.onClose ?? context?.handleCloseTransactions ?? (() => {});
   const studentItem =
     props?.studentItem !== undefined
       ? props.studentItem
-      : context.viewingTransactionsStudent;
+      : (context?.viewingTransactionsStudent ?? null);
 
   if (!isOpen || !studentItem) return null;
 

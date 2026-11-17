@@ -27,15 +27,16 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { StudentCoinsBadge } from "@/features/student-management/components/StudentBadges";
+import { useOptionalStudentRosterContext } from "../contexts/StudentRosterContext";
 
 interface StudentRosterTableProps {
-  students: TeacherRosterStudent[];
-  selectedIds: string[];
-  onToggleSelect: (id: string) => void;
-  onSelectAll: () => void;
-  sortField: StudentRosterSortField;
-  sortOrder: SortOrder;
-  onSortToggle: (field: StudentRosterSortField) => void;
+  students?: TeacherRosterStudent[];
+  selectedIds?: string[];
+  onToggleSelect?: (id: string) => void;
+  onSelectAll?: () => void;
+  sortField?: StudentRosterSortField;
+  sortOrder?: SortOrder;
+  onSortToggle?: (field: StudentRosterSortField) => void;
   onQuickAward?: (student: TeacherRosterStudent) => void;
   onResetPin?: (student: TeacherRosterStudent) => void;
   onViewHistory?: (student: TeacherRosterStudent) => void;
@@ -43,20 +44,29 @@ interface StudentRosterTableProps {
   onViewMissions?: (student: TeacherRosterStudent) => void;
 }
 
-export function StudentRosterTable({
-  students,
-  selectedIds,
-  onToggleSelect,
-  onSelectAll,
-  sortField,
-  sortOrder,
-  onSortToggle,
-  onQuickAward,
-  onResetPin,
-  onViewHistory,
-  onViewRedeemedRewards,
-  onViewMissions,
-}: StudentRosterTableProps) {
+export function StudentRosterTable(props?: StudentRosterTableProps) {
+  const context = useOptionalStudentRosterContext();
+
+  const students = props?.students ?? context?.paginatedStudents ?? [];
+  const selectedIds = props?.selectedIds ?? context?.selectedIds ?? [];
+  const onToggleSelect =
+    props?.onToggleSelect ?? context?.handleToggleSelect ?? (() => {});
+  const onSelectAll =
+    props?.onSelectAll ??
+    (() => {
+      context?.handleSelectAll(students.map((s) => s.id));
+    });
+  const sortField =
+    props?.sortField ?? context?.sortField ?? "current_coins";
+  const sortOrder = props?.sortOrder ?? context?.sortOrder ?? "desc";
+  const onSortToggle =
+    props?.onSortToggle ?? context?.handleSortToggle ?? (() => {});
+  const onQuickAward = props?.onQuickAward ?? context?.handleQuickAward;
+  const onResetPin = props?.onResetPin ?? context?.handleResetPin;
+  const onViewHistory = props?.onViewHistory ?? context?.handleViewHistory;
+  const onViewRedeemedRewards =
+    props?.onViewRedeemedRewards ?? context?.handleViewRedeemedRewards;
+  const onViewMissions = props?.onViewMissions ?? context?.handleViewMissions;
   const isAllChecked =
     students.length > 0 && selectedIds.length === students.length;
 
