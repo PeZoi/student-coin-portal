@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/modal";
 import { COIN_TX_DESCRIPTIONS, CoinTxType } from "@/constants";
 import { StudentItem, AdjustCoinsValues } from "@/features/student-management/types";
-import { useManageStudentsContext } from "@/features/student-management/contexts/ManageStudentsContext";
+import { useOptionalManageStudentsContext } from "@/features/student-management/contexts/ManageStudentsContext";
 
 interface AdjustStudentCoinsModalProps {
 	isOpen?: boolean;
@@ -23,17 +23,17 @@ interface AdjustStudentCoinsModalProps {
 }
 
 export function AdjustStudentCoinsModal(props?: AdjustStudentCoinsModalProps) {
-	const context = useManageStudentsContext();
-	const isOpen = props?.isOpen ?? context.isAdjustCoinsOpen;
-	const onClose = props?.onClose ?? context.handleCloseAdjustCoins;
+	const context = useOptionalManageStudentsContext();
+	const isOpen = props?.isOpen ?? context?.isAdjustCoinsOpen ?? false;
+	const onClose = props?.onClose ?? context?.handleCloseAdjustCoins ?? (() => {});
 	const studentItem =
 		props?.studentItem !== undefined
 			? props.studentItem
-			: context.adjustingCoinsStudent;
-	const onSubmit = props?.onSubmit ?? context.handleAdjustCoinsSubmit;
-	const isSubmitting = props?.isSubmitting ?? context.isSubmitting;
+			: (context?.adjustingCoinsStudent ?? null);
+	const onSubmit = props?.onSubmit ?? context?.handleAdjustCoinsSubmit;
+	const isSubmitting = props?.isSubmitting ?? context?.isSubmitting ?? false;
 
-	if (!isOpen || !studentItem) return null;
+	if (!isOpen || !studentItem || !onSubmit) return null;
 
 	return (
 		<AdjustStudentCoinsDialogContent

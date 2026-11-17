@@ -26,7 +26,7 @@ export function StudentRosterHeader({
       <div>
         <div className="flex items-center gap-2.5 flex-wrap">
           <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A] font-heading tracking-tight">
-            Hồ sơ học sinh
+            Danh sách học sinh
           </h1>
         </div>
         <p className="text-sm sm:text-[15px] text-[#475569] mt-1">

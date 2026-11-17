@@ -6,4 +6,6 @@ export * from "./components/StudentRosterToolbar";
 export * from "./components/StudentRosterTable";
 export * from "./components/StudentRosterBatchBar";
 export * from "./components/modals/StudentExchangeGiftsModal";
+export * from "./components/modals/StudentCoinTransactionsModal";
+export * from "./components/modals/StudentAssignedMissionsModal";
 export * from "./constants";

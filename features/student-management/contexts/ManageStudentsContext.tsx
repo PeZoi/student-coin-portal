@@ -34,6 +34,14 @@ export function ManageStudentsProvider({
 }
 
 /**
+ * Hook truy xuất context quản lý học sinh (an toàn, trả về null nếu nằm ngoài Provider)
+ * - Dùng cho các Modal có hỗ trợ tái sử dụng độc lập (standalone) bằng props
+ */
+export function useOptionalManageStudentsContext(): ManageStudentsContextType | null {
+  return useContext(ManageStudentsContext);
+}
+
+/**
  * Hook truy xuất context quản lý học sinh
  * - Bắt buộc phải sử dụng bên trong <ManageStudentsProvider>
  */

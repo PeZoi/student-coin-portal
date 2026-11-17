@@ -40,6 +40,7 @@ interface StudentRosterTableProps {
   onResetPin?: (student: TeacherRosterStudent) => void;
   onViewHistory?: (student: TeacherRosterStudent) => void;
   onViewRedeemedRewards?: (student: TeacherRosterStudent) => void;
+  onViewMissions?: (student: TeacherRosterStudent) => void;
 }
 
 export function StudentRosterTable({
@@ -54,6 +55,7 @@ export function StudentRosterTable({
   onResetPin,
   onViewHistory,
   onViewRedeemedRewards,
+  onViewMissions,
 }: StudentRosterTableProps) {
   const isAllChecked =
     students.length > 0 && selectedIds.length === students.length;
@@ -90,11 +92,11 @@ export function StudentRosterTable({
           <TableHead className="min-w-[220px]">
             <button
               type="button"
-              onClick={() => onSortToggle("fullName")}
+              onClick={() => onSortToggle("full_name")}
               className="flex items-center text-xs font-bold text-slate-700 hover:text-[#0A62D6] transition-colors cursor-pointer select-none"
             >
               <span>Học sinh</span>
-              {renderSortIcon("fullName")}
+              {renderSortIcon("full_name")}
             </button>
           </TableHead>
 
@@ -102,11 +104,11 @@ export function StudentRosterTable({
           <TableHead className="min-w-[150px]">
             <button
               type="button"
-              onClick={() => onSortToggle("coins")}
+              onClick={() => onSortToggle("current_coins")}
               className="flex items-center text-xs font-bold text-slate-700 hover:text-[#0A62D6] transition-colors cursor-pointer select-none"
             >
               <span>Số dư Heo Đất</span>
-              {renderSortIcon("coins")}
+              {renderSortIcon("current_coins")}
             </button>
           </TableHead>
 
@@ -114,23 +116,23 @@ export function StudentRosterTable({
           <TableHead className="min-w-[130px]">
             <button
               type="button"
-              onClick={() => onSortToggle("redeemedRewards")}
+              onClick={() => onSortToggle("redeemed_rewards_count")}
               className="flex items-center text-xs font-bold text-slate-700 hover:text-[#0A62D6] transition-colors cursor-pointer select-none"
             >
               <span>Đã đổi quà</span>
-              {renderSortIcon("redeemedRewards")}
+              {renderSortIcon("redeemed_rewards_count")}
             </button>
           </TableHead>
 
           {/* Cột Bài hoàn thành */}
-          <TableHead className="min-w-[180px]">
+          <TableHead className="min-w-[195px]">
             <button
               type="button"
-              onClick={() => onSortToggle("completedMissions")}
+              onClick={() => onSortToggle("completed_missions_count")}
               className="flex items-center text-xs font-bold text-slate-700 hover:text-[#0A62D6] transition-colors cursor-pointer select-none"
             >
               <span>Tiến độ bài tập</span>
-              {renderSortIcon("completedMissions")}
+              {renderSortIcon("completed_missions_count")}
             </button>
           </TableHead>
 
@@ -167,10 +169,24 @@ export function StudentRosterTable({
         ) : (
           students.map((st) => {
             const isSelected = selectedIds.includes(st.id);
-            const progressPercent = Math.min(
-              100,
-              Math.round((st.missions.completed / st.missions.total) * 100)
+            const totalMissions = st.total_missions_count || 0;
+            const completedMissions = st.completed_missions_count || 0;
+            const pendingMissions = st.pending_missions_count ?? 0;
+            const unsubmittedMissions = Math.max(
+              0,
+              totalMissions - completedMissions - pendingMissions
             );
+
+            const percentApproved = totalMissions > 0
+              ? Math.min(100, Math.round((completedMissions / totalMissions) * 100))
+              : 0;
+
+            const percentPending = totalMissions > 0
+              ? Math.min(
+                  100 - percentApproved,
+                  Math.round((pendingMissions / totalMissions) * 100)
+                )
+              : 0;
 
             return (
               <TableRow
@@ -189,14 +205,14 @@ export function StudentRosterTable({
                   </div>
                 </TableCell>
 
-                {/* 2. Thông tin Học sinh (Avatar chibi + Họ tên + SĐT phụ huynh, đã bỏ mã học sinh) */}
+                {/* 2. Thông tin Học sinh (Avatar chibi + Họ tên + SĐT Zalo) */}
                 <TableCell className="py-3.5 px-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center shadow-2xs relative">
-                      {st.avatar ? (
+                      {st.avatar_url ? (
                         <Image
-                          src={st.avatar}
-                          alt={st.fullName}
+                          src={st.avatar_url}
+                          alt={st.full_name}
                           width={40}
                           height={40}
                           unoptimized
@@ -205,18 +221,18 @@ export function StudentRosterTable({
                         />
                       ) : (
                         <span className="text-xs font-bold text-slate-600 uppercase">
-                          {st.fullName.slice(0, 2)}
+                          {st.full_name.slice(0, 2)}
                         </span>
                       )}
                     </div>
                     <div className="min-w-0">
                       <div className="font-bold text-xs sm:text-sm text-[#0F172A] truncate">
-                        {st.fullName}
+                        {st.full_name}
                       </div>
-                      {st.parentPhone ? (
+                      {st.phone_zalo ? (
                         <div className="inline-flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
                           <Phone className="w-3 h-3 text-slate-400 shrink-0" />
-                          <span>{st.parentPhone}</span>
+                          <span>{st.phone_zalo}</span>
                         </div>
                       ) : null}
                     </div>
@@ -226,15 +242,15 @@ export function StudentRosterTable({
                 {/* 3. Số dư Heo Đất (Badge xu bóng bẩy) */}
                 <TableCell className="py-3.5 px-4">
                   <StudentCoinsBadge
-                    currentCoins={st.coins}
-                    totalEarnedCoins={st.coins + 350}
+                    currentCoins={st.current_coins}
+                    totalEarnedCoins={st.total_earned_coins ?? st.current_coins}
                     onClick={() => onViewHistory?.(st)}
                   />
                 </TableCell>
 
                 {/* 4. Đã đổi bao nhiêu quà */}
                 <TableCell className="py-3.5 px-4">
-                  {st.redeemedRewards > 0 ? (
+                  {st.redeemed_rewards_count > 0 ? (
                     <button
                       type="button"
                       onClick={() => onViewRedeemedRewards?.(st)}
@@ -250,7 +266,7 @@ export function StudentRosterTable({
                         style={{ height: "auto" }}
                         className="w-4.5 h-4.5 object-contain group-hover:scale-110 transition-transform shrink-0"
                       />
-                      <span>{st.redeemedRewards} phần quà</span>
+                      <span>{st.redeemed_rewards_count} phần quà</span>
                     </button>
                   ) : (
                     <span className="text-xs text-slate-400 italic">
@@ -259,34 +275,74 @@ export function StudentRosterTable({
                   )}
                 </TableCell>
 
-                {/* 4. Tiến độ bài tập */}
+                {/* 5. Tiến độ bài tập */}
                 <TableCell className="py-3.5 px-4">
-                  <div className="space-y-1.5 max-w-[140px]">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-[#0F172A]">
-                        {st.missions.completed}/{st.missions.total} bài
-                      </span>
-                      <span className="text-[11px] font-semibold text-emerald-600">
-                        {progressPercent}%
-                      </span>
+                  <button
+                    type="button"
+                    onClick={() => onViewMissions?.(st)}
+                    className="w-full text-left p-1.5 -m-1.5 rounded-lg hover:bg-slate-100/80 active:bg-slate-200/70 transition-all cursor-pointer group"
+                    title="Bấm để xem danh sách bài tập đã giao của học sinh"
+                  >
+                    <div className="space-y-1.5 min-w-[155px] max-w-[185px]">
+                      {/* Dòng 1: Số bài / Tổng bài + Tỷ lệ % */}
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-[#0F172A] group-hover:text-[#0A62D6] transition-colors">
+                          {completedMissions}/{totalMissions} bài
+                        </span>
+                        <span className="text-[11px] font-bold text-emerald-600">
+                          {percentApproved}%
+                        </span>
+                      </div>
+
+                      {/* Dòng 2: Thanh tiến độ theo màu (Stacked Progress Bar: Xanh lá = Đã duyệt, Cam = Chờ duyệt) */}
+                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60 flex">
+                        {percentApproved > 0 && (
+                          <div
+                            className="h-full bg-emerald-500 transition-all duration-300"
+                            style={{ width: `${percentApproved}%` }}
+                            title={`Đã duyệt: ${completedMissions} bài (${percentApproved}%)`}
+                          />
+                        )}
+                        {percentPending > 0 && (
+                          <div
+                            className="h-full bg-amber-400 transition-all duration-300"
+                            style={{ width: `${percentPending}%` }}
+                            title={`Chờ duyệt: ${pendingMissions} bài (${percentPending}%)`}
+                          />
+                        )}
+                      </div>
+
+                      {/* Dòng 3: Badges nếu có bài chờ duyệt hoặc có bài chưa làm */}
+                      {(pendingMissions > 0 || unsubmittedMissions > 0) && (
+                        <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                          {/* Badge nếu có bài chờ duyệt */}
+                          {pendingMissions > 0 && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/80 shrink-0">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                              <span>Chờ duyệt: {pendingMissions}</span>
+                            </span>
+                          )}
+
+                          {/* Badge nếu có bài chưa làm */}
+                          {unsubmittedMissions > 0 && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200/80 shrink-0">
+                              <span>Chưa làm: {unsubmittedMissions}</span>
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-emerald-500 rounded-full transition-all duration-300"
-                        style={{ width: `${progressPercent}%` }}
-                      />
-                    </div>
-                  </div>
+                  </button>
                 </TableCell>
 
-                {/* 5. Trạng thái mã PIN */}
+                {/* 6. Trạng thái mã PIN */}
                 <TableCell className="py-3.5 px-4">
-                  {st.pinStatus === "ok" ? (
+                  {st.pin_status === "ok" ? (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                       <span>Hoạt động</span>
                     </span>
-                  ) : st.pinStatus === "locked" ? (
+                  ) : st.pin_status === "locked" ? (
                     <Tooltip
                       content="Tài khoản tạm khóa do nhập sai PIN quá 5 lần. Bấm Đặt lại PIN để cấp mã mới."
                       side="top"
@@ -298,18 +354,18 @@ export function StudentRosterTable({
                     </Tooltip>
                   ) : (
                     <Tooltip
-                      content={`Đã nhập sai ${st.failedAttempts || 3}/5 lần`}
+                      content={`Đã nhập sai ${st.failed_login_attempts || 3}/5 lần`}
                       side="top"
                     >
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap cursor-default">
                         <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
-                        <span>Sai {st.failedAttempts || 3}/5 lần</span>
+                        <span>Sai {st.failed_login_attempts || 3}/5 lần</span>
                       </span>
                     </Tooltip>
                   )}
                 </TableCell>
 
-                {/* 6. Cột Thao tác */}
+                {/* 7. Cột Thao tác */}
                 <TableCell align="right" className="py-3.5 px-4">
                   <div className="inline-flex items-center gap-1">
                     <Tooltip content="Thưởng nóng xu Heo Đất" side="top">
@@ -327,7 +383,7 @@ export function StudentRosterTable({
                         type="button"
                         onClick={() => onResetPin?.(st)}
                         className={`p-2 rounded-xl border transition-colors shadow-2xs cursor-pointer active:scale-95 ${
-                          st.pinStatus === "locked"
+                          st.pin_status === "locked"
                             ? "bg-rose-50 border-rose-300 text-rose-700 hover:bg-rose-100"
                             : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
                         }`}

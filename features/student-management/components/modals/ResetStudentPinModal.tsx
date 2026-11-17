@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { KeyRound, ShieldAlert } from "lucide-react";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { StudentItem } from "@/features/student-management/types";
-import { useManageStudentsContext } from "@/features/student-management/contexts/ManageStudentsContext";
+import { useOptionalManageStudentsContext } from "@/features/student-management/contexts/ManageStudentsContext";
 
 interface ResetStudentPinModalProps {
   isOpen?: boolean;
@@ -18,17 +18,17 @@ interface ResetStudentPinModalProps {
 }
 
 export function ResetStudentPinModal(props?: ResetStudentPinModalProps) {
-  const context = useManageStudentsContext();
-  const isOpen = props?.isOpen ?? context.isResetPinOpen;
-  const onClose = props?.onClose ?? context.handleCloseResetPin;
+  const context = useOptionalManageStudentsContext();
+  const isOpen = props?.isOpen ?? context?.isResetPinOpen ?? false;
+  const onClose = props?.onClose ?? context?.handleCloseResetPin ?? (() => {});
   const studentItem =
     props?.studentItem !== undefined
       ? props.studentItem
-      : context.resettingPinStudent;
-  const onSubmit = props?.onSubmit ?? context.handleResetPinSubmit;
-  const isSubmitting = props?.isSubmitting ?? context.isSubmitting;
+      : (context?.resettingPinStudent ?? null);
+  const onSubmit = props?.onSubmit ?? context?.handleResetPinSubmit;
+  const isSubmitting = props?.isSubmitting ?? context?.isSubmitting ?? false;
 
-  if (!isOpen || !studentItem) return null;
+  if (!isOpen || !studentItem || !onSubmit) return null;
 
   return (
     <ResetStudentPinDialogContent

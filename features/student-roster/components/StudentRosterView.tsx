@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { Pagination } from "@/components/ui/Pagination";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -15,7 +16,48 @@ import { StudentRosterHeader } from "./StudentRosterHeader";
 import { StudentRosterKpiCards } from "./StudentRosterKpiCards";
 import { StudentRosterTable } from "./StudentRosterTable";
 import { StudentRosterToolbar } from "./StudentRosterToolbar";
-import { StudentExchangeGiftsModal } from "./modals/StudentExchangeGiftsModal";
+import { StudentItem, AdjustCoinsValues } from "@/features/student-management/types";
+
+// Tách nhỏ Bundle Size qua dynamic imports (Tối ưu tốc độ tải trang ban đầu)
+const StudentExchangeGiftsModal = dynamic(
+  () =>
+    import("./modals/StudentExchangeGiftsModal").then(
+      (m) => m.StudentExchangeGiftsModal
+    ),
+  { ssr: false }
+);
+
+const StudentCoinTransactionsModal = dynamic(
+  () =>
+    import("./modals/StudentCoinTransactionsModal").then(
+      (m) => m.StudentCoinTransactionsModal
+    ),
+  { ssr: false }
+);
+
+const StudentAssignedMissionsModal = dynamic(
+  () =>
+    import("./modals/StudentAssignedMissionsModal").then(
+      (m) => m.StudentAssignedMissionsModal
+    ),
+  { ssr: false }
+);
+
+const AdjustStudentCoinsModal = dynamic(
+  () =>
+    import(
+      "@/features/student-management/components/modals/AdjustStudentCoinsModal"
+    ).then((m) => m.AdjustStudentCoinsModal),
+  { ssr: false }
+);
+
+const ResetStudentPinModal = dynamic(
+  () =>
+    import(
+      "@/features/student-management/components/modals/ResetStudentPinModal"
+    ).then((m) => m.ResetStudentPinModal),
+  { ssr: false }
+);
 
 /**
  * Giao diện Hồ sơ & Danh sách học sinh theo lớp học (Góc giáo viên)
@@ -30,7 +72,7 @@ export function StudentRosterView() {
   const [statusFilter, setStatusFilter] =
     useState<StudentRosterStatusFilter>("all");
   const [sortField, setSortField] =
-    useState<StudentRosterSortField>("coins");
+    useState<StudentRosterSortField>("current_coins");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -44,25 +86,47 @@ export function StudentRosterView() {
     useState<TeacherRosterStudent | null>(null);
   const [isRewardsModalOpen, setIsRewardsModalOpen] = useState(false);
 
-  // Dữ liệu học sinh (tạm dùng MockData, sẵn sàng kết nối SWR khi tích hợp DB)
-  const students: TeacherRosterStudent[] = useMemo(() => {
-    return MOCK_ROSTER_STUDENTS;
-  }, []);
+  // State Modal xem lịch sử giao dịch ví xu
+  const [historyStudent, setHistoryStudent] =
+    useState<TeacherRosterStudent | null>(null);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+
+  // State Modal xem danh sách bài tập đã giao
+  const [missionsStudent, setMissionsStudent] =
+    useState<TeacherRosterStudent | null>(null);
+  const [isMissionsModalOpen, setIsMissionsModalOpen] = useState(false);
+
+  // State Modal Thưởng nóng / Trừ xu học sinh (Tái sử dụng AdjustStudentCoinsModal)
+  const [awardStudent, setAwardStudent] =
+    useState<TeacherRosterStudent | null>(null);
+  const [isAwardModalOpen, setIsAwardModalOpen] = useState(false);
+  const [isAwardSubmitting, setIsAwardSubmitting] = useState(false);
+
+  // State Modal Đặt lại mã PIN học sinh (Tái sử dụng ResetStudentPinModal)
+  const [resetPinStudent, setResetPinStudent] =
+    useState<TeacherRosterStudent | null>(null);
+  const [isResetPinModalOpen, setIsResetPinModalOpen] = useState(false);
+  const [isResetPinSubmitting, setIsResetPinSubmitting] = useState(false);
+
+  // Dữ liệu học sinh (tạm dùng MockData có state để cập nhật tức thì khi thưởng xu hoặc reset PIN)
+  const [studentsList, setStudentsList] =
+    useState<TeacherRosterStudent[]>(MOCK_ROSTER_STUDENTS);
+  const students = studentsList;
 
   // 1. Thống kê KPI tổng quan
   const kpiData = useMemo(() => {
     const totalStudents = students.length;
-    const totalCoins = students.reduce((sum, s) => sum + s.coins, 0);
+    const totalCoins = students.reduce((sum, s) => sum + s.current_coins, 0);
     const lockedPinCount = students.filter(
-      (s) => s.pinStatus === "locked" || s.pinStatus === "failed_attempts"
+      (s) => s.pin_status === "locked" || s.pin_status === "failed_attempts"
     ).length;
 
     const totalMissionsAll = students.reduce(
-      (sum, s) => sum + s.missions.total,
+      (sum, s) => sum + s.total_missions_count,
       0
     );
     const completedMissionsAll = students.reduce(
-      (sum, s) => sum + s.missions.completed,
+      (sum, s) => sum + s.completed_missions_count,
       0
     );
     const completionRate = totalMissionsAll
@@ -86,17 +150,17 @@ export function StudentRosterView() {
       const q = searchQuery.toLowerCase().trim();
       result = result.filter(
         (s) =>
-          s.fullName.toLowerCase().includes(q) ||
-          (s.parentPhone && s.parentPhone.replace(/\s+/g, "").includes(q))
+          s.full_name.toLowerCase().includes(q) ||
+          (s.phone_zalo && s.phone_zalo.replace(/\s+/g, "").includes(q))
       );
     }
 
     // Lọc theo trạng thái PIN / hoạt động
     if (statusFilter === "active") {
-      result = result.filter((s) => s.pinStatus === "ok");
+      result = result.filter((s) => s.pin_status === "ok");
     } else if (statusFilter === "locked") {
       result = result.filter(
-        (s) => s.pinStatus === "locked" || s.pinStatus === "failed_attempts"
+        (s) => s.pin_status === "locked" || s.pin_status === "failed_attempts"
       );
     }
 
@@ -104,14 +168,14 @@ export function StudentRosterView() {
     if (sortOrder !== "none") {
       result.sort((a, b) => {
         let diff = 0;
-        if (sortField === "fullName") {
-          diff = a.fullName.localeCompare(b.fullName, "vi");
-        } else if (sortField === "coins") {
-          diff = a.coins - b.coins;
-        } else if (sortField === "redeemedRewards") {
-          diff = a.redeemedRewards - b.redeemedRewards;
-        } else if (sortField === "completedMissions") {
-          diff = a.missions.completed - b.missions.completed;
+        if (sortField === "full_name") {
+          diff = a.full_name.localeCompare(b.full_name, "vi");
+        } else if (sortField === "current_coins") {
+          diff = a.current_coins - b.current_coins;
+        } else if (sortField === "redeemed_rewards_count") {
+          diff = a.redeemed_rewards_count - b.redeemed_rewards_count;
+        } else if (sortField === "completed_missions_count") {
+          diff = a.completed_missions_count - b.completed_missions_count;
         }
         return sortOrder === "asc" ? diff : -diff;
       });
@@ -170,7 +234,7 @@ export function StudentRosterView() {
   const handleResetFilters = useCallback(() => {
     setSearchQuery("");
     setStatusFilter("all");
-    setSortField("coins");
+    setSortField("current_coins");
     setSortOrder("desc");
     setCurrentPage(1);
   }, []);
@@ -181,6 +245,7 @@ export function StudentRosterView() {
   // Thao tác giao diện giả lập (UI feedback)
   const handleRefresh = useCallback(() => {
     setIsRefreshing(true);
+    setStudentsList([...MOCK_ROSTER_STUDENTS]);
     setTimeout(() => {
       setIsRefreshing(false);
       toast.success("Đã làm mới danh sách học sinh");
@@ -191,20 +256,156 @@ export function StudentRosterView() {
     toast.success("Đang xuất danh sách học sinh ra file Excel...");
   }, []);
 
-  const handleQuickAward = useCallback((student?: TeacherRosterStudent) => {
-    if (student) {
-      toast.success(`Mở hộp thoại thưởng xu cho em: ${student.fullName}`);
+  // Helper chuyển đổi TeacherRosterStudent sang StudentItem để tái sử dụng modals
+  const toStudentItem = useCallback(
+    (student: TeacherRosterStudent | null): StudentItem | null => {
+      if (!student) return null;
+      return {
+        id: student.id,
+        full_name: student.full_name,
+        phone_zalo: student.phone_zalo || "Chưa cập nhật",
+        class_id: student.class_id || null,
+        class_name: student.class_name || "Lớp học",
+        avatar_url: student.avatar_url,
+        current_coins: student.current_coins,
+        total_earned_coins: student.total_earned_coins ?? student.current_coins,
+        free_spins: 0,
+        is_active: student.is_active,
+        is_deleted: student.is_deleted,
+        failed_login_attempts: student.failed_login_attempts || 0,
+        locked_until: student.locked_until || null,
+        last_login_at: student.last_login_at,
+        created_at: new Date().toISOString(),
+      };
+    },
+    []
+  );
+
+  // 1. Thao tác Thưởng nóng / Trừ xu học sinh
+  const handleQuickAward = useCallback(
+    (student?: TeacherRosterStudent) => {
+      if (student) {
+        setAwardStudent(student);
+        setIsAwardModalOpen(true);
+      } else if (selectedIds.length === 1) {
+        const found = studentsList.find((s) => s.id === selectedIds[0]);
+        if (found) {
+          setAwardStudent(found);
+          setIsAwardModalOpen(true);
+        }
+      } else {
+        toast.info("Vui lòng bấm vào icon thưởng xu ở từng học sinh trong bảng");
+      }
+    },
+    [selectedIds, studentsList]
+  );
+
+  const handleCloseAwardModal = useCallback(() => {
+    setIsAwardModalOpen(false);
+    setAwardStudent(null);
+  }, []);
+
+  const handleAwardSubmit = useCallback(async (values: AdjustCoinsValues) => {
+    setIsAwardSubmitting(true);
+    // Giả lập network delay 350ms
+    await new Promise((r) => setTimeout(r, 350));
+
+    setStudentsList((prev) =>
+      prev.map((s) => {
+        if (s.id === values.student_id) {
+          const nextCoins =
+            values.type === "add"
+              ? s.current_coins + values.amount
+              : Math.max(0, s.current_coins - values.amount);
+          const nextTotal =
+            values.type === "add"
+              ? (s.total_earned_coins ?? s.current_coins) + values.amount
+              : s.total_earned_coins;
+          return {
+            ...s,
+            current_coins: nextCoins,
+            total_earned_coins: nextTotal,
+          };
+        }
+        return s;
+      })
+    );
+
+    setIsAwardSubmitting(false);
+    setIsAwardModalOpen(false);
+    setAwardStudent(null);
+
+    if (values.type === "add") {
+      toast.success(
+        `Đã thưởng nóng +${values.amount.toLocaleString("vi-VN")} xu cho học sinh ${values.student_name}!`
+      );
     } else {
-      toast.info("Chọn học sinh bên dưới để thưởng xu nhanh");
+      toast.success(
+        `Đã trừ ${values.amount.toLocaleString("vi-VN")} xu của học sinh ${values.student_name}.`
+      );
     }
   }, []);
 
+  // 2. Thao tác Đặt lại mã PIN học sinh
   const handleResetPin = useCallback((student: TeacherRosterStudent) => {
-    toast.success(`Đã cấp lại mã PIN tạm thời cho học sinh: ${student.fullName}`);
+    setResetPinStudent(student);
+    setIsResetPinModalOpen(true);
   }, []);
 
+  const handleCloseResetPinModal = useCallback(() => {
+    setIsResetPinModalOpen(false);
+    setResetPinStudent(null);
+  }, []);
+
+  const handleResetPinSubmit = useCallback(
+    async (studentId: string, newPin: string) => {
+      setIsResetPinSubmitting(true);
+      // Giả lập network delay 350ms
+      await new Promise((r) => setTimeout(r, 350));
+
+      setStudentsList((prev) =>
+        prev.map((s) => {
+          if (s.id === studentId) {
+            return {
+              ...s,
+              pin_status: "ok",
+              failed_login_attempts: 0,
+              locked_until: null,
+            };
+          }
+          return s;
+        })
+      );
+
+      setIsResetPinSubmitting(false);
+      setIsResetPinModalOpen(false);
+      setResetPinStudent(null);
+
+      toast.success(
+        `Đã đặt lại mã PIN thành công (${newPin}) cho học sinh. Tài khoản đã hoạt động bình thường!`
+      );
+    },
+    []
+  );
+
   const handleViewHistory = useCallback((student: TeacherRosterStudent) => {
-    toast.info(`Xem sao kê lịch sử Heo Đất của em: ${student.fullName}`);
+    setHistoryStudent(student);
+    setIsHistoryModalOpen(true);
+  }, []);
+
+  const handleCloseHistoryModal = useCallback(() => {
+    setIsHistoryModalOpen(false);
+    setHistoryStudent(null);
+  }, []);
+
+  const handleViewMissions = useCallback((student: TeacherRosterStudent) => {
+    setMissionsStudent(student);
+    setIsMissionsModalOpen(true);
+  }, []);
+
+  const handleCloseMissionsModal = useCallback(() => {
+    setIsMissionsModalOpen(false);
+    setMissionsStudent(null);
   }, []);
 
   const handleViewRedeemedRewards = useCallback(
@@ -253,11 +454,11 @@ export function StudentRosterView() {
             setCurrentPage(1);
           }}
           totalStudents={students.length}
-          activeCount={students.filter((s) => s.pinStatus === "ok").length}
+          activeCount={students.filter((s) => s.pin_status === "ok").length}
           lockedCount={
             students.filter(
               (s) =>
-                s.pinStatus === "locked" || s.pinStatus === "failed_attempts"
+                s.pin_status === "locked" || s.pin_status === "failed_attempts"
             ).length
           }
           onResetFilters={handleResetFilters}
@@ -279,6 +480,7 @@ export function StudentRosterView() {
           onResetPin={handleResetPin}
           onViewHistory={handleViewHistory}
           onViewRedeemedRewards={handleViewRedeemedRewards}
+          onViewMissions={handleViewMissions}
         />
 
         {/* Phân trang Pagination */}
@@ -318,6 +520,38 @@ export function StudentRosterView() {
         isOpen={isRewardsModalOpen}
         onClose={handleCloseRewardsModal}
         student={rewardsStudent}
+      />
+
+      {/* 6. Modal xem lịch sử biến động sổ cái xu Heo Đất */}
+      <StudentCoinTransactionsModal
+        isOpen={isHistoryModalOpen}
+        onClose={handleCloseHistoryModal}
+        student={historyStudent}
+      />
+
+      {/* 7. Modal xem danh sách bài tập đã giao cho học sinh */}
+      <StudentAssignedMissionsModal
+        isOpen={isMissionsModalOpen}
+        onClose={handleCloseMissionsModal}
+        student={missionsStudent}
+      />
+
+      {/* 8. Modal Thưởng nóng / Trừ xu học sinh (Tái sử dụng từ student-management) */}
+      <AdjustStudentCoinsModal
+        isOpen={isAwardModalOpen}
+        onClose={handleCloseAwardModal}
+        studentItem={toStudentItem(awardStudent)}
+        onSubmit={handleAwardSubmit}
+        isSubmitting={isAwardSubmitting}
+      />
+
+      {/* 9. Modal Đặt lại mã PIN học sinh (Tái sử dụng từ student-management) */}
+      <ResetStudentPinModal
+        isOpen={isResetPinModalOpen}
+        onClose={handleCloseResetPinModal}
+        studentItem={toStudentItem(resetPinStudent)}
+        onSubmit={handleResetPinSubmit}
+        isSubmitting={isResetPinSubmitting}
       />
     </div>
   );

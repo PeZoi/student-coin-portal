@@ -40,7 +40,7 @@ export function StudentExchangeGiftsModal({
   const [filterTab, setFilterTab] = useState<GiftFilterTab>("all");
 
   const requests = useMemo(() => {
-    return student?.exchangeRequests || [];
+    return student?.exchange_requests || [];
   }, [student]);
 
   // Thống kê nhanh
@@ -95,9 +95,9 @@ export function StudentExchangeGiftsModal({
         }
         description={
           <span className="flex items-center gap-2">
-            <strong>{student.fullName}</strong>
+            <strong>{student.full_name}</strong>
             <span>•</span>
-            <span>Đã đổi {student.redeemedRewards} phần quà & tiền mặt</span>
+            <span>Đã đổi {student.redeemed_rewards_count} phần quà & tiền mặt</span>
           </span>
         }
         onClose={onClose}
@@ -109,10 +109,10 @@ export function StudentExchangeGiftsModal({
         <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-50/80 via-sky-50/60 to-indigo-50/50 border border-blue-100/90 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-full bg-white border border-blue-200 overflow-hidden shrink-0 shadow-2xs relative">
-              {student.avatar ? (
+              {student.avatar_url ? (
                 <Image
-                  src={student.avatar}
-                  alt={student.fullName}
+                  src={student.avatar_url}
+                  alt={student.full_name}
                   width={48}
                   height={48}
                   unoptimized
@@ -121,22 +121,22 @@ export function StudentExchangeGiftsModal({
                 />
               ) : (
                 <span className="text-sm font-bold text-[#0A62D6] uppercase flex items-center justify-center w-full h-full">
-                  {student.fullName.slice(0, 2)}
+                  {student.full_name.slice(0, 2)}
                 </span>
               )}
             </div>
             <div>
               <h3 className="text-sm sm:text-base font-bold text-[#0F172A]">
-                {student.fullName}
+                {student.full_name}
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
                 Số dư hiện có:{" "}
                 <strong className="text-amber-600 font-bold">
-                  {student.coins.toLocaleString("vi-VN")} xu
+                  {student.current_coins.toLocaleString("vi-VN")} xu
                 </strong>
-                {student.parentPhone && (
+                {student.phone_zalo && (
                   <span className="ml-2 text-slate-400 font-normal">
-                    • PH: {student.parentPhone}
+                    • PH: {student.phone_zalo}
                   </span>
                 )}
               </p>
