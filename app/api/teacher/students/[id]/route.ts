@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
-import { HttpStatus } from "@/constants";
+import { HttpStatus, StudentMissionStatus } from "@/constants";
 import { UserRole } from "@/constants/auth";
 import { updateStudentSchema } from "@/features/student-management/schemas/studentSchemas";
 import { StudentItem } from "@/features/student-management/types";
@@ -110,7 +110,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
           .delete()
           .eq("student_id", id)
           .eq("class_id", existingStudent.class_id)
-          .eq("status", "assigned");
+          .eq("status", StudentMissionStatus.ASSIGNED);
       }
     }
 

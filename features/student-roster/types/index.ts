@@ -1,3 +1,10 @@
+import {
+  StudentMissionStatusType,
+  MissionSubmissionTypeValue,
+  ExchangeRequestStatusType,
+  ExchangeChoiceTypeValue,
+} from "@/constants";
+
 export type StudentRosterStatusFilter = "all" | "active" | "locked";
 
 export type StudentRosterSortField =
@@ -9,22 +16,14 @@ export type StudentRosterSortField =
 export type SortOrder = "asc" | "desc" | "none";
 
 /**
- * 2 hình thức đổi quà khớp 100% với cột `choice_type` trong DB `monthly_exchange_requests`:
- * 1. 'cash': Đổi thành tiền thật (VNĐ)
- * 2. 'shopee': Đổi thành quà tặng tự chọn qua link sản phẩm (Shopee, Tiki, Lazada...)
- * 3. 'save_piggy': Bỏ heo tiết kiệm tiếp
+ * Hình thức đổi quà khớp 100% với cột `choice_type` trong DB `monthly_exchange_requests`
  */
-export type ExchangeChoiceType = "cash" | "shopee" | "save_piggy";
+export type ExchangeChoiceType = ExchangeChoiceTypeValue | "save_piggy";
 
 /**
  * Trạng thái yêu cầu đổi quà khớp cột `status` trong DB `monthly_exchange_requests`
  */
-export type ExchangeRequestStatus =
-  | "pending"
-  | "approved"
-  | "completed"
-  | "rejected"
-  | "cancelled";
+export type ExchangeRequestStatus = ExchangeRequestStatusType;
 
 /**
  * Chi tiết phiếu đổi quà khớp 100% cấu trúc bảng `monthly_exchange_requests`
@@ -94,20 +93,15 @@ export interface RosterCoinTransactionItem {
 
 /**
  * Trạng thái tiến độ bài tập của học sinh
- * Khớp 100% với cột `status` trong DB `student_missions`
+ * Khớp 100% với Postgres ENUM `student_mission_status`
  */
-export type RosterMissionProgressStatus =
-  | "assigned"
-  | "submitted"
-  | "approved"
-  | "rejected"
-  | "exempt";
+export type RosterMissionProgressStatus = StudentMissionStatusType;
 
 /**
  * Hình thức nộp bài minh chứng
- * Khớp cột `submission_type` trong DB `missions`
+ * Khớp Postgres ENUM `mission_submission_type`
  */
-export type RosterSubmissionType = "platform_proof" | "subjective_writing";
+export type RosterSubmissionType = MissionSubmissionTypeValue;
 
 /**
  * Chi tiết bài tập đã giao cho học sinh

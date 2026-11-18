@@ -9,6 +9,11 @@ import {
 	ModalBody,
 	ModalFooter,
 } from "@/components/ui/modal";
+import {
+	MissionSubmissionType,
+	DEFAULT_GRADING_FOCUS,
+	DEFAULT_MISSION_FORM_VALUES,
+} from "@/constants";
 import { useTeacherWorkspaceStore } from "@/stores/useTeacherWorkspaceStore";
 import {
 	TeacherMissionItem,
@@ -95,7 +100,8 @@ function MissionFormDialogContent({
 				title: editingMission.title,
 				description: editingMission.description,
 				submission_type:
-					editingMission.submission_type ?? "subjective_writing",
+					editingMission.submission_type ??
+					MissionSubmissionType.SUBJECTIVE_WRITING,
 				min_reward_coins: editingMission.min_reward_coins,
 				max_reward_coins: editingMission.max_reward_coins,
 				due_at: toDatetimeLocalValue(editingMission.due_at),
@@ -103,10 +109,7 @@ function MissionFormDialogContent({
 				assigned_class_ids: targetClassId
 					? [targetClassId]
 					: (editingMission.assigned_class_ids ?? []),
-				grading_focus: editingMission.grading_focus || [
-					"spelling",
-					"grammar",
-				],
+				grading_focus: editingMission.grading_focus || [...DEFAULT_GRADING_FOCUS],
 				custom_ai_prompt: editingMission.custom_ai_prompt || "",
 				allow_late_submission: editingMission.allow_late_submission ?? true,
 				ai_prompt_template_id: editingMission.ai_prompt_template_id ?? null,
@@ -116,15 +119,15 @@ function MissionFormDialogContent({
 		return {
 			title: "",
 			description: "",
-			submission_type: "subjective_writing",
-			min_reward_coins: 20,
-			max_reward_coins: 40,
+			submission_type: DEFAULT_MISSION_FORM_VALUES.SUBMISSION_TYPE,
+			min_reward_coins: DEFAULT_MISSION_FORM_VALUES.MIN_REWARD_COINS,
+			max_reward_coins: DEFAULT_MISSION_FORM_VALUES.MAX_REWARD_COINS,
 			due_at: toDatetimeLocalValue(null),
-			is_active: true,
+			is_active: DEFAULT_MISSION_FORM_VALUES.IS_ACTIVE,
 			assigned_class_ids: targetClassId ? [targetClassId] : [],
-			grading_focus: ["spelling", "grammar"],
+			grading_focus: [...DEFAULT_GRADING_FOCUS],
 			custom_ai_prompt: "",
-			allow_late_submission: true,
+			allow_late_submission: DEFAULT_MISSION_FORM_VALUES.ALLOW_LATE_SUBMISSION,
 			ai_prompt_template_id: null,
 		};
 	});

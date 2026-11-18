@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
-import { HttpStatus } from "@/constants";
+import { HttpStatus, StudentMissionStatus } from "@/constants";
 import { getMissionStudentProgressServer } from "@/features/mission-management/services/missionServerService";
 
 interface RouteParams {
@@ -64,7 +64,11 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 
     const { error: updateError } = await supabase
       .from("student_missions")
-      .update({ status: is_exempt ? "exempt" : "assigned" })
+      .update({
+        status: is_exempt
+          ? StudentMissionStatus.EXEMPT
+          : StudentMissionStatus.ASSIGNED,
+      })
       .eq("mission_id", missionId)
       .eq("student_id", student_id);
 

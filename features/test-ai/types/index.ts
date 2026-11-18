@@ -1,3 +1,9 @@
+import {
+  MissionSubmissionTypeValue,
+  AiGradingErrorType,
+  AiGradingSeverity,
+} from "@/constants";
+
 export interface AiConfig {
   apiUrl: string;
   apiKey: string;
@@ -29,7 +35,7 @@ export interface SubmissionImageItem {
   isCompressing?: boolean;
 }
 
-export type CoinRewardMode = "platform_proof" | "subjective_writing";
+export type CoinRewardMode = MissionSubmissionTypeValue;
 
 export interface PlatformProofCoinPolicy {
   fullScoreCoins: number; // Xu nếu đúng hết (ví dụ: 50 xu cho 20/20)
@@ -74,8 +80,8 @@ export interface AiGradingErrorItem {
   line: number;
   studentText: string;
   correction: string;
-  type: "spelling" | "grammar" | "punctuation" | "vocab" | "content";
-  severity: "minor" | "major";
+  type: AiGradingErrorType;
+  severity: AiGradingSeverity;
   explanation: string;
 }
 

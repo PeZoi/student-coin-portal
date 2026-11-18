@@ -7,6 +7,7 @@ import {
   CoinTxType,
   CoinReferenceType,
   COIN_TX_DESCRIPTIONS,
+  StudentMissionStatus,
 } from "@/constants";
 import { UserRole } from "@/constants/auth";
 import { changeStudentClassSchema } from "@/features/student-management/schemas/studentSchemas";
@@ -178,7 +179,7 @@ export async function POST(req: Request, { params }: RouteParams) {
           .delete()
           .eq("student_id", id)
           .eq("class_id", oldClassId)
-          .eq("status", "assigned");
+          .eq("status", StudentMissionStatus.ASSIGNED);
       }
     }
 

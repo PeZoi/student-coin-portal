@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Clock, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { MissionSubmissionType } from "../types";
+import { MissionSubmissionType } from "@/constants";
 import { SUBMISSION_TYPE_CONFIG } from "../constants";
 import {
 	formatRewardCoinsLabel,
@@ -118,24 +118,20 @@ export function MissionStackedProgressBar({
  * 3. Icon đại diện của Bài tập theo hình thức nộp bài (`missions.submission_type`)
  */
 export function MissionIconAvatar({
-	submissionType = "subjective_writing",
+	submissionType = MissionSubmissionType.SUBJECTIVE_WRITING,
 	isDeleted,
 	isActive,
 	size = "md",
-	iconType,
 }: {
 	submissionType?: MissionSubmissionType | null;
 	isDeleted?: boolean;
 	isActive?: boolean;
 	size?: "sm" | "md" | "lg";
-	iconType?: string | null;
 }) {
 	const safeType: MissionSubmissionType =
 		submissionType && SUBMISSION_TYPE_CONFIG[submissionType]
 			? submissionType
-			: iconType === "capture" || iconType === "notebook"
-				? "platform_proof"
-				: "subjective_writing";
+			: MissionSubmissionType.SUBJECTIVE_WRITING;
 
 	const config = SUBMISSION_TYPE_CONFIG[safeType];
 

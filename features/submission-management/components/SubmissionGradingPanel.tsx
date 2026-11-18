@@ -14,6 +14,7 @@ import {
   Eye,
 } from "lucide-react";
 import { cn, onlyNumberKeyDown } from "@/lib/utils";
+import { SubmissionApprovalStatus } from "@/constants";
 import { TeacherGradingSubmissionItem } from "../types";
 import {
   AI_ERROR_TYPE_META,
@@ -79,8 +80,10 @@ function SubmissionGradingFormContent({
   );
   const [showOcrText, setShowOcrText] = useState<boolean>(false);
 
-  const isApproved = submission.approval_status === "approved";
-  const isRejected = submission.approval_status === "rejected";
+  const isApproved =
+    submission.approval_status === SubmissionApprovalStatus.APPROVED;
+  const isRejected =
+    submission.approval_status === SubmissionApprovalStatus.REJECTED;
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col h-[740px] overflow-hidden">

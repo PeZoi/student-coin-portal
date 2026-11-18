@@ -46,6 +46,7 @@ import {
   useRosterAssignedMissionsInfinite,
 } from "../../hooks/useRosterAssignedMissionsInfinite";
 import { formatDate } from "@/lib/date";
+import { StudentMissionStatus } from "@/constants";
 
 interface StudentAssignedMissionsModalProps {
   isOpen: boolean;
@@ -149,21 +150,21 @@ function StudentAssignedMissionsDialogContent({
         comparison = timeA - timeB;
       } else if (sortField === "reward_coins") {
         const coinsA =
-          a.status === "approved"
+          a.status === StudentMissionStatus.APPROVED
             ? a.earned_coins || a.reward_coins
             : a.reward_coins;
         const coinsB =
-          b.status === "approved"
+          b.status === StudentMissionStatus.APPROVED
             ? b.earned_coins || b.reward_coins
             : b.reward_coins;
         comparison = coinsA - coinsB;
       } else if (sortField === "status") {
         const rankMap: Record<string, number> = {
-          submitted: 4,
-          approved: 3,
-          assigned: 2,
-          rejected: 1,
-          exempt: 0,
+          [StudentMissionStatus.SUBMITTED]: 4,
+          [StudentMissionStatus.APPROVED]: 3,
+          [StudentMissionStatus.ASSIGNED]: 2,
+          [StudentMissionStatus.REJECTED]: 1,
+          [StudentMissionStatus.EXEMPT]: 0,
         };
         comparison = (rankMap[a.status] ?? 0) - (rankMap[b.status] ?? 0);
       }
@@ -187,7 +188,7 @@ function StudentAssignedMissionsDialogContent({
       try {
         const res = await toggleExemptMission(missionId);
         if (res) {
-          if (res.status === "exempt") {
+          if (res.status === StudentMissionStatus.EXEMPT) {
             toast.success(
               `Đã miễn làm bài "${res.title}" cho học sinh ${student.full_name} (ngoại lệ).`
             );
@@ -523,7 +524,7 @@ function MissionTableItem({
   isExempting?: boolean;
 }) {
   const statusBadge = getStatusBadge(item.status);
-  const isExempt = item.status === "exempt";
+  const isExempt = item.status === StudentMissionStatus.EXEMPT;
 
   const isWriting = item.submission_type === "subjective_writing";
   const missionIconSrc = isWriting
@@ -605,7 +606,7 @@ function MissionTableItem({
 
       {/* 3. Xu thực tế nhận (Final) */}
       <TableCell className="py-2.5 px-2 sm:px-2.5 text-right whitespace-nowrap">
-        {item.status === "approved" ? (
+        {item.status === StudentMissionStatus.APPROVED ? (
           <span
             className="inline-flex items-center gap-1 text-xs font-heading font-black text-amber-950 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200 shadow-2xs"
             title={`Xu thực tế học sinh đã nhận: +${(item.earned_coins ?? item.reward_coins).toLocaleString("vi-VN")} xu`}
@@ -624,7 +625,11 @@ function MissionTableItem({
         ) : (
           <span
             className="inline-flex items-center gap-1 text-xs font-heading font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-200/90 shadow-2xs"
-            title={item.status === "submitted" ? "Đang chờ cô chấm điểm, chưa nhận xu" : "Chưa hoàn thành, chưa nhận xu"}
+            title={
+              item.status === StudentMissionStatus.SUBMITTED
+                ? "Đang chờ cô chấm điểm, chưa nhận xu"
+                : "Chưa hoàn thành, chưa nhận xu"
+            }
           >
             <Image
               src="/wheel/coin.webp"
@@ -662,7 +667,7 @@ function MissionTableItem({
 
       {/* 5. action miễn làm nếu có */}
       <TableCell className="py-2.5 px-2.5 sm:px-3 text-right whitespace-nowrap">
-        {item.status === "assigned" || isExempt ? (
+        {item.status === StudentMissionStatus.ASSIGNED || isExempt ? (
           <div>
             {isExempt ? (
               <button
@@ -737,7 +742,7 @@ function MissionCardItem({
   isExempting?: boolean;
 }) {
   const statusBadge = getStatusBadge(item.status);
-  const isExempt = item.status === "exempt";
+  const isExempt = item.status === StudentMissionStatus.EXEMPT;
 
   // Cấu hình Icon bài tập lấy theo chuẩn trang quản lý bài tập
   const isWriting = item.submission_type === "subjective_writing";
@@ -808,7 +813,7 @@ function MissionCardItem({
         </div>
 
         {/* Xu thực tế nhận (Final) */}
-        {item.status === "approved" ? (
+        {item.status === StudentMissionStatus.APPROVED ? (
           <span
             className="inline-flex items-center gap-1 text-xs sm:text-sm font-heading font-black text-amber-950 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 shrink-0 shadow-2xs"
             title={`Xu thực tế học sinh đã nhận: +${(item.earned_coins ?? item.reward_coins).toLocaleString("vi-VN")} xu`}
@@ -827,7 +832,11 @@ function MissionCardItem({
         ) : (
           <span
             className="inline-flex items-center gap-1 text-xs sm:text-sm font-heading font-bold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/90 shrink-0 shadow-2xs"
-            title={item.status === "submitted" ? "Đang chờ cô chấm điểm, chưa nhận xu" : "Chưa hoàn thành, chưa nhận xu"}
+            title={
+              item.status === StudentMissionStatus.SUBMITTED
+                ? "Đang chờ cô chấm điểm, chưa nhận xu"
+                : "Chưa hoàn thành, chưa nhận xu"
+            }
           >
             <Image
               src="/wheel/coin.webp"
@@ -871,7 +880,7 @@ function MissionCardItem({
         </div>
 
         {/* Nút hành động dành cho giáo viên: CHỈ xuất hiện khi CHƯA NỘP (assigned) hoặc ĐÃ MIỄN LÀM (exempt) */}
-        {(item.status === "assigned" || isExempt) && (
+        {(item.status === StudentMissionStatus.ASSIGNED || isExempt) && (
           <div>
             {isExempt ? (
               <button
@@ -971,31 +980,31 @@ function MissionCardItem({
 
 function getStatusBadge(status: RosterMissionProgressStatus) {
   switch (status) {
-    case "approved":
+    case StudentMissionStatus.APPROVED:
       return {
         label: "Đã hoàn thành",
         className: "bg-emerald-50 text-emerald-700 border-emerald-200",
         icon: <CheckCircle2 className="w-3 h-3 text-emerald-600" />,
       };
-    case "submitted":
+    case StudentMissionStatus.SUBMITTED:
       return {
         label: "Chờ cô chấm",
         className: "bg-amber-50 text-amber-700 border-amber-200",
         icon: <Clock className="w-3 h-3 text-amber-600" />,
       };
-    case "rejected":
+    case StudentMissionStatus.REJECTED:
       return {
         label: "Cần làm lại",
         className: "bg-rose-50 text-rose-700 border-rose-200",
         icon: <AlertCircle className="w-3 h-3 text-rose-600" />,
       };
-    case "exempt":
+    case StudentMissionStatus.EXEMPT:
       return {
         label: "Miễn làm",
         className: "bg-purple-50 text-purple-700 border-purple-200",
         icon: <ShieldBan className="w-3 h-3 text-purple-600" />,
       };
-    case "assigned":
+    case StudentMissionStatus.ASSIGNED:
     default:
       return {
         label: "Chưa nộp bài",

@@ -13,33 +13,28 @@
  * ==============================================================================
  */
 
+import {
+  MissionSubmissionType as MissionSubmissionTypeEnum,
+  MissionSubmissionTypeValue,
+  SubmissionApprovalStatus as SubmissionApprovalStatusEnum,
+  SubmissionApprovalStatusType,
+  AiGradingErrorType as AiGradingErrorTypeEnum,
+  AiGradingErrorTypeValue,
+} from "@/constants";
+
 /**
  * Cơ chế nộp bài & chấm điểm (Cột `missions.submission_type` trong DB):
  * - `platform_proof`: Minh chứng nền tảng khác (Chụp ảnh điểm số Quizizz, Wordwall, Azota, Kahoot...)
  * - `subjective_writing`: Đoạn văn / Tự luận viết tay (Chụp vở viết tay, AI OCR & chấm lỗi, giáo viên duyệt)
  */
-export type MissionSubmissionType = "platform_proof" | "subjective_writing";
+export type MissionSubmissionType = MissionSubmissionTypeValue;
+export { MissionSubmissionTypeEnum as MissionSubmissionTypeConst };
 
 /**
- * Biểu tượng bài tập theo hình thức nộp bài
+ * Tiêu chí trọng tâm để AI chấm lỗi (Khớp với Postgres ENUM `ai_error_type` trong DB)
  */
-export type MissionIconType =
-  | "write"
-  | "capture"
-  | "notebook"
-  | "book-pen"
-  | "flags-en-vi"
-  | "flags-vi-en";
-
-/**
- * Tiêu chí trọng tâm để AI chấm lỗi (Khớp với `ai_submission_errors.error_type` trong DB)
- */
-export type AiGradingErrorType =
-  | "spelling"
-  | "grammar"
-  | "vocab"
-  | "punctuation"
-  | "content";
+export type AiGradingErrorType = AiGradingErrorTypeValue;
+export { AiGradingErrorTypeEnum as AiGradingErrorTypeConst };
 
 /**
  * Thông tin lớp học rút gọn được gán cho bài tập (JOIN từ `mission_classes` + `classes`)
@@ -91,13 +86,10 @@ export interface TeacherMissionItem {
 }
 
 /**
- * Trạng thái duyệt bài nộp (Khớp 100% CHECK constraint `homework_submissions.approval_status`)
+ * Trạng thái duyệt bài nộp (Khớp 100% Postgres ENUM `submission_approval_status`)
  */
-export type SubmissionApprovalStatus =
-  | "pending_approval"
-  | "approved"
-  | "rejected"
-  | "cancelled";
+export type SubmissionApprovalStatus = SubmissionApprovalStatusType;
+export { SubmissionApprovalStatusEnum as SubmissionApprovalStatusConst };
 
 /**
  * Chi tiết lỗi sai do AI phát hiện (Khớp 100% bảng `public.ai_submission_errors`)

@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
-import { HttpStatus } from "@/constants";
+import { HttpStatus, StudentMissionStatus } from "@/constants";
 import { UserRole } from "@/constants/auth";
 import { batchClassActionSchema } from "@/features/class-management/schemas/classSchemas";
 
@@ -135,7 +135,7 @@ export async function POST(req: Request) {
         .from("student_missions")
         .delete()
         .in("class_id", validTrashIds)
-        .eq("status", "assigned");
+        .eq("status", StudentMissionStatus.ASSIGNED);
 
       // d. Xóa vĩnh viễn các bản ghi lớp học và đếm số lượng thực tế
       const { data: deletedList, error: hardDeleteError } = await supabase

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
+import { SubmissionApprovalStatus } from "@/constants";
 import { TeacherGradingSubmissionItem } from "../types";
 
 interface UseSubmissionMutationsParams {
@@ -69,7 +70,7 @@ export function useSubmissionMutations({
           item.id === submissionId
             ? {
                 ...item,
-                approval_status: "approved",
+                approval_status: SubmissionApprovalStatus.APPROVED,
                 final_coins: safeCoins,
                 teacher_feedback: feedbackText,
                 reviewed_by: "usr-teacher-01",
@@ -108,7 +109,7 @@ export function useSubmissionMutations({
           item.id === submissionId
             ? {
                 ...item,
-                approval_status: "rejected",
+                approval_status: SubmissionApprovalStatus.REJECTED,
                 final_coins: 0,
                 teacher_feedback: reasonText,
                 reviewed_by: "usr-teacher-01",
@@ -131,7 +132,7 @@ export function useSubmissionMutations({
         missionIdFilter === "all" || sub.mission_id === missionIdFilter;
       return (
         matchMission &&
-        sub.approval_status === "pending_approval" &&
+        sub.approval_status === SubmissionApprovalStatus.PENDING_APPROVAL &&
         sub.readable &&
         (sub.ai_score === null || sub.ai_score >= 8.0)
       );
@@ -150,7 +151,7 @@ export function useSubmissionMutations({
         targetIds.has(item.id)
           ? {
               ...item,
-              approval_status: "approved",
+              approval_status: SubmissionApprovalStatus.APPROVED,
               final_coins: item.ai_suggested_coins,
               teacher_feedback:
                 item.teacher_feedback ||

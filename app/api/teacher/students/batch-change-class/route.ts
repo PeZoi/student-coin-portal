@@ -7,6 +7,7 @@ import {
   CoinTxType,
   CoinReferenceType,
   COIN_TX_DESCRIPTIONS,
+  StudentMissionStatus,
 } from "@/constants";
 import { UserRole } from "@/constants/auth";
 import { batchChangeStudentClassSchema } from "@/features/student-management/schemas/studentSchemas";
@@ -184,14 +185,14 @@ export async function POST(req: Request) {
           .delete()
           .in("student_id", student_ids)
           .neq("class_id", new_class_id)
-          .eq("status", "assigned");
+          .eq("status", StudentMissionStatus.ASSIGNED);
       } else {
         // Chuyển về "Chưa phân lớp": dọn dẹp các bài chưa làm
         await supabase
           .from("student_missions")
           .delete()
           .in("student_id", student_ids)
-          .eq("status", "assigned");
+          .eq("status", StudentMissionStatus.ASSIGNED);
       }
     }
 

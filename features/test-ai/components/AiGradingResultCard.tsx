@@ -16,6 +16,7 @@ import {
   HelpCircle,
   AlertTriangle,
 } from "lucide-react";
+import { AiGradingErrorType, AiGradingSeverity } from "@/constants";
 import { AiGradingResult } from "../types";
 import { Button3D } from "@/components/ui/Button3D";
 import { toast } from "sonner";
@@ -355,15 +356,15 @@ export function AiGradingResultCard({
 
           <div className="space-y-2.5">
             {result.errors?.map((err, idx) => {
-              const isMajor = err.severity === "major";
+              const isMajor = err.severity === AiGradingSeverity.MAJOR;
               const typeBadge =
-                err.type === "spelling"
+                err.type === AiGradingErrorType.SPELLING
                   ? { label: "Chính tả", bg: "bg-purple-100 text-purple-800 border-purple-300" }
-                  : err.type === "grammar"
+                  : err.type === AiGradingErrorType.GRAMMAR
                   ? { label: "Ngữ pháp", bg: "bg-blue-100 text-blue-800 border-blue-300" }
-                  : err.type === "vocab"
+                  : err.type === AiGradingErrorType.VOCAB
                   ? { label: "Từ vựng", bg: "bg-amber-100 text-amber-800 border-amber-300" }
-                  : err.type === "punctuation"
+                  : err.type === AiGradingErrorType.PUNCTUATION
                   ? { label: "Dấu câu", bg: "bg-slate-100 text-slate-800 border-slate-300" }
                   : { label: "Nội dung", bg: "bg-rose-100 text-rose-800 border-rose-300" };
 

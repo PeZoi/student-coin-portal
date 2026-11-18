@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { HttpStatus } from "@/constants/http";
+import { AiGradingErrorType, AiGradingSeverity } from "@/constants";
 
 /**
  * Kiểu dữ liệu lỗi được AI phát hiện từ bài làm học sinh
@@ -8,8 +9,8 @@ export type Err = {
   line?: number;
   studentText?: string;
   correction?: string;
-  type?: "spelling" | "grammar" | "punctuation" | "vocab" | "content";
-  severity: "minor" | "major";
+  type?: AiGradingErrorType;
+  severity: AiGradingSeverity;
   explanation?: string;
 };
 
@@ -729,19 +730,19 @@ Hãy đọc kỹ ảnh chụp bài viết tay của học sinh, thực hiện ch
         // Ánh xạ errors sang detailedReviews để tương thích giao diện hiện tại
         const detailedReviews = errors.map((err, idx) => {
           const typeLabel =
-            err.type === "spelling"
+            err.type === AiGradingErrorType.SPELLING
               ? "Chính tả"
-              : err.type === "grammar"
+              : err.type === AiGradingErrorType.GRAMMAR
                 ? "Ngữ pháp"
-                : err.type === "vocab"
+                : err.type === AiGradingErrorType.VOCAB
                   ? "Từ vựng"
-                  : err.type === "punctuation"
+                  : err.type === AiGradingErrorType.PUNCTUATION
                     ? "Dấu câu"
                     : "Nội dung";
 
           return {
             questionNumber: `Dòng ${err.line || idx + 1} (${typeLabel})`,
-            status: (err.severity === "major"
+            status: (err.severity === AiGradingSeverity.MAJOR
               ? "incorrect"
               : "partially_correct") as "incorrect" | "partially_correct",
             studentAnswer: err.studentText || "",

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/TeacherSelect";
 import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { SubmissionApprovalStatus } from "@/constants";
 import { SubmissionStatusFilter } from "../types";
 import { useManageSubmissionsContext } from "../contexts/ManageSubmissionsContext";
 
@@ -54,9 +55,21 @@ export function SubmissionsToolbar() {
     label: string;
     count: number;
   }[] = [
-    { id: "pending_approval", label: "Chờ duyệt", count: pendingCount },
-    { id: "approved", label: "Đã duyệt", count: approvedCount },
-    { id: "rejected", label: "Cần làm lại", count: rejectedCount },
+    {
+      id: SubmissionApprovalStatus.PENDING_APPROVAL,
+      label: "Chờ duyệt",
+      count: pendingCount,
+    },
+    {
+      id: SubmissionApprovalStatus.APPROVED,
+      label: "Đã duyệt",
+      count: approvedCount,
+    },
+    {
+      id: SubmissionApprovalStatus.REJECTED,
+      label: "Cần làm lại",
+      count: rejectedCount,
+    },
     { id: "all", label: "Tất cả", count: totalCount },
   ];
 

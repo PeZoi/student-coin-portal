@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/modal";
 import { TeacherRosterStudent } from "../../types";
 import { studentRosterService } from "../../services/studentRosterService";
-import { CACHE_KEYS } from "@/constants";
+import { CACHE_KEYS, ExchangeChoiceType, ExchangeRequestStatus } from "@/constants";
 
 interface StudentExchangeGiftsModalProps {
   isOpen: boolean;
@@ -57,11 +57,11 @@ export function StudentExchangeGiftsModal({
 
   // Thống kê nhanh
   const cashRequests = useMemo(
-    () => requests.filter((r) => r.choice_type === "cash"),
+    () => requests.filter((r) => r.choice_type === ExchangeChoiceType.CASH),
     [requests]
   );
   const shopeeRequests = useMemo(
-    () => requests.filter((r) => r.choice_type === "shopee"),
+    () => requests.filter((r) => r.choice_type === ExchangeChoiceType.SHOPEE),
     [requests]
   );
 
@@ -369,14 +369,14 @@ export function StudentExchangeGiftsModal({
                     </div>
 
                     <div className="mt-1">
-                      {item.status === "completed" ? (
+                      {item.status === ExchangeRequestStatus.COMPLETED ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                           <span>
                             {isCash ? "Đã trao tiền mặt" : "Đã trao quà"}
                           </span>
                         </span>
-                      ) : item.status === "approved" ? (
+                      ) : item.status === ExchangeRequestStatus.APPROVED ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
                           <Clock className="w-3.5 h-3.5 text-blue-600" />
                           <span>

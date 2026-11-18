@@ -19,7 +19,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { AppRoutes, CACHE_KEYS } from "@/constants";
+import { AppRoutes, CACHE_KEYS, SubmissionApprovalStatus } from "@/constants";
 import { formatDate } from "@/lib/date";
 import {
   Modal,
@@ -173,10 +173,10 @@ function MissionProgressModalContent({
   ).length;
 
   const approvedCount = allStudents.filter(
-    (s) => s.approval_status === "approved"
+    (s) => s.approval_status === SubmissionApprovalStatus.APPROVED
   ).length;
   const pendingCount = allStudents.filter(
-    (s) => s.approval_status === "pending_approval"
+    (s) => s.approval_status === SubmissionApprovalStatus.PENDING_APPROVAL
   ).length;
   const lateCount = allStudents.filter((s) => s.is_late).length;
 
@@ -299,8 +299,8 @@ function MissionProgressModalContent({
       } else if (sortField === "approval_status") {
         const getApprovalRank = (s: typeof a) => {
           if (s.submission_status !== "submitted") return 0;
-          if (s.approval_status === "pending_approval") return 3;
-          if (s.approval_status === "approved") return 2;
+          if (s.approval_status === SubmissionApprovalStatus.PENDING_APPROVAL) return 3;
+          if (s.approval_status === SubmissionApprovalStatus.APPROVED) return 2;
           return 1;
         };
         comparison = getApprovalRank(b) - getApprovalRank(a);
@@ -536,10 +536,10 @@ function MissionProgressModalContent({
                 className="h-8.5 px-2.5 rounded-xl bg-white border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0A62D6]/20 cursor-pointer"
               >
                 <option value="all">Tất cả trạng thái duyệt</option>
-                <option value="pending_approval">
+                <option value={SubmissionApprovalStatus.PENDING_APPROVAL}>
                   Chờ cô duyệt ({pendingCount})
                 </option>
-                <option value="approved">Đã duyệt ({approvedCount})</option>
+                <option value={SubmissionApprovalStatus.APPROVED}>Đã duyệt ({approvedCount})</option>
               </select>
             )}
 
@@ -651,8 +651,9 @@ function MissionProgressModalContent({
                 filteredStudents.map((student, idx) => {
                   const isSubmitted = student.submission_status === "submitted";
                   const isPending =
-                    student.approval_status === "pending_approval";
-                  const isApproved = student.approval_status === "approved";
+                    student.approval_status === SubmissionApprovalStatus.PENDING_APPROVAL;
+                  const isApproved =
+                    student.approval_status === SubmissionApprovalStatus.APPROVED;
 
                   return (
                     <TableRow

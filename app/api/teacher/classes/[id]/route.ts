@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
-import { HttpStatus, PostgresErrorCode } from "@/constants";
+import { HttpStatus, PostgresErrorCode, StudentMissionStatus } from "@/constants";
 import { UserRole } from "@/constants/auth";
 import { updateClassSchema } from "@/features/class-management/schemas/classSchemas";
 import { escapeSqlWildcards } from "@/lib/utils";
@@ -213,7 +213,7 @@ export async function DELETE(req: Request, { params }: RouteParams) {
         .from("student_missions")
         .delete()
         .eq("class_id", id)
-        .eq("status", "assigned");
+        .eq("status", StudentMissionStatus.ASSIGNED);
 
       // d. Xóa vĩnh viễn lớp học khỏi cơ sở dữ liệu
       const { error: hardDeleteError } = await supabase

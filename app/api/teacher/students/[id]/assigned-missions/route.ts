@@ -3,6 +3,11 @@ import { apiError, apiSuccess } from "@/lib/api/response";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus } from "@/constants/http";
 import { UserRole } from "@/constants/auth";
+import {
+  StudentMissionStatus,
+  StudentMissionStatusType,
+  MissionSubmissionType,
+} from "@/constants";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -33,7 +38,7 @@ export interface StudentAssignedMissionsApiResponse {
     reward_coins: number;
     min_reward_coins?: number;
     max_reward_coins?: number;
-    status: "assigned" | "submitted" | "approved" | "rejected" | "exempt";
+    status: StudentMissionStatusType;
     is_late: boolean;
     assigned_at: string;
     deadline?: string;
@@ -114,18 +119,30 @@ export async function GET(req: Request, { params }: RouteParams) {
 
     const allItems = allStudentMissions || [];
     const totalCount = allItems.length;
-    const completedCount = allItems.filter((m) => m.status === "approved").length;
-    const pendingCount = allItems.filter((m) => m.status === "submitted").length;
-    const unsubmittedCount = allItems.filter((m) => m.status === "assigned").length;
+    const completedCount = allItems.filter(
+      (m) => m.status === StudentMissionStatus.APPROVED
+    ).length;
+    const pendingCount = allItems.filter(
+      (m) => m.status === StudentMissionStatus.SUBMITTED
+    ).length;
+    const unsubmittedCount = allItems.filter(
+      (m) => m.status === StudentMissionStatus.ASSIGNED
+    ).length;
 
     // 4. Lọc theo tab filterStatus nếu có
     let filteredList = allItems;
     if (filterStatus === "completed") {
-      filteredList = allItems.filter((m) => m.status === "approved");
+      filteredList = allItems.filter(
+        (m) => m.status === StudentMissionStatus.APPROVED
+      );
     } else if (filterStatus === "pending") {
-      filteredList = allItems.filter((m) => m.status === "submitted");
+      filteredList = allItems.filter(
+        (m) => m.status === StudentMissionStatus.SUBMITTED
+      );
     } else if (filterStatus === "unsubmitted") {
-      filteredList = allItems.filter((m) => m.status === "assigned");
+      filteredList = allItems.filter(
+        (m) => m.status === StudentMissionStatus.ASSIGNED
+      );
     }
 
     const paginatedItems = filteredList.slice(offset, offset + limit);
@@ -217,17 +234,22 @@ export async function GET(req: Request, { params }: RouteParams) {
         class_id: studentRecord.class_id,
         title: mDetail?.title || "Bài tập rèn luyện",
         description: mDetail?.description || "",
-        submission_type: mDetail?.submission_type || "subjective_writing",
+        submission_type:
+          mDetail?.submission_type || MissionSubmissionType.SUBJECTIVE_WRITING,
         reward_coins: mDetail?.max_reward_coins ?? 50,
         min_reward_coins: mDetail?.min_reward_coins ?? mDetail?.max_reward_coins ?? 50,
         max_reward_coins: mDetail?.max_reward_coins ?? 50,
-        status: (sm.status as "assigned" | "submitted" | "approved" | "rejected" | "exempt") || "assigned",
+        status: sm.status || StudentMissionStatus.ASSIGNED,
         is_late: sm.is_late ?? false,
         assigned_at: sm.assigned_at || new Date().toISOString(),
         deadline: mDetail?.due_at || undefined,
         submitted_at: sm.submitted_at || null,
         completed_at: sm.completed_at || null,
-        earned_coins: subDetail?.final_coins ?? (sm.status === "approved" ? (mDetail?.max_reward_coins ?? 50) : 0),
+        earned_coins:
+          subDetail?.final_coins ??
+          (sm.status === StudentMissionStatus.APPROVED
+            ? (mDetail?.max_reward_coins ?? 50)
+            : 0),
         teacher_feedback: subDetail?.teacher_feedback || null,
         proof_image_urls: subDetail?.proof_image_urls || [],
         attempt_number: subDetail?.attempt_number ?? 1,

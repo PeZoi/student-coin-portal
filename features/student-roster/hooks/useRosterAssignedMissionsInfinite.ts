@@ -4,7 +4,7 @@ import { useMemo, useEffect, useRef, useCallback } from "react";
 import useSWRInfinite from "swr/infinite";
 import { useSWRConfig } from "swr";
 import { toast } from "sonner";
-import { CACHE_KEYS } from "@/constants";
+import { CACHE_KEYS, StudentMissionStatus } from "@/constants";
 import {
   TeacherRosterStudent,
   RosterMissionProgressStatus,
@@ -82,7 +82,9 @@ export function useRosterAssignedMissionsInfinite(
   }, [data]);
 
   const stats = useMemo(() => {
-    const exempt = visibleMissions.filter((m) => m.status === "exempt").length;
+    const exempt = visibleMissions.filter(
+      (m) => m.status === StudentMissionStatus.EXEMPT
+    ).length;
     const progress = calculateStudentMissionProgress({
       total: summary.total,
       approved: summary.completed,
@@ -122,8 +124,10 @@ export function useRosterAssignedMissionsInfinite(
       const target = visibleMissions.find((m) => m.id === missionId);
       if (!target) return null;
 
-      const willExempt = target.status !== "exempt";
-      const nextStatus: RosterMissionProgressStatus = willExempt ? "exempt" : "assigned";
+      const willExempt = target.status !== StudentMissionStatus.EXEMPT;
+      const nextStatus: RosterMissionProgressStatus = willExempt
+        ? StudentMissionStatus.EXEMPT
+        : StudentMissionStatus.ASSIGNED;
 
       try {
         await studentRosterService.toggleExemptMission(

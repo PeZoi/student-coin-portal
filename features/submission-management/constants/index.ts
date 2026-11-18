@@ -1,7 +1,7 @@
+import { AiGradingErrorType } from "@/constants";
 import {
   TeacherGradingSubmissionItem,
   SubmissionMissionFilterOption,
-  AiGradingErrorType,
 } from "../types";
 
 /**
@@ -11,23 +11,23 @@ export const AI_ERROR_TYPE_META: Record<
   AiGradingErrorType,
   { label: string; badgeClass: string }
 > = {
-  grammar: {
+  [AiGradingErrorType.GRAMMAR]: {
     label: "Ngữ pháp",
     badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
   },
-  spelling: {
+  [AiGradingErrorType.SPELLING]: {
     label: "Chính tả",
     badgeClass: "bg-amber-50 text-amber-800 border-amber-200",
   },
-  vocab: {
+  [AiGradingErrorType.VOCAB]: {
     label: "Từ vựng",
     badgeClass: "bg-purple-50 text-purple-700 border-purple-200",
   },
-  punctuation: {
+  [AiGradingErrorType.PUNCTUATION]: {
     label: "Dấu câu",
     badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
   },
-  content: {
+  [AiGradingErrorType.CONTENT]: {
     label: "Nội dung",
     badgeClass: "bg-indigo-50 text-indigo-700 border-indigo-200",
   },
@@ -125,7 +125,6 @@ export const MOCK_GRADING_SUBMISSIONS: TeacherGradingSubmissionItem[] = [
     mission_title: "Viết đoạn văn ngắn (5-7 câu) miêu tả hoạt động cuối tuần",
     mission_description:
       "Các con viết tay vào vở ô ly đoạn văn từ 5 đến 7 câu tiếng Anh kể về các hoạt động của con và gia đình vào dịp cuối tuần.",
-    mission_icon_type: "write",
     min_reward_coins: 30,
     max_reward_coins: 60,
     mission_due_at: "2026-11-15T21:30:00+07:00",
@@ -137,7 +136,7 @@ export const MOCK_GRADING_SUBMISSIONS: TeacherGradingSubmissionItem[] = [
         line_number: 3,
         student_text: "My father play badminton with me in the yard.",
         correction_text: "My father plays badminton with me in the yard.",
-        error_type: "grammar",
+        error_type: AiGradingErrorType.GRAMMAR,
         severity: "major",
         explanation:
           "Chủ ngữ 'My father' là ngôi thứ 3 số ít ở thì hiện tại đơn nên động từ 'play' phải thêm '-s' thành 'plays'.",
@@ -184,7 +183,6 @@ export const MOCK_GRADING_SUBMISSIONS: TeacherGradingSubmissionItem[] = [
     mission_title: "Viết đoạn văn ngắn (5-7 câu) miêu tả hoạt động cuối tuần",
     mission_description:
       "Các con viết tay vào vở ô ly đoạn văn từ 5 đến 7 câu tiếng Anh kể về các hoạt động của con và gia đình vào dịp cuối tuần.",
-    mission_icon_type: "write",
     min_reward_coins: 30,
     max_reward_coins: 60,
     mission_due_at: "2026-11-15T21:30:00+07:00",
@@ -196,7 +194,7 @@ export const MOCK_GRADING_SUBMISSIONS: TeacherGradingSubmissionItem[] = [
         line_number: 2,
         student_text: "We goes to the park in Saturday morning.",
         correction_text: "We go to the park on Saturday morning.",
-        error_type: "grammar",
+        error_type: AiGradingErrorType.GRAMMAR,
         severity: "major",
         explanation:
           "Chủ ngữ 'We' là số nhiều nên dùng 'go' nguyên mẫu, và dùng giới từ 'on' trước thứ trong tuần.",
@@ -208,7 +206,7 @@ export const MOCK_GRADING_SUBMISSIONS: TeacherGradingSubmissionItem[] = [
         line_number: 8,
         student_text: "delicous food",
         correction_text: "delicious food",
-        error_type: "spelling",
+        error_type: AiGradingErrorType.SPELLING,
         severity: "minor",
         explanation: "Từ 'delicious' viết thiếu chữ 'i' sau chữ 'c'.",
       },
@@ -248,7 +246,6 @@ export const MOCK_GRADING_SUBMISSIONS: TeacherGradingSubmissionItem[] = [
     mission_title: "Viết đoạn văn ngắn (5-7 câu) miêu tả hoạt động cuối tuần",
     mission_description:
       "Các con viết tay vào vở ô ly đoạn văn từ 5 đến 7 câu tiếng Anh kể về các hoạt động của con và gia đình vào dịp cuối tuần.",
-    mission_icon_type: "write",
     min_reward_coins: 30,
     max_reward_coins: 60,
     mission_due_at: "2026-11-15T21:30:00+07:00",
@@ -291,7 +288,6 @@ export const MOCK_GRADING_SUBMISSIONS: TeacherGradingSubmissionItem[] = [
     mission_title: "Hoàn thành bài Quizizz Unit 7: My Favorite Food (20 câu)",
     mission_description:
       "Truy cập link bài tập Quizizz cô đã ghim, làm hết 20 câu hỏi và chụp ảnh màn hình kết quả nộp lên.",
-    mission_icon_type: "capture",
     min_reward_coins: 20,
     max_reward_coins: 40,
     mission_due_at: "2026-11-16T21:00:00+07:00",
@@ -336,7 +332,6 @@ export const MOCK_GRADING_SUBMISSIONS: TeacherGradingSubmissionItem[] = [
     mission_title: "Dịch Việt → Anh: 10 câu giao tiếp chủ đề School Things",
     mission_description:
       "Các con chép đề 10 câu tiếng Việt trong phiếu bài tập và dịch sang tiếng Anh vào vở ô ly.",
-    mission_icon_type: "write",
     min_reward_coins: 40,
     max_reward_coins: 80,
     mission_due_at: "2026-11-17T22:00:00+07:00",
@@ -348,7 +343,7 @@ export const MOCK_GRADING_SUBMISSIONS: TeacherGradingSubmissionItem[] = [
         line_number: 9,
         student_text: "two box of crayons",
         correction_text: "two boxes of crayons",
-        error_type: "grammar",
+        error_type: AiGradingErrorType.GRAMMAR,
         severity: "minor",
         explanation:
           "Danh từ 'box' kết thúc bằng '-x' nên khi chuyển sang số nhiều (2 hộp) cần thêm '-es' thành 'boxes'.",
@@ -390,7 +385,6 @@ export const MOCK_GRADING_SUBMISSIONS: TeacherGradingSubmissionItem[] = [
     mission_title: "Viết đoạn văn ngắn (5-7 câu) miêu tả hoạt động cuối tuần",
     mission_description:
       "Các con viết tay vào vở ô ly đoạn văn từ 5 đến 7 câu tiếng Anh kể về các hoạt động của con và gia đình vào dịp cuối tuần.",
-    mission_icon_type: "write",
     min_reward_coins: 30,
     max_reward_coins: 60,
     mission_due_at: "2026-11-15T21:30:00+07:00",
@@ -426,7 +420,6 @@ export const MOCK_GRADING_SUBMISSIONS: TeacherGradingSubmissionItem[] = [
     mission_title: "Viết đoạn văn ngắn (5-7 câu) miêu tả hoạt động cuối tuần",
     mission_description:
       "Các con viết tay vào vở ô ly đoạn văn từ 5 đến 7 câu tiếng Anh kể về các hoạt động của con và gia đình vào dịp cuối tuần.",
-    mission_icon_type: "write",
     min_reward_coins: 30,
     max_reward_coins: 60,
     mission_due_at: "2026-11-15T21:30:00+07:00",

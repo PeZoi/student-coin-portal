@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Coins, Sliders, UserCheck } from "lucide-react";
+import { MissionSubmissionType } from "@/constants";
 import {
 	CoinRewardMode,
 	PlatformProofCoinPolicy,
@@ -66,9 +67,9 @@ export function TeacherConfigSection({
 					{/* Kiểu 1 */}
 					<button
 						type='button'
-						onClick={() => onChangeCoinRewardMode("platform_proof")}
+						onClick={() => onChangeCoinRewardMode(MissionSubmissionType.PLATFORM_PROOF)}
 						className={`cursor-pointer p-2 rounded-xl text-left transition-all ${
-							coinRewardMode === "platform_proof"
+							coinRewardMode === MissionSubmissionType.PLATFORM_PROOF
 								? "bg-gradient-to-r from-[#0E6CD4] to-[#1258AF] text-white border-2 border-amber-300 shadow-md"
 								: "text-sky-200 hover:bg-white/10"
 						}`}
@@ -87,9 +88,9 @@ export function TeacherConfigSection({
 					{/* Kiểu 2 */}
 					<button
 						type='button'
-						onClick={() => onChangeCoinRewardMode("subjective_writing")}
+						onClick={() => onChangeCoinRewardMode(MissionSubmissionType.SUBJECTIVE_WRITING)}
 						className={`cursor-pointer p-2 rounded-xl text-left transition-all ${
-							coinRewardMode === "subjective_writing"
+							coinRewardMode === MissionSubmissionType.SUBJECTIVE_WRITING
 								? "bg-gradient-to-r from-[#0E6CD4] to-[#1258AF] text-white border-2 border-amber-300 shadow-md"
 								: "text-sky-200 hover:bg-white/10"
 						}`}
@@ -108,7 +109,7 @@ export function TeacherConfigSection({
 				</div>
 
 				{/* Nội dung cấu hình chi tiết theo từng kiểu */}
-				{coinRewardMode === "platform_proof" ? (
+				{coinRewardMode === MissionSubmissionType.PLATFORM_PROOF ? (
 					/* Cấu hình Kiểu 1: Minh chứng nền tảng khác */
 					<div className='p-3 rounded-xl bg-[#042452]/90 border border-sky-300/30 flex flex-col gap-2.5 animate-in fade-in duration-150'>
 						<div className='grid grid-cols-1 sm:grid-cols-2 gap-2.5'>

@@ -78,33 +78,33 @@ export type Database = {
         Row: {
           correction_text: string
           created_at: string | null
-          error_type: string
+          error_type: Database["public"]["Enums"]["ai_error_type"]
           explanation: string | null
           id: string
           line_number: number | null
-          severity: string
+          severity: Database["public"]["Enums"]["ai_error_severity"]
           student_text: string
           submission_id: string
         }
         Insert: {
           correction_text: string
           created_at?: string | null
-          error_type: string
+          error_type: Database["public"]["Enums"]["ai_error_type"]
           explanation?: string | null
           id?: string
           line_number?: number | null
-          severity: string
+          severity: Database["public"]["Enums"]["ai_error_severity"]
           student_text: string
           submission_id: string
         }
         Update: {
           correction_text?: string
           created_at?: string | null
-          error_type?: string
+          error_type?: Database["public"]["Enums"]["ai_error_type"]
           explanation?: string | null
           id?: string
           line_number?: number | null
-          severity?: string
+          severity?: Database["public"]["Enums"]["ai_error_severity"]
           student_text?: string
           submission_id?: string
         }
@@ -294,6 +294,7 @@ export type Database = {
           balance_after: number
           balance_before: number
           created_at: string | null
+          created_by: string | null
           description: string
           id: string
           reference_id: string | null
@@ -306,6 +307,7 @@ export type Database = {
           balance_after: number
           balance_before: number
           created_at?: string | null
+          created_by?: string | null
           description: string
           id?: string
           reference_id?: string | null
@@ -318,6 +320,7 @@ export type Database = {
           balance_after?: number
           balance_before?: number
           created_at?: string | null
+          created_by?: string | null
           description?: string
           id?: string
           reference_id?: string | null
@@ -326,6 +329,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "coin_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "coin_transactions_user_id_fkey"
             columns: ["user_id"]
@@ -340,7 +350,8 @@ export type Database = {
           ai_raw_response: Json | null
           ai_score: number | null
           ai_suggested_coins: number
-          approval_status: string
+          approval_status: Database["public"]["Enums"]["submission_approval_status"]
+          attempt_number: number
           cancelled_at: string | null
           correct_count: number | null
           created_at: string | null
@@ -355,7 +366,7 @@ export type Database = {
           reviewed_at: string | null
           reviewed_by: string | null
           student_id: string
-          submission_type: string
+          submission_type: Database["public"]["Enums"]["mission_submission_type"]
           teacher_feedback: string | null
           total_questions: number | null
           unreadable_reason: string | null
@@ -366,7 +377,8 @@ export type Database = {
           ai_raw_response?: Json | null
           ai_score?: number | null
           ai_suggested_coins?: number
-          approval_status?: string
+          approval_status?: Database["public"]["Enums"]["submission_approval_status"]
+          attempt_number?: number
           cancelled_at?: string | null
           correct_count?: number | null
           created_at?: string | null
@@ -381,7 +393,7 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           student_id: string
-          submission_type: string
+          submission_type: Database["public"]["Enums"]["mission_submission_type"]
           teacher_feedback?: string | null
           total_questions?: number | null
           unreadable_reason?: string | null
@@ -392,7 +404,8 @@ export type Database = {
           ai_raw_response?: Json | null
           ai_score?: number | null
           ai_suggested_coins?: number
-          approval_status?: string
+          approval_status?: Database["public"]["Enums"]["submission_approval_status"]
+          attempt_number?: number
           cancelled_at?: string | null
           correct_count?: number | null
           created_at?: string | null
@@ -407,7 +420,7 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           student_id?: string
-          submission_type?: string
+          submission_type?: Database["public"]["Enums"]["mission_submission_type"]
           teacher_feedback?: string | null
           total_questions?: number | null
           unreadable_reason?: string | null
@@ -477,60 +490,76 @@ export type Database = {
       }
       missions: {
         Row: {
+          ai_prompt_template_id: string | null
+          allow_late_submission: boolean
           created_at: string | null
           created_by: string
+          custom_ai_prompt: string | null
           deleted_at: string | null
           deleted_by: string | null
-          description: string
+          description: string | null
           due_at: string
-          icon_type: string | null
+          grading_focus: Database["public"]["Enums"]["ai_error_type"][] | null
           id: string
           is_active: boolean | null
           is_deleted: boolean
           max_reward_coins: number
           min_reward_coins: number
-          submission_type: string
+          submission_type: Database["public"]["Enums"]["mission_submission_type"]
           title: string
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
+          ai_prompt_template_id?: string | null
+          allow_late_submission?: boolean
           created_at?: string | null
           created_by: string
+          custom_ai_prompt?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
-          description: string
+          description?: string | null
           due_at: string
-          icon_type?: string | null
+          grading_focus?: Database["public"]["Enums"]["ai_error_type"][] | null
           id?: string
           is_active?: boolean | null
           is_deleted?: boolean
           max_reward_coins: number
           min_reward_coins?: number
-          submission_type?: string
+          submission_type?: Database["public"]["Enums"]["mission_submission_type"]
           title: string
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
+          ai_prompt_template_id?: string | null
+          allow_late_submission?: boolean
           created_at?: string | null
           created_by?: string
+          custom_ai_prompt?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
-          description?: string
+          description?: string | null
           due_at?: string
-          icon_type?: string | null
+          grading_focus?: Database["public"]["Enums"]["ai_error_type"][] | null
           id?: string
           is_active?: boolean | null
           is_deleted?: boolean
           max_reward_coins?: number
           min_reward_coins?: number
-          submission_type?: string
+          submission_type?: Database["public"]["Enums"]["mission_submission_type"]
           title?: string
           updated_at?: string | null
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "missions_ai_prompt_template_id_fkey"
+            columns: ["ai_prompt_template_id"]
+            isOneToOne: false
+            referencedRelation: "ai_prompt_templates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "missions_created_by_fkey"
             columns: ["created_by"]
@@ -621,7 +650,7 @@ export type Database = {
       monthly_exchange_requests: {
         Row: {
           amount_vnd: number
-          choice_type: string
+          choice_type: Database["public"]["Enums"]["monthly_exchange_choice"]
           coins_to_exchange: number
           created_at: string | null
           hold_tx_id: string | null
@@ -631,7 +660,7 @@ export type Database = {
           processed_by: string | null
           shopee_note: string | null
           shopee_product_url: string | null
-          status: string
+          status: Database["public"]["Enums"]["monthly_exchange_status"]
           student_id: string
           updated_at: string | null
           updated_by: string | null
@@ -639,7 +668,7 @@ export type Database = {
         }
         Insert: {
           amount_vnd?: number
-          choice_type: string
+          choice_type: Database["public"]["Enums"]["monthly_exchange_choice"]
           coins_to_exchange?: number
           created_at?: string | null
           hold_tx_id?: string | null
@@ -649,7 +678,7 @@ export type Database = {
           processed_by?: string | null
           shopee_note?: string | null
           shopee_product_url?: string | null
-          status?: string
+          status?: Database["public"]["Enums"]["monthly_exchange_status"]
           student_id: string
           updated_at?: string | null
           updated_by?: string | null
@@ -657,7 +686,7 @@ export type Database = {
         }
         Update: {
           amount_vnd?: number
-          choice_type?: string
+          choice_type?: Database["public"]["Enums"]["monthly_exchange_choice"]
           coins_to_exchange?: number
           created_at?: string | null
           hold_tx_id?: string | null
@@ -667,7 +696,7 @@ export type Database = {
           processed_by?: string | null
           shopee_note?: string | null
           shopee_product_url?: string | null
-          status?: string
+          status?: Database["public"]["Enums"]["monthly_exchange_status"]
           student_id?: string
           updated_at?: string | null
           updated_by?: string | null
@@ -843,6 +872,64 @@ export type Database = {
           },
         ]
       }
+      student_missions: {
+        Row: {
+          assigned_at: string | null
+          class_id: string
+          completed_at: string | null
+          id: string
+          is_late: boolean
+          mission_id: string
+          status: Database["public"]["Enums"]["student_mission_status"]
+          student_id: string
+          submitted_at: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          class_id: string
+          completed_at?: string | null
+          id?: string
+          is_late?: boolean
+          mission_id: string
+          status?: Database["public"]["Enums"]["student_mission_status"]
+          student_id: string
+          submitted_at?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          class_id?: string
+          completed_at?: string | null
+          id?: string
+          is_late?: boolean
+          mission_id?: string
+          status?: Database["public"]["Enums"]["student_mission_status"]
+          student_id?: string
+          submitted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_missions_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_missions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_missions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_settings: {
         Row: {
           description: string | null
@@ -878,11 +965,58 @@ export type Database = {
           },
         ]
       }
+      teacher_classes: {
+        Row: {
+          assigned_at: string | null
+          class_id: string
+          created_by: string | null
+          id: string
+          teacher_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          class_id: string
+          created_by?: string | null
+          id?: string
+          teacher_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          class_id?: string
+          created_by?: string | null
+          id?: string
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_classes_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_classes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_classes_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null
           class_id: string | null
           created_at: string | null
+          created_by: string | null
           current_coins: number
           deleted_at: string | null
           deleted_by: string | null
@@ -894,6 +1028,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_deleted: boolean
+          last_login_at: string | null
           locked_until: string | null
           password: string | null
           phone_zalo: string | null
@@ -908,6 +1043,7 @@ export type Database = {
           avatar_url?: string | null
           class_id?: string | null
           created_at?: string | null
+          created_by?: string | null
           current_coins?: number
           deleted_at?: string | null
           deleted_by?: string | null
@@ -919,6 +1055,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_deleted?: boolean
+          last_login_at?: string | null
           locked_until?: string | null
           password?: string | null
           phone_zalo?: string | null
@@ -933,6 +1070,7 @@ export type Database = {
           avatar_url?: string | null
           class_id?: string | null
           created_at?: string | null
+          created_by?: string | null
           current_coins?: number
           deleted_at?: string | null
           deleted_by?: string | null
@@ -944,6 +1082,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_deleted?: boolean
+          last_login_at?: string | null
           locked_until?: string | null
           password?: string | null
           phone_zalo?: string | null
@@ -960,6 +1099,13 @@ export type Database = {
             columns: ["class_id"]
             isOneToOne: false
             referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "users_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
@@ -982,8 +1128,11 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
+          deleted_at: string | null
+          deleted_by: string | null
           id: string
           is_active: boolean | null
+          is_deleted: boolean
           is_locked: boolean | null
           label: string
           prize_type: string
@@ -998,8 +1147,11 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           id: string
           is_active?: boolean | null
+          is_deleted?: boolean
           is_locked?: boolean | null
           label: string
           prize_type: string
@@ -1014,8 +1166,11 @@ export type Database = {
         Update: {
           created_at?: string | null
           created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           is_active?: boolean | null
+          is_deleted?: boolean
           is_locked?: boolean | null
           label?: string
           prize_type?: string
@@ -1036,6 +1191,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "wheel_prizes_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "wheel_prizes_updated_by_fkey"
             columns: ["updated_by"]
             isOneToOne: false
@@ -1051,6 +1213,8 @@ export type Database = {
           is_free_spin: boolean | null
           prize_id: string
           prize_label_snapshot: string
+          prize_short_label_snapshot: string | null
+          prize_type_snapshot: string
           reward_coins: number
           reward_free_spins: number
           spin_cost: number
@@ -1062,6 +1226,8 @@ export type Database = {
           is_free_spin?: boolean | null
           prize_id: string
           prize_label_snapshot: string
+          prize_short_label_snapshot?: string | null
+          prize_type_snapshot?: string
           reward_coins?: number
           reward_free_spins?: number
           spin_cost: number
@@ -1073,6 +1239,8 @@ export type Database = {
           is_free_spin?: boolean | null
           prize_id?: string
           prize_label_snapshot?: string
+          prize_short_label_snapshot?: string | null
+          prize_type_snapshot?: string
           reward_coins?: number
           reward_free_spins?: number
           spin_cost?: number
@@ -1097,7 +1265,22 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      class_statistics: {
+        Row: {
+          class_id: string | null
+          student_count: number | null
+          total_coins: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       audit_user_coin_balance: {
@@ -1110,6 +1293,22 @@ export type Database = {
           user_id: string
         }[]
       }
+      execute_wheel_spin: {
+        Args: {
+          p_allow_free_spin: boolean
+          p_fee_description: string
+          p_prize_description: string
+          p_prize_id: string
+          p_prize_label: string
+          p_prize_short_label: string
+          p_prize_type: string
+          p_reward_coins: number
+          p_reward_free_spins: number
+          p_spin_cost: number
+          p_student_id: string
+        }
+        Returns: Json
+      }
       get_expired_submission_media: {
         Args: { retention_days?: number }
         Returns: {
@@ -1119,6 +1318,7 @@ export type Database = {
           submission_id: string
         }[]
       }
+      get_wheel_config_stats: { Args: never; Returns: Json }
       mark_submission_media_purged: {
         Args: { submission_ids: string[] }
         Returns: number
@@ -1150,9 +1350,35 @@ export type Database = {
         Args: { p_requesting_user_id: string; p_target_user_id: string }
         Returns: string
       }
+      temp_drop_missions_icon_type: { Args: never; Returns: undefined }
     }
     Enums: {
-      [_ in never]: never
+      ai_error_severity: "minor" | "major"
+      ai_error_type:
+        | "spelling"
+        | "grammar"
+        | "vocab"
+        | "punctuation"
+        | "content"
+      mission_submission_type: "platform_proof" | "subjective_writing"
+      monthly_exchange_choice: "cash" | "shopee"
+      monthly_exchange_status:
+        | "pending"
+        | "approved"
+        | "completed"
+        | "rejected"
+        | "cancelled"
+      student_mission_status:
+        | "assigned"
+        | "submitted"
+        | "approved"
+        | "rejected"
+        | "exempt"
+      submission_approval_status:
+        | "pending_approval"
+        | "approved"
+        | "rejected"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1279,6 +1505,31 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      ai_error_severity: ["minor", "major"],
+      ai_error_type: ["spelling", "grammar", "vocab", "punctuation", "content"],
+      mission_submission_type: ["platform_proof", "subjective_writing"],
+      monthly_exchange_choice: ["cash", "shopee"],
+      monthly_exchange_status: [
+        "pending",
+        "approved",
+        "completed",
+        "rejected",
+        "cancelled",
+      ],
+      student_mission_status: [
+        "assigned",
+        "submitted",
+        "approved",
+        "rejected",
+        "exempt",
+      ],
+      submission_approval_status: [
+        "pending_approval",
+        "approved",
+        "rejected",
+        "cancelled",
+      ],
+    },
   },
 } as const

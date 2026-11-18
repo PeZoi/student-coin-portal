@@ -1,22 +1,28 @@
 import { z } from "zod";
+import {
+  MissionSubmissionType,
+  AiGradingErrorType,
+  DEFAULT_GRADING_FOCUS,
+  DEFAULT_MISSION_FORM_VALUES,
+} from "@/constants";
 
 /**
  * Tiêu chí trọng tâm bắt lỗi của AI
  */
 export const aiGradingErrorTypeSchema = z.enum([
-  "spelling",
-  "grammar",
-  "vocab",
-  "punctuation",
-  "content",
+  AiGradingErrorType.SPELLING,
+  AiGradingErrorType.GRAMMAR,
+  AiGradingErrorType.VOCAB,
+  AiGradingErrorType.PUNCTUATION,
+  AiGradingErrorType.CONTENT,
 ]);
 
 /**
  * Hình thức nộp bài
  */
 export const missionSubmissionTypeSchema = z.enum([
-  "platform_proof",
-  "subjective_writing",
+  MissionSubmissionType.PLATFORM_PROOF,
+  MissionSubmissionType.SUBJECTIVE_WRITING,
 ]);
 
 /**
@@ -30,26 +36,33 @@ export const createMissionSchema = z
       .min(3, "Tên bài tập phải có ít nhất 3 ký tự")
       .max(255, "Tên bài tập không được vượt quá 255 ký tự"),
     description: z.string().trim().optional().nullable().default(""),
-    submission_type: missionSubmissionTypeSchema.default("subjective_writing"),
+    submission_type: missionSubmissionTypeSchema.default(
+      DEFAULT_MISSION_FORM_VALUES.SUBMISSION_TYPE
+    ),
     min_reward_coins: z.coerce
       .number()
       .int("Xu thưởng phải là số nguyên")
       .min(0, "Xu thưởng tối thiểu không được âm")
-      .default(20),
+      .default(DEFAULT_MISSION_FORM_VALUES.MIN_REWARD_COINS),
     max_reward_coins: z.coerce
       .number()
       .int("Xu thưởng phải là số nguyên")
-      .positive("Xu thưởng tối đa phải lớn hơn 0"),
+      .positive("Xu thưởng tối đa phải lớn hơn 0")
+      .default(DEFAULT_MISSION_FORM_VALUES.MAX_REWARD_COINS),
     due_at: z
       .string()
       .min(10, "Hạn chót nộp bài không hợp lệ"),
-    is_active: z.boolean().default(true),
+    is_active: z.boolean().default(DEFAULT_MISSION_FORM_VALUES.IS_ACTIVE),
     assigned_class_ids: z
       .array(z.string().uuid("ID lớp học không hợp lệ"))
       .default([]),
-    grading_focus: z.array(aiGradingErrorTypeSchema).default(["spelling", "grammar"]),
+    grading_focus: z
+      .array(aiGradingErrorTypeSchema)
+      .default([...DEFAULT_GRADING_FOCUS]),
     custom_ai_prompt: z.string().trim().optional().nullable().default(""),
-    allow_late_submission: z.boolean().default(true),
+    allow_late_submission: z.boolean().default(
+      DEFAULT_MISSION_FORM_VALUES.ALLOW_LATE_SUBMISSION
+    ),
     ai_prompt_template_id: z.string().uuid().optional().nullable(),
   })
   .refine((data) => data.min_reward_coins <= data.max_reward_coins, {

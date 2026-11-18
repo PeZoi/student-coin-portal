@@ -1,13 +1,11 @@
 import {
   MissionSubmissionType,
-  MissionIconType,
   SubmissionApprovalStatus,
   AiGradingErrorType,
 } from "@/features/mission-management/types";
 
 export type {
   MissionSubmissionType,
-  MissionIconType,
   SubmissionApprovalStatus,
   AiGradingErrorType,
 };
@@ -73,7 +71,6 @@ export interface TeacherGradingSubmissionItem {
   // --- Thông tin Bài tập (JOIN `public.missions`) ---
   mission_title: string;
   mission_description: string;
-  mission_icon_type: MissionIconType | null;
   min_reward_coins: number;
   max_reward_coins: number;
   mission_due_at: string;
@@ -95,8 +92,4 @@ export interface SubmissionMissionFilterOption {
 /**
  * Bộ lọc trạng thái duyệt bài trên Studio Toolbar
  */
-export type SubmissionStatusFilter =
-  | "pending_approval"
-  | "approved"
-  | "rejected"
-  | "all";
+export type SubmissionStatusFilter = SubmissionApprovalStatus | "all";

@@ -3,6 +3,7 @@ import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { updateMissionSchema } from "@/features/mission-management/schemas/missionSchemas";
+import { StudentMissionStatus } from "@/constants";
 import {
   safeDeleteMissionServer,
   getTeacherMissionsServer,
@@ -89,7 +90,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
           .delete()
           .eq("mission_id", missionId)
           .in("class_id", removedClassIds)
-          .eq("status", "assigned");
+          .eq("status", StudentMissionStatus.ASSIGNED);
       }
 
       // 2.2. Xóa các phân công cũ trong mission_classes

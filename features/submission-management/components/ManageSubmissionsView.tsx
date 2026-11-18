@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle2, RotateCcw } from "lucide-react";
+import { SubmissionApprovalStatus } from "@/constants";
 import { TeacherGradingSubmissionItem } from "../types";
 import {
   ManageSubmissionsProvider,
@@ -62,21 +63,21 @@ function ManageSubmissionsContent() {
             <CheckCircle2 className="w-7 h-7" />
           </div>
           <h3 className="text-base sm:text-lg font-extrabold text-[#0F172A]">
-            {statusFilter === "pending_approval"
+            {statusFilter === SubmissionApprovalStatus.PENDING_APPROVAL
               ? "Tuyệt vời! Bạn đã duyệt hết tất cả bài nộp đang chờ"
               : "Không tìm thấy bài nộp nào khớp với bộ lọc"}
           </h3>
           <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-            {statusFilter === "pending_approval"
+            {statusFilter === SubmissionApprovalStatus.PENDING_APPROVAL
               ? "Tất cả bài tập học sinh nộp lên đã được chấm điểm và thưởng xu Heo Đất đầy đủ."
               : "Hãy thử đổi trạng thái lọc hoặc chọn bài tập khác để xem lịch sử bài nộp."}
           </p>
 
           <div className="pt-2 flex items-center justify-center gap-2">
-            {statusFilter === "pending_approval" ? (
+            {statusFilter === SubmissionApprovalStatus.PENDING_APPROVAL ? (
               <button
                 type="button"
-                onClick={() => setStatusFilter("approved")}
+                onClick={() => setStatusFilter(SubmissionApprovalStatus.APPROVED)}
                 className="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl bg-[#0A62D6] hover:bg-[#0850B0] text-white text-xs font-bold transition-colors cursor-pointer"
               >
                 <span>Xem các bài đã duyệt</span>

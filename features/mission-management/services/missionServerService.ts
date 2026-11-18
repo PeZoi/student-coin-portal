@@ -1,12 +1,18 @@
 import { supabase } from "@/lib/supabase/db";
 import { getAuthSession, AuthTokenPayload } from "@/lib/auth/jwt";
-import { UserRole } from "@/constants";
+import {
+  UserRole,
+  StudentMissionStatus,
+  SubmissionApprovalStatus,
+  SubmissionApprovalStatusType,
+  isMissionDoneOrSubmitted,
+  DEFAULT_GRADING_FOCUS,
+} from "@/constants";
 import {
   TeacherMissionItem,
   MissionStudentProgressItem,
   MissionSubmissionType,
   AiGradingErrorType,
-  SubmissionApprovalStatus,
 } from "../types";
 
 export interface GetTeacherMissionsOptions {
@@ -151,7 +157,7 @@ export async function getTeacherMissionsServer(
     const missionAssignedCountMap = new Map<string, number>();
     if (studentMissionsRes.data) {
       for (const sm of studentMissionsRes.data) {
-        if (!sm.mission_id || sm.status === "exempt") continue;
+        if (!sm.mission_id || sm.status === StudentMissionStatus.EXEMPT) continue;
         const cur = missionAssignedCountMap.get(sm.mission_id) ?? 0;
         missionAssignedCountMap.set(sm.mission_id, cur + 1);
       }
@@ -201,12 +207,12 @@ export async function getTeacherMissionsServer(
           stats.submitted_student_ids.add(sub.student_id);
         }
         stats.submitted_count += 1;
-        if (sub.approval_status === "pending_approval") {
+        if (sub.approval_status === SubmissionApprovalStatus.PENDING_APPROVAL) {
           stats.pending_review_count += 1;
-        } else if (sub.approval_status === "approved") {
+        } else if (sub.approval_status === SubmissionApprovalStatus.APPROVED) {
           stats.approved_count += 1;
           stats.total_coins_awarded += sub.final_coins ?? 0;
-        } else if (sub.approval_status === "rejected") {
+        } else if (sub.approval_status === SubmissionApprovalStatus.REJECTED) {
           stats.rejected_count += 1;
         }
 
@@ -226,10 +232,7 @@ export async function getTeacherMissionsServer(
     if (studentMissionsRes.data) {
       for (const sm of studentMissionsRes.data) {
         if (!sm.mission_id) continue;
-        const isDoneOrSubmitted =
-          sm.status === "submitted" ||
-          sm.status === "approved" ||
-          sm.status === "rejected";
+        const isDoneOrSubmitted = isMissionDoneOrSubmitted(sm.status);
 
         if (!isDoneOrSubmitted) continue;
 
@@ -249,11 +252,11 @@ export async function getTeacherMissionsServer(
           stats.submitted_student_ids.add(sm.student_id);
           stats.submitted_count += 1;
 
-          if (sm.status === "submitted") {
+          if (sm.status === StudentMissionStatus.SUBMITTED) {
             stats.pending_review_count += 1;
-          } else if (sm.status === "approved") {
+          } else if (sm.status === StudentMissionStatus.APPROVED) {
             stats.approved_count += 1;
-          } else if (sm.status === "rejected") {
+          } else if (sm.status === StudentMissionStatus.REJECTED) {
             stats.rejected_count += 1;
           }
 
@@ -354,7 +357,7 @@ export async function getTeacherMissionsServer(
         updated_by: raw.updated_by,
         updated_at: raw.updated_at,
         created_at: raw.created_at || new Date().toISOString(),
-        grading_focus: (raw.grading_focus as AiGradingErrorType[]) || ["spelling", "grammar"],
+        grading_focus: (raw.grading_focus as AiGradingErrorType[]) || [...DEFAULT_GRADING_FOCUS],
         allow_late_submission: raw.allow_late_submission ?? true,
         ai_prompt_template_id: raw.ai_prompt_template_id ?? null,
         custom_ai_prompt: raw.custom_ai_prompt ?? null,
@@ -568,11 +571,7 @@ export async function getMissionStudentProgressServer(
             ? classNameMap.get(sm.class_id)!
             : "Lớp học");
 
-        const isSubmitted =
-          sm.status === "submitted" ||
-          sm.status === "approved" ||
-          sm.status === "rejected" ||
-          Boolean(sub);
+        const isSubmitted = isMissionDoneOrSubmitted(sm.status) || Boolean(sub);
 
         if (isSubmitted) {
           let proofUrls: string[] = [];
@@ -580,11 +579,18 @@ export async function getMissionStudentProgressServer(
             proofUrls = sub.proof_image_urls as string[];
           }
 
-          let resolvedApproval: SubmissionApprovalStatus = "pending_approval";
-          if (sm.status === "approved" || sub?.approval_status === "approved") {
-            resolvedApproval = "approved";
-          } else if (sm.status === "rejected" || sub?.approval_status === "rejected") {
-            resolvedApproval = "rejected";
+          let resolvedApproval: SubmissionApprovalStatusType =
+            SubmissionApprovalStatus.PENDING_APPROVAL;
+          if (
+            sm.status === StudentMissionStatus.APPROVED ||
+            sub?.approval_status === SubmissionApprovalStatus.APPROVED
+          ) {
+            resolvedApproval = SubmissionApprovalStatus.APPROVED;
+          } else if (
+            sm.status === StudentMissionStatus.REJECTED ||
+            sub?.approval_status === SubmissionApprovalStatus.REJECTED
+          ) {
+            resolvedApproval = SubmissionApprovalStatus.REJECTED;
           }
 
           result.push({
@@ -604,7 +610,7 @@ export async function getMissionStudentProgressServer(
             ai_suggested_coins: sub?.ai_suggested_coins,
             teacher_feedback: sub?.teacher_feedback,
             proof_image_urls: proofUrls,
-            is_exempt: sm.status === "exempt",
+            is_exempt: sm.status === StudentMissionStatus.EXEMPT,
           });
         } else {
           result.push({
@@ -615,7 +621,7 @@ export async function getMissionStudentProgressServer(
             class_id: sm.class_id || "",
             class_name: studentClassName,
             submission_status: "not_submitted",
-            is_exempt: sm.status === "exempt",
+            is_exempt: sm.status === StudentMissionStatus.EXEMPT,
           });
         }
       }

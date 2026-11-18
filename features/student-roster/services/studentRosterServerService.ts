@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase/db";
 import { AuthTokenPayload } from "@/lib/auth/jwt";
 import { UserRole } from "@/constants/auth";
+import { StudentMissionStatus, ExchangeRequestStatus } from "@/constants";
 import { TeacherRosterStudent } from "../types";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -97,7 +98,7 @@ export async function getTeacherStudentRosterServer(
         .from("monthly_exchange_requests")
         .select("student_id, status")
         .in("student_id", studentIds)
-        .in("status", ["completed", "approved"]),
+        .in("status", [ExchangeRequestStatus.COMPLETED, ExchangeRequestStatus.APPROVED]),
     ]);
 
     if (missionsError) {
@@ -120,11 +121,11 @@ export async function getTeacherStudentRosterServer(
       }
       const st = missionStatsMap.get(sid)!;
       st.total++;
-      if (sm.status === "approved") {
+      if (sm.status === StudentMissionStatus.APPROVED) {
         st.approved++;
-      } else if (sm.status === "submitted") {
+      } else if (sm.status === StudentMissionStatus.SUBMITTED) {
         st.submitted++;
-      } else if (sm.status === "exempt") {
+      } else if (sm.status === StudentMissionStatus.EXEMPT) {
         st.exempt++;
       }
     }

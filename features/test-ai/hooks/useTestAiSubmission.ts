@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { AiGradingErrorType } from "@/constants";
 import {
   AiConfig,
   AiGradingResult,
@@ -46,7 +47,11 @@ export function useTestAiSubmission() {
       maxCoins: 80,
       requireTeacherReview: true,
     },
-    gradingFocus: ["grammar", "spelling", "vocabulary"],
+    gradingFocus: [
+      AiGradingErrorType.GRAMMAR,
+      AiGradingErrorType.SPELLING,
+      AiGradingErrorType.VOCAB,
+    ],
     gradingFocusCustom: "",
   });
 

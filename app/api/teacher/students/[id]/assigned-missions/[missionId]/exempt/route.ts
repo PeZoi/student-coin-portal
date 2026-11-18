@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus } from "@/constants/http";
+import { StudentMissionStatus } from "@/constants";
 
 interface RouteParams {
   params: Promise<{ id: string; missionId: string }>;
@@ -42,14 +43,19 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     }
 
     // Chỉ cho phép miễn làm nếu bài chưa nộp (assigned) hoặc đang là exempt
-    if (currentRecord.status === "approved" || currentRecord.status === "submitted") {
+    if (
+      currentRecord.status === StudentMissionStatus.APPROVED ||
+      currentRecord.status === StudentMissionStatus.SUBMITTED
+    ) {
       return apiError(
         "Không thể miễn làm bài tập đã nộp hoặc đã được chấm duyệt.",
         HttpStatus.BAD_REQUEST
       );
     }
 
-    const newStatus = isExempt ? "exempt" : "assigned";
+    const newStatus = isExempt
+      ? StudentMissionStatus.EXEMPT
+      : StudentMissionStatus.ASSIGNED;
 
     const { error: updateError } = await supabase
       .from("student_missions")

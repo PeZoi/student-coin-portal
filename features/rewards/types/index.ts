@@ -1,4 +1,9 @@
-export type ExchangeType = "cash" | "shopee";
+import {
+  ExchangeChoiceTypeValue,
+  ExchangeRequestStatusType,
+} from "@/constants";
+
+export type ExchangeType = ExchangeChoiceTypeValue;
 
 export interface ExchangeOption {
   type: ExchangeType;
@@ -20,6 +25,6 @@ export interface ExchangeRequest {
   costCoins: number;
   rewardValueVnd: number;
   shopeeLink?: string;
-  status: "pending" | "approved" | "completed" | "rejected";
+  status: ExchangeRequestStatusType;
   createdAt: string;
 }

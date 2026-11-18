@@ -12,6 +12,7 @@ import {
   Clock,
 } from "lucide-react";
 import { cn, getInitials } from "@/lib/utils";
+import { SubmissionApprovalStatus } from "@/constants";
 import { useManageSubmissionsContext } from "../contexts/ManageSubmissionsContext";
 
 /**
@@ -108,9 +109,13 @@ export function SubmissionsQueueSidebar() {
                 <span
                   className={cn(
                     "w-3 h-3 rounded-full border-2 border-white absolute -bottom-0.5 -right-0.5",
-                    sub.approval_status === "approved" && "bg-emerald-500",
-                    sub.approval_status === "pending_approval" && "bg-amber-500",
-                    sub.approval_status === "rejected" && "bg-rose-500"
+                    sub.approval_status === SubmissionApprovalStatus.APPROVED &&
+                      "bg-emerald-500",
+                    sub.approval_status ===
+                      SubmissionApprovalStatus.PENDING_APPROVAL &&
+                      "bg-amber-500",
+                    sub.approval_status === SubmissionApprovalStatus.REJECTED &&
+                      "bg-rose-500"
                   )}
                 />
               </div>
@@ -157,21 +162,22 @@ export function SubmissionsQueueSidebar() {
                     </span>
                   ) : null}
 
-                  {sub.approval_status === "approved" && (
+                  {sub.approval_status === SubmissionApprovalStatus.APPROVED && (
                     <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 ml-auto">
                       <CheckCircle2 className="w-3 h-3" />
                       <span>+{sub.final_coins ?? sub.ai_suggested_coins} xu</span>
                     </span>
                   )}
 
-                  {sub.approval_status === "rejected" && (
+                  {sub.approval_status === SubmissionApprovalStatus.REJECTED && (
                     <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-rose-600 ml-auto">
                       <RotateCcw className="w-3 h-3" />
                       <span>Làm lại</span>
                     </span>
                   )}
 
-                  {sub.approval_status === "pending_approval" && (
+                  {sub.approval_status ===
+                    SubmissionApprovalStatus.PENDING_APPROVAL && (
                     <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-amber-700 ml-auto">
                       <Clock className="w-3 h-3" />
                       <span>Chờ duyệt</span>

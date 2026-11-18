@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { normalizeText } from "@/lib/utils";
+import { SubmissionApprovalStatus } from "@/constants";
 import {
   TeacherGradingSubmissionItem,
   SubmissionStatusFilter,
@@ -24,7 +25,7 @@ export function useSubmissionFilters({
     initialMissionId || "all"
   );
   const [statusFilter, setStatusFilter] =
-    useState<SubmissionStatusFilter>("pending_approval");
+    useState<SubmissionStatusFilter>(SubmissionApprovalStatus.PENDING_APPROVAL);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<
     string | null
@@ -48,15 +49,15 @@ export function useSubmissionFilters({
     let totalCoinsAwarded = 0;
 
     for (const sub of missionScopedList) {
-      if (sub.approval_status === "pending_approval") {
+      if (sub.approval_status === SubmissionApprovalStatus.PENDING_APPROVAL) {
         pendingCount += 1;
         if (sub.readable && (sub.ai_score === null || sub.ai_score >= 8.0)) {
           validAiPendingCount += 1;
         }
-      } else if (sub.approval_status === "approved") {
+      } else if (sub.approval_status === SubmissionApprovalStatus.APPROVED) {
         approvedCount += 1;
         totalCoinsAwarded += sub.final_coins ?? sub.ai_suggested_coins;
-      } else if (sub.approval_status === "rejected") {
+      } else if (sub.approval_status === SubmissionApprovalStatus.REJECTED) {
         rejectedCount += 1;
       }
     }
