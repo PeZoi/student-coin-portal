@@ -76,6 +76,6 @@ export const ALL_EXCHANGE_CHOICE_TYPES: readonly ExchangeChoiceTypeValue[] = [
 ] as const;
 
 export const EXCHANGE_CHOICE_TYPE_LABELS: Record<ExchangeChoiceTypeValue, string> = {
-  [ExchangeChoiceType.CASH]: "Tiền mặt / Chuyển khoản",
-  [ExchangeChoiceType.SHOPEE]: "Quà sàn TMĐT",
+  [ExchangeChoiceType.CASH]: "Tiền mặt",
+  [ExchangeChoiceType.SHOPEE]: "Quà tự chọn",
 };

@@ -106,14 +106,14 @@ export interface CoinSourceItemConfig {
   label: string;
   shortLabel: string;
   iconName:
-    | "BookOpenCheck"
-    | "Sparkles"
-    | "Mic"
-    | "SlidersHorizontal"
-    | "Gift"
-    | "Trophy"
-    | "Dices"
-    | "Coins";
+  | "BookOpenCheck"
+  | "Sparkles"
+  | "Mic"
+  | "SlidersHorizontal"
+  | "Gift"
+  | "Trophy"
+  | "Dices"
+  | "Coins";
   iconBg: string;
   iconColor: string;
   badgeBg: string;
@@ -123,104 +123,104 @@ export interface CoinSourceItemConfig {
 }
 
 export const COIN_SOURCE_CONFIG: Record<CoinSourceKeyValue, CoinSourceItemConfig> =
-  {
-    [CoinSourceKey.HOMEWORK]: {
-      key: CoinSourceKey.HOMEWORK,
-      label: "Làm bài tập",
-      shortLabel: "Bài tập",
-      iconName: "BookOpenCheck",
-      iconBg: "bg-emerald-50 text-emerald-600",
-      iconColor: "text-emerald-600",
-      badgeBg: "bg-emerald-50/80",
-      badgeBorder: "border-emerald-200",
-      badgeText: "text-emerald-700",
-      defaultActor: "Hệ thống bài tập",
-    },
-    [CoinSourceKey.WHEEL]: {
-      key: CoinSourceKey.WHEEL,
-      label: "Quay thưởng",
-      shortLabel: "Vòng quay",
-      iconName: "Sparkles",
-      iconBg: "bg-amber-50 text-amber-600",
-      iconColor: "text-amber-600",
-      badgeBg: "bg-amber-50/80",
-      badgeBorder: "border-amber-200",
-      badgeText: "text-amber-700",
-      defaultActor: "Vòng quay",
-    },
-    [CoinSourceKey.SPEAKING]: {
-      key: CoinSourceKey.SPEAKING,
-      label: "Thưởng phát biểu",
-      shortLabel: "Phát biểu",
-      iconName: "Mic",
-      iconBg: "bg-orange-50 text-orange-600",
-      iconColor: "text-orange-600",
-      badgeBg: "bg-orange-50/80",
-      badgeBorder: "border-orange-200",
-      badgeText: "text-orange-700",
-      defaultActor: "Giáo viên đứng lớp",
-    },
-    [CoinSourceKey.MANUAL]: {
-      key: CoinSourceKey.MANUAL,
-      label: "Điều chỉnh thủ công",
-      shortLabel: "Điều chỉnh",
-      iconName: "SlidersHorizontal",
-      iconBg: "bg-sky-50 text-sky-600",
-      iconColor: "text-sky-600",
-      badgeBg: "bg-sky-50/80",
-      badgeBorder: "border-sky-200",
-      badgeText: "text-sky-700",
-      defaultActor: "Giáo viên",
-    },
-    [CoinSourceKey.EXCHANGE]: {
-      key: CoinSourceKey.EXCHANGE,
-      label: "Đổi quà Heo Đất",
-      shortLabel: "Đổi quà",
-      iconName: "Gift",
-      iconBg: "bg-indigo-50 text-indigo-600",
-      iconColor: "text-indigo-600",
-      badgeBg: "bg-indigo-50/80",
-      badgeBorder: "border-indigo-200",
-      badgeText: "text-indigo-700",
-      defaultActor: "Cửa hàng Heo Đất",
-    },
-    [CoinSourceKey.LEADERBOARD]: {
-      key: CoinSourceKey.LEADERBOARD,
-      label: "Thưởng đua top",
-      shortLabel: "Đua top",
-      iconName: "Trophy",
-      iconBg: "bg-yellow-50 text-yellow-600",
-      iconColor: "text-yellow-600",
-      badgeBg: "bg-yellow-50/80",
-      badgeBorder: "border-yellow-200",
-      badgeText: "text-yellow-700",
-      defaultActor: "Bảng xếp hạng",
-    },
-    [CoinSourceKey.SPIN_FEE]: {
-      key: CoinSourceKey.SPIN_FEE,
-      label: "Phí quay",
-      shortLabel: "Phí quay",
-      iconName: "Dices",
-      iconBg: "bg-purple-50 text-purple-600",
-      iconColor: "text-purple-600",
-      badgeBg: "bg-purple-50/80",
-      badgeBorder: "border-purple-200",
-      badgeText: "text-purple-700",
-      defaultActor: "Vòng quay",
-    },
-    [CoinSourceKey.OTHER]: {
-      key: CoinSourceKey.OTHER,
-      label: "Giao dịch xu",
-      shortLabel: "Giao dịch",
-      iconName: "Coins",
-      iconBg: "bg-slate-50 text-slate-600",
-      iconColor: "text-slate-600",
-      badgeBg: "bg-slate-50/80",
-      badgeBorder: "border-slate-200",
-      badgeText: "text-slate-700",
-      defaultActor: "Hệ thống",
-    },
-  };
+{
+  [CoinSourceKey.HOMEWORK]: {
+    key: CoinSourceKey.HOMEWORK,
+    label: "Làm bài tập",
+    shortLabel: "Bài tập",
+    iconName: "BookOpenCheck",
+    iconBg: "bg-emerald-50 text-emerald-600",
+    iconColor: "text-emerald-600",
+    badgeBg: "bg-emerald-50/80",
+    badgeBorder: "border-emerald-200",
+    badgeText: "text-emerald-700",
+    defaultActor: "Hệ thống bài tập",
+  },
+  [CoinSourceKey.WHEEL]: {
+    key: CoinSourceKey.WHEEL,
+    label: "Quay thưởng",
+    shortLabel: "Vòng quay",
+    iconName: "Sparkles",
+    iconBg: "bg-amber-50 text-amber-600",
+    iconColor: "text-amber-600",
+    badgeBg: "bg-amber-50/80",
+    badgeBorder: "border-amber-200",
+    badgeText: "text-amber-700",
+    defaultActor: "Vòng quay",
+  },
+  [CoinSourceKey.SPEAKING]: {
+    key: CoinSourceKey.SPEAKING,
+    label: "Thưởng phát biểu",
+    shortLabel: "Phát biểu",
+    iconName: "Mic",
+    iconBg: "bg-orange-50 text-orange-600",
+    iconColor: "text-orange-600",
+    badgeBg: "bg-orange-50/80",
+    badgeBorder: "border-orange-200",
+    badgeText: "text-orange-700",
+    defaultActor: "Giáo viên đứng lớp",
+  },
+  [CoinSourceKey.MANUAL]: {
+    key: CoinSourceKey.MANUAL,
+    label: "Điều chỉnh thủ công",
+    shortLabel: "Điều chỉnh",
+    iconName: "SlidersHorizontal",
+    iconBg: "bg-sky-50 text-sky-600",
+    iconColor: "text-sky-600",
+    badgeBg: "bg-sky-50/80",
+    badgeBorder: "border-sky-200",
+    badgeText: "text-sky-700",
+    defaultActor: "Giáo viên",
+  },
+  [CoinSourceKey.EXCHANGE]: {
+    key: CoinSourceKey.EXCHANGE,
+    label: "Đổi quà",
+    shortLabel: "Đổi quà",
+    iconName: "Gift",
+    iconBg: "bg-indigo-50 text-indigo-600",
+    iconColor: "text-indigo-600",
+    badgeBg: "bg-indigo-50/80",
+    badgeBorder: "border-indigo-200",
+    badgeText: "text-indigo-700",
+    defaultActor: "Cửa hàng Heo Đất",
+  },
+  [CoinSourceKey.LEADERBOARD]: {
+    key: CoinSourceKey.LEADERBOARD,
+    label: "Thưởng đua top",
+    shortLabel: "Đua top",
+    iconName: "Trophy",
+    iconBg: "bg-yellow-50 text-yellow-600",
+    iconColor: "text-yellow-600",
+    badgeBg: "bg-yellow-50/80",
+    badgeBorder: "border-yellow-200",
+    badgeText: "text-yellow-700",
+    defaultActor: "Bảng xếp hạng",
+  },
+  [CoinSourceKey.SPIN_FEE]: {
+    key: CoinSourceKey.SPIN_FEE,
+    label: "Phí quay",
+    shortLabel: "Phí quay",
+    iconName: "Dices",
+    iconBg: "bg-purple-50 text-purple-600",
+    iconColor: "text-purple-600",
+    badgeBg: "bg-purple-50/80",
+    badgeBorder: "border-purple-200",
+    badgeText: "text-purple-700",
+    defaultActor: "Vòng quay",
+  },
+  [CoinSourceKey.OTHER]: {
+    key: CoinSourceKey.OTHER,
+    label: "Giao dịch xu",
+    shortLabel: "Giao dịch",
+    iconName: "Coins",
+    iconBg: "bg-slate-50 text-slate-600",
+    iconColor: "text-slate-600",
+    badgeBg: "bg-slate-50/80",
+    badgeBorder: "border-slate-200",
+    badgeText: "text-slate-700",
+    defaultActor: "Hệ thống",
+  },
+};
 
 /**
  * Hàm phân loại nguồn xu thuần túy dựa trên tx_type từ CSDL (Không kiểm tra hay phụ thuộc vào chuỗi description)
