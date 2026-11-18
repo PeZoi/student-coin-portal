@@ -41,7 +41,6 @@ export function CashRewardCard({ canExchange, onOpenModal }: CashRewardCardProps
             alt="Đổi tiền mặt"
             fill
             sizes="(max-width: 640px) 72px, 88px"
-            unoptimized
             className="object-contain drop-shadow-sm"
           />
         </div>

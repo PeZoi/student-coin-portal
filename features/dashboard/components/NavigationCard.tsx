@@ -46,7 +46,6 @@ export function NavigationCard({ item }: NavigationCardProps) {
             alt={item.title}
             fill
             sizes="(max-width: 640px) 64px, 80px"
-            unoptimized
             className="object-contain drop-shadow-sm"
           />
         </div>
@@ -71,6 +70,7 @@ export function NavigationCard({ item }: NavigationCardProps) {
       <div className="p-3 sm:p-3.5 pt-0.5 flex justify-center">
         <Button3D
           href={item.href}
+          prefetch={true}
           variant={item.buttonVariant}
           fullWidth
           size="md"

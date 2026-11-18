@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
 import { UserRole as SystemRole } from "@/constants";
 import { AUTH_THEME } from "../constants/authTheme";
@@ -7,9 +8,13 @@ import { useAuthForm } from "../hooks/useAuthForm";
 import { AuthMode, UserRole } from "../types";
 import { BottomPlaque } from "./BottomPlaque";
 import { StudentLoginForm } from "./StudentLoginForm";
-import { StudentPinModal } from "./StudentPinModal";
 import { StudentRegisterForm } from "./StudentRegisterForm";
 import { TeacherLoginForm } from "./TeacherLoginForm";
+
+const StudentPinModal = dynamic(
+  () => import("./StudentPinModal").then((m) => m.StudentPinModal),
+  { ssr: false }
+);
 
 interface AuthCardProps {
   initialRole?: UserRole;

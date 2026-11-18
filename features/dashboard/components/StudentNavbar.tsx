@@ -46,7 +46,6 @@ export function StudentNavbar() {
 						fill
 						sizes='(max-width: 640px) 90px, (max-width: 1024px) 110px, 150px'
 						priority
-						unoptimized
 						className='object-contain drop-shadow-[0_4px_10px_rgba(0,20,60,0.35)] group-hover:drop-shadow-[0_6px_18px_rgba(255,215,0,0.45)] transition-all duration-300'
 					/>
 				</div>
@@ -56,18 +55,21 @@ export function StudentNavbar() {
 			<nav className='hidden md:flex items-center gap-1 md:gap-1.5 lg:gap-4 xl:gap-6 flex-shrink-0'>
 				<Link
 					href={AppRoutes.STUDENT.DASHBOARD}
+					prefetch={true}
 					className={isHome ? activeMenuClass : inactiveMenuClass}
 				>
 					Trang chủ
 				</Link>
 				<Link
 					href={AppRoutes.STUDENT.MISSIONS}
+					prefetch={true}
 					className={isMissions ? activeMenuClass : inactiveMenuClass}
 				>
 					Nhiệm vụ
 				</Link>
 				<Link
 					href={AppRoutes.STUDENT.WHEEL}
+					prefetch={true}
 					className={isWheel ? activeMenuClass : inactiveMenuClass}
 				>
 					<span className='md:hidden lg:inline'>Vòng quay may mắn</span>
@@ -75,12 +77,14 @@ export function StudentNavbar() {
 				</Link>
 				<Link
 					href={AppRoutes.STUDENT.REWARDS}
+					prefetch={true}
 					className={isRewards ? activeMenuClass : inactiveMenuClass}
 				>
 					Đổi quà
 				</Link>
 				<Link
 					href={AppRoutes.STUDENT.LEADERBOARD}
+					prefetch={true}
 					className={isLeaderboard ? activeMenuClass : inactiveMenuClass}
 				>
 					<span className='md:hidden lg:inline'>Bảng xếp hạng</span>

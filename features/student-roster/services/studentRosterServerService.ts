@@ -35,17 +35,8 @@ export async function getTeacherStudentRosterServer(
       return [];
     }
 
-    // 1. Lấy thông tin lớp học
-    const { data: classData } = await supabase
-      .from("classes")
-      .select("id, class_name")
-      .eq("id", targetClassId)
-      .maybeSingle();
-
-    const className = classData?.class_name || "Lớp học";
-
-    // 2. Truy vấn danh sách học sinh trong bảng users thuộc lớp
-    let query = supabase
+    // 1 & 2. Chạy song song query thông tin lớp và query danh sách học sinh (Loại bỏ Waterfall)
+    let studentsQuery = supabase
       .from("users")
       .select(`
         id,
@@ -69,10 +60,20 @@ export async function getTeacherStudentRosterServer(
 
     if (options?.search && options.search.trim()) {
       const q = options.search.trim();
-      query = query.or(`full_name.ilike.%${q}%,phone_zalo.ilike.%${q}%`);
+      studentsQuery = studentsQuery.or(`full_name.ilike.%${q}%,phone_zalo.ilike.%${q}%`);
     }
 
-    const { data: studentsData, error: studentsError } = await query;
+    const [{ data: classData }, { data: studentsData, error: studentsError }] =
+      await Promise.all([
+        supabase
+          .from("classes")
+          .select("id, class_name")
+          .eq("id", targetClassId)
+          .maybeSingle(),
+        studentsQuery,
+      ]);
+
+    const className = classData?.class_name || "Lớp học";
 
     if (studentsError || !studentsData || studentsData.length === 0) {
       if (studentsError) {
@@ -83,14 +84,27 @@ export async function getTeacherStudentRosterServer(
 
     const studentIds = studentsData.map((s) => s.id);
 
-    // 3. Batch query: Lấy thống kê bài tập từ student_missions
-    const { data: missionsAggData, error: missionsError } = await supabase
-      .from("student_missions")
-      .select("student_id, status")
-      .in("student_id", studentIds);
+    // 3 & 4. Batch query song song: Thống kê bài tập và số lượng đổi quà (Loại bỏ Waterfall)
+    const [
+      { data: missionsAggData, error: missionsError },
+      { data: exchangeAggData, error: exchangeError },
+    ] = await Promise.all([
+      supabase
+        .from("student_missions")
+        .select("student_id, status")
+        .in("student_id", studentIds),
+      supabase
+        .from("monthly_exchange_requests")
+        .select("student_id, status")
+        .in("student_id", studentIds)
+        .in("status", ["completed", "approved"]),
+    ]);
 
     if (missionsError) {
       console.error("Lỗi khi tải thống kê student_missions:", missionsError.message);
+    }
+    if (exchangeError) {
+      console.error("Lỗi khi tải thống kê monthly_exchange_requests:", exchangeError.message);
     }
 
     // Map thống kê bài tập theo student_id
@@ -113,17 +127,6 @@ export async function getTeacherStudentRosterServer(
       } else if (sm.status === "exempt") {
         st.exempt++;
       }
-    }
-
-    // 4. Batch query: Lấy số lượng quà đổi thành công từ monthly_exchange_requests
-    const { data: exchangeAggData, error: exchangeError } = await supabase
-      .from("monthly_exchange_requests")
-      .select("student_id, status")
-      .in("student_id", studentIds)
-      .in("status", ["completed", "approved"]);
-
-    if (exchangeError) {
-      console.error("Lỗi khi tải thống kê monthly_exchange_requests:", exchangeError.message);
     }
 
     const redeemedCountsMap = new Map<string, number>();

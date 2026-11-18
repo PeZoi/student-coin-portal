@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import Image from "next/image";
 import { UseFormReturn } from "react-hook-form";
@@ -10,8 +11,12 @@ import { Select } from "@/components/ui/Select";
 import { cn, onlyNumberKeyDown } from "@/lib/utils";
 import { DEFAULT_CHIBI_AVATAR } from "../constants/chibiAvatars";
 import { useClasses } from "../hooks/useClasses";
-import { AvatarPickerModal } from "./AvatarPickerModal";
 import { StudentRegisterFormValues } from "../types";
+
+const AvatarPickerModal = dynamic(
+  () => import("./AvatarPickerModal").then((m) => m.AvatarPickerModal),
+  { ssr: false }
+);
 
 interface StudentRegisterFormProps {
   form: UseFormReturn<StudentRegisterFormValues>;

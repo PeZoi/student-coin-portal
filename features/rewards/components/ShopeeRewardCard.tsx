@@ -44,7 +44,6 @@ export function ShopeeRewardCard({
             alt="Chọn quà Shopee"
             fill
             sizes="(max-width: 640px) 72px, 88px"
-            unoptimized
             className="object-contain drop-shadow-sm"
           />
         </div>

@@ -21,6 +21,7 @@ export interface Button3DProps
   fullWidth?: boolean;
   gloss?: boolean;
   href?: string;
+  prefetch?: boolean;
   loading?: boolean;
   children?: React.ReactNode;
 }
@@ -35,6 +36,7 @@ export const Button3D = React.forwardRef<HTMLButtonElement, Button3DProps>(
       disabled = false,
       loading = false,
       href,
+      prefetch,
       className,
       children,
       type = "button",
@@ -122,6 +124,7 @@ export const Button3D = React.forwardRef<HTMLButtonElement, Button3DProps>(
       return (
         <Link
           href={href}
+          prefetch={prefetch}
           className={commonClasses}
           onClick={props.onClick as unknown as React.MouseEventHandler<HTMLAnchorElement>}
           id={props.id}

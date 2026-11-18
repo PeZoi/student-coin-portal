@@ -164,7 +164,6 @@ export function LeaderboardRowItem({
 								width={52}
 								height={58}
 								priority={rank === 1}
-								unoptimized
 								style={{ height: "auto" }}
 								className='w-full h-auto object-contain drop-shadow-md select-none pointer-events-none'
 							/>

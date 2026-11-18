@@ -286,7 +286,6 @@ export function PiggyBankCard({ className }: PiggyBankCardProps = {}) {
               fill
               sizes="(max-width: 640px) 176px, (max-width: 768px) 192px, (max-width: 1024px) 208px, 224px"
               priority
-              unoptimized
               className="object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.15)]"
             />
           </div>

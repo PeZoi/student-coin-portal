@@ -2,17 +2,29 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { ArrowLeft, HelpCircle, History, Volume2, VolumeX } from "lucide-react";
 import { Button3D } from "@/components/ui/Button3D";
 import { DashboardBackgroundDecor } from "@/features/dashboard/components/DashboardBackgroundDecor";
 import { WheelSpinner } from "./WheelSpinner";
-import { WheelPrizeModal } from "./WheelPrizeModal";
-import { WheelRulesModal } from "./WheelRulesModal";
-import { WheelHistoryModal } from "./WheelHistoryModal";
 import { WHEEL_ASSETS } from "@/constants/wheel";
 import { useLuckyWheel } from "../hooks/useLuckyWheel";
 import { StudentWheelInitialData, WheelConfig } from "../types";
 import { useWheelAudio } from "../audio/useWheelAudio";
+
+// Dynamic imports cho modal để giảm initial bundle size
+const WheelPrizeModal = dynamic(
+  () => import("./WheelPrizeModal").then((m) => m.WheelPrizeModal),
+  { ssr: false }
+);
+const WheelRulesModal = dynamic(
+  () => import("./WheelRulesModal").then((m) => m.WheelRulesModal),
+  { ssr: false }
+);
+const WheelHistoryModal = dynamic(
+  () => import("./WheelHistoryModal").then((m) => m.WheelHistoryModal),
+  { ssr: false }
+);
 
 interface LuckyWheelViewProps {
   initialData?: StudentWheelInitialData;

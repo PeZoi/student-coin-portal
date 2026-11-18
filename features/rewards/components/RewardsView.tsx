@@ -2,13 +2,23 @@
 
 import { DashboardBackgroundDecor } from "@/features/dashboard/components/DashboardBackgroundDecor";
 import { PiggyBankCard } from "@/features/dashboard/components/PiggyBankCard";
+import dynamic from "next/dynamic";
 import React from "react";
 import { useRewardExchange } from "../hooks/useRewardExchange";
-import { CashExchangeModal } from "./CashExchangeModal";
 import { CashRewardCard } from "./CashRewardCard";
 import { RewardHeaderRibbon } from "./RewardHeaderRibbon";
-import { ShopeeExchangeModal } from "./ShopeeExchangeModal";
 import { ShopeeRewardCard } from "./ShopeeRewardCard";
+
+// Dynamic imports cho modal để giảm initial bundle size
+const CashExchangeModal = dynamic(
+	() => import("./CashExchangeModal").then((m) => m.CashExchangeModal),
+	{ ssr: false }
+);
+
+const ShopeeExchangeModal = dynamic(
+	() => import("./ShopeeExchangeModal").then((m) => m.ShopeeExchangeModal),
+	{ ssr: false }
+);
 
 export function RewardsView() {
 	const {

@@ -39,7 +39,6 @@ export function AuthView({ initialRole = "student", initialMode = "login" }: Aut
               fill
               sizes="(max-width: 640px) 210px, (max-width: 1024px) 260px, 300px"
               priority
-              unoptimized
               className="object-contain"
             />
           </div>
