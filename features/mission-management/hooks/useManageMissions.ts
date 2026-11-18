@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useUserStore } from "@/stores/useUserStore";
 import { useTeacherWorkspaceStore } from "@/stores/useTeacherWorkspaceStore";
 import { UserRole } from "@/constants/auth";
+import { CACHE_KEYS } from "@/constants";
 import { useTableSelection } from "@/hooks/useTableSelection";
 import { TeacherMissionItem, MissionAvailableClass } from "../types";
 import { missionService } from "../services/missionService";
@@ -48,7 +49,7 @@ export function useManageMissions(
     isLoading,
     isValidating,
   } = useSWR(
-    ["teacher-missions", workspaceClassId],
+    CACHE_KEYS.MISSIONS.ALL(workspaceClassId),
     () =>
       missionService.getMissions({
         classId: workspaceClassId ?? undefined,

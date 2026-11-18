@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/modal";
 import { TeacherRosterStudent } from "../../types";
 import { studentRosterService } from "../../services/studentRosterService";
+import { CACHE_KEYS } from "@/constants";
 
 interface StudentExchangeGiftsModalProps {
   isOpen: boolean;
@@ -43,7 +44,7 @@ export function StudentExchangeGiftsModal({
   const [filterTab, setFilterTab] = useState<GiftFilterTab>("all");
 
   const { data: exchangeData, isLoading } = useSWR(
-    isOpen && student?.id ? `exchange-requests-${student.id}` : null,
+    isOpen && student?.id ? CACHE_KEYS.ROSTER.EXCHANGE_REQUESTS(student.id) : null,
     () => studentRosterService.getStudentExchangeRequests(student!.id),
     {
       revalidateOnFocus: false,

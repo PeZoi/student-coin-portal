@@ -4,6 +4,7 @@ import { useMemo, useEffect, useRef, useCallback } from "react";
 import useSWRInfinite from "swr/infinite";
 import { useSWRConfig } from "swr";
 import { toast } from "sonner";
+import { CACHE_KEYS } from "@/constants";
 import {
   TeacherRosterStudent,
   RosterMissionProgressStatus,
@@ -40,7 +41,10 @@ export function useRosterAssignedMissionsInfinite(
     if (previousPageData && !previousPageData.pagination.has_more) {
       return null;
     }
-    return [`roster-assigned-missions-${studentId}-${activeTab}`, pageIndex + 1] as const;
+    return [
+      CACHE_KEYS.ROSTER.ASSIGNED_MISSIONS(studentId, activeTab),
+      pageIndex + 1,
+    ] as const;
   };
 
   const { data, error, isLoading, isValidating, size, setSize, mutate } =
@@ -130,7 +134,8 @@ export function useRosterAssignedMissionsInfinite(
         await mutate();
         // Revalidate ngầm danh sách roster để thanh tiến độ và số lượng bài ở bảng tự động cập nhật mượt mà
         globalMutate(
-          (key) => Array.isArray(key) && key[0] === "roster-students",
+          (key) =>
+            Array.isArray(key) && key[0] === CACHE_KEYS.ROSTER.STUDENTS_PREFIX,
           undefined,
           { revalidate: true }
         );

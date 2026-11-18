@@ -128,7 +128,7 @@ export async function getTeacherMissionsServer(
         query,
         supabase
           .from("homework_submissions")
-          .select("mission_id, approval_status, is_late, final_coins, ai_score"),
+          .select("mission_id, student_id, approval_status, is_late, final_coins, ai_score"),
         supabase
           .from("users")
           .select("class_id")
@@ -136,7 +136,7 @@ export async function getTeacherMissionsServer(
           .eq("is_deleted", false),
         supabase
           .from("student_missions")
-          .select("mission_id, status, is_exempt"),
+          .select("mission_id, student_id, status, is_late"),
       ]);
 
     if (missionsRes.error || !missionsRes.data) {
@@ -151,7 +151,7 @@ export async function getTeacherMissionsServer(
     const missionAssignedCountMap = new Map<string, number>();
     if (studentMissionsRes.data) {
       for (const sm of studentMissionsRes.data) {
-        if (!sm.mission_id || sm.is_exempt) continue;
+        if (!sm.mission_id || sm.status === "exempt") continue;
         const cur = missionAssignedCountMap.get(sm.mission_id) ?? 0;
         missionAssignedCountMap.set(sm.mission_id, cur + 1);
       }
@@ -168,7 +168,7 @@ export async function getTeacherMissionsServer(
       }
     }
 
-    // 4. Xây dựng Map thống kê bài nộp theo mission_id
+    // 4. Xây dựng Map thống kê bài nộp theo mission_id (Tổng hợp từ cả homework_submissions và student_missions)
     interface SubmissionStats {
       submitted_count: number;
       pending_review_count: number;
@@ -177,9 +177,12 @@ export async function getTeacherMissionsServer(
       late_count: number;
       total_coins_awarded: number;
       ai_scores: number[];
+      submitted_student_ids: Set<string>;
     }
 
     const missionStatsMap = new Map<string, SubmissionStats>();
+
+    // 4.1. Tổng hợp từ bảng homework_submissions chi tiết
     if (submissionsRes.data) {
       for (const sub of submissionsRes.data) {
         if (!sub.mission_id) continue;
@@ -191,8 +194,12 @@ export async function getTeacherMissionsServer(
           late_count: 0,
           total_coins_awarded: 0,
           ai_scores: [],
+          submitted_student_ids: new Set<string>(),
         };
 
+        if (sub.student_id) {
+          stats.submitted_student_ids.add(sub.student_id);
+        }
         stats.submitted_count += 1;
         if (sub.approval_status === "pending_approval") {
           stats.pending_review_count += 1;
@@ -212,6 +219,50 @@ export async function getTeacherMissionsServer(
         }
 
         missionStatsMap.set(sub.mission_id, stats);
+      }
+    }
+
+    // 4.2. Bổ trợ từ bảng student_missions (Đảm bảo mọi học sinh đã nộp bài, chờ chấm hoặc nộp muộn đều được tính vào tiến độ)
+    if (studentMissionsRes.data) {
+      for (const sm of studentMissionsRes.data) {
+        if (!sm.mission_id) continue;
+        const isDoneOrSubmitted =
+          sm.status === "submitted" ||
+          sm.status === "approved" ||
+          sm.status === "rejected";
+
+        if (!isDoneOrSubmitted) continue;
+
+        const stats = missionStatsMap.get(sm.mission_id) ?? {
+          submitted_count: 0,
+          pending_review_count: 0,
+          approved_count: 0,
+          rejected_count: 0,
+          late_count: 0,
+          total_coins_awarded: 0,
+          ai_scores: [],
+          submitted_student_ids: new Set<string>(),
+        };
+
+        // Nếu học sinh này chưa được tính từ homework_submissions thì cộng bổ sung vào tiến độ
+        if (sm.student_id && !stats.submitted_student_ids.has(sm.student_id)) {
+          stats.submitted_student_ids.add(sm.student_id);
+          stats.submitted_count += 1;
+
+          if (sm.status === "submitted") {
+            stats.pending_review_count += 1;
+          } else if (sm.status === "approved") {
+            stats.approved_count += 1;
+          } else if (sm.status === "rejected") {
+            stats.rejected_count += 1;
+          }
+
+          if (sm.is_late) {
+            stats.late_count += 1;
+          }
+        }
+
+        missionStatsMap.set(sm.mission_id, stats);
       }
     }
 
@@ -423,7 +474,6 @@ export async function getMissionStudentProgressServer(
           class_id,
           status,
           is_late,
-          is_exempt,
           submitted_at,
           completed_at,
           users:student_id (
@@ -554,7 +604,7 @@ export async function getMissionStudentProgressServer(
             ai_suggested_coins: sub?.ai_suggested_coins,
             teacher_feedback: sub?.teacher_feedback,
             proof_image_urls: proofUrls,
-            is_exempt: Boolean(sm.is_exempt),
+            is_exempt: sm.status === "exempt",
           });
         } else {
           result.push({
@@ -565,7 +615,7 @@ export async function getMissionStudentProgressServer(
             class_id: sm.class_id || "",
             class_name: studentClassName,
             submission_status: "not_submitted",
-            is_exempt: Boolean(sm.is_exempt),
+            is_exempt: sm.status === "exempt",
           });
         }
       }

@@ -31,6 +31,8 @@ export interface StudentAssignedMissionsApiResponse {
     description?: string;
     submission_type: string;
     reward_coins: number;
+    min_reward_coins?: number;
+    max_reward_coins?: number;
     status: "assigned" | "submitted" | "approved" | "rejected" | "exempt";
     is_late: boolean;
     assigned_at: string;
@@ -217,6 +219,8 @@ export async function GET(req: Request, { params }: RouteParams) {
         description: mDetail?.description || "",
         submission_type: mDetail?.submission_type || "subjective_writing",
         reward_coins: mDetail?.max_reward_coins ?? 50,
+        min_reward_coins: mDetail?.min_reward_coins ?? mDetail?.max_reward_coins ?? 50,
+        max_reward_coins: mDetail?.max_reward_coins ?? 50,
         status: (sm.status as "assigned" | "submitted" | "approved" | "rejected" | "exempt") || "assigned",
         is_late: sm.is_late ?? false,
         assigned_at: sm.assigned_at || new Date().toISOString(),

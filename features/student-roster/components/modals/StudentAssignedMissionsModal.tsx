@@ -565,15 +565,24 @@ function MissionTableItem({
             >
               {item.title}
             </h4>
-            {item.teacher_feedback ? (
-              <div
-                className="inline-flex items-center gap-1 text-[11px] text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/80 mt-1 max-w-[260px] truncate"
-                title={`Nhận xét của cô: ${item.teacher_feedback}`}
-              >
-                <MessageSquare className="w-3 h-3 text-amber-600 shrink-0" />
-                <span className="truncate">{item.teacher_feedback}</span>
-              </div>
-            ) : null}
+            {/* Số xu thưởng cấu hình của bài tập */}
+            <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900 bg-amber-50/90 px-1.5 py-0.5 rounded border border-amber-200/80 mt-1 shadow-2xs">
+              <Image
+                src="/wheel/coin.webp"
+                alt="Xu"
+                width={12}
+                height={12}
+                unoptimized
+                style={{ height: "auto" }}
+                className="w-3 h-3 object-contain shrink-0"
+              />
+              <span>
+                Thưởng:{" "}
+                {item.min_reward_coins && item.max_reward_coins && item.min_reward_coins !== item.max_reward_coins
+                  ? `+${item.min_reward_coins} - ${item.max_reward_coins} xu`
+                  : `+${item.max_reward_coins || item.reward_coins} xu`}
+              </span>
+            </div>
           </div>
         </div>
       </TableCell>
@@ -594,22 +603,41 @@ function MissionTableItem({
         </div>
       </TableCell>
 
-      {/* 3. số xu sẽ nhận */}
+      {/* 3. Xu thực tế nhận (Final) */}
       <TableCell className="py-2.5 px-2 sm:px-2.5 text-right whitespace-nowrap">
-        <span className="inline-flex items-center gap-1 text-xs font-heading font-black text-amber-950 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200 shadow-2xs">
-          <Image
-            src="/wheel/coin.webp"
-            alt="Xu"
-            width={14}
-            height={14}
-            unoptimized
-            style={{ height: "auto" }}
-            className="w-3.5 h-3.5 object-contain shrink-0 drop-shadow-2xs"
-          />
-          {item.status === "approved"
-            ? `+${(item.earned_coins || item.reward_coins).toLocaleString("vi-VN")} xu`
-            : `${item.reward_coins} xu`}
-        </span>
+        {item.status === "approved" ? (
+          <span
+            className="inline-flex items-center gap-1 text-xs font-heading font-black text-amber-950 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200 shadow-2xs"
+            title={`Xu thực tế học sinh đã nhận: +${(item.earned_coins ?? item.reward_coins).toLocaleString("vi-VN")} xu`}
+          >
+            <Image
+              src="/wheel/coin.webp"
+              alt="Xu"
+              width={14}
+              height={14}
+              unoptimized
+              style={{ height: "auto" }}
+              className="w-3.5 h-3.5 object-contain shrink-0 drop-shadow-2xs"
+            />
+            <span>+{(item.earned_coins ?? item.reward_coins).toLocaleString("vi-VN")} xu</span>
+          </span>
+        ) : (
+          <span
+            className="inline-flex items-center gap-1 text-xs font-heading font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-lg border border-slate-200/90 shadow-2xs"
+            title={item.status === "submitted" ? "Đang chờ cô chấm điểm, chưa nhận xu" : "Chưa hoàn thành, chưa nhận xu"}
+          >
+            <Image
+              src="/wheel/coin.webp"
+              alt="Xu"
+              width={14}
+              height={14}
+              unoptimized
+              style={{ height: "auto" }}
+              className="w-3.5 h-3.5 object-contain shrink-0 opacity-40 grayscale"
+            />
+            <span>+0 xu</span>
+          </span>
+        )}
       </TableCell>
 
       {/* 4. trạng thái + đã nộp (vừa badge và ở dưới là ngày giờ đã nộp) */}
@@ -755,6 +783,23 @@ function MissionCardItem({
               {statusBadge.icon}
               {statusBadge.label}
             </span>
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900 bg-amber-50/90 px-1.5 py-0.5 rounded border border-amber-200/80 shadow-2xs">
+              <Image
+                src="/wheel/coin.webp"
+                alt="Xu"
+                width={12}
+                height={12}
+                unoptimized
+                style={{ height: "auto" }}
+                className="w-3 h-3 object-contain shrink-0"
+              />
+              <span>
+                Thưởng:{" "}
+                {item.min_reward_coins && item.max_reward_coins && item.min_reward_coins !== item.max_reward_coins
+                  ? `+${item.min_reward_coins} - ${item.max_reward_coins} xu`
+                  : `+${item.max_reward_coins || item.reward_coins} xu`}
+              </span>
+            </span>
           </div>
 
           <h4 className="text-xs sm:text-sm font-bold text-[#0F172A] leading-snug line-clamp-1">
@@ -762,21 +807,40 @@ function MissionCardItem({
           </h4>
         </div>
 
-        {/* Mức thưởng xu */}
-        <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-heading font-black text-amber-950 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 shrink-0 shadow-2xs">
-          <Image
-            src="/wheel/coin.webp"
-            alt="Xu"
-            width={14}
-            height={14}
-            unoptimized
-            style={{ height: "auto" }}
-            className="w-3.5 h-3.5 object-contain shrink-0 drop-shadow-2xs"
-          />
-          {item.status === "approved"
-            ? `+${(item.earned_coins || item.reward_coins).toLocaleString("vi-VN")} xu`
-            : `Tối đa ${item.reward_coins} xu`}
-        </span>
+        {/* Xu thực tế nhận (Final) */}
+        {item.status === "approved" ? (
+          <span
+            className="inline-flex items-center gap-1 text-xs sm:text-sm font-heading font-black text-amber-950 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 shrink-0 shadow-2xs"
+            title={`Xu thực tế học sinh đã nhận: +${(item.earned_coins ?? item.reward_coins).toLocaleString("vi-VN")} xu`}
+          >
+            <Image
+              src="/wheel/coin.webp"
+              alt="Xu"
+              width={14}
+              height={14}
+              unoptimized
+              style={{ height: "auto" }}
+              className="w-3.5 h-3.5 object-contain shrink-0 drop-shadow-2xs"
+            />
+            <span>+{(item.earned_coins ?? item.reward_coins).toLocaleString("vi-VN")} xu</span>
+          </span>
+        ) : (
+          <span
+            className="inline-flex items-center gap-1 text-xs sm:text-sm font-heading font-bold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/90 shrink-0 shadow-2xs"
+            title={item.status === "submitted" ? "Đang chờ cô chấm điểm, chưa nhận xu" : "Chưa hoàn thành, chưa nhận xu"}
+          >
+            <Image
+              src="/wheel/coin.webp"
+              alt="Xu"
+              width={14}
+              height={14}
+              unoptimized
+              style={{ height: "auto" }}
+              className="w-3.5 h-3.5 object-contain shrink-0 opacity-40 grayscale"
+            />
+            <span>+0 xu</span>
+          </span>
+        )}
       </div>
 
       {/* Hướng dẫn / Mô tả bài tập */}

@@ -64,7 +64,7 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 
     const { error: updateError } = await supabase
       .from("student_missions")
-      .update({ is_exempt })
+      .update({ status: is_exempt ? "exempt" : "assigned" })
       .eq("mission_id", missionId)
       .eq("student_id", student_id);
 

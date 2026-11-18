@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useMemo } from "react";
 import useSWR from "swr";
 import { toast } from "sonner";
 import { useUserStore } from "@/stores/useUserStore";
+import { CACHE_KEYS } from "@/constants";
 import {
   WHEEL_CONSTANTS,
   WHEEL_PRIZE_TYPES,
@@ -27,7 +28,7 @@ export function useLuckyWheel(
   const { student, setStudent } = useUserStore();
 
   const { data: swrData, mutate } = useSWR(
-    "student-wheel-data",
+    CACHE_KEYS.WHEEL.STUDENT_DATA,
     () => luckyWheelService.getWheelData(),
     {
       fallbackData: initialData ?? null,

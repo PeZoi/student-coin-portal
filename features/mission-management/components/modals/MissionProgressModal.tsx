@@ -19,7 +19,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { AppRoutes } from "@/constants";
+import { AppRoutes, CACHE_KEYS } from "@/constants";
 import { formatDate } from "@/lib/date";
 import {
   Modal,
@@ -100,7 +100,7 @@ function MissionProgressModalContent({
     isLoading,
     mutate,
   } = useSWR(
-    ["mission-progress", mission.id],
+    CACHE_KEYS.MISSIONS.PROGRESS(mission.id),
     () => missionService.getMissionProgress(mission.id),
     {
       revalidateOnFocus: false,

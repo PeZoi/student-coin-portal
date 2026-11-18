@@ -3,6 +3,7 @@
 import useSWR from "swr";
 import { useTeacherWorkspaceStore } from "@/stores/useTeacherWorkspaceStore";
 import { useTableSelection } from "@/hooks/useTableSelection";
+import { CACHE_KEYS } from "@/constants";
 import { TeacherRosterStudent } from "../types";
 import { studentRosterService } from "../services/studentRosterService";
 import { useStudentRosterFilters } from "./useStudentRosterFilters";
@@ -57,7 +58,7 @@ export function useStudentRoster({
     mutate,
     isLoading,
   } = useSWR(
-    activeClassId ? ["roster-students", activeClassId] : "roster-students-empty",
+    CACHE_KEYS.ROSTER.STUDENTS(activeClassId),
     () => studentRosterService.getRosterStudents(activeClassId ?? undefined),
     {
       fallbackData: isMatchingInitialClass ? initialStudents : undefined,

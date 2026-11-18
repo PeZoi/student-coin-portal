@@ -122,6 +122,8 @@ export interface RosterAssignedMissionItem {
   description: string; // missions.description
   submission_type: RosterSubmissionType;
   reward_coins: number; // missions.max_reward_coins
+  min_reward_coins?: number; // missions.min_reward_coins
+  max_reward_coins?: number; // missions.max_reward_coins
   status: RosterMissionProgressStatus;
   is_late: boolean; // student_missions.is_late
   assigned_at: string; // student_missions.assigned_at
