@@ -58,20 +58,19 @@ export const EXCHANGE_REQUEST_STATUS_LABELS: Record<ExchangeRequestStatusType, s
 export const ExchangeChoiceType = {
   /** Đổi thành tiền thật (VNĐ) qua hình thức nhận tiền mặt hoặc chuyển khoản */
   CASH: "cash",
-  /** Đổi thành quà hiện vật qua link sàn TMĐT (Shopee, Tiki, Lazada...) */
-  SHOPEE: "shopee",
+  /** Đổi thành quà tặng tự chọn (sách vở, đồ chơi, link sản phẩm Shopee/Tiki...) */
+  GIFT: "gift",
 } as const;
 
-export type ExchangeChoiceTypeValue =
-  (typeof ExchangeChoiceType)[keyof typeof ExchangeChoiceType];
+export type ExchangeChoiceTypeValue = "cash" | "gift";
 export type ExchangeChoiceType = ExchangeChoiceTypeValue;
 
 export const ALL_EXCHANGE_CHOICE_TYPES: readonly ExchangeChoiceTypeValue[] = [
   ExchangeChoiceType.CASH,
-  ExchangeChoiceType.SHOPEE,
+  ExchangeChoiceType.GIFT,
 ] as const;
 
 export const EXCHANGE_CHOICE_TYPE_LABELS: Record<ExchangeChoiceTypeValue, string> = {
   [ExchangeChoiceType.CASH]: "Tiền mặt",
-  [ExchangeChoiceType.SHOPEE]: "Quà tự chọn",
+  [ExchangeChoiceType.GIFT]: "Quà tự chọn",
 };

@@ -658,6 +658,7 @@ export type Database = {
           month: number
           processed_at: string | null
           processed_by: string | null
+          rejection_reason: string | null
           shopee_note: string | null
           shopee_product_url: string | null
           status: Database["public"]["Enums"]["monthly_exchange_status"]
@@ -676,6 +677,7 @@ export type Database = {
           month: number
           processed_at?: string | null
           processed_by?: string | null
+          rejection_reason?: string | null
           shopee_note?: string | null
           shopee_product_url?: string | null
           status?: Database["public"]["Enums"]["monthly_exchange_status"]
@@ -694,6 +696,7 @@ export type Database = {
           month?: number
           processed_at?: string | null
           processed_by?: string | null
+          rejection_reason?: string | null
           shopee_note?: string | null
           shopee_product_url?: string | null
           status?: Database["public"]["Enums"]["monthly_exchange_status"]
@@ -1361,7 +1364,7 @@ export type Database = {
         | "punctuation"
         | "content"
       mission_submission_type: "platform_proof" | "subjective_writing"
-      monthly_exchange_choice: "cash" | "shopee"
+      monthly_exchange_choice: "cash" | "gift"
       monthly_exchange_status:
         | "pending"
         | "completed"
@@ -1508,7 +1511,7 @@ export const Constants = {
       ai_error_severity: ["minor", "major"],
       ai_error_type: ["spelling", "grammar", "vocab", "punctuation", "content"],
       mission_submission_type: ["platform_proof", "subjective_writing"],
-      monthly_exchange_choice: ["cash", "shopee"],
+      monthly_exchange_choice: ["cash", "gift"],
       monthly_exchange_status: [
         "pending",
         "completed",

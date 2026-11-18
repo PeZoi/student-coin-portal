@@ -42,6 +42,7 @@ export interface MonthlyExchangeRequest {
   amount_vnd: number;
   shopee_product_url?: string | null;
   shopee_note?: string | null;
+  rejection_reason?: string | null;
   status: ExchangeRequestStatus;
   hold_tx_id?: string | null;
   processed_by?: string | null;

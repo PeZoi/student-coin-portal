@@ -409,11 +409,12 @@ Vào cuối tháng, học sinh đạt từ 5.000 xu trở lên được mở for
 | `month` | INTEGER | NOT NULL, CHECK 1..12 | Tháng đánh giá (Đồng bộ với monthly_leaderboard) |
 | `year` | INTEGER | NOT NULL, CHECK >= 2024 | Năm đánh giá (Đồng bộ với monthly_leaderboard) |
 | `student_id` | UUID | FK -> users.id, NOT NULL | Học sinh gửi yêu cầu |
-| `choice_type` | VARCHAR(20) | NOT NULL | `cash` (tiền mặt), `shopee` (quà Shopee), `save_piggy` (tiếp tục tiết kiệm) |
+| `choice_type` | VARCHAR(20) | NOT NULL | `cash` (tiền mặt), `gift` (quà tặng tự chọn) |
 | `coins_to_exchange`| INTEGER | DEFAULT 0, CHECK % 5000 = 0 | Số xu chọn đổi (bội số của 5.000 xu; = 0 nếu save_piggy) |
 | `amount_vnd` | INTEGER | DEFAULT 0, CHECK >= 0 | Tiền mặt tương ứng (ví dụ: 25.000, 50.000...; = 0 nếu save_piggy) |
 | `shopee_product_url`| TEXT | NULL | Link sản phẩm Shopee |
 | `shopee_note` | TEXT | NULL | Ghi chú quà tặng (màu, size, chi tiết) |
+| `rejection_reason` | TEXT | NULL | Lý do giáo viên từ chối yêu cầu đổi quà |
 | `status` | VARCHAR(20) | DEFAULT 'pending' | `pending` (chờ cô), `completed` (đã trao quà), `rejected`, `cancelled` |
 | `hold_tx_id` | UUID | FK -> coin_transactions.id | Giao dịch giữ/khóa xu tức thì chống tiêu lạm |
 | `processed_by` | UUID | FK -> users.id, NULL | Giáo viên trao quà/tiền |
@@ -752,7 +753,7 @@ erDiagram
         int month "Tháng (1..12)"
         int year "Năm (2026)"
         uuid student_id FK
-        string choice_type "cash / shopee / save_piggy"
+        string choice_type "cash / gift"
         int coins_to_exchange "Bội số 5000 xu"
         int amount_vnd "Tiền tương ứng"
         text shopee_product_url

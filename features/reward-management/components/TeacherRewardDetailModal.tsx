@@ -27,34 +27,42 @@ import { TeacherExchangeRequestItem } from "../types";
 import { ExchangeChoiceType, ExchangeRequestStatus } from "@/constants/rewards";
 import { formatDate } from "@/lib/date";
 import { toast } from "sonner";
+import { useOptionalTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
 
-interface TeacherRewardDetailModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  request: TeacherExchangeRequestItem | null;
+export interface TeacherRewardDetailModalProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+  request?: TeacherExchangeRequestItem | null;
   onApproveAndDeliver?: (req: TeacherExchangeRequestItem) => void;
   onReject?: (req: TeacherExchangeRequestItem) => void;
 }
 
-export function TeacherRewardDetailModal({
-  isOpen,
-  onClose,
-  request,
-  onApproveAndDeliver,
-  onReject,
-}: TeacherRewardDetailModalProps) {
+export function TeacherRewardDetailModal(
+  props?: TeacherRewardDetailModalProps
+) {
+  const context = useOptionalTeacherRewardsContext();
+
+  const isOpen = props?.isOpen ?? context?.isDetailModalOpen ?? false;
+  const onClose = props?.onClose ?? context?.handleCloseDetail ?? (() => {});
+  const request = props?.request ?? context?.selectedRequest ?? null;
+  const onApproveAndDeliver =
+    props?.onApproveAndDeliver ?? context?.handleApproveAndDeliver;
+  const onReject = props?.onReject ?? context?.handleOpenRejectModal;
+
   const [copied, setCopied] = useState(false);
 
   if (!request) return null;
 
   const isCash = request.choice_type === ExchangeChoiceType.CASH;
-  const isShopee = request.choice_type === ExchangeChoiceType.SHOPEE;
+  const isGift =
+    request.choice_type === ExchangeChoiceType.GIFT ||
+    (request.choice_type as string) === "shopee";
 
   const handleCopyLink = () => {
     if (!request.shopee_product_url) return;
     navigator.clipboard.writeText(request.shopee_product_url);
     setCopied(true);
-    toast.success("Đã sao chép liên kết Shopee vào bộ nhớ tạm!");
+    toast.success("Đã sao chép liên kết vào bộ nhớ tạm!");
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -145,6 +153,23 @@ export function TeacherRewardDetailModal({
           </div>
         </div>
 
+        {/* Lý do từ chối của cô giáo nếu có */}
+        {request.status === ExchangeRequestStatus.REJECTED && request.rejection_reason && (
+          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200/90 flex items-start gap-3">
+            <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
+              <XCircle className="w-4 h-4" />
+            </div>
+            <div className="space-y-0.5 text-xs">
+              <span className="font-extrabold text-rose-950 uppercase tracking-wider block">
+                Lý do cô giáo từ chối:
+              </span>
+              <p className="text-rose-800 font-semibold leading-relaxed">
+                {request.rejection_reason}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Khối 2: Thông số Quy đổi (Xu Heo đất -> VNĐ) */}
         <div className="grid grid-cols-2 gap-3">
           <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200/80 flex items-center justify-between">
@@ -195,8 +220,8 @@ export function TeacherRewardDetailModal({
             </span>
           </div>
 
-          {/* Trường hợp 1: Quà sàn TMĐT Shopee */}
-          {isShopee && (
+          {/* Trường hợp 1: Quà tặng tự chọn */}
+          {isGift && (
             <div className="space-y-3">
               {request.shopee_product_url && (
                 <div className="p-3 rounded-xl bg-orange-50/70 border border-orange-200/80 space-y-2">

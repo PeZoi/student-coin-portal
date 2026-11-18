@@ -27,14 +27,14 @@ interface StudentExchangeGiftsModalProps {
   student: TeacherRosterStudent | null;
 }
 
-type GiftFilterTab = "all" | "cash" | "shopee";
+type GiftFilterTab = "all" | "cash" | "gift";
 
 /**
  * Modal hiển thị chi tiết lịch sử đổi quà của học sinh
  * - Khớp 100% với schema bảng DB `monthly_exchange_requests`
  * - Hiển thị đẹp mắt, cân xứng và đầy đặn cho cả 2 cách đổi quà:
  *   1. 'cash': Đổi thành tiền thật (VNĐ) với đầy đủ thông tin hình thức trao, tỷ lệ quy đổi và người nhận
- *   2. 'shopee': Đổi thành quà đã chọn bằng link (Shopee, Tiki...) kèm ghi chú món đồ và link mua hàng
+ *   2. 'gift': Đổi thành quà tự chọn bằng link kèm ghi chú món đồ và link mua hàng
  */
 export function StudentExchangeGiftsModal({
   isOpen,
@@ -60,8 +60,13 @@ export function StudentExchangeGiftsModal({
     () => requests.filter((r) => r.choice_type === ExchangeChoiceType.CASH),
     [requests]
   );
-  const shopeeRequests = useMemo(
-    () => requests.filter((r) => r.choice_type === ExchangeChoiceType.SHOPEE),
+  const giftRequests = useMemo(
+    () =>
+      requests.filter(
+        (r) =>
+          r.choice_type === ExchangeChoiceType.GIFT ||
+          (r.choice_type as string) === "shopee"
+      ),
     [requests]
   );
 
@@ -77,9 +82,9 @@ export function StudentExchangeGiftsModal({
   // Lọc theo Tab đã chọn
   const filteredRequests = useMemo(() => {
     if (filterTab === "cash") return cashRequests;
-    if (filterTab === "shopee") return shopeeRequests;
+    if (filterTab === "gift") return giftRequests;
     return requests;
-  }, [filterTab, requests, cashRequests, shopeeRequests]);
+  }, [filterTab, requests, cashRequests, giftRequests]);
 
   if (!student) return null;
 
@@ -167,10 +172,10 @@ export function StudentExchangeGiftsModal({
             </div>
             <div className="px-3 py-2 rounded-xl bg-white/90 border border-blue-100 shadow-2xs">
               <span className="text-[10px] font-semibold text-slate-500 block uppercase">
-                Quà Shopee
+                Quà tự chọn
               </span>
               <span className="text-xs sm:text-sm font-black text-[#0A62D6]">
-                {shopeeRequests.length} món
+                {giftRequests.length} món
               </span>
             </div>
             <div className="px-3 py-2 rounded-xl bg-white/90 border border-blue-100 shadow-2xs">
@@ -193,7 +198,7 @@ export function StudentExchangeGiftsModal({
             </h4>
           </div>
 
-          {/* Tabs bộ lọc: Tất cả | Tiền mặt | Quà Shopee */}
+          {/* Tabs bộ lọc: Tất cả | Tiền mặt | Quà tự chọn */}
           {requests.length > 0 && (
             <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 border border-slate-200/80 self-start sm:self-auto text-xs font-semibold">
               <button
@@ -220,14 +225,14 @@ export function StudentExchangeGiftsModal({
               </button>
               <button
                 type="button"
-                onClick={() => setFilterTab("shopee")}
+                onClick={() => setFilterTab("gift")}
                 className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
-                  filterTab === "shopee"
+                  filterTab === "gift"
                     ? "bg-white text-[#0A62D6] shadow-2xs font-bold"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Quà Shopee ({shopeeRequests.length})
+                Quà tự chọn ({giftRequests.length})
               </button>
             </div>
           )}
@@ -258,8 +263,8 @@ export function StudentExchangeGiftsModal({
             <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
               {filterTab === "cash"
                 ? "Học sinh chưa có yêu cầu đổi lấy tiền mặt nào."
-                : filterTab === "shopee"
-                ? "Học sinh chưa có yêu cầu đổi quà tặng Shopee nào."
+                : filterTab === "gift"
+                ? "Học sinh chưa có yêu cầu đổi quà tặng tự chọn nào."
                 : "Học sinh chưa thực hiện đổi quà trong các kỳ vừa qua."}
             </p>
           </div>

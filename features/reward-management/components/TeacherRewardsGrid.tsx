@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Calendar,
   Phone,
+  AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -22,10 +23,11 @@ import {
   ExchangeRequestStatusType,
 } from "@/constants/rewards";
 import { formatDate } from "@/lib/date";
+import { useOptionalTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
 
-interface TeacherRewardsGridProps {
-  requests: TeacherExchangeRequestItem[];
-  onSelectRequest: (request: TeacherExchangeRequestItem) => void;
+export interface TeacherRewardsGridProps {
+  requests?: TeacherExchangeRequestItem[];
+  onSelectRequest?: (request: TeacherExchangeRequestItem) => void;
   onApproveAndDeliver?: (request: TeacherExchangeRequestItem) => void;
   onReject?: (request: TeacherExchangeRequestItem) => void;
 }
@@ -93,21 +95,38 @@ const getCardStatusTheme = (status: ExchangeRequestStatusType) => {
   }
 };
 
-export function TeacherRewardsGrid({
-  requests,
-  onSelectRequest,
-  onApproveAndDeliver,
-  onReject,
-}: TeacherRewardsGridProps) {
+export function TeacherRewardsGrid(props?: TeacherRewardsGridProps) {
+  const context = useOptionalTeacherRewardsContext();
+
+  const requests = props?.requests ?? context?.paginatedRequests ?? [];
+  const onSelectRequest =
+    props?.onSelectRequest ?? context?.handleOpenDetail ?? (() => {});
+  const onApproveAndDeliver =
+    props?.onApproveAndDeliver ?? context?.handleApproveAndDeliver;
+  const onReject = props?.onReject ?? context?.handleOpenRejectModal;
   if (requests.length === 0) {
-    return null;
+    return (
+      <div className="py-16 px-4 text-center">
+        <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center mx-auto text-slate-400 mb-3">
+          <AlertCircle className="w-6 h-6" />
+        </div>
+        <h3 className="text-base font-semibold text-[#0F172A]">
+          Không tìm thấy yêu cầu đổi quà nào
+        </h3>
+        <p className="text-sm text-[#475569] mt-1 max-w-sm mx-auto">
+          Thử thay đổi bộ lọc trạng thái, hình thức hoặc chuyển đổi kỳ đổi thưởng khác.
+        </p>
+      </div>
+    );
   }
 
   return (
     <div className="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {requests.map((req) => {
         const isCash = req.choice_type === ExchangeChoiceType.CASH;
-        const isShopee = req.choice_type === ExchangeChoiceType.SHOPEE;
+        const isGift =
+          req.choice_type === ExchangeChoiceType.GIFT ||
+          (req.choice_type as string) === "shopee";
         const theme = getCardStatusTheme(req.status);
 
         return (
@@ -215,8 +234,8 @@ export function TeacherRewardsGrid({
                 </div>
               </div>
 
-              {/* Thông tin Shopee hoặc ghi chú tiền mặt: Đặt trên thẻ trắng nhẹ nhàng */}
-              {isShopee && (
+              {/* Thông tin Món quà hoặc ghi chú tiền mặt: Đặt trên thẻ trắng nhẹ nhàng */}
+              {isGift && (
                 <div
                   className={cn(
                     "p-3 rounded-xl border space-y-1.5 text-xs transition-colors",
@@ -231,7 +250,7 @@ export function TeacherRewardsGrid({
                       className="inline-flex items-center gap-1.5 text-orange-600 hover:text-orange-700 font-bold hover:underline transition-colors max-w-full"
                     >
                       <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">Mở link sản phẩm Shopee</span>
+                      <span className="truncate">Mở link món quà</span>
                     </a>
                   )}
                   {req.shopee_note && (
@@ -254,6 +273,19 @@ export function TeacherRewardsGrid({
                   </span>
                   <p className="text-slate-700 text-xs line-clamp-2 leading-relaxed break-words">
                     {req.shopee_note}
+                  </p>
+                </div>
+              )}
+
+              {/* Box hiển thị Lý do từ chối của giáo viên (nếu bị từ chối) */}
+              {req.status === ExchangeRequestStatus.REJECTED && req.rejection_reason && (
+                <div className="p-3 rounded-xl border border-rose-200/90 bg-white shadow-2xs text-xs space-y-1">
+                  <span className="text-[10px] font-bold text-rose-600 uppercase flex items-center gap-1">
+                    <XCircle className="w-3.5 h-3.5 shrink-0" />
+                    Lý do từ chối:
+                  </span>
+                  <p className="text-rose-800 text-xs font-semibold leading-relaxed break-words">
+                    {req.rejection_reason}
                   </p>
                 </div>
               )}

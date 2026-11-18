@@ -2,26 +2,33 @@
 
 import Image from "next/image";
 import { Gift, Clock, CheckCircle2, Coins } from "lucide-react";
+import { useOptionalTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
 
-interface TeacherRewardsKpiCardsProps {
-  totalRequests: number;
-  pendingRequests: number;
-  completedRequests: number;
-  totalCoinsExchanged: number;
-  totalVndAmount: number;
+export interface TeacherRewardsKpiCardsProps {
+  totalRequests?: number;
+  pendingRequests?: number;
+  completedRequests?: number;
+  totalCoinsExchanged?: number;
+  totalVndAmount?: number;
 }
 
 /**
  * 4 Thẻ thống kê KPI trang Đổi quà Heo Đất
- * - Đồng bộ 100% phong cách thiết kế với StudentRosterKpiCards và MissionsKpiCards
+ * - Tự động đọc dữ liệu từ TeacherRewardsContext (Quy tắc 10 - Feature Context Pattern)
+ * - Vẫn hỗ trợ truyền props độc lập khi cần
  */
-export function TeacherRewardsKpiCards({
-  totalRequests,
-  pendingRequests,
-  completedRequests,
-  totalCoinsExchanged,
-  totalVndAmount,
-}: TeacherRewardsKpiCardsProps) {
+export function TeacherRewardsKpiCards(props?: TeacherRewardsKpiCardsProps) {
+  const context = useOptionalTeacherRewardsContext();
+
+  const totalRequests = props?.totalRequests ?? context?.counts.all ?? 0;
+  const pendingRequests =
+    props?.pendingRequests ?? context?.counts.pending ?? 0;
+  const completedRequests =
+    props?.completedRequests ?? context?.counts.completed ?? 0;
+  const totalCoinsExchanged =
+    props?.totalCoinsExchanged ?? context?.totalCoinsExchanged ?? 0;
+  const totalVndAmount = props?.totalVndAmount ?? context?.totalVndAmount ?? 0;
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {/* 1. Tổng yêu cầu */}

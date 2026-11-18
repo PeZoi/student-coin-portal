@@ -3,28 +3,38 @@
 import { useMemo } from "react";
 import { Calendar, RotateCw } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
-import { TeacherSelect, TeacherSelectOption } from "@/components/ui/TeacherSelect";
+import {
+  TeacherSelect,
+  TeacherSelectOption,
+} from "@/components/ui/TeacherSelect";
+import { useOptionalTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
 
-interface TeacherRewardsHeaderProps {
-  selectedMonth: number;
-  selectedYear: number;
-  onMonthChange: (month: number) => void;
-  onRefresh: () => void;
-  isRefreshing: boolean;
+export interface TeacherRewardsHeaderProps {
+  selectedMonth?: number;
+  selectedYear?: number;
+  onMonthChange?: (month: number) => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 /**
  * Header của trang Đổi quà Heo Đất (Góc giáo viên)
- * - Đồng bộ 100% phong cách thiết kế với Quản lý bài tập (MissionsHeader) và Danh sách học sinh (StudentRosterHeader)
- * - Sử dụng TeacherSelect chuyên dụng cho bộ chọn kỳ đổi thưởng thay vì thẻ select HTML thô
+ * - Tự động đọc dữ liệu từ TeacherRewardsContext (Quy tắc 10 - Feature Context Pattern)
+ * - Vẫn hỗ trợ truyền props độc lập khi cần
  */
-export function TeacherRewardsHeader({
-  selectedMonth,
-  selectedYear,
-  onMonthChange,
-  onRefresh,
-  isRefreshing,
-}: TeacherRewardsHeaderProps) {
+export function TeacherRewardsHeader(props?: TeacherRewardsHeaderProps) {
+  const context = useOptionalTeacherRewardsContext();
+
+  const selectedMonth = props?.selectedMonth ?? context?.selectedMonth ?? 11;
+  const selectedYear = props?.selectedYear ?? context?.selectedYear ?? 2026;
+  const onMonthChange =
+    props?.onMonthChange ?? context?.setSelectedMonth ?? (() => {});
+  const onRefresh =
+    props?.onRefresh ?? context?.handleRefresh ?? (() => {});
+  const isRefreshing =
+    props?.isRefreshing ??
+    Boolean(context?.isValidating || context?.isLoading);
+
   // Danh sách các kỳ đổi quà hàng tháng
   const periodOptions: TeacherSelectOption[] = useMemo(
     () => [
@@ -40,7 +50,7 @@ export function TeacherRewardsHeader({
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <h1 className="text-2xl sm:text-3xl font-black text-[#0F172A] font-heading tracking-tight">
-          Đổi quà Heo Đất
+          Đổi quà
         </h1>
         <p className="text-sm sm:text-[15px] text-[#475569] mt-1">
           Xét duyệt và theo dõi các yêu cầu quy đổi xu Heo Đất thành Tiền mặt hoặc Quà tự chọn của học sinh.
@@ -61,7 +71,10 @@ export function TeacherRewardsHeader({
         </div>
 
         {/* Nút Làm mới dữ liệu */}
-        <Tooltip content={isRefreshing ? "Đang đồng bộ..." : "Làm mới danh sách"} side="bottom">
+        <Tooltip
+          content={isRefreshing ? "Đang đồng bộ..." : "Làm mới danh sách"}
+          side="bottom"
+        >
           <button
             type="button"
             onClick={onRefresh}

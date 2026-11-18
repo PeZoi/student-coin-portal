@@ -36,26 +36,30 @@ import {
   ExchangeRequestStatus,
 } from "@/constants/rewards";
 import { formatDate } from "@/lib/date";
+import { useOptionalTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
 
-interface TeacherRewardsTableProps {
-  requests: TeacherExchangeRequestItem[];
+export interface TeacherRewardsTableProps {
+  requests?: TeacherExchangeRequestItem[];
   sortField?: ExchangeSortField;
   sortOrder?: SortOrder;
   onSortToggle?: (field: ExchangeSortField) => void;
-  onSelectRequest: (request: TeacherExchangeRequestItem) => void;
+  onSelectRequest?: (request: TeacherExchangeRequestItem) => void;
   onApproveAndDeliver?: (request: TeacherExchangeRequestItem) => void;
   onReject?: (request: TeacherExchangeRequestItem) => void;
 }
 
-export function TeacherRewardsTable({
-  requests,
-  sortField,
-  sortOrder = "none",
-  onSortToggle,
-  onSelectRequest,
-  onApproveAndDeliver,
-  onReject,
-}: TeacherRewardsTableProps) {
+export function TeacherRewardsTable(props?: TeacherRewardsTableProps) {
+  const context = useOptionalTeacherRewardsContext();
+
+  const requests = props?.requests ?? context?.paginatedRequests ?? [];
+  const sortField = props?.sortField ?? context?.sortField;
+  const sortOrder = props?.sortOrder ?? context?.sortOrder ?? "none";
+  const onSortToggle = props?.onSortToggle ?? context?.handleSortToggle;
+  const onSelectRequest =
+    props?.onSelectRequest ?? context?.handleOpenDetail ?? (() => {});
+  const onApproveAndDeliver =
+    props?.onApproveAndDeliver ?? context?.handleApproveAndDeliver;
+  const onReject = props?.onReject ?? context?.handleOpenRejectModal;
   const renderSortIcon = (field: ExchangeSortField) => {
     if (sortField !== field || sortOrder === "none") {
       return (
@@ -187,7 +191,9 @@ export function TeacherRewardsTable({
       <TableBody>
         {requests.map((req) => {
           const isCash = req.choice_type === ExchangeChoiceType.CASH;
-          const isShopee = req.choice_type === ExchangeChoiceType.SHOPEE;
+          const isGift =
+            req.choice_type === ExchangeChoiceType.GIFT ||
+            (req.choice_type as string) === "shopee";
 
           return (
             <TableRow key={req.id} className="group hover:bg-slate-50/70 transition-colors">
@@ -233,12 +239,12 @@ export function TeacherRewardsTable({
                 {isCash ? (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-xs font-bold whitespace-nowrap">
                     <Banknote className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>Tiền mặt / CK</span>
+                    <span>Tiền mặt</span>
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-50 text-orange-700 border border-orange-200/80 text-xs font-bold whitespace-nowrap">
                     <ShoppingBag className="w-3.5 h-3.5 text-orange-600 shrink-0" />
-                    <span>Sàn TMĐT</span>
+                    <span>Quà tuỳ chọn</span>
                   </span>
                 )}
               </TableCell>
@@ -264,7 +270,7 @@ export function TeacherRewardsTable({
 
               {/* Cột 4: Chi tiết / Link món quà */}
               <TableCell className="py-3 px-3">
-                {isShopee && req.shopee_product_url ? (
+                {isGift && req.shopee_product_url ? (
                   <div className="space-y-1 min-w-0">
                     <a
                       href={req.shopee_product_url}
@@ -274,7 +280,7 @@ export function TeacherRewardsTable({
                       title={req.shopee_product_url}
                     >
                       <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                      <span>Xem trên Shopee</span>
+                      <span>Xem link món quà</span>
                     </a>
                     {req.shopee_note && (
                       <p
@@ -284,9 +290,15 @@ export function TeacherRewardsTable({
                         &ldquo;{req.shopee_note}&rdquo;
                       </p>
                     )}
+                    {req.rejection_reason && (
+                      <div className="flex items-start gap-1 text-[11px] text-rose-600 font-semibold bg-rose-50/80 p-1.5 rounded-md border border-rose-200/70">
+                        <XCircle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-rose-500" />
+                        <span>Từ chối: {req.rejection_reason}</span>
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div className="min-w-0">
+                  <div className="min-w-0 space-y-1">
                     {req.shopee_note ? (
                       <div
                         className="flex items-start gap-1.5 text-xs text-slate-600 leading-relaxed break-words"
@@ -299,6 +311,12 @@ export function TeacherRewardsTable({
                       <span className="text-xs text-slate-400 italic">
                         Tiền mặt tại lớp
                       </span>
+                    )}
+                    {req.rejection_reason && (
+                      <div className="flex items-start gap-1 text-[11px] text-rose-600 font-semibold bg-rose-50/80 p-1.5 rounded-md border border-rose-200/70">
+                        <XCircle className="w-3.5 h-3.5 shrink-0 mt-0.5 text-rose-500" />
+                        <span>Từ chối: {req.rejection_reason}</span>
+                      </div>
                     )}
                   </div>
                 )}

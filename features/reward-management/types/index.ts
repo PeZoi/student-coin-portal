@@ -1,7 +1,7 @@
 export * from "@/features/rewards/types";
 
 export type ExchangeFilterStatus = "all" | "pending" | "completed" | "rejected";
-export type ExchangeFilterChoiceType = "all" | "cash" | "shopee";
+export type ExchangeFilterChoiceType = "all" | "cash" | "gift";
 export type ExchangeViewMode = "table" | "grid";
 
 export type ExchangeSortField =

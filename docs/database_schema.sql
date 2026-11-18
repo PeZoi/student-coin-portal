@@ -554,8 +554,8 @@ CREATE TABLE monthly_exchange_requests (
     -- Khóa ngoại: Học sinh gửi yêu cầu đổi xu
     student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     
-    -- Lựa chọn của học sinh: 'cash' (tiền mặt), 'shopee' (quà Shopee)
-    choice_type VARCHAR(20) NOT NULL CHECK (choice_type IN ('cash', 'shopee')),
+    -- Lựa chọn của học sinh: 'cash' (tiền mặt), 'gift' (quà tặng tự chọn)
+    choice_type VARCHAR(20) NOT NULL CHECK (choice_type IN ('cash', 'gift')),
     
     -- Số lượng xu học sinh chọn đổi (Bắt buộc là bội số của step_coins: 5.000, 10.000...; = 0 nếu save_piggy)
     coins_to_exchange INTEGER NOT NULL DEFAULT 0 CHECK (coins_to_exchange >= 0 AND coins_to_exchange % 5000 = 0),
@@ -568,6 +568,9 @@ CREATE TABLE monthly_exchange_requests (
     
     -- Ghi chú chi tiết cho cô giáo khi mua quà (Màu sắc, kích cỡ, phân loại)
     shopee_note TEXT,
+
+    -- Lý do giáo viên từ chối yêu cầu đổi quà (nếu status = 'rejected')
+    rejection_reason TEXT,
     
     -- Trạng thái xử lý yêu cầu:
     -- 'pending': chờ cô giáo duyệt và chuẩn bị tiền/quà
@@ -597,8 +600,8 @@ CREATE TABLE monthly_exchange_requests (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 
     -- RÀNG BUỘC TOÀN VẸN:
-    -- Nếu đổi cash hoặc shopee thì số xu phải lớn hơn 0 và số tiền phải lớn hơn 0
-    CONSTRAINT chk_exchange_request_choice_rules CHECK (choice_type IN ('cash', 'shopee') AND coins_to_exchange > 0 AND amount_vnd > 0)
+    -- Nếu đổi cash hoặc gift thì số xu phải lớn hơn 0 và số tiền phải lớn hơn 0
+    CONSTRAINT chk_exchange_request_choice_rules CHECK (choice_type IN ('cash', 'gift') AND coins_to_exchange > 0 AND amount_vnd > 0)
 );
 
 -- ==============================================================================
