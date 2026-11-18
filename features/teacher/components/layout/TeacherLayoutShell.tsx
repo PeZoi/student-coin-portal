@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TeacherSidebar } from "./TeacherSidebar";
 import { TeacherHeader } from "./TeacherHeader";
 
@@ -11,8 +11,16 @@ interface TeacherLayoutShellProps {
 export function TeacherLayoutShell({ children }: TeacherLayoutShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Kích hoạt phong cách thanh cuộn chuyên nghiệp cho toàn bộ Góc Giáo Viên
+  useEffect(() => {
+    document.documentElement.setAttribute("data-portal", "teacher");
+    return () => {
+      document.documentElement.removeAttribute("data-portal");
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex antialiased">
+    <div className="teacher-portal min-h-screen bg-slate-50 text-slate-800 flex antialiased">
       {/* Sidebar Navigation */}
       <TeacherSidebar
         isOpen={isSidebarOpen}

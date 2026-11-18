@@ -70,7 +70,7 @@ export function Modal({
 	return (
 		<div
 			onClick={handleBackdropClick}
-			className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overscroll-contain animate-in fade-in duration-200'
+			className='teacher-portal fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overscroll-contain animate-in fade-in duration-200'
 		>
 			<div
 				onClick={(e) => e.stopPropagation()}
@@ -166,7 +166,7 @@ export interface ModalBodyProps extends React.HTMLAttributes<HTMLDivElement> {
 export function ModalBody({ className, children, ...props }: ModalBodyProps) {
 	return (
 		<div
-			className={cn("p-5 sm:p-6 space-y-4 overflow-y-auto overscroll-contain", className)}
+			className={cn("p-5 sm:p-6 space-y-4 overflow-y-auto overscroll-contain teacher-scrollbar", className)}
 			{...props}
 		>
 			{children}

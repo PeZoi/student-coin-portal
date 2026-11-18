@@ -191,4 +191,110 @@ h1, h2, h3, h4, h5, h6 {
   will-change: transform, opacity;
 }
 
+/* ==============================================================================
+ * PROFESSIONAL SCROLLBAR SYSTEM (TEACHER PORTAL & STUDIO)
+ * - Tối ưu thanh cuộn tinh tế, hiện đại chuẩn SaaS cho toàn bộ góc Giáo viên
+ * - Phạm vi áp dụng: Được đóng gói chặt chẽ trong [data-portal="teacher"], .teacher-portal và .teacher-scrollbar
+ * - TUYỆT ĐỐI KHÔNG làm ảnh hưởng đến giao diện vui nhộn/hoạt hình của Học sinh
+ * ============================================================================== */
+
+/* 1. TRIỆT TIÊU HOÀN TOÀN 2 MŨI TÊN ĐẦU & CUỐI (Scrollbar Buttons) */
+[data-portal="teacher"]::-webkit-scrollbar-button,
+.teacher-portal::-webkit-scrollbar-button,
+.teacher-portal *::-webkit-scrollbar-button,
+.teacher-scrollbar::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* 2. Kích thước thanh cuộn WebKit (Chrome, Edge, Safari, Opera) */
+[data-portal="teacher"]::-webkit-scrollbar,
+.teacher-portal::-webkit-scrollbar,
+.teacher-portal *::-webkit-scrollbar,
+.teacher-scrollbar::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+
+/* 3. Đường ray thanh cuộn (Track) hoàn toàn trong suốt */
+[data-portal="teacher"]::-webkit-scrollbar-track,
+.teacher-portal::-webkit-scrollbar-track,
+.teacher-portal *::-webkit-scrollbar-track,
+.teacher-scrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+/* 4. Con trỏ cuộn (Thumb) bo tròn mượt mà dạng viên thuốc (Pill shape) */
+[data-portal="teacher"]::-webkit-scrollbar-thumb,
+.teacher-portal::-webkit-scrollbar-thumb,
+.teacher-portal *::-webkit-scrollbar-thumb,
+.teacher-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1 !important; /* slate-300 */
+  border-radius: 9999px !important;
+  transition: background-color 0.15s ease !important;
+}
+
+[data-portal="teacher"]::-webkit-scrollbar-thumb:hover,
+.teacher-portal::-webkit-scrollbar-thumb:hover,
+.teacher-portal *::-webkit-scrollbar-thumb:hover,
+.teacher-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8 !important; /* slate-400 */
+}
+
+[data-portal="teacher"]::-webkit-scrollbar-thumb:active,
+.teacher-portal::-webkit-scrollbar-thumb:active,
+.teacher-portal *::-webkit-scrollbar-thumb:active,
+.teacher-scrollbar::-webkit-scrollbar-thumb:active {
+  background-color: #64748b !important; /* slate-500 */
+}
+
+/* 5. Góc giao nhau giữa 2 thanh cuộn (Corner) */
+[data-portal="teacher"]::-webkit-scrollbar-corner,
+.teacher-portal::-webkit-scrollbar-corner,
+.teacher-portal *::-webkit-scrollbar-corner,
+.teacher-scrollbar::-webkit-scrollbar-corner {
+  background: transparent !important;
+  display: none !important;
+}
+
+/* 6. Tinh chỉnh cho các khối nền tối (Dark containers / Canvas trong studio chấm bài) */
+.teacher-portal [class*="bg-slate-900"]::-webkit-scrollbar-thumb,
+.teacher-portal [class*="bg-[#0B1120]"]::-webkit-scrollbar-thumb,
+.teacher-portal [class*="bg-slate-950"]::-webkit-scrollbar-thumb {
+  background-color: #475569 !important; /* slate-600 */
+}
+
+.teacher-portal [class*="bg-slate-900"]::-webkit-scrollbar-thumb:hover,
+.teacher-portal [class*="bg-[#0B1120]"]::-webkit-scrollbar-thumb:hover,
+.teacher-portal [class*="bg-slate-950"]::-webkit-scrollbar-thumb:hover {
+  background-color: #64748b !important; /* slate-500 */
+}
+
+/* 7. Thiết lập chuẩn cho trình duyệt KHÔNG hỗ trợ WebKit (như Firefox) 
+ * CHÚ Ý: Bắt buộc bọc trong @supports not selector(::-webkit-scrollbar) 
+ * để Chrome 121+ không kích hoạt CSS Scrollbars Level 1 và vô hiệu hóa ::webkit-scrollbar!
+ */
+@supports not selector(::-webkit-scrollbar) {
+  [data-portal="teacher"],
+  .teacher-portal,
+  .teacher-portal *,
+  .teacher-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+}
+
+/* 8. Ngoại lệ: Giữ nguyên các phần tử muốn ẩn thanh cuộn chủ động (carousel, tabs ngang) */
+.scrollbar-none,
+.no-scrollbar {
+  scrollbar-width: none !important;
+}
+
+.scrollbar-none::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}
+
+
 
