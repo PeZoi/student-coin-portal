@@ -30,8 +30,11 @@ import {
   TeacherExchangeRequestItem,
   ExchangeSortField,
   SortOrder,
-} from "../../types/rewards";
-import { ExchangeChoiceType, ExchangeRequestStatus } from "@/constants/rewards";
+} from "../types";
+import {
+  ExchangeChoiceType,
+  ExchangeRequestStatus,
+} from "@/constants/rewards";
 import { formatDate } from "@/lib/date";
 
 interface TeacherRewardsTableProps {
@@ -82,7 +85,7 @@ export function TeacherRewardsTable({
   }
 
   return (
-    <Table className="w-full table-fixed">
+    <Table>
       <TableHeader>
         <TableRow className="hover:bg-transparent">
           {/* 1. Cột Học sinh (20%) */}
@@ -133,20 +136,20 @@ export function TeacherRewardsTable({
             )}
           </TableHead>
 
-          {/* 4. Cột Chi tiết / Link (Thu hẹp xuống 18%, nội dung xuống dòng 2 dòng) */}
+          {/* 4. Cột Chi tiết / Link (18%) */}
           <TableHead className="w-[18%] py-3 px-3">
             <span className="text-xs font-bold text-slate-700 select-none">
               Chi tiết / Link món quà
             </span>
           </TableHead>
 
-          {/* 5. Cột Trạng thái (14%) */}
-          <TableHead className="w-[14%] py-3 px-3 text-center">
+          {/* 5. Cột Trạng thái (13%) */}
+          <TableHead className="w-[13%] py-3 px-3 text-center">
             {onSortToggle ? (
               <button
                 type="button"
                 onClick={() => onSortToggle("status")}
-                className="inline-flex items-center justify-center text-xs font-bold text-slate-700 hover:text-[#0A62D6] transition-colors cursor-pointer select-none mx-auto"
+                className="inline-flex items-center justify-center text-xs font-bold text-slate-700 hover:text-[#0A62D6] transition-colors cursor-pointer select-none"
               >
                 <span>Trạng thái</span>
                 {renderSortIcon("status")}
@@ -156,8 +159,8 @@ export function TeacherRewardsTable({
             )}
           </TableHead>
 
-          {/* 6. Cột Thời gian (11%) */}
-          <TableHead className="w-[11%] py-3 px-3">
+          {/* 6. Cột Thời gian gửi (12%) */}
+          <TableHead className="w-[12%] py-3 px-3">
             {onSortToggle ? (
               <button
                 type="button"
@@ -172,7 +175,7 @@ export function TeacherRewardsTable({
             )}
           </TableHead>
 
-          {/* 7. Cột Thao tác (Mở rộng lên 12%, đệm phải an toàn không bao giờ bị cắt nút) */}
+          {/* 7. Cột Thao tác (12%) */}
           <TableHead align="right" className="w-[12%] py-3 pr-4 pl-2 text-right">
             <span className="text-xs font-bold text-slate-700 select-none">
               Thao tác
@@ -187,7 +190,7 @@ export function TeacherRewardsTable({
           const isShopee = req.choice_type === ExchangeChoiceType.SHOPEE;
 
           return (
-            <TableRow key={req.id} className="group">
+            <TableRow key={req.id} className="group hover:bg-slate-50/70 transition-colors">
               {/* Cột 1: Thông tin học sinh */}
               <TableCell className="py-3 px-3">
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -225,7 +228,7 @@ export function TeacherRewardsTable({
                 </div>
               </TableCell>
 
-              {/* Cột 2: Hình thức đổi quà (Badge đồng bộ kích thước và font chữ chuẩn với StudentClassBadge) */}
+              {/* Cột 2: Hình thức đổi quà */}
               <TableCell className="py-3 px-3">
                 {isCash ? (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-xs font-bold whitespace-nowrap">
@@ -259,7 +262,7 @@ export function TeacherRewardsTable({
                 </div>
               </TableCell>
 
-              {/* Cột 4: Chi tiết / Link món quà (Hiển thị đầy đủ nội dung, tự xuống dòng tự nhiên không cắt bằng truncate) */}
+              {/* Cột 4: Chi tiết / Link món quà */}
               <TableCell className="py-3 px-3">
                 {isShopee && req.shopee_product_url ? (
                   <div className="space-y-1 min-w-0">
@@ -301,7 +304,7 @@ export function TeacherRewardsTable({
                 )}
               </TableCell>
 
-              {/* Cột 5: Trạng thái (Đồng bộ font-size text-xs và padding với StudentStatusBadge & MissionStatusBadge) */}
+              {/* Cột 5: Trạng thái (Chỉ còn: PENDING, COMPLETED, REJECTED) */}
               <TableCell className="py-3 px-3 text-center">
                 {req.status === ExchangeRequestStatus.PENDING && (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200/80 text-xs font-bold whitespace-nowrap">
@@ -325,7 +328,7 @@ export function TeacherRewardsTable({
                 )}
               </TableCell>
 
-              {/* Cột 6: Thời gian (text-xs cho ngày, text-[11px] cho người xử lý giống MissionDeadlineCell) */}
+              {/* Cột 6: Thời gian */}
               <TableCell className="py-3 px-3">
                 <div className="text-xs font-medium text-slate-700 truncate">
                   {formatDate(req.created_at)}
@@ -340,7 +343,7 @@ export function TeacherRewardsTable({
                 )}
               </TableCell>
 
-              {/* Cột 7: Thao tác (Rộng rãi 12%, đệm phải an toàn) */}
+              {/* Cột 7: Thao tác */}
               <TableCell align="right" className="py-3 pr-4 pl-2 text-right">
                 <div className="inline-flex items-center justify-end gap-1.5">
                   {/* Xem chi tiết */}
@@ -360,14 +363,14 @@ export function TeacherRewardsTable({
                       <button
                         type="button"
                         onClick={() => onApproveAndDeliver(req)}
-                        className="w-8 h-8 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-all cursor-pointer active:scale-95 shrink-0 flex items-center justify-center"
+                        className="w-8 h-8 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer shrink-0 shadow-xs flex items-center justify-center active:scale-95"
                       >
-                        <Check className="w-4 h-4" />
+                        <Check className="w-4 h-4 stroke-[2.5]" />
                       </button>
                     </Tooltip>
                   )}
 
-                  {/* Khi PENDING: Nút Từ chối (Icon XCircle đỏ với Tooltip) */}
+                  {/* Khi PENDING: Nút Từ chối (Icon X đỏ với Tooltip) */}
                   {req.status === ExchangeRequestStatus.PENDING && onReject && (
                     <Tooltip content="Từ chối yêu cầu (Hoàn xu)" side="top">
                       <button

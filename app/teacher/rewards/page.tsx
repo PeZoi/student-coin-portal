@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { TeacherRewardsView } from "@/features/teacher/components/TeacherRewardsView";
+import { TeacherRewardsView } from "@/features/reward-management";
 
 export const metadata: Metadata = {
   title: "Đổi Quà | Góc Giáo Viên",

@@ -3,13 +3,16 @@
 import { useMemo } from "react";
 import { Search, X, RotateCw, Filter, List, LayoutGrid } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
-import { TeacherSelect, TeacherSelectOption } from "@/components/ui/TeacherSelect";
+import {
+  TeacherSelect,
+  TeacherSelectOption,
+} from "@/components/ui/TeacherSelect";
 import { cn } from "@/lib/utils";
 import {
   ExchangeFilterStatus,
   ExchangeFilterChoiceType,
   ExchangeViewMode,
-} from "../../types/rewards";
+} from "../types";
 import { ExchangeChoiceType, ExchangeRequestStatus } from "@/constants/rewards";
 
 interface TeacherRewardsToolbarProps {
@@ -86,7 +89,9 @@ export function TeacherRewardsToolbar({
   );
 
   const hasActiveFilters =
-    statusFilter !== "all" || choiceTypeFilter !== "all" || searchQuery.length > 0;
+    statusFilter !== "all" ||
+    choiceTypeFilter !== "all" ||
+    searchQuery.length > 0;
 
   const handleResetFilters = () => {
     onStatusChange("all");
@@ -99,13 +104,15 @@ export function TeacherRewardsToolbar({
       {/* 1. Bên trái: Các bộ lọc Dropdown chuẩn TeacherSelect */}
       <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
         {/* Dropdown Lọc Trạng thái */}
-        <div className="w-full sm:w-52 shrink-0">
+        <div className="w-full sm:w-56 shrink-0">
           <TeacherSelect
             icon={<Filter className="w-3.5 h-3.5 text-slate-500" />}
             size="sm"
             options={statusOptions}
             value={statusFilter}
-            onChange={(val) => onStatusChange(val as ExchangeFilterStatus)}
+            onChange={(val) =>
+              onStatusChange(val as ExchangeFilterStatus)
+            }
           />
         </div>
 
@@ -115,7 +122,9 @@ export function TeacherRewardsToolbar({
             size="sm"
             options={choiceTypeOptions}
             value={choiceTypeFilter}
-            onChange={(val) => onChoiceTypeChange(val as ExchangeFilterChoiceType)}
+            onChange={(val) =>
+              onChoiceTypeChange(val as ExchangeFilterChoiceType)
+            }
           />
         </div>
 
@@ -193,7 +202,9 @@ export function TeacherRewardsToolbar({
         {/* Nút Làm mới danh sách */}
         {onRefresh && (
           <Tooltip
-            content={isRefreshing ? "Đang đồng bộ..." : "Làm mới danh sách"}
+            content={
+              isRefreshing ? "Đang đồng bộ..." : "Làm mới danh sách"
+            }
             side="top"
           >
             <button

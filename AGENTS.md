@@ -60,7 +60,8 @@ student-coin-portal/
 │   ├── teacher-management/     # Quản lý Giáo viên / Nhân sự (Tương tự)
 │   ├── lucky-wheel/            # Module Vòng quay may mắn
 │   ├── missions/               # Module Nhiệm vụ & Điểm danh
-│   ├── rewards/                # Module Quà tặng
+│   ├── rewards/                # Module Quà tặng học sinh
+│   ├── reward-management/      # Quản lý Đổi quà & Trả thưởng Heo Đất (Giáo viên)
 │   ├── leaderboard/            # Module Bảng xếp hạng
 │   ├── dashboard/              # Dashboard học sinh
 │   └── teacher/                # Portal Giáo viên: Shell, Sidebar, Header layout, Views chung

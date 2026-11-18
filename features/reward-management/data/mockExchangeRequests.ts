@@ -1,4 +1,4 @@
-import { TeacherExchangeRequestItem } from "../types/rewards";
+import { TeacherExchangeRequestItem } from "../types";
 import { ExchangeChoiceType, ExchangeRequestStatus } from "@/constants/rewards";
 
 export const MOCK_EXCHANGE_REQUESTS: TeacherExchangeRequestItem[] = [

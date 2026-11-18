@@ -11,18 +11,18 @@ import {
   ExchangeViewMode,
   ExchangeSortField,
   SortOrder,
-} from "../types/rewards";
+} from "../types";
 import { MOCK_EXCHANGE_REQUESTS } from "../data/mockExchangeRequests";
 import { ExchangeRequestStatus, ExchangeChoiceType } from "@/constants/rewards";
-import { TeacherRewardsHeader } from "./rewards/TeacherRewardsHeader";
-import { TeacherRewardsKpiCards } from "./rewards/TeacherRewardsKpiCards";
-import { TeacherRewardsToolbar } from "./rewards/TeacherRewardsToolbar";
-import { TeacherRewardsTable } from "./rewards/TeacherRewardsTable";
-import { TeacherRewardsGrid } from "./rewards/TeacherRewardsGrid";
+import { TeacherRewardsHeader } from "./TeacherRewardsHeader";
+import { TeacherRewardsKpiCards } from "./TeacherRewardsKpiCards";
+import { TeacherRewardsToolbar } from "./TeacherRewardsToolbar";
+import { TeacherRewardsTable } from "./TeacherRewardsTable";
+import { TeacherRewardsGrid } from "./TeacherRewardsGrid";
 
 const TeacherRewardDetailModal = dynamic(
   () =>
-    import("./rewards/TeacherRewardDetailModal").then(
+    import("./TeacherRewardDetailModal").then(
       (m) => m.TeacherRewardDetailModal
     ),
   { ssr: false }

@@ -23,7 +23,7 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
-import { TeacherExchangeRequestItem } from "../../types/rewards";
+import { TeacherExchangeRequestItem } from "../types";
 import { ExchangeChoiceType, ExchangeRequestStatus } from "@/constants/rewards";
 import { formatDate } from "@/lib/date";
 import { toast } from "sonner";
