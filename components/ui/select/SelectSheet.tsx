@@ -11,6 +11,7 @@ import React, {
 import { createPortal } from "react-dom";
 import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { SelectOptionItem, SelectOptionTile } from "./SelectOptionTile";
 import { SELECT_SHEET_TONES, SelectSheetTone } from "./selectTheme";
 
@@ -119,26 +120,21 @@ export function SelectSheet({
     [onSelect, onClose]
   );
 
-  // Khóa cuộn trang nền khi sheet mở và reset search khi đóng
+  // Khóa cuộn trang nền khi sheet mở
+  useBodyScrollLock(isOpen);
+
+  // Focus vào sheet khi mở
   useEffect(() => {
     if (!isOpen) {
       return;
     }
 
-    const originalBodyOverflow = document.body.style.overflow;
-    const originalHtmlOverflow = document.documentElement.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-
-    // Focus vào sheet
     const timer = setTimeout(() => {
       sheetRef.current?.focus();
     }, 50);
 
     return () => {
       clearTimeout(timer);
-      document.body.style.overflow = originalBodyOverflow;
-      document.documentElement.style.overflow = originalHtmlOverflow;
     };
   }, [isOpen]);
 

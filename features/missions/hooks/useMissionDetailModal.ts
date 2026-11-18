@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { submitMission } from "../actions/submitMission";
 import { MissionItem } from "../types";
 
@@ -102,20 +103,7 @@ export function useMissionDetailModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Khóa cuộn trang (body scroll lock) khi Bottom Sheet đang mở
-  useEffect(() => {
-    if (isExiting) return;
-
-    const originalOverflow = document.body.style.overflow;
-    const originalTouchAction = document.body.style.touchAction;
-
-    document.body.style.overflow = "hidden";
-    document.body.style.touchAction = "none";
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      document.body.style.touchAction = originalTouchAction;
-    };
-  }, [isExiting]);
+  useBodyScrollLock(!isExiting);
 
   // Hỗ trợ phím Escape để đóng modal
   useEffect(() => {

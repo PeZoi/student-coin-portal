@@ -5,6 +5,7 @@ import Image from "next/image";
 import { AlertTriangle, ArrowLeft, Loader2, Lock, X } from "lucide-react";
 import { Button3D } from "@/components/ui/Button3D";
 import { cn } from "@/lib/utils";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { AUTH_THEME } from "../constants/authTheme";
 import { PinVerificationError, StudentLookupData } from "../types";
 
@@ -58,12 +59,12 @@ export function StudentPinModal({
     return () => clearInterval(interval);
   }, [isLocked, lockRemainingMinutes]);
 
-  // Khóa cuộn trang nền và tự động focus vào ô OTP đầu tiên nếu chưa bị khóa
+  // Khóa cuộn trang nền khi mở modal
+  useBodyScrollLock(isOpen);
+
+  // Tự động focus vào ô OTP đầu tiên nếu chưa bị khóa
   useEffect(() => {
     if (!isOpen) return;
-
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
 
     const timer = setTimeout(() => {
       if (!isLocked) {
@@ -73,7 +74,6 @@ export function StudentPinModal({
     }, 120);
 
     return () => {
-      document.body.style.overflow = originalOverflow;
       clearTimeout(timer);
     };
   }, [isOpen, isLocked]);

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Check, Sparkles, X } from "lucide-react";
 import { Button3D } from "@/components/ui/Button3D";
 import { cn } from "@/lib/utils";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import {
   CHIBI_AVATARS,
   ChibiAvatar,
@@ -38,22 +39,20 @@ export function AvatarPickerModal({
   const modalRef = useRef<HTMLDivElement | null>(null);
   const previousActiveElementRef = useRef<HTMLElement | null>(null);
 
-  // Khóa cuộn trang nền và quản lý focus khi mở / đóng modal
+  // Khóa cuộn trang nền khi mở modal
+  useBodyScrollLock(isOpen);
+
+  // Quản lý focus khi mở / đóng modal
   useEffect(() => {
     if (!isOpen) return;
 
     // Lưu lại phần tử đang được focus trước khi mở modal để trả lại sau khi đóng
     previousActiveElementRef.current = document.activeElement as HTMLElement | null;
 
-    // Khóa cuộn nền trang
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
     // Focus vào modal
     modalRef.current?.focus();
 
     return () => {
-      document.body.style.overflow = originalOverflow;
       previousActiveElementRef.current?.focus();
     };
   }, [isOpen]);
@@ -118,7 +117,7 @@ export function AvatarPickerModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="avatar-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200 motion-reduce:animate-none"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/70 backdrop-blur-xs overscroll-contain animate-in fade-in duration-200 motion-reduce:animate-none"
     >
       {/* Khung Bảng Gỗ Hoạt Hình 3D (The Wooden Game Board) - Chiều cao tối đa theo viewport */}
       <div

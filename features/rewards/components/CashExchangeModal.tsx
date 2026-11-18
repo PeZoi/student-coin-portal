@@ -1,6 +1,7 @@
 "use client";
 
 import { Button3D } from "@/components/ui/Button3D";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { Banknote, Minus, Plus, X } from "lucide-react";
 import Image from "next/image";
 import React, { useState } from "react";
@@ -21,6 +22,7 @@ export function CashExchangeModal({
   isSubmitting,
   onConfirm,
 }: CashExchangeModalProps) {
+  useBodyScrollLock(isOpen);
   const [selectedCoins, setSelectedCoins] = useState(5000);
 
   if (!isOpen) return null;
@@ -44,7 +46,7 @@ export function CashExchangeModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm overscroll-contain animate-in fade-in duration-200">
       <div
         className="relative w-full max-w-md bg-gradient-to-b from-[#FFFFFF] via-[#FFFDF9] to-[#F2FAF4] rounded-[28px] sm:rounded-[32px] border-4 border-white shadow-[0_20px_50px_rgba(0,20,50,0.35)] p-5 sm:p-6 text-slate-800 overflow-hidden animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}

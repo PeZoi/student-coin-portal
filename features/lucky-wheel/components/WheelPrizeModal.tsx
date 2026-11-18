@@ -6,6 +6,7 @@ import { Sparkles, Check, X } from "lucide-react";
 import { WheelPrize } from "../types";
 import { getWheelPrizeModalContent } from "@/constants/wheel";
 import { Button3D } from "@/components/ui/Button3D";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 
 interface WheelPrizeModalProps {
   prize: WheelPrize | null;
@@ -18,6 +19,8 @@ export function WheelPrizeModal({
   isOpen,
   onClose,
 }: WheelPrizeModalProps) {
+  useBodyScrollLock(isOpen && !!prize);
+
   if (!isOpen || !prize) return null;
 
   const {
@@ -29,7 +32,7 @@ export function WheelPrizeModal({
   } = getWheelPrizeModalContent(prize);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-200 select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs overscroll-contain animate-in fade-in duration-200 select-none">
       <div className="relative w-full max-w-sm sm:max-w-md bg-gradient-to-b from-[#FFFDF7] to-[#FFF7E6] rounded-[28px] border-[4px] border-[#F59E0B] shadow-[0_24px_60px_rgba(0,0,0,0.5),inset_0_2px_4px_rgba(255,255,255,0.8)] p-5 sm:p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-300">
         {/* Nút đóng góc phải */}
         <button

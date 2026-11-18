@@ -5,6 +5,7 @@ import { X, ShieldCheck, Sparkles, Trophy, Coins, Gift } from "lucide-react";
 import { WheelConfig, WheelRule } from "../types";
 import { defaultWheelConfig, getWheelRules } from "../data/wheelData";
 import { Button3D } from "@/components/ui/Button3D";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 
 interface WheelRulesModalProps {
   isOpen: boolean;
@@ -42,12 +43,14 @@ export function WheelRulesModal({
   config = defaultWheelConfig,
   rules,
 }: WheelRulesModalProps) {
+  useBodyScrollLock(isOpen);
+
   if (!isOpen) return null;
 
   const currentRules = rules || getWheelRules(config);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overscroll-contain animate-in fade-in duration-200 select-none">
       <div className="relative w-full max-w-md sm:max-w-lg bg-white rounded-[26px] sm:rounded-[30px] border-2 border-amber-300/80 shadow-[0_25px_60px_rgba(0,0,0,0.3),0_0_0_1px_rgba(251,191,36,0.2)] p-4 sm:p-6 flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Nút đóng tròn nhẹ nhàng */}
         <button

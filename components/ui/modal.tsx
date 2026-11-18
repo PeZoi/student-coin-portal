@@ -4,6 +4,7 @@ import * as React from "react";
 import { useEffect } from "react";
 import { X, Trash2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 
 export type ModalMaxWidth = "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl";
 
@@ -42,6 +43,9 @@ export function Modal({
 	className,
 	children,
 }: ModalProps) {
+	// Khóa cuộn trang nền khi Modal mở (Hỗ trợ Stacked Modals & Chống Layout Shift)
+	useBodyScrollLock(isOpen);
+
 	useEffect(() => {
 		if (!isOpen || !onClose) return;
 
@@ -66,7 +70,7 @@ export function Modal({
 	return (
 		<div
 			onClick={handleBackdropClick}
-			className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200'
+			className='fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overscroll-contain animate-in fade-in duration-200'
 		>
 			<div
 				onClick={(e) => e.stopPropagation()}
@@ -162,7 +166,7 @@ export interface ModalBodyProps extends React.HTMLAttributes<HTMLDivElement> {
 export function ModalBody({ className, children, ...props }: ModalBodyProps) {
 	return (
 		<div
-			className={cn("p-5 sm:p-6 space-y-4 overflow-y-auto", className)}
+			className={cn("p-5 sm:p-6 space-y-4 overflow-y-auto overscroll-contain", className)}
 			{...props}
 		>
 			{children}

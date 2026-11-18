@@ -20,6 +20,7 @@ import {
 import { WheelWinner } from "../types";
 import { Button3D } from "@/components/ui/Button3D";
 import { cn } from "@/lib/utils";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 
 interface WheelHistoryModalProps {
   isOpen: boolean;
@@ -152,12 +153,13 @@ export function WheelHistoryModal({
   allWinners,
   myHistory,
 }: WheelHistoryModalProps) {
+  useBodyScrollLock(isOpen);
   const [activeTab, setActiveTab] = useState<"all" | "personal">("all");
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overscroll-contain animate-in fade-in duration-200 select-none">
       <div className="relative w-full max-w-lg bg-[#FFFDF7] rounded-[24px] sm:rounded-[28px] border-[3px] border-[#D97706] shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-4 sm:p-6 flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Nút đóng */}
         <button
