@@ -414,7 +414,7 @@ Vào cuối tháng, học sinh đạt từ 5.000 xu trở lên được mở for
 | `amount_vnd` | INTEGER | DEFAULT 0, CHECK >= 0 | Tiền mặt tương ứng (ví dụ: 25.000, 50.000...; = 0 nếu save_piggy) |
 | `shopee_product_url`| TEXT | NULL | Link sản phẩm Shopee |
 | `shopee_note` | TEXT | NULL | Ghi chú quà tặng (màu, size, chi tiết) |
-| `status` | VARCHAR(20) | DEFAULT 'pending' | `pending` (chờ cô), `approved` (cô đã duyệt), `completed` (đã trao quà), `rejected`, `cancelled` |
+| `status` | VARCHAR(20) | DEFAULT 'pending' | `pending` (chờ cô), `completed` (đã trao quà), `rejected`, `cancelled` |
 | `hold_tx_id` | UUID | FK -> coin_transactions.id | Giao dịch giữ/khóa xu tức thì chống tiêu lạm |
 | `processed_by` | UUID | FK -> users.id, NULL | Giáo viên trao quà/tiền |
 | `processed_at` | TIMESTAMP | NULL | Thời điểm hoàn tất trao |

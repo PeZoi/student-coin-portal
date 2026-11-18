@@ -376,13 +376,6 @@ export function StudentExchangeGiftsModal({
                             {isCash ? "Đã trao tiền mặt" : "Đã trao quà"}
                           </span>
                         </span>
-                      ) : item.status === ExchangeRequestStatus.APPROVED ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                          <Clock className="w-3.5 h-3.5 text-blue-600" />
-                          <span>
-                            {isCash ? "Đã duyệt chi tiền" : "Đang chuẩn bị quà"}
-                          </span>
-                        </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
                           <Clock className="w-3.5 h-3.5 text-amber-600" />

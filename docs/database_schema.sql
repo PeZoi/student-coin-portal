@@ -571,11 +571,11 @@ CREATE TABLE monthly_exchange_requests (
     
     -- Trạng thái xử lý yêu cầu:
     -- 'pending': chờ cô giáo duyệt và chuẩn bị tiền/quà
-    -- 'approved': cô giáo duyệt đồng ý mua quà/chuẩn bị tiền mặt
+    -- 'completed': cô giáo duyệt và trao tiền/quà thành công (quy trình 1 chạm)
     -- 'rejected': cô từ chối yêu cầu (hoàn lại xu hold cho bé)
     -- 'cancelled': học sinh tự hủy yêu cầu
     status VARCHAR(20) NOT NULL DEFAULT 'pending' 
-        CHECK (status IN ('pending', 'approved', 'completed', 'rejected', 'cancelled')),
+        CHECK (status IN ('pending', 'completed', 'rejected', 'cancelled')),
     
     -- Khóa ngoại tham chiếu giao dịch GIỮ XU (HOLD) trong bảng coin_transactions
     -- Khi học sinh bấm gửi yêu cầu, số xu bị trừ/khóa ngay lập tức để không thể mang đi quay vòng quay

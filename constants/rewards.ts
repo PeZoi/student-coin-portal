@@ -26,9 +26,7 @@ export const VND_PER_STEP = REWARD_CONFIG.DEFAULT_VND_PER_STEP;
 export const ExchangeRequestStatus = {
   /** Đang chờ giáo viên / admin xét duyệt */
   PENDING: "pending",
-  /** Đã duyệt yêu cầu đổi quà */
-  APPROVED: "approved",
-  /** Đã trao tiền / quà thực tế thành công */
+  /** Đã trao tiền / quà thực tế thành công (quy trình 1 chạm: duyệt là trao quà hoàn tất) */
   COMPLETED: "completed",
   /** Từ chối yêu cầu đổi quà (hoàn lại xu) */
   REJECTED: "rejected",
@@ -42,7 +40,6 @@ export type ExchangeRequestStatus = ExchangeRequestStatusType;
 
 export const ALL_EXCHANGE_REQUEST_STATUSES: readonly ExchangeRequestStatusType[] = [
   ExchangeRequestStatus.PENDING,
-  ExchangeRequestStatus.APPROVED,
   ExchangeRequestStatus.COMPLETED,
   ExchangeRequestStatus.REJECTED,
   ExchangeRequestStatus.CANCELLED,
@@ -50,8 +47,7 @@ export const ALL_EXCHANGE_REQUEST_STATUSES: readonly ExchangeRequestStatusType[]
 
 export const EXCHANGE_REQUEST_STATUS_LABELS: Record<ExchangeRequestStatusType, string> = {
   [ExchangeRequestStatus.PENDING]: "Chờ duyệt",
-  [ExchangeRequestStatus.APPROVED]: "Đã duyệt",
-  [ExchangeRequestStatus.COMPLETED]: "Đã trao thưởng",
+  [ExchangeRequestStatus.COMPLETED]: "Đã duyệt & trao thưởng",
   [ExchangeRequestStatus.REJECTED]: "Từ chối",
   [ExchangeRequestStatus.CANCELLED]: "Đã hủy",
 };

@@ -98,7 +98,7 @@ export async function getTeacherStudentRosterServer(
         .from("monthly_exchange_requests")
         .select("student_id, status")
         .in("student_id", studentIds)
-        .in("status", [ExchangeRequestStatus.COMPLETED, ExchangeRequestStatus.APPROVED]),
+        .eq("status", ExchangeRequestStatus.COMPLETED),
     ]);
 
     if (missionsError) {

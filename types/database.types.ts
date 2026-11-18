@@ -1364,7 +1364,6 @@ export type Database = {
       monthly_exchange_choice: "cash" | "shopee"
       monthly_exchange_status:
         | "pending"
-        | "approved"
         | "completed"
         | "rejected"
         | "cancelled"
@@ -1512,7 +1511,6 @@ export const Constants = {
       monthly_exchange_choice: ["cash", "shopee"],
       monthly_exchange_status: [
         "pending",
-        "approved",
         "completed",
         "rejected",
         "cancelled",
