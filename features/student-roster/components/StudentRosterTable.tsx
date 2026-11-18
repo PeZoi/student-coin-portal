@@ -257,7 +257,7 @@ export function StudentRosterTable(props?: StudentRosterTableProps) {
                       title="Bấm để xem chi tiết các món quà và tiền mặt đã đổi"
                     >
                       <Image
-                        src="/rewards/shopee_gift.png"
+                        src="/rewards/shopee_gift.webp"
                         alt="Quà Heo Đất"
                         width={20}
                         height={20}

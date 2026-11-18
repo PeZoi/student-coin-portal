@@ -281,7 +281,7 @@ export function PiggyBankCard({ className }: PiggyBankCardProps = {}) {
           {/* Pig Mascot Image */}
           <div className="relative w-full h-full z-10">
             <Image
-              src="/pig.png"
+              src="/pig.webp"
               alt="Heo Đất"
               fill
               sizes="(max-width: 640px) 176px, (max-width: 768px) 192px, (max-width: 1024px) 208px, 224px"

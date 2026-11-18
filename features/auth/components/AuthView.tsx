@@ -34,7 +34,7 @@ export function AuthView({ initialRole = "student", initialMode = "login" }: Aut
         <div className="mb-2 sm:mb-3 drop-shadow-[0_10px_25px_rgba(0,35,100,0.4)] select-none">
           <div className="relative h-20 sm:h-24 md:h-28 aspect-[897/482]">
             <Image
-              src="/logo.png"
+              src="/logo.webp"
               alt="Spark the Present Logo"
               fill
               sizes="(max-width: 640px) 210px, (max-width: 1024px) 260px, 300px"

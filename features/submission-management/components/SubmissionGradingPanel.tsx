@@ -291,7 +291,7 @@ function SubmissionGradingFormContent({
           <div className="flex items-center justify-between">
             <label className="text-xs font-extrabold text-amber-950 uppercase tracking-wider flex items-center gap-1.5">
               <Image
-                src="/coin.png"
+                src="/coin.webp"
                 alt="Coin"
                 width={16}
                 height={16}

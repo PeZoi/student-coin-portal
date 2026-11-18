@@ -89,7 +89,7 @@ export function StudentExchangeGiftsModal({
         icon={
           <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0">
             <Image
-              src="/rewards/shopee_gift.png"
+              src="/rewards/shopee_gift.webp"
               alt="Đổi quà Heo Đất"
               width={36}
               height={36}
@@ -242,7 +242,7 @@ export function StudentExchangeGiftsModal({
           <div className="py-12 text-center rounded-2xl bg-slate-50 border border-slate-200">
             <div className="w-14 h-14 mx-auto mb-2 flex items-center justify-center">
               <Image
-                src="/rewards/shopee_gift.png"
+                src="/rewards/shopee_gift.webp"
                 alt="Chưa có dữ liệu"
                 width={56}
                 height={56}
@@ -289,8 +289,8 @@ export function StudentExchangeGiftsModal({
                       <Image
                         src={
                           isCash
-                            ? "/rewards/cash_reward.png"
-                            : "/rewards/shopee_gift.png"
+                            ? "/rewards/cash_reward.webp"
+                            : "/rewards/shopee_gift.webp"
                         }
                         alt={isCash ? "Tiền mặt" : "Quà tặng"}
                         width={48}

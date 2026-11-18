@@ -40,7 +40,7 @@ export function ShopeeRewardCard({
         {/* Navigation 3D Icon */}
         <div className="w-18 h-18 sm:w-20 sm:h-20 lg:w-22 lg:h-22 relative flex-shrink-0 transition-transform hover:scale-105 duration-200">
           <Image
-            src="/rewards/shopee_gift.png"
+            src="/rewards/shopee_gift.webp"
             alt="Chọn quà Shopee"
             fill
             sizes="(max-width: 640px) 72px, 88px"

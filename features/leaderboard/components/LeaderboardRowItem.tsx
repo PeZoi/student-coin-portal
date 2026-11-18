@@ -159,7 +159,7 @@ export function LeaderboardRowItem({
 					{isTop3 ? (
 						<div className='relative w-9.5 sm:w-11 lg:w-11.5 aspect-[48/52] flex-shrink-0'>
 							<Image
-								src={`/leaderboard/top-${rank}.png`}
+								src={`/leaderboard/top-${rank}.webp`}
 								alt={`Huy chương Top ${rank}`}
 								width={52}
 								height={58}

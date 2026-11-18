@@ -37,7 +37,7 @@ export function CashRewardCard({ canExchange, onOpenModal }: CashRewardCardProps
         {/* Navigation 3D Icon */}
         <div className="w-18 h-18 sm:w-20 sm:h-20 lg:w-22 lg:h-22 relative flex-shrink-0 transition-transform hover:scale-105 duration-200">
           <Image
-            src="/rewards/cash_reward.png"
+            src="/rewards/cash_reward.webp"
             alt="Đổi tiền mặt"
             fill
             sizes="(max-width: 640px) 72px, 88px"

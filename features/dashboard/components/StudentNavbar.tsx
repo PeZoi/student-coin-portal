@@ -41,7 +41,7 @@ export function StudentNavbar() {
 			>
 				<div className='relative h-10 sm:h-11 md:h-12 lg:h-16 aspect-[897/482] flex-shrink-0 transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-0.5'>
 					<Image
-						src='/logo.png'
+						src='/logo.webp'
 						alt='Spark the Present'
 						fill
 						sizes='(max-width: 640px) 90px, (max-width: 1024px) 110px, 150px'
