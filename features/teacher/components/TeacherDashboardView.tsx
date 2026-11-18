@@ -314,7 +314,7 @@ export function TeacherDashboardView() {
                 href={AppRoutes.TEACHER.REWARDS}
                 className="text-[11px] font-bold text-emerald-700 hover:underline"
               >
-                Kho quà →
+                Đổi quà →
               </Link>
             </div>
 

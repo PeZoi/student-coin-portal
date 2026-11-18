@@ -63,7 +63,7 @@ export function TeacherSidebar({
 			icon: ListTodo,
 		},
 		{
-			label: "Kho & Đổi quà",
+			label: "Đổi quà",
 			href: AppRoutes.TEACHER.REWARDS,
 			icon: Gift,
 			badge: 2,
