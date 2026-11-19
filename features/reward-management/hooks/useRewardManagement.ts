@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useCallback } from "react";
 import useSWR from "swr";
+import { CACHE_KEYS } from "@/constants/cacheKeys";
 import { TeacherExchangeRequestItem } from "../types";
 import { rewardService } from "../services/rewardService";
 import { useTeacherWorkspaceStore } from "@/stores/useTeacherWorkspaceStore";
@@ -54,16 +55,6 @@ export function useRewardManagement({
     useState<number | "all">(currentYear);
 
   // 4. SWR Data Fetching (Tầng 2 - Caching & Revalidation theo lớp và kỳ chốt sổ)
-  const swrKey = useMemo(
-    () => [
-      "teacher-rewards",
-      activeClassId ?? "all",
-      selectedMonth,
-      selectedYear,
-    ],
-    [activeClassId, selectedMonth, selectedYear]
-  );
-
   const isMatchingInitial = Boolean(
     selectedMonth === currentMonth &&
       selectedYear === currentYear &&
@@ -76,7 +67,7 @@ export function useRewardManagement({
     isLoading,
     isValidating,
   } = useSWR<TeacherExchangeRequestItem[]>(
-    swrKey,
+    CACHE_KEYS.REWARDS.LIST(activeClassId, selectedMonth, selectedYear),
     () =>
       rewardService.getRewards({
         month: selectedMonth === "all" ? undefined : selectedMonth,

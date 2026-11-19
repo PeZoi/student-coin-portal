@@ -102,7 +102,23 @@ export const CACHE_KEYS = {
       `leaderboard-${period}-${classId}`,
   },
 
-  // 9. Xác thực & Cấu hình Hệ thống (Auth & System)
+  // 9. Quản lý Đổi quà & Heo Đất (Reward Management)
+  REWARDS: {
+    /** Danh sách yêu cầu đổi quà tháng của giáo viên (hỗ trợ lọc theo lớp, tháng, năm) */
+    LIST: (
+      classId?: string | null,
+      month?: number | "all",
+      year?: number | "all"
+    ) =>
+      [
+        "teacher-rewards",
+        classId ?? "all",
+        month ?? "all",
+        year ?? "all",
+      ] as const,
+  },
+
+  // 10. Xác thực & Cấu hình Hệ thống (Auth & System)
   SYSTEM: {
     /** Phiên đăng nhập người dùng hiện tại */
     CURRENT_USER: "auth-me",

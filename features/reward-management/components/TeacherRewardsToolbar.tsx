@@ -9,65 +9,33 @@ import {
 } from "@/components/ui/TeacherSelect";
 import { cn } from "@/lib/utils";
 import {
-	ExchangeFilterStatus,
-	ExchangeFilterChoiceType,
-	ExchangeViewMode,
+  ExchangeFilterStatus,
+  ExchangeFilterChoiceType,
 } from "../types";
 import { ExchangeChoiceType, ExchangeRequestStatus } from "@/constants/rewards";
-import { useOptionalTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
-
-const DEFAULT_COUNTS = {
-	all: 0,
-	pending: 0,
-	completed: 0,
-	rejected: 0,
-};
-
-export interface TeacherRewardsToolbarProps {
-	searchQuery?: string;
-	onSearchChange?: (query: string) => void;
-	statusFilter?: ExchangeFilterStatus;
-	onStatusChange?: (status: ExchangeFilterStatus) => void;
-	choiceTypeFilter?: ExchangeFilterChoiceType;
-	onChoiceTypeChange?: (type: ExchangeFilterChoiceType) => void;
-	viewMode?: ExchangeViewMode;
-	onViewModeChange?: (mode: ExchangeViewMode) => void;
-	counts?: {
-		all: number;
-		pending: number;
-		completed: number;
-		rejected: number;
-	};
-	onRefresh?: () => void;
-	isRefreshing?: boolean;
-}
+import { useTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
 
 /**
  * Toolbar tìm kiếm, lọc trạng thái và hình thức đổi quà Heo Đất
  * - Tự động đọc dữ liệu từ TeacherRewardsContext (Quy tắc 10 - Feature Context Pattern)
- * - Vẫn hỗ trợ truyền props độc lập khi cần
  */
-export function TeacherRewardsToolbar(props?: TeacherRewardsToolbarProps) {
-	const context = useOptionalTeacherRewardsContext();
+export function TeacherRewardsToolbar() {
+  const {
+    searchQuery,
+    setSearchQuery: onSearchChange,
+    statusFilter,
+    setStatusFilter: onStatusChange,
+    choiceTypeFilter,
+    setChoiceTypeFilter: onChoiceTypeChange,
+    viewMode,
+    setViewMode: onViewModeChange,
+    counts,
+    handleRefresh: onRefresh,
+    isValidating,
+    isLoading,
+  } = useTeacherRewardsContext();
 
-	const searchQuery = props?.searchQuery ?? context?.searchQuery ?? "";
-	const onSearchChange =
-		props?.onSearchChange ?? context?.setSearchQuery ?? (() => {});
-	const statusFilter = props?.statusFilter ?? context?.statusFilter ?? "all";
-	const onStatusChange =
-		props?.onStatusChange ?? context?.setStatusFilter ?? (() => {});
-	const choiceTypeFilter =
-		props?.choiceTypeFilter ?? context?.choiceTypeFilter ?? "all";
-	const onChoiceTypeChange =
-		props?.onChoiceTypeChange ?? context?.setChoiceTypeFilter ?? (() => {});
-	const viewMode = props?.viewMode ?? context?.viewMode ?? "table";
-	const onViewModeChange =
-		props?.onViewModeChange ?? context?.setViewMode ?? (() => {});
-	const counts = props?.counts ?? context?.counts ?? DEFAULT_COUNTS;
-	const onRefresh = props?.onRefresh ?? context?.handleRefresh;
-	const isRefreshing =
-		props?.isRefreshing ??
-		Boolean(context?.isValidating || context?.isLoading);
+  const isRefreshing = Boolean(isValidating || isLoading);
 
 	// 1. Tùy chọn lọc Trạng thái (Chỉ còn: Tất cả, Chờ duyệt, Đã duyệt & trao, Từ chối)
 	const statusOptions: TeacherSelectOption[] = useMemo(

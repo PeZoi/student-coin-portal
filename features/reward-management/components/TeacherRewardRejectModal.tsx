@@ -8,41 +8,24 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
-import { TeacherExchangeRequestItem } from "../types";
 import { ExchangeChoiceType } from "@/constants/rewards";
-import { useOptionalTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
+import { useTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
 
 const QUICK_REASONS = [
   "Link món quà bị lỗi hoặc hết hàng",
   "Sản phẩm đổi giá vượt quá số xu",
   "Thông tin nhận tiền chưa chính xác",
-  "Cần phụ huynh liên hệ lại với cô",
+  "Sản phầm này không phù hợp với em"
 ];
 
-export interface TeacherRewardRejectModalProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-  request?: TeacherExchangeRequestItem | null;
-  onConfirmReject?: (
-    request: TeacherExchangeRequestItem,
-    reason: string
-  ) => Promise<void> | void;
-  isSubmitting?: boolean;
-}
-
-export function TeacherRewardRejectModal(
-  props?: TeacherRewardRejectModalProps
-) {
-  const context = useOptionalTeacherRewardsContext();
-
-  const isOpen = props?.isOpen ?? context?.isRejectModalOpen ?? false;
-  const onClose =
-    props?.onClose ?? context?.handleCloseRejectModal ?? (() => {});
-  const request = props?.request ?? context?.rejectModalRequest ?? null;
-  const onConfirmReject =
-    props?.onConfirmReject ?? context?.handleConfirmReject ?? (() => {});
-  const isSubmitting =
-    props?.isSubmitting ?? context?.isSubmittingAction ?? false;
+export function TeacherRewardRejectModal() {
+  const {
+    isRejectModalOpen: isOpen,
+    handleCloseRejectModal: onClose,
+    rejectModalRequest: request,
+    handleConfirmReject: onConfirmReject,
+    isSubmittingAction: isSubmitting,
+  } = useTeacherRewardsContext();
 
   const [reason, setReason] = useState(QUICK_REASONS[0]);
 

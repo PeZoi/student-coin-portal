@@ -16,21 +16,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip } from "@/components/ui/tooltip";
-import { TeacherExchangeRequestItem } from "../types";
 import {
   ExchangeChoiceType,
   ExchangeRequestStatus,
   ExchangeRequestStatusType,
 } from "@/constants/rewards";
 import { formatDate } from "@/lib/date";
-import { useOptionalTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
-
-export interface TeacherRewardsGridProps {
-  requests?: TeacherExchangeRequestItem[];
-  onSelectRequest?: (request: TeacherExchangeRequestItem) => void;
-  onApproveAndDeliver?: (request: TeacherExchangeRequestItem) => void;
-  onReject?: (request: TeacherExchangeRequestItem) => void;
-}
+import { useTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
 
 /**
  * Cấu hình style phân tầng theo từng trạng thái yêu cầu đổi quà
@@ -95,15 +87,13 @@ const getCardStatusTheme = (status: ExchangeRequestStatusType) => {
   }
 };
 
-export function TeacherRewardsGrid(props?: TeacherRewardsGridProps) {
-  const context = useOptionalTeacherRewardsContext();
-
-  const requests = props?.requests ?? context?.paginatedRequests ?? [];
-  const onSelectRequest =
-    props?.onSelectRequest ?? context?.handleOpenDetail ?? (() => {});
-  const onApproveAndDeliver =
-    props?.onApproveAndDeliver ?? context?.handleApproveAndDeliver;
-  const onReject = props?.onReject ?? context?.handleOpenRejectModal;
+export function TeacherRewardsGrid() {
+  const {
+    paginatedRequests: requests,
+    handleOpenDetail: onSelectRequest,
+    handleApproveAndDeliver: onApproveAndDeliver,
+    handleOpenRejectModal: onReject,
+  } = useTeacherRewardsContext();
   if (requests.length === 0) {
     return (
       <div className="py-16 px-4 text-center">

@@ -6,30 +6,22 @@ import {
   TeacherSelect,
   TeacherSelectOption,
 } from "@/components/ui/TeacherSelect";
-import { useOptionalTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
-
-export interface TeacherRewardsHeaderProps {
-  selectedMonth?: number | "all";
-  selectedYear?: number | "all";
-  onMonthChange?: (month: number | "all") => void;
-}
+import { useTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
 
 /**
  * Header của trang Đổi quà Heo Đất (Góc giáo viên)
  * - Tự động đọc dữ liệu từ TeacherRewardsContext (Quy tắc 10 - Feature Context Pattern)
- * - Vẫn hỗ trợ truyền props độc lập khi cần
  */
-export function TeacherRewardsHeader(props?: TeacherRewardsHeaderProps) {
-  const context = useOptionalTeacherRewardsContext();
+export function TeacherRewardsHeader() {
+  const {
+    selectedMonth,
+    selectedYear,
+    setSelectedMonth: onMonthChange,
+  } = useTeacherRewardsContext();
 
   const now = new Date();
   const defaultMonth = now.getMonth() + 1;
   const defaultYear = now.getFullYear();
-
-  const selectedMonth = props?.selectedMonth ?? context?.selectedMonth ?? defaultMonth;
-  const selectedYear = props?.selectedYear ?? context?.selectedYear ?? defaultYear;
-  const onMonthChange =
-    props?.onMonthChange ?? context?.setSelectedMonth ?? (() => {});
 
   // Danh sách các kỳ đổi quà hàng tháng (Rút gọn nhãn menu + Chấm xanh Live Dot cho kỳ hiện tại)
   const periodOptions: TeacherSelectOption[] = useMemo(() => {

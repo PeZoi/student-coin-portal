@@ -23,40 +23,26 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
-import { TeacherExchangeRequestItem } from "../types";
 import { ExchangeChoiceType, ExchangeRequestStatus } from "@/constants/rewards";
 import { formatDate } from "@/lib/date";
 import { toast } from "sonner";
-import { useOptionalTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
+import { useTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
 
-export interface TeacherRewardDetailModalProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-  request?: TeacherExchangeRequestItem | null;
-  onApproveAndDeliver?: (req: TeacherExchangeRequestItem) => void;
-  onReject?: (req: TeacherExchangeRequestItem) => void;
-}
-
-export function TeacherRewardDetailModal(
-  props?: TeacherRewardDetailModalProps
-) {
-  const context = useOptionalTeacherRewardsContext();
-
-  const isOpen = props?.isOpen ?? context?.isDetailModalOpen ?? false;
-  const onClose = props?.onClose ?? context?.handleCloseDetail ?? (() => {});
-  const request = props?.request ?? context?.selectedRequest ?? null;
-  const onApproveAndDeliver =
-    props?.onApproveAndDeliver ?? context?.handleApproveAndDeliver;
-  const onReject = props?.onReject ?? context?.handleOpenRejectModal;
+export function TeacherRewardDetailModal() {
+  const {
+    isDetailModalOpen: isOpen,
+    handleCloseDetail: onClose,
+    selectedRequest: request,
+    handleApproveAndDeliver: onApproveAndDeliver,
+    handleOpenRejectModal: onReject,
+  } = useTeacherRewardsContext();
 
   const [copied, setCopied] = useState(false);
 
   if (!request) return null;
 
   const isCash = request.choice_type === ExchangeChoiceType.CASH;
-  const isGift =
-    request.choice_type === ExchangeChoiceType.GIFT ||
-    (request.choice_type as string) === "shopee";
+  const isGift = request.choice_type === ExchangeChoiceType.GIFT
 
   const handleCopyLink = () => {
     if (!request.shopee_product_url) return;
@@ -97,7 +83,7 @@ export function TeacherRewardDetailModal(
       {/* 2. Body Modal */}
       <ModalBody className="p-5 sm:p-6 space-y-4 max-h-[72vh] overflow-y-auto teacher-scrollbar">
         {/* Khối 1: Tóm tắt Học sinh & Trạng thái */}
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-50/70 via-sky-50/50 to-indigo-50/40 border border-blue-100/90 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+        <div className="p-4 rounded-2xl bg-linear-to-r from-blue-50/70 via-sky-50/50 to-indigo-50/40 border border-blue-100/90 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
           <div className="flex items-center gap-3.5">
             <div className="w-12 h-12 rounded-full bg-white border border-blue-200 overflow-hidden shrink-0 shadow-2xs flex items-center justify-center font-black text-[#0A62D6] text-sm uppercase">
               {request.student_avatar ? (

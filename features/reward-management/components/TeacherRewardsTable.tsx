@@ -27,39 +27,25 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import {
-  TeacherExchangeRequestItem,
   ExchangeSortField,
-  SortOrder,
 } from "../types";
 import {
   ExchangeChoiceType,
   ExchangeRequestStatus,
 } from "@/constants/rewards";
 import { formatDate } from "@/lib/date";
-import { useOptionalTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
+import { useTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
 
-export interface TeacherRewardsTableProps {
-  requests?: TeacherExchangeRequestItem[];
-  sortField?: ExchangeSortField;
-  sortOrder?: SortOrder;
-  onSortToggle?: (field: ExchangeSortField) => void;
-  onSelectRequest?: (request: TeacherExchangeRequestItem) => void;
-  onApproveAndDeliver?: (request: TeacherExchangeRequestItem) => void;
-  onReject?: (request: TeacherExchangeRequestItem) => void;
-}
-
-export function TeacherRewardsTable(props?: TeacherRewardsTableProps) {
-  const context = useOptionalTeacherRewardsContext();
-
-  const requests = props?.requests ?? context?.paginatedRequests ?? [];
-  const sortField = props?.sortField ?? context?.sortField;
-  const sortOrder = props?.sortOrder ?? context?.sortOrder ?? "none";
-  const onSortToggle = props?.onSortToggle ?? context?.handleSortToggle;
-  const onSelectRequest =
-    props?.onSelectRequest ?? context?.handleOpenDetail ?? (() => {});
-  const onApproveAndDeliver =
-    props?.onApproveAndDeliver ?? context?.handleApproveAndDeliver;
-  const onReject = props?.onReject ?? context?.handleOpenRejectModal;
+export function TeacherRewardsTable() {
+  const {
+    paginatedRequests: requests,
+    sortField,
+    sortOrder,
+    handleSortToggle: onSortToggle,
+    handleOpenDetail: onSelectRequest,
+    handleApproveAndDeliver: onApproveAndDeliver,
+    handleOpenRejectModal: onReject,
+  } = useTeacherRewardsContext();
   const renderSortIcon = (field: ExchangeSortField) => {
     if (sortField !== field || sortOrder === "none") {
       return (
