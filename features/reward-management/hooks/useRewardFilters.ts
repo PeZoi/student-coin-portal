@@ -214,6 +214,7 @@ export function useRewardFilters({
     setPageSize,
     totalPages,
     totalItems: sortedRequests.length,
+    sortedRequests,
     paginatedRequests,
     counts,
     totalCoinsExchanged,

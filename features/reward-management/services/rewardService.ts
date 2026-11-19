@@ -52,7 +52,7 @@ export const rewardService = {
   },
 
   /**
-   * Duyệt & trao quà trực tiếp cho học sinh
+   * Duyệt yêu cầu đổi quà của học sinh
    */
   async approveReward(id: string): Promise<void> {
     const res = await fetch(`/api/teacher/rewards/${id}/approve`, {
@@ -63,6 +63,24 @@ export const rewardService = {
     if (!res.ok || !data.success) {
       throw new Error(data?.message || "Không thể duyệt yêu cầu đổi quà");
     }
+  },
+
+  /**
+   * Duyệt hàng loạt danh sách yêu cầu đổi quà
+   */
+  async batchApproveRewards(requestIds: string[]): Promise<{ approvedCount: number }> {
+    const res = await fetch("/api/teacher/rewards/batch-approve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ requestIds }),
+    });
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(data?.message || "Không thể duyệt hàng loạt yêu cầu");
+    }
+
+    return { approvedCount: data.data?.approvedCount ?? 0 };
   },
 
   /**

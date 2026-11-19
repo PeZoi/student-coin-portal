@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { KeyedMutator } from "swr";
+import { KeyedMutator, mutate as globalMutate } from "swr";
 import { toast } from "sonner";
+import { CACHE_KEYS } from "@/constants/cacheKeys";
 import { TeacherExchangeRequestItem } from "../types";
 import { rewardService } from "../services/rewardService";
 import { ExchangeRequestStatus, ExchangeChoiceType } from "@/constants/rewards";
@@ -17,7 +18,7 @@ export interface UseRewardMutationsProps {
 
 /**
  * Micro-hook chuyên trách: Tương tác API, Cập nhật SWR Cache, Optimistic UI & Toast Notification
- * - Duyệt & Trao quà (Approve & Deliver) 1 chạm
+ * - Duyệt yêu cầu đổi quà (Approve) 1 chạm
  * - Từ chối & Hoàn xu Heo Đất (Reject with Reason)
  * - Làm mới danh sách đổi thưởng (Refresh Sync)
  * - Tuân thủ Quy tắc 7 (No Explicit any), Quy tắc 9 (SWR Caching) & Quy tắc 12 (Micro-Hooks)
@@ -31,7 +32,18 @@ export function useRewardMutations({
 }: UseRewardMutationsProps) {
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
 
-  // 1. Duyệt & Trao quà trực tiếp (UX 1-Click)
+  // Helper revalidate toàn bộ cache badge trên Sidebar của giáo viên
+  const revalidateSidebarBadges = useCallback(() => {
+    void globalMutate(
+      (key) =>
+        (typeof key === "string" &&
+          key.startsWith(CACHE_KEYS.SIDEBAR.TEACHER_BADGES_PREFIX)) ||
+        (Array.isArray(key) &&
+          key[0] === CACHE_KEYS.SIDEBAR.TEACHER_BADGES_PREFIX)
+    );
+  }, []);
+
+  // 1. Duyệt yêu cầu đổi quà trực tiếp (UX 1-Click)
   const handleApproveAndDeliver = useCallback(
     async (req: TeacherExchangeRequestItem) => {
       try {
@@ -53,15 +65,16 @@ export function useRewardMutations({
         await rewardService.approveReward(req.id);
 
         toast.success(
-          `Đã duyệt và trao ${
+          `Đã duyệt thành công yêu cầu ${
             req.choice_type === ExchangeChoiceType.CASH
               ? "tiền mặt"
               : "quà tặng"
-          } cho học sinh ${req.student_name} thành công!`
+          } của học sinh ${req.student_name}!`
         );
 
-        // Revalidate dữ liệu tươi mới từ server
+        // Revalidate dữ liệu tươi mới từ server & cập nhật badge sidebar
         await mutate();
+        revalidateSidebarBadges();
       } catch (err: unknown) {
         const error = err instanceof Error ? err : new Error(String(err));
         toast.error(`Lỗi duyệt quà: ${error.message}`);
@@ -70,7 +83,7 @@ export function useRewardMutations({
         setIsSubmittingAction(false);
       }
     },
-    [requests, mutate]
+    [requests, mutate, revalidateSidebarBadges]
   );
 
   // 2. Từ chối yêu cầu & Hoàn xu Heo Đất
@@ -106,8 +119,9 @@ export function useRewardMutations({
           onCloseDetailModal?.();
         }
 
-        // Revalidate dữ liệu tươi mới từ server
+        // Revalidate dữ liệu tươi mới từ server & cập nhật badge sidebar
         await mutate();
+        revalidateSidebarBadges();
       } catch (err: unknown) {
         const error = err instanceof Error ? err : new Error(String(err));
         toast.error(`Lỗi từ chối yêu cầu: ${error.message}`);
@@ -116,23 +130,75 @@ export function useRewardMutations({
         setIsSubmittingAction(false);
       }
     },
-    [requests, mutate, onCloseRejectModal, selectedRequestId, onCloseDetailModal]
+    [
+      requests,
+      mutate,
+      onCloseRejectModal,
+      selectedRequestId,
+      onCloseDetailModal,
+      revalidateSidebarBadges,
+    ]
   );
 
-  // 3. Làm mới danh sách đổi thưởng
+  // 3. Duyệt hàng loạt yêu cầu (Batch Approve)
+  const handleBatchApprove = useCallback(
+    async (selectedIds: string[], onClearSelection?: () => void) => {
+      if (!selectedIds || selectedIds.length === 0) return;
+
+      try {
+        setIsSubmittingAction(true);
+        // Optimistic UI update
+        const idSet = new Set(selectedIds);
+        mutate(
+          requests.map((item) =>
+            idSet.has(item.id)
+              ? {
+                  ...item,
+                  status: ExchangeRequestStatus.COMPLETED,
+                  processed_at: new Date().toISOString(),
+                }
+              : item
+          ),
+          false
+        );
+
+        const result = await rewardService.batchApproveRewards(selectedIds);
+
+        toast.success(
+          `Đã duyệt thành công ${result.approvedCount} yêu cầu đổi quà!`
+        );
+
+        onClearSelection?.();
+        // Revalidate dữ liệu tươi mới từ server & cập nhật badge sidebar
+        await mutate();
+        revalidateSidebarBadges();
+      } catch (err: unknown) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        toast.error(`Lỗi duyệt hàng loạt: ${error.message}`);
+        await mutate(); // Rollback về dữ liệu server
+      } finally {
+        setIsSubmittingAction(false);
+      }
+    },
+    [requests, mutate, revalidateSidebarBadges]
+  );
+
+  // 4. Làm mới danh sách đổi thưởng
   const handleRefresh = useCallback(async () => {
     try {
       await mutate();
+      revalidateSidebarBadges();
       toast.success("Đã đồng bộ danh sách đổi thưởng mới nhất!");
     } catch {
       toast.error("Không thể làm mới danh sách. Vui lòng thử lại.");
     }
-  }, [mutate]);
+  }, [mutate, revalidateSidebarBadges]);
 
   return {
     isSubmittingAction,
     handleApproveAndDeliver,
     handleConfirmReject,
+    handleBatchApprove,
     handleRefresh,
   };
 }

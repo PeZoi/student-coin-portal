@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus } from "@/constants/http";
+import { UserRole } from "@/constants/auth";
 import { CoinTxType, CoinReferenceType } from "@/constants/coins";
 import { ExchangeRequestStatus } from "@/constants/rewards";
 
@@ -58,7 +59,8 @@ export async function POST(req: Request, { params }: RouteParams) {
         student:users!monthly_exchange_requests_student_id_fkey (
           id,
           full_name,
-          current_coins
+          current_coins,
+          class_id
         )
       `)
       .eq("id", id)
@@ -78,6 +80,31 @@ export async function POST(req: Request, { params }: RouteParams) {
     const student = Array.isArray(requestRecord.student)
       ? requestRecord.student[0]
       : requestRecord.student;
+
+    // Kiểm tra phân quyền lớp: Giáo viên thường chỉ được từ chối đơn của học sinh lớp mình
+    if (session.role === UserRole.TEACHER) {
+      const studentClassId = student?.class_id;
+      if (!studentClassId) {
+        return apiError(
+          "Học sinh này chưa được phân bổ vào lớp học nào.",
+          HttpStatus.FORBIDDEN
+        );
+      }
+
+      const { data: isAssigned, error: classCheckError } = await supabase
+        .from("teacher_classes")
+        .select("class_id")
+        .eq("teacher_id", session.userId)
+        .eq("class_id", studentClassId)
+        .maybeSingle();
+
+      if (classCheckError || !isAssigned) {
+        return apiError(
+          "Bạn không được phân công phụ trách lớp của học sinh này.",
+          HttpStatus.FORBIDDEN
+        );
+      }
+    }
     const studentName = student?.full_name || "Học sinh";
     const currentCoins = student?.current_coins ?? 0;
     const refundCoins = requestRecord.coins_to_exchange;

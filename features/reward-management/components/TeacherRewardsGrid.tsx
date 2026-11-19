@@ -13,6 +13,7 @@ import {
   Calendar,
   Phone,
   AlertCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -57,7 +58,7 @@ const getCardStatusTheme = (status: ExchangeRequestStatusType) => {
         badge: (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white text-emerald-800 border border-emerald-300 text-xs font-bold whitespace-nowrap shadow-2xs">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-            <span>Đã duyệt & trao</span>
+            <span>Đã duyệt</span>
           </span>
         ),
       };
@@ -93,7 +94,10 @@ export function TeacherRewardsGrid() {
     handleOpenDetail: onSelectRequest,
     handleApproveAndDeliver: onApproveAndDeliver,
     handleOpenRejectModal: onReject,
+    selection,
   } = useTeacherRewardsContext();
+
+  const { isSelected, handleToggleSelect } = selection;
   if (requests.length === 0) {
     return (
       <div className="py-16 px-4 text-center">
@@ -134,7 +138,15 @@ export function TeacherRewardsGrid() {
                 theme.headerBg
               )}
             >
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                {/* Checkbox chọn dòng */}
+                <input
+                  type="checkbox"
+                  aria-label={`Chọn yêu cầu của ${req.student_name}`}
+                  checked={isSelected(req.id)}
+                  onChange={() => handleToggleSelect(req.id)}
+                  className="w-4 h-4 rounded-sm border-slate-300 text-[#0A62D6] focus:ring-[#0A62D6] cursor-pointer shrink-0"
+                />
                 <div className="w-10 h-10 rounded-full bg-white border border-slate-200/90 overflow-hidden shrink-0 flex items-center justify-center shadow-2xs relative">
                   {req.student_avatar ? (
                     <Image
@@ -232,7 +244,17 @@ export function TeacherRewardsGrid() {
                     theme.noteBg
                   )}
                 >
-                  {req.shopee_product_url && (
+                  {!req.shopee_product_url ? (
+                    <div className="inline-flex items-center gap-1.5 text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 text-[11px] font-bold">
+                      <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
+                      <span>Thiếu link quà tặng</span>
+                    </div>
+                  ) : !req.shopee_product_url.startsWith("http") ? (
+                    <div className="inline-flex items-center gap-1.5 text-rose-800 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 text-[11px] font-bold">
+                      <AlertCircle className="w-3 h-3 text-rose-600 shrink-0" />
+                      <span>Link quà không hợp lệ</span>
+                    </div>
+                  ) : (
                     <a
                       href={req.shopee_product_url}
                       target="_blank"
@@ -304,16 +326,16 @@ export function TeacherRewardsGrid() {
                   </button>
                 </Tooltip>
 
-                {/* Khi PENDING: Duyệt & Trao trực tiếp (1-Click) */}
+                {/* Khi PENDING: Duyệt trực tiếp (1-Click) */}
                 {req.status === ExchangeRequestStatus.PENDING && onApproveAndDeliver && (
-                  <Tooltip content="Duyệt & Trao quà ngay" side="top">
+                  <Tooltip content="Duyệt yêu cầu ngay" side="top">
                     <button
                       type="button"
                       onClick={() => onApproveAndDeliver(req)}
                       className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs hover:shadow-sm cursor-pointer active:scale-98"
                     >
                       <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                      <span>Duyệt & Trao</span>
+                      <span>Duyệt</span>
                     </button>
                   </Tooltip>
                 )}

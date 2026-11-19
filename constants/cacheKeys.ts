@@ -125,6 +125,17 @@ export const CACHE_KEYS = {
     /** Cấu hình hệ thống chung (Heo đất, tỷ giá xu, bảo trì) */
     CONFIG: "system-config",
   },
+
+  // 11. Layout & Sidebar Badges
+  SIDEBAR: {
+    /** Số lượng thông báo / badge hiển thị trên menu Sidebar giáo viên (hỗ trợ lọc theo lớp workspace) */
+    TEACHER_BADGES: (classId?: string | null) =>
+      classId
+        ? (["teacher-sidebar-badges", classId] as const)
+        : "teacher-sidebar-badges",
+    /** Prefix định danh cache sidebar badges để revalidate toàn bộ */
+    TEACHER_BADGES_PREFIX: "teacher-sidebar-badges",
+  },
 } as const;
 
 export type CacheKeysType = typeof CACHE_KEYS;

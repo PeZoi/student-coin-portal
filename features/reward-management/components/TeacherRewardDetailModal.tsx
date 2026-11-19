@@ -127,7 +127,7 @@ export function TeacherRewardDetailModal() {
             {request.status === ExchangeRequestStatus.COMPLETED && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-extrabold">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Đã duyệt & trao quà</span>
+                <span>Đã duyệt</span>
               </span>
             )}
             {request.status === ExchangeRequestStatus.REJECTED && (
@@ -275,7 +275,7 @@ export function TeacherRewardDetailModal() {
               <div className="p-2.5 rounded-xl bg-blue-50/60 border border-blue-200/80 flex items-start gap-2 text-xs text-blue-900">
                 <AlertCircle className="w-4 h-4 text-[#0A62D6] shrink-0 mt-0.5" />
                 <span>
-                  Cô đặt mua quà theo link trên. Khi duyệt yêu cầu, hệ thống sẽ ngầm hiểu món quà đã được phê duyệt và trao cho học sinh.
+                  Cô đặt mua quà theo link trên. Khi duyệt yêu cầu, hệ thống sẽ lưu vết lịch sử phê duyệt.
                 </span>
               </div>
             </div>
@@ -296,7 +296,7 @@ export function TeacherRewardDetailModal() {
               <div className="p-2.5 rounded-xl bg-emerald-50/60 border border-emerald-200/80 flex items-start gap-2 text-xs text-emerald-900">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 <span>
-                  Khi bấm <strong>&ldquo;Duyệt & Trao quà&rdquo;</strong>, hệ thống tự động hoàn tất yêu cầu và lưu vết lịch sử giao dịch.
+                  Khi bấm <strong>&ldquo;Duyệt yêu cầu&rdquo;</strong>, hệ thống tự động hoàn tất yêu cầu và lưu vết lịch sử giao dịch.
                 </span>
               </div>
             </div>
@@ -353,7 +353,7 @@ export function TeacherRewardDetailModal() {
             </button>
           )}
 
-          {/* Nút Duyệt & Trao quà trực tiếp (khi pending) */}
+          {/* Nút Duyệt trực tiếp (khi pending) */}
           {request.status === ExchangeRequestStatus.PENDING && onApproveAndDeliver && (
             <button
               type="button"
@@ -364,7 +364,7 @@ export function TeacherRewardDetailModal() {
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-98"
             >
               <Check className="w-4 h-4" />
-              <span>Duyệt & Trao quà</span>
+              <span>Duyệt yêu cầu</span>
             </button>
           )}
         </div>

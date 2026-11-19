@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus } from "@/constants/http";
+import { UserRole } from "@/constants/auth";
 import { ExchangeRequestStatus, ExchangeChoiceType } from "@/constants/rewards";
 
 interface RouteParams {
@@ -10,7 +11,8 @@ interface RouteParams {
 
 /**
  * POST /api/teacher/rewards/[id]/approve
- * Duyệt và trao quà trực tiếp cho học sinh
+ * Duyệt yêu cầu đổi quà của học sinh
+ * - Kiểm tra phân quyền: giáo viên thường chỉ được duyệt học sinh lớp mình phụ trách
  * - Cập nhật status sang 'completed'
  * - Ghi nhận processed_by và processed_at
  * - Gửi thông báo 'exchange_fulfilled' vào hộp thư của học sinh
@@ -43,7 +45,8 @@ export async function POST(req: Request, { params }: RouteParams) {
         status,
         student:users!monthly_exchange_requests_student_id_fkey (
           id,
-          full_name
+          full_name,
+          class_id
         )
       `)
       .eq("id", id)
@@ -58,6 +61,35 @@ export async function POST(req: Request, { params }: RouteParams) {
         "Chỉ có thể duyệt các yêu cầu đang ở trạng thái 'Chờ cô duyệt'.",
         HttpStatus.BAD_REQUEST
       );
+    }
+
+    const student = Array.isArray(requestRecord.student)
+      ? requestRecord.student[0]
+      : requestRecord.student;
+
+    // 2. Kiểm tra phân quyền lớp: Giáo viên thường chỉ duyệt được học sinh thuộc lớp phụ trách
+    if (session.role === UserRole.TEACHER) {
+      const studentClassId = student?.class_id;
+      if (!studentClassId) {
+        return apiError(
+          "Học sinh này chưa được phân bổ vào lớp học nào.",
+          HttpStatus.FORBIDDEN
+        );
+      }
+
+      const { data: isAssigned, error: classCheckError } = await supabase
+        .from("teacher_classes")
+        .select("class_id")
+        .eq("teacher_id", session.userId)
+        .eq("class_id", studentClassId)
+        .maybeSingle();
+
+      if (classCheckError || !isAssigned) {
+        return apiError(
+          "Bạn không được phân công phụ trách lớp của học sinh này.",
+          HttpStatus.FORBIDDEN
+        );
+      }
     }
 
     const now = new Date().toISOString();
@@ -80,9 +112,6 @@ export async function POST(req: Request, { params }: RouteParams) {
     }
 
     // 3. Gửi thông báo đến học sinh
-    const student = Array.isArray(requestRecord.student)
-      ? requestRecord.student[0]
-      : requestRecord.student;
     const studentName = student?.full_name || "Học sinh";
     const isCash = requestRecord.choice_type === ExchangeChoiceType.CASH;
     const rewardDescription = isCash
@@ -92,7 +121,7 @@ export async function POST(req: Request, { params }: RouteParams) {
     const { error: notifError } = await supabase.from("notifications").insert({
       user_id: requestRecord.student_id,
       title: "Yêu cầu đổi quà đã được duyệt!",
-      content: `Cô giáo đã duyệt và trao ${rewardDescription} cho con. Chúc mừng con nhé!`,
+      content: `Cô giáo đã duyệt ${rewardDescription} của con. Chúc mừng con nhé!`,
       type: "exchange_fulfilled",
       icon_type: "gift",
       reference_type: "monthly_exchange_requests",
@@ -111,7 +140,7 @@ export async function POST(req: Request, { params }: RouteParams) {
         status: ExchangeRequestStatus.COMPLETED,
         processed_at: now,
       },
-      `Đã duyệt và trao ${rewardDescription} cho học sinh ${studentName} thành công!`
+      `Đã duyệt thành công yêu cầu ${rewardDescription} của học sinh ${studentName}!`
     );
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error(String(err));

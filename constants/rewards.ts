@@ -47,7 +47,7 @@ export const ALL_EXCHANGE_REQUEST_STATUSES: readonly ExchangeRequestStatusType[]
 
 export const EXCHANGE_REQUEST_STATUS_LABELS: Record<ExchangeRequestStatusType, string> = {
   [ExchangeRequestStatus.PENDING]: "Chờ duyệt",
-  [ExchangeRequestStatus.COMPLETED]: "Đã duyệt & trao thưởng",
+  [ExchangeRequestStatus.COMPLETED]: "Đã duyệt",
   [ExchangeRequestStatus.REJECTED]: "Từ chối",
   [ExchangeRequestStatus.CANCELLED]: "Đã hủy",
 };

@@ -1,7 +1,15 @@
 "use client";
 
 import { useMemo } from "react";
-import { Search, X, RotateCw, Filter, List, LayoutGrid } from "lucide-react";
+import {
+  Search,
+  X,
+  RotateCw,
+  Filter,
+  List,
+  LayoutGrid,
+  FileSpreadsheet,
+} from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
 import {
 	TeacherSelect,
@@ -31,13 +39,14 @@ export function TeacherRewardsToolbar() {
     setViewMode: onViewModeChange,
     counts,
     handleRefresh: onRefresh,
+    handleExportExcel,
     isValidating,
     isLoading,
   } = useTeacherRewardsContext();
 
   const isRefreshing = Boolean(isValidating || isLoading);
 
-	// 1. Tùy chọn lọc Trạng thái (Chỉ còn: Tất cả, Chờ duyệt, Đã duyệt & trao, Từ chối)
+	// 1. Tùy chọn lọc Trạng thái (Chỉ còn: Tất cả, Chờ duyệt, Đã duyệt, Từ chối)
 	const statusOptions: TeacherSelectOption[] = useMemo(
 		() => [
 			{
@@ -51,7 +60,7 @@ export function TeacherRewardsToolbar() {
 				badge: `${counts.pending}`,
 			},
 			{
-				label: "Đã duyệt & trao",
+				label: "Đã duyệt",
 				value: ExchangeRequestStatus.COMPLETED,
 				badge: `${counts.completed}`,
 			},
@@ -154,6 +163,19 @@ export function TeacherRewardsToolbar() {
 						<span className='hidden sm:inline'>Thẻ</span>
 					</button>
 				</div>
+
+				{/* Nút Xuất Excel */}
+				<Tooltip content='Xuất danh sách Excel' side='bottom'>
+					<button
+						type='button'
+						onClick={handleExportExcel}
+						disabled={isLoading}
+						className='h-9 px-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 hover:text-emerald-700 hover:border-emerald-300 transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer disabled:opacity-60 shrink-0 text-xs font-semibold'
+					>
+						<FileSpreadsheet className='w-4 h-4 text-emerald-600' />
+						<span className='hidden sm:inline'>Xuất Excel</span>
+					</button>
+				</Tooltip>
 
 				{/* Nút Làm mới danh sách (nếu có) */}
 				{onRefresh && (

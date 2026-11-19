@@ -11,6 +11,7 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
+  AlertTriangle,
   MessageSquareQuote,
   Phone,
   ChevronUp,
@@ -18,6 +19,7 @@ import {
   ChevronsUpDown,
 } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableHeader,
@@ -45,7 +47,12 @@ export function TeacherRewardsTable() {
     handleOpenDetail: onSelectRequest,
     handleApproveAndDeliver: onApproveAndDeliver,
     handleOpenRejectModal: onReject,
+    selection,
+    allVisibleIds,
   } = useTeacherRewardsContext();
+
+  const { isSelected, handleToggleSelect, isAllSelected, handleSelectAll } =
+    selection;
   const renderSortIcon = (field: ExchangeSortField) => {
     if (sortField !== field || sortOrder === "none") {
       return (
@@ -78,8 +85,20 @@ export function TeacherRewardsTable() {
     <Table>
       <TableHeader>
         <TableRow className="hover:bg-transparent">
+          {/* 0. Cột Checkbox chọn hàng loạt (44px) */}
+          <TableHead className="w-11 py-3 px-3 text-center">
+            <input
+              type="checkbox"
+              aria-label="Chọn tất cả yêu cầu trên trang"
+              disabled={allVisibleIds.length === 0}
+              checked={isAllSelected(allVisibleIds)}
+              onChange={() => handleSelectAll(allVisibleIds)}
+              className="w-4 h-4 rounded-sm border-slate-300 text-[#0A62D6] focus:ring-[#0A62D6] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            />
+          </TableHead>
+
           {/* 1. Cột Học sinh (20%) */}
-          <TableHead className="w-[20%] py-3 px-3">
+          <TableHead className="w-[19%] py-3 px-3">
             {onSortToggle ? (
               <button
                 type="button"
@@ -165,8 +184,8 @@ export function TeacherRewardsTable() {
             )}
           </TableHead>
 
-          {/* 7. Cột Thao tác (12%) */}
-          <TableHead align="right" className="w-[12%] py-3 pr-4 pl-2 text-right">
+          {/* 7. Cột Thao tác (11%) */}
+          <TableHead align="right" className="w-[11%] py-3 pr-4 pl-2 text-right">
             <span className="text-xs font-bold text-slate-700 select-none">
               Thao tác
             </span>
@@ -181,8 +200,27 @@ export function TeacherRewardsTable() {
             req.choice_type === ExchangeChoiceType.GIFT ||
             (req.choice_type as string) === "shopee";
 
+          const checked = isSelected(req.id);
+
           return (
-            <TableRow key={req.id} className="group hover:bg-slate-50/70 transition-colors">
+            <TableRow
+              key={req.id}
+              className={cn(
+                "group transition-colors",
+                checked ? "bg-[#EAF2FF]/50 hover:bg-[#EAF2FF]/70" : "hover:bg-slate-50/70"
+              )}
+            >
+              {/* Cột 0: Checkbox chọn dòng */}
+              <TableCell className="py-3 px-3 text-center">
+                <input
+                  type="checkbox"
+                  aria-label={`Chọn yêu cầu của học sinh ${req.student_name}`}
+                  checked={checked}
+                  onChange={() => handleToggleSelect(req.id)}
+                  className="w-4 h-4 rounded-sm border-slate-300 text-[#0A62D6] focus:ring-[#0A62D6] cursor-pointer"
+                />
+              </TableCell>
+
               {/* Cột 1: Thông tin học sinh */}
               <TableCell className="py-3 px-3">
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -254,20 +292,32 @@ export function TeacherRewardsTable() {
                 </div>
               </TableCell>
 
-              {/* Cột 4: Chi tiết / Link món quà */}
+              {/* Cột 4: Chi tiết / Link món quà (Kèm cảnh báo khi thiếu link) */}
               <TableCell className="py-3 px-3">
-                {isGift && req.shopee_product_url ? (
-                  <div className="space-y-1 min-w-0">
-                    <a
-                      href={req.shopee_product_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-orange-600 hover:text-orange-700 hover:underline max-w-full"
-                      title={req.shopee_product_url}
-                    >
-                      <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                      <span>Xem link món quà</span>
-                    </a>
+                {isGift ? (
+                  <div className="space-y-1.5 min-w-0">
+                    {!req.shopee_product_url ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold">
+                        <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
+                        <span>Thiếu link quà</span>
+                      </span>
+                    ) : !req.shopee_product_url.startsWith("http") ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200 text-[11px] font-bold">
+                        <AlertCircle className="w-3 h-3 text-rose-600 shrink-0" />
+                        <span>Link không hợp lệ</span>
+                      </span>
+                    ) : (
+                      <a
+                        href={req.shopee_product_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-orange-600 hover:text-orange-700 hover:underline max-w-full"
+                        title={req.shopee_product_url}
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                        <span>Xem link món quà</span>
+                      </a>
+                    )}
                     {req.shopee_note && (
                       <p
                         className="text-xs text-slate-600 leading-relaxed italic break-words"
@@ -320,7 +370,7 @@ export function TeacherRewardsTable() {
                 {req.status === ExchangeRequestStatus.COMPLETED && (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#ECFDF3] text-[#15803D] border border-[#BBF7D0] text-xs font-bold whitespace-nowrap">
                     <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D] shrink-0" />
-                    <span>Đã duyệt & trao</span>
+                    <span>Đã duyệt</span>
                   </span>
                 )}
 
@@ -361,9 +411,9 @@ export function TeacherRewardsTable() {
                     </button>
                   </Tooltip>
 
-                  {/* Khi PENDING: Nút Duyệt & Trao (Icon Check xanh lá với Tooltip) */}
+                  {/* Khi PENDING: Nút Duyệt (Icon Check xanh lá với Tooltip) */}
                   {req.status === ExchangeRequestStatus.PENDING && onApproveAndDeliver && (
-                    <Tooltip content="Duyệt & Trao quà ngay" side="top">
+                    <Tooltip content="Duyệt yêu cầu ngay" side="top">
                       <button
                         type="button"
                         onClick={() => onApproveAndDeliver(req)}

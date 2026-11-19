@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useUserStore } from "@/stores/useUserStore";
 import { UserRole } from "@/constants/auth";
+import { useSidebarBadges } from "@/features/teacher/hooks/useSidebarBadges";
 
 interface TeacherSidebarProps {
 	isOpen?: boolean;
@@ -43,10 +44,11 @@ export function TeacherSidebar({
 	const { student } = useUserStore();
 	const isAdmin = student?.role === UserRole.ADMIN;
 	const isSuperTeacher = student?.role === UserRole.SUPER_TEACHER;
+	const { pendingRewards, pendingSubmissions } = useSidebarBadges();
 
 	const navItems: NavItem[] = [
 		{
-			label: "Bàn làm việc",
+			label: "Dashboard",
 			href: AppRoutes.TEACHER.DASHBOARD,
 			icon: LayoutDashboard,
 		},
@@ -54,7 +56,12 @@ export function TeacherSidebar({
 			label: "Duyệt bài tập",
 			href: AppRoutes.TEACHER.SUBMISSIONS,
 			icon: FileCheck2,
-			badge: 5,
+			badge:
+				pendingSubmissions > 0
+					? pendingSubmissions > 99
+						? "99+"
+						: pendingSubmissions
+					: undefined,
 			badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
 		},
 		{
@@ -66,8 +73,13 @@ export function TeacherSidebar({
 			label: "Đổi quà",
 			href: AppRoutes.TEACHER.REWARDS,
 			icon: Gift,
-			badge: 2,
-			badgeColor: "bg-rose-100 text-rose-800 border-rose-200",
+			badge:
+				pendingRewards > 0
+					? pendingRewards > 99
+						? "99+"
+						: pendingRewards
+					: undefined,
+			badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
 		},
 		{
 			label: "Danh sách học sinh",
@@ -185,7 +197,7 @@ export function TeacherSidebar({
 								onClick={onClose}
 								className={`group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
 									isActive
-										? "bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs"
+										? "bg-blue-50 text-blue-900 border border-blue-200/90 shadow-2xs"
 										: "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
 								}`}
 							>
@@ -193,7 +205,7 @@ export function TeacherSidebar({
 									<Icon
 										className={`w-4 h-4 transition-colors ${
 											isActive
-												? "text-emerald-700"
+												? "text-[#0A62D6]"
 												: "text-slate-400 group-hover:text-slate-700"
 										}`}
 									/>
@@ -232,7 +244,7 @@ export function TeacherSidebar({
 										onClick={onClose}
 										className={`group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
 											isActive
-												? "bg-indigo-50 text-indigo-900 border border-indigo-200/90 shadow-2xs"
+												? "bg-blue-50 text-blue-900 border border-blue-200/90 shadow-2xs"
 												: "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
 										}`}
 									>
@@ -240,7 +252,7 @@ export function TeacherSidebar({
 											<Icon
 												className={`w-4 h-4 transition-colors ${
 													isActive
-														? "text-indigo-700"
+														? "text-[#0A62D6]"
 														: "text-slate-400 group-hover:text-slate-700"
 												}`}
 											/>
@@ -281,7 +293,7 @@ export function TeacherSidebar({
 										onClick={onClose}
 										className={`group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
 											isActive
-												? "bg-purple-50 text-purple-900 border border-purple-200/90 shadow-2xs"
+												? "bg-blue-50 text-blue-900 border border-blue-200/90 shadow-2xs"
 												: "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
 										}`}
 									>
@@ -289,7 +301,7 @@ export function TeacherSidebar({
 											<Icon
 												className={`w-4 h-4 transition-colors ${
 													isActive
-														? "text-purple-700"
+														? "text-[#0A62D6]"
 														: "text-slate-400 group-hover:text-slate-700"
 												}`}
 											/>

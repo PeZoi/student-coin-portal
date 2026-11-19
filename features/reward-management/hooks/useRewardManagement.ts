@@ -9,6 +9,7 @@ import { useTeacherWorkspaceStore } from "@/stores/useTeacherWorkspaceStore";
 import { useRewardFilters } from "./useRewardFilters";
 import { useRewardModals } from "./useRewardModals";
 import { useRewardMutations } from "./useRewardMutations";
+import { useRewardSelection } from "./useRewardSelection";
 
 export interface UseRewardManagementProps {
   initialRequests?: TeacherExchangeRequestItem[];
@@ -19,8 +20,12 @@ export interface UseRewardManagementProps {
 
 /**
  * Root Orchestrator Hook: Quản lý toàn bộ tính năng Đổi quà & Trả thưởng Heo Đất
- * - Đóng vai trò "Nhạc trưởng" điều phối: SWR data fetching, useRewardFilters, useRewardModals, useRewardMutations
- * - Tuân thủ Quy tắc 9 (Data Fetching 2 tầng) & Quy tắc 12 (Kiến trúc Micro-Hooks mỏng gọn < 100 dòng)
+ * - Đóng vai trò "Nhạc trưởng" điều phối:
+ *   + useRewardFilters: Bộ lọc, tìm kiếm, sắp xếp, phân trang, KPIs
+ *   + useRewardModals: Đóng/mở và dữ liệu của các Modals
+ *   + useRewardMutations: Tương tác API duyệt/từ chối, Optimistic UI, SWR Cache
+ *   + useRewardSelection: Chọn hàng loạt (Row Selection), Duyệt hàng loạt, Xuất Excel
+ * - Tuân thủ Quy tắc 9 (Data Fetching 2 tầng) & Quy tắc 12 (Kiến trúc Micro-Hooks mỏng gọn < 150 dòng)
  */
 export function useRewardManagement({
   initialRequests,
@@ -84,7 +89,7 @@ export function useRewardManagement({
     }
   );
 
-  // 4. Micro-hook: Bộ lọc, Tìm kiếm, Sắp xếp, Phân trang và KPIs
+  // 5. Micro-hook: Bộ lọc, Tìm kiếm, Sắp xếp, Phân trang và KPIs
   const filters = useRewardFilters({
     requests,
     selectedMonth,
@@ -114,16 +119,27 @@ export function useRewardManagement({
     [filters]
   );
 
-  // 5. Micro-hook: Quản lý đóng/mở & state của các Modals
+  // 6. Micro-hook: Quản lý đóng/mở & state của các Modals
   const modals = useRewardModals();
 
-  // 6. Micro-hook: Tương tác API, Cập nhật SWR Cache & Optimistic UI
+  // 7. Micro-hook: Tương tác API, Cập nhật SWR Cache & Optimistic UI
   const mutations = useRewardMutations({
     requests,
     mutate,
     onCloseRejectModal: modals.handleCloseRejectModal,
     onCloseDetailModal: modals.handleCloseDetail,
     selectedRequestId: modals.selectedRequest?.id,
+  });
+
+  // 8. Micro-hook: Quản lý chọn hàng loạt (Table Row Selection), Duyệt hàng loạt & Xuất Excel
+  const selectionActions = useRewardSelection({
+    requests,
+    paginatedRequests: filters.paginatedRequests,
+    sortedRequests: filters.sortedRequests,
+    activeClassId,
+    selectedMonth,
+    selectedYear,
+    onBatchApprove: mutations.handleBatchApprove,
   });
 
   return {
@@ -146,5 +162,8 @@ export function useRewardManagement({
 
     // Micro-hook Mutations & Actions
     ...mutations,
+
+    // Micro-hook Chọn hàng loạt, Duyệt hàng loạt & Xuất Excel
+    ...selectionActions,
   };
 }

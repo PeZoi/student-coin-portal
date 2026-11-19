@@ -8,6 +8,7 @@ import { TeacherRewardsKpiCards } from "./TeacherRewardsKpiCards";
 import { TeacherRewardsToolbar } from "./TeacherRewardsToolbar";
 import { TeacherRewardsTable } from "./TeacherRewardsTable";
 import { TeacherRewardsGrid } from "./TeacherRewardsGrid";
+import { TeacherRewardsBatchBar } from "./TeacherRewardsBatchBar";
 import { TeacherRewardRejectModal } from "./TeacherRewardRejectModal";
 import {
   RewardsKpiSkeleton,
@@ -124,6 +125,9 @@ function TeacherRewardsContent() {
       <TeacherRewardRejectModal
         key={rejectModalRequest?.id ?? "reject-empty"}
       />
+
+      {/* 6. Thanh Tác Vụ Duyệt Hàng Loạt (Batch Action Bar) */}
+      <TeacherRewardsBatchBar />
     </div>
   );
 }
