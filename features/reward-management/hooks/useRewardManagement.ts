@@ -11,8 +11,8 @@ import { useRewardMutations } from "./useRewardMutations";
 
 export interface UseRewardManagementProps {
   initialRequests?: TeacherExchangeRequestItem[];
-  initialMonth?: number;
-  initialYear?: number;
+  initialMonth?: number | "all";
+  initialYear?: number | "all";
   initialClassId?: string;
 }
 
@@ -23,21 +23,37 @@ export interface UseRewardManagementProps {
  */
 export function useRewardManagement({
   initialRequests,
-  initialMonth = 11,
-  initialYear = 2026,
+  initialMonth,
+  initialYear,
   initialClassId,
 }: UseRewardManagementProps = {}) {
-  // 1. Lấy lớp học đang chọn từ Header Workspace qua Zustand store
+  // 1. Khởi tạo tháng và năm động theo thời gian thực hiện tại nếu không được truyền từ props
+  const now = new Date();
+  const currentYear = initialYear ?? now.getFullYear();
+  const maxAllowedMonth =
+    currentYear === "all" || currentYear === now.getFullYear()
+      ? now.getMonth() + 1
+      : 12;
+  const currentMonth: number | "all" =
+    initialMonth === "all"
+      ? "all"
+      : initialMonth !== undefined
+      ? Math.min(maxAllowedMonth, Math.max(1, initialMonth))
+      : maxAllowedMonth;
+
+  // 2. Lấy lớp học đang chọn từ Header Workspace qua Zustand store
   const selectedWorkspaceClassId = useTeacherWorkspaceStore(
     (state) => state.selectedClassId
   );
   const activeClassId = selectedWorkspaceClassId ?? initialClassId ?? null;
 
-  // 2. State kỳ chốt sổ (Month & Year)
-  const [selectedMonth, setSelectedMonthState] = useState<number>(initialMonth);
-  const [selectedYear, setSelectedYearState] = useState<number>(initialYear);
+  // 3. State kỳ chốt sổ (Month & Year)
+  const [selectedMonth, setSelectedMonthState] =
+    useState<number | "all">(currentMonth);
+  const [selectedYear, setSelectedYearState] =
+    useState<number | "all">(currentYear);
 
-  // 3. SWR Data Fetching (Tầng 2 - Caching & Revalidation theo lớp và kỳ chốt sổ)
+  // 4. SWR Data Fetching (Tầng 2 - Caching & Revalidation theo lớp và kỳ chốt sổ)
   const swrKey = useMemo(
     () => [
       "teacher-rewards",
@@ -49,8 +65,8 @@ export function useRewardManagement({
   );
 
   const isMatchingInitial = Boolean(
-    selectedMonth === initialMonth &&
-      selectedYear === initialYear &&
+    selectedMonth === currentMonth &&
+      selectedYear === currentYear &&
       (!initialClassId || activeClassId === initialClassId)
   );
 
@@ -63,8 +79,8 @@ export function useRewardManagement({
     swrKey,
     () =>
       rewardService.getRewards({
-        month: selectedMonth,
-        year: selectedYear,
+        month: selectedMonth === "all" ? undefined : selectedMonth,
+        year: selectedYear === "all" ? undefined : selectedYear,
         class_id:
           activeClassId && activeClassId !== "all" ? activeClassId : undefined,
       }),
@@ -92,7 +108,7 @@ export function useRewardManagement({
   }
 
   const setSelectedMonth = useCallback(
-    (m: number) => {
+    (m: number | "all") => {
       setSelectedMonthState(m);
       filters.resetPage();
     },
@@ -100,7 +116,7 @@ export function useRewardManagement({
   );
 
   const setSelectedYear = useCallback(
-    (y: number) => {
+    (y: number | "all") => {
       setSelectedYearState(y);
       filters.resetPage();
     },

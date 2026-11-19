@@ -28,8 +28,8 @@ const TeacherRewardDetailModal = dynamic(
 
 export interface TeacherRewardsViewProps {
   initialRequests?: TeacherExchangeRequestItem[];
-  initialMonth?: number;
-  initialYear?: number;
+  initialMonth?: number | "all";
+  initialYear?: number | "all";
   initialClassId?: string;
 }
 
@@ -40,15 +40,21 @@ export interface TeacherRewardsViewProps {
  */
 export function TeacherRewardsView({
   initialRequests,
-  initialMonth = 11,
-  initialYear = 2026,
+  initialMonth,
+  initialYear,
   initialClassId,
 }: TeacherRewardsViewProps) {
+  const now = new Date();
+  const currentMonth =
+    initialMonth === "all" ? "all" : initialMonth ?? now.getMonth() + 1;
+  const currentYear =
+    initialYear === "all" ? "all" : initialYear ?? now.getFullYear();
+
   return (
     <TeacherRewardsProvider
       initialRequests={initialRequests}
-      initialMonth={initialMonth}
-      initialYear={initialYear}
+      initialMonth={currentMonth}
+      initialYear={currentYear}
       initialClassId={initialClassId}
     >
       <TeacherRewardsContent />

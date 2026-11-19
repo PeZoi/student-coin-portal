@@ -13,8 +13,8 @@ import { ExchangeRequestStatus } from "@/constants/rewards";
 
 export interface UseRewardFiltersProps {
   requests: TeacherExchangeRequestItem[];
-  selectedMonth: number;
-  selectedYear: number;
+  selectedMonth: number | "all";
+  selectedYear: number | "all";
 }
 
 /**
@@ -71,8 +71,9 @@ export function useRewardFilters({
   // 4. Lọc dữ liệu theo kỳ, trạng thái, hình thức và tìm kiếm
   const filteredRequests = useMemo(() => {
     return requests.filter((r) => {
-      // Lọc theo tháng & năm
-      if (r.month !== selectedMonth || r.year !== selectedYear) return false;
+      // Lọc theo tháng & năm (nếu không phải "all")
+      if (selectedMonth !== "all" && r.month !== selectedMonth) return false;
+      if (selectedYear !== "all" && r.year !== selectedYear) return false;
 
       // Lọc theo trạng thái
       if (statusFilter !== "all" && r.status !== statusFilter) return false;
@@ -140,9 +141,11 @@ export function useRewardFilters({
 
   // 7. Danh sách yêu cầu trong kỳ chốt sổ (để tính KPI)
   const periodRequests = useMemo(() => {
-    return requests.filter(
-      (r) => r.month === selectedMonth && r.year === selectedYear
-    );
+    return requests.filter((r) => {
+      if (selectedMonth !== "all" && r.month !== selectedMonth) return false;
+      if (selectedYear !== "all" && r.year !== selectedYear) return false;
+      return true;
+    });
   }, [requests, selectedMonth, selectedYear]);
 
   // Đếm số lượng KPI
@@ -161,14 +164,20 @@ export function useRewardFilters({
     };
   }, [periodRequests]);
 
-  // Tổng xu và tổng tiền VNĐ trong kỳ
-  const totalCoinsExchanged = useMemo(() => {
-    return periodRequests.reduce((sum, r) => sum + r.coins_to_exchange, 0);
+  // Tổng xu và tổng tiền VNĐ trong kỳ (chỉ tính các đơn hợp lệ: Chờ duyệt + Đã duyệt, loại trừ đơn Bị từ chối)
+  const validPeriodRequests = useMemo(() => {
+    return periodRequests.filter(
+      (r) => r.status !== ExchangeRequestStatus.REJECTED
+    );
   }, [periodRequests]);
 
+  const totalCoinsExchanged = useMemo(() => {
+    return validPeriodRequests.reduce((sum, r) => sum + r.coins_to_exchange, 0);
+  }, [validPeriodRequests]);
+
   const totalVndAmount = useMemo(() => {
-    return periodRequests.reduce((sum, r) => sum + r.amount_vnd, 0);
-  }, [periodRequests]);
+    return validPeriodRequests.reduce((sum, r) => sum + r.amount_vnd, 0);
+  }, [validPeriodRequests]);
 
   // Handler toggle sắp xếp
   const handleSortToggle = useCallback(

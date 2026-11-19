@@ -14,9 +14,10 @@ import { cn } from "@/lib/utils";
 export interface TeacherSelectOption {
   label: string;
   value: string;
-  badge?: string | number;
+  badge?: React.ReactNode;
   disabled?: boolean;
   icon?: React.ReactNode;
+  triggerLabel?: string;
 }
 
 export interface TeacherSelectProps {
@@ -34,6 +35,7 @@ export interface TeacherSelectProps {
   searchPlaceholder?: string;
   className?: string;
   containerClassName?: string;
+  showBadgeInTrigger?: boolean;
 }
 
 interface MenuPosition {
@@ -68,6 +70,7 @@ export function TeacherSelect({
   searchPlaceholder = "Tìm kiếm...",
   className,
   containerClassName,
+  showBadgeInTrigger = true,
 }: TeacherSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -245,7 +248,7 @@ export function TeacherSelect({
 
           {selectedOption ? (
             <span className="font-semibold text-[#0F172A] truncate">
-              {selectedOption.label}
+              {selectedOption.triggerLabel || selectedOption.label}
             </span>
           ) : (
             <span className="font-medium text-slate-400 truncate">
@@ -253,7 +256,7 @@ export function TeacherSelect({
             </span>
           )}
 
-          {selectedOption?.badge !== undefined && (
+          {showBadgeInTrigger && selectedOption?.badge !== undefined && (
             <span className="ml-auto mr-1 hidden sm:inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
               {selectedOption.badge}
             </span>
@@ -360,18 +363,24 @@ export function TeacherSelect({
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">
-                        {opt.badge !== undefined && (
-                          <span
-                            className={cn(
-                              "text-[11px] font-semibold px-2 py-0.5 rounded-md border",
-                              isSelected
-                                ? "bg-white text-[#0A62D6] border-[#CFE1FB]"
-                                : "bg-slate-100 text-slate-600 border-slate-200"
-                            )}
-                          >
-                            {opt.badge}
-                          </span>
-                        )}
+                        {opt.badge !== undefined &&
+                          (typeof opt.badge === "string" ||
+                          typeof opt.badge === "number" ? (
+                            <span
+                              className={cn(
+                                "text-[11px] font-semibold px-2 py-0.5 rounded-md border",
+                                isSelected
+                                  ? "bg-white text-[#0A62D6] border-[#CFE1FB]"
+                                  : "bg-slate-100 text-slate-600 border-slate-200"
+                              )}
+                            >
+                              {opt.badge}
+                            </span>
+                          ) : (
+                            <span className="shrink-0 flex items-center">
+                              {opt.badge}
+                            </span>
+                          ))}
 
                         {isSelected && (
                           <Check

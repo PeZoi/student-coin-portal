@@ -153,6 +153,19 @@ export function TeacherRewardDetailModal(
           </div>
         </div>
 
+        {/* Khối Hiển thị Lý do từ chối của giáo viên (nếu có) */}
+        {request.status === ExchangeRequestStatus.REJECTED && request.rejection_reason && (
+          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-xs space-y-1 animate-in fade-in duration-150">
+            <span className="font-bold text-rose-800 uppercase tracking-wider flex items-center gap-1.5">
+              <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              Lý do từ chối:
+            </span>
+            <p className="text-rose-900 font-semibold pl-5 text-[13px]">
+              &ldquo;{request.rejection_reason}&rdquo;
+            </p>
+          </div>
+        )}
+
         {/* Lý do từ chối của cô giáo nếu có */}
         {request.status === ExchangeRequestStatus.REJECTED && request.rejection_reason && (
           <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200/90 flex items-start gap-3">

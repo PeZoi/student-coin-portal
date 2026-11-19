@@ -5,7 +5,8 @@ import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
 import { Banknote, Minus, Plus, X } from "lucide-react";
 import Image from "next/image";
 import React, { useState } from "react";
-import { COIN_STEP, VND_PER_STEP } from "../hooks/useRewardExchange";
+import { useConfigStore } from "@/stores/useConfigStore";
+import { COIN_STEP, VND_PER_STEP } from "@/constants/rewards";
 
 interface CashExchangeModalProps {
   isOpen: boolean;
@@ -23,20 +24,27 @@ export function CashExchangeModal({
   onConfirm,
 }: CashExchangeModalProps) {
   useBodyScrollLock(isOpen);
-  const [selectedCoins, setSelectedCoins] = useState(5000);
+
+  // Lấy cấu hình hệ thống động (gọi từ API /api/system/config mỗi lần F5)
+  const { configs } = useConfigStore();
+  const stepCoins = configs?.exchange_setting?.step_coins ?? COIN_STEP;
+  const vndPerStep = configs?.exchange_setting?.vnd_per_step ?? VND_PER_STEP;
+  const minExchangeCoins = configs?.exchange_setting?.min_exchange_coins ?? stepCoins;
+
+  const [selectedCoins, setSelectedCoins] = useState(minExchangeCoins);
 
   if (!isOpen) return null;
 
-  const rewardVnd = (selectedCoins / COIN_STEP) * VND_PER_STEP;
+  const rewardVnd = (selectedCoins / stepCoins) * vndPerStep;
   const remainingCoins = currentCoins - selectedCoins;
   const isAffordable = currentCoins >= selectedCoins;
 
   const handleIncrease = () => {
-    setSelectedCoins((prev) => prev + COIN_STEP);
+    setSelectedCoins((prev) => prev + stepCoins);
   };
 
   const handleDecrease = () => {
-    setSelectedCoins((prev) => Math.max(COIN_STEP, prev - COIN_STEP));
+    setSelectedCoins((prev) => Math.max(minExchangeCoins, prev - stepCoins));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -104,7 +112,7 @@ export function CashExchangeModal({
               <button
                 type="button"
                 onClick={handleDecrease}
-                disabled={selectedCoins <= COIN_STEP}
+                disabled={selectedCoins <= minExchangeCoins}
                 className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 flex items-center justify-center border border-slate-300 transition-colors font-black cursor-pointer disabled:cursor-not-allowed"
               >
                 <Minus className="w-4 h-4" />
@@ -122,7 +130,7 @@ export function CashExchangeModal({
               <button
                 type="button"
                 onClick={handleIncrease}
-                disabled={selectedCoins + COIN_STEP > currentCoins}
+                disabled={selectedCoins + stepCoins > currentCoins}
                 className="w-10 h-10 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 text-white flex items-center justify-center shadow-sm transition-colors font-black cursor-pointer disabled:cursor-not-allowed"
               >
                 <Plus className="w-4 h-4" />

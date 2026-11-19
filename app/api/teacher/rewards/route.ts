@@ -24,9 +24,18 @@ export async function GET(req: Request) {
     const classIdParam = searchParams.get("class_id");
     const searchParam = searchParams.get("search");
 
+    const month =
+      monthParam && monthParam !== "all" && !isNaN(Number(monthParam))
+        ? Number(monthParam)
+        : undefined;
+    const year =
+      yearParam && yearParam !== "all" && !isNaN(Number(yearParam))
+        ? Number(yearParam)
+        : undefined;
+
     const requests = await getTeacherRewardRequestsServer(auth.session, {
-      month: monthParam ? Number(monthParam) : undefined,
-      year: yearParam ? Number(yearParam) : undefined,
+      month,
+      year,
       status: statusParam || undefined,
       choiceType: choiceTypeParam || undefined,
       classId: classIdParam || undefined,

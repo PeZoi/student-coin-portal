@@ -88,9 +88,14 @@ export function TeacherRewardsKpiCards(props?: TeacherRewardsKpiCardsProps) {
       {/* 4. Tổng giá trị quy đổi */}
       <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-2xs text-left transition-all hover:shadow-xs">
         <div className="flex items-start justify-between gap-2">
-          <span className="text-sm font-semibold text-[#475569]">
-            Tổng giá trị quy đổi
-          </span>
+          <div>
+            <span className="text-sm font-semibold text-[#475569] block">
+              Tổng giá trị quy đổi
+            </span>
+            <span className="text-[11px] text-slate-400 font-medium">
+              (Chờ duyệt & Đã trao)
+            </span>
+          </div>
           <div className="w-10 h-10 rounded-xl bg-[#FEF3C7] text-[#B45309] flex items-center justify-center shrink-0">
             <Coins className="w-5 h-5" />
           </div>

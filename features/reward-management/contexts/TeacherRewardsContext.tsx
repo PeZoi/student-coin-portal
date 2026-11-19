@@ -24,8 +24,8 @@ export interface TeacherRewardsProviderProps extends UseRewardManagementProps {
 export function TeacherRewardsProvider({
   children,
   initialRequests,
-  initialMonth = 11,
-  initialYear = 2026,
+  initialMonth,
+  initialYear,
   initialClassId,
 }: TeacherRewardsProviderProps) {
   const value = useRewardManagement({

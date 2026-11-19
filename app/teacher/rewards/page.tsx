@@ -13,19 +13,47 @@ export const metadata: Metadata = {
   description: "Duyệt yêu cầu đổi quà và quản lý danh mục quà tặng trong lớp học",
 };
 
+interface RewardsPageProps {
+  searchParams?: Promise<{
+    month?: string;
+    year?: string;
+  }>;
+}
+
 /**
  * Server Container nạp dữ liệu ban đầu trực tiếp trên máy chủ
  * - Tối ưu 0ms độ trễ mạng client (Quy tắc 9 AGENTS.md)
  * - Tự động nhận diện lớp học đang chọn qua Cookie hoặc lớp phụ trách đầu tiên
+ * - Tự động nhận diện tháng / năm hiện tại theo thời gian thực hoặc đọc từ searchParams
  * - Xác thực quyền giáo viên qua requireTeacher()
  */
-async function RewardsDataContainer() {
+async function RewardsDataContainer({ searchParams }: RewardsPageProps) {
   const session = await requireTeacher();
   const cookieStore = await cookies();
   const cookieClassId = cookieStore.get(TEACHER_WORKSPACE_COOKIE_NAME)?.value;
 
-  const currentMonth = 11;
-  const currentYear = 2026;
+  // Lấy tháng và năm động theo searchParams hoặc thời gian thực hiện tại (tối đa là tháng hiện tại)
+  const resolvedParams = searchParams ? await searchParams : {};
+  const now = new Date();
+  const currentYear: number | "all" =
+    resolvedParams.year === "all"
+      ? "all"
+      : resolvedParams.year
+      ? parseInt(resolvedParams.year, 10) || now.getFullYear()
+      : now.getFullYear();
+  const maxAllowedMonth =
+    currentYear === "all" || currentYear === now.getFullYear()
+      ? now.getMonth() + 1
+      : 12;
+  const currentMonth: number | "all" =
+    resolvedParams.month === "all"
+      ? "all"
+      : resolvedParams.month
+      ? Math.min(
+          maxAllowedMonth,
+          Math.max(1, parseInt(resolvedParams.month, 10) || maxAllowedMonth)
+        )
+      : maxAllowedMonth;
 
   // 1. Tải danh sách lớp giáo viên được phân công phụ trách
   const teacherClasses = await getMyAssignedClassesServer(session);
@@ -41,8 +69,8 @@ async function RewardsDataContainer() {
 
   // 3. Tải danh sách yêu cầu đổi quà của đúng lớp đó trên server
   const initialRequests = await getTeacherRewardRequestsServer(session, {
-    month: currentMonth,
-    year: currentYear,
+    month: currentMonth === "all" ? undefined : currentMonth,
+    year: currentYear === "all" ? undefined : currentYear,
     classId: activeClassId,
   });
 
@@ -60,10 +88,10 @@ async function RewardsDataContainer() {
  * Page Component siêu mỏng (Thin Page Pattern - Quy tắc 1 AGENTS.md)
  * - Sử dụng Streaming Suspense với pure Server Component Skeleton
  */
-export default function RewardsPage() {
+export default function RewardsPage(props: RewardsPageProps) {
   return (
     <Suspense fallback={<RewardsSkeleton />}>
-      <RewardsDataContainer />
+      <RewardsDataContainer searchParams={props.searchParams} />
     </Suspense>
   );
 }

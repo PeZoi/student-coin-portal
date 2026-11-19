@@ -557,8 +557,8 @@ CREATE TABLE monthly_exchange_requests (
     -- Lựa chọn của học sinh: 'cash' (tiền mặt), 'gift' (quà tặng tự chọn)
     choice_type VARCHAR(20) NOT NULL CHECK (choice_type IN ('cash', 'gift')),
     
-    -- Số lượng xu học sinh chọn đổi (Bắt buộc là bội số của step_coins: 5.000, 10.000...; = 0 nếu save_piggy)
-    coins_to_exchange INTEGER NOT NULL DEFAULT 0 CHECK (coins_to_exchange >= 0 AND coins_to_exchange % 5000 = 0),
+    -- Số lượng xu học sinh chọn đổi (> 0): Tiền mặt theo mốc step_coins, Quà tự chọn tính chính xác theo tỷ giá (amount_vnd * step_coins / vnd_per_step) để không làm tròn gây thiệt cho học sinh
+    coins_to_exchange INTEGER NOT NULL DEFAULT 0 CHECK (coins_to_exchange >= 0),
     
     -- Số tiền mặt VNĐ tương ứng nhận được (Cứ mỗi 5.000 xu = 25.000 VNĐ; = 0 nếu save_piggy)
     amount_vnd INTEGER NOT NULL DEFAULT 0 CHECK (amount_vnd >= 0),
@@ -1442,3 +1442,4 @@ CREATE POLICY "system_settings_public_select" ON system_settings FOR SELECT TO p
 CREATE POLICY "system_settings_admin_all" ON system_settings FOR ALL TO public USING (true) WITH CHECK (true);
 CREATE POLICY "auth_logs_insert_policy" ON auth_logs FOR INSERT TO public WITH CHECK (true);
 CREATE POLICY "auth_logs_select_policy" ON auth_logs FOR SELECT TO public USING (true);
+CREATE POLICY "allow_all_notifications" ON notifications FOR ALL TO public USING (true) WITH CHECK (true);

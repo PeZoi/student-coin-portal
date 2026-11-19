@@ -5,8 +5,8 @@ import {
 } from "../types";
 
 export interface GetRewardsParams {
-  month?: number;
-  year?: number;
+  month?: number | "all";
+  year?: number | "all";
   status?: ExchangeFilterStatus;
   choice_type?: ExchangeFilterChoiceType;
   class_id?: string;
@@ -22,8 +22,12 @@ export const rewardService = {
    */
   async getRewards(params?: GetRewardsParams): Promise<TeacherExchangeRequestItem[]> {
     const searchParams = new URLSearchParams();
-    if (params?.month !== undefined) searchParams.set("month", String(params.month));
-    if (params?.year !== undefined) searchParams.set("year", String(params.year));
+    if (params?.month !== undefined && params.month !== "all") {
+      searchParams.set("month", String(params.month));
+    }
+    if (params?.year !== undefined && params.year !== "all") {
+      searchParams.set("year", String(params.year));
+    }
     if (params?.status && params.status !== "all") searchParams.set("status", params.status);
     if (params?.choice_type && params.choice_type !== "all") {
       searchParams.set("choice_type", params.choice_type);
