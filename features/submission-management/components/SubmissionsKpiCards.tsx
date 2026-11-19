@@ -4,29 +4,19 @@ import Image from "next/image";
 import { Clock, CheckCircle2, RotateCcw } from "lucide-react";
 import { useManageSubmissionsContext } from "../contexts/ManageSubmissionsContext";
 
-interface SubmissionsKpiCardsProps {
-  pendingCount?: number;
-  approvedCount?: number;
-  rejectedCount?: number;
-  totalCount?: number;
-  validAiPendingCount?: number;
-  totalCoinsAwarded?: number;
-}
-
 /**
  * 4 Thẻ thống kê KPI Studio Duyệt bài tập
  * - Đồng bộ 100% phong cách thiết kế KPI cards với Quản lý bài tập, Lớp học và Học sinh
  */
-export function SubmissionsKpiCards(props?: SubmissionsKpiCardsProps) {
-  const context = useManageSubmissionsContext();
-  const pendingCount = props?.pendingCount ?? context.pendingCount;
-  const approvedCount = props?.approvedCount ?? context.approvedCount;
-  const rejectedCount = props?.rejectedCount ?? context.rejectedCount;
-  const totalCount = props?.totalCount ?? context.totalCount;
-  const validAiPendingCount =
-    props?.validAiPendingCount ?? context.validAiPendingCount;
-  const totalCoinsAwarded =
-    props?.totalCoinsAwarded ?? context.totalCoinsAwarded;
+export function SubmissionsKpiCards() {
+  const {
+    pendingCount,
+    approvedCount,
+    rejectedCount,
+    totalCount,
+    validAiPendingCount,
+    totalCoinsAwarded,
+  } = useManageSubmissionsContext();
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

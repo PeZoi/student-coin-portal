@@ -5,28 +5,27 @@ import { KeyRound, ShieldAlert } from "lucide-react";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { StudentItem } from "@/features/student-management/types";
 import { useOptionalManageStudentsContext } from "@/features/student-management/contexts/ManageStudentsContext";
+import { useOptionalStudentRosterContext } from "@/features/student-roster/contexts/StudentRosterContext";
 
-interface ResetStudentPinModalProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-  studentItem?: StudentItem | null;
-  onSubmit?: (
-    studentId: string,
-    newPin: string
-  ) => Promise<boolean | void> | boolean | void;
-  isSubmitting?: boolean;
-}
+export function ResetStudentPinModal() {
+  const manageCtx = useOptionalManageStudentsContext();
+  const rosterCtx = useOptionalStudentRosterContext();
 
-export function ResetStudentPinModal(props?: ResetStudentPinModalProps) {
-  const context = useOptionalManageStudentsContext();
-  const isOpen = props?.isOpen ?? context?.isResetPinOpen ?? false;
-  const onClose = props?.onClose ?? context?.handleCloseResetPin ?? (() => {});
-  const studentItem =
-    props?.studentItem !== undefined
-      ? props.studentItem
-      : (context?.resettingPinStudent ?? null);
-  const onSubmit = props?.onSubmit ?? context?.handleResetPinSubmit;
-  const isSubmitting = props?.isSubmitting ?? context?.isSubmitting ?? false;
+  const isOpen = manageCtx
+    ? manageCtx.isResetPinOpen
+    : (rosterCtx?.isResetPinModalOpen ?? false);
+  const onClose = manageCtx
+    ? manageCtx.handleCloseResetPin
+    : (rosterCtx?.handleCloseResetPinModal ?? (() => {}));
+  const studentItem = manageCtx
+    ? manageCtx.resettingPinStudent
+    : (rosterCtx?.toStudentItem(rosterCtx.resetPinStudent) ?? null);
+  const onSubmit = manageCtx
+    ? manageCtx.handleResetPinSubmit
+    : rosterCtx?.handleResetPinSubmit;
+  const isSubmitting = manageCtx
+    ? manageCtx.isSubmitting
+    : (rosterCtx?.isResetPinSubmitting ?? false);
 
   if (!isOpen || !studentItem || !onSubmit) return null;
 

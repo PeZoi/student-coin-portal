@@ -1,44 +1,31 @@
 "use client";
 
 import { Award, KeyRound, X } from "lucide-react";
-import { useOptionalStudentRosterContext } from "../contexts/StudentRosterContext";
-
-interface StudentRosterBatchBarProps {
-  selectedCount?: number;
-  onClearSelection?: () => void;
-  onBatchAward?: () => void;
-  onBatchResetPin?: () => void;
-}
+import { useStudentRosterContext } from "../contexts/StudentRosterContext";
 
 /**
  * Thanh tác vụ hàng loạt nổi bật khi giáo viên chọn học sinh bằng checkbox
  * - Đồng bộ với MissionsBatchBar và StudentsBatchBar
- * - Tự động kết nối StudentRosterContext (Quy tắc 10)
+ * - Tự động kết nối StudentRosterContext (Quy tắc 10 AGENTS.md)
  */
-export function StudentRosterBatchBar(props?: StudentRosterBatchBarProps) {
-  const context = useOptionalStudentRosterContext();
+export function StudentRosterBatchBar() {
+  const {
+    selectedIds,
+    handleClearSelection,
+    handleQuickAward,
+    handleResetPin,
+    students,
+  } = useStudentRosterContext();
 
-  const selectedCount =
-    props?.selectedCount ?? context?.selectedIds.length ?? 0;
-  const onClearSelection =
-    props?.onClearSelection ?? context?.handleClearSelection ?? (() => {});
-  const onBatchAward =
-    props?.onBatchAward ??
-    (() => {
-      context?.handleQuickAward();
-    });
-  const onBatchResetPin =
-    props?.onBatchResetPin ??
-    (() => {
-      if (context && context.selectedIds.length === 1) {
-        const found = context.students.find(
-          (s) => s.id === context.selectedIds[0]
-        );
-        if (found) context.handleResetPin(found);
-      }
-    });
-
+  const selectedCount = selectedIds.length;
   if (selectedCount === 0) return null;
+
+  const onBatchResetPin = () => {
+    if (selectedIds.length === 1) {
+      const found = students.find((s) => s.id === selectedIds[0]);
+      if (found) handleResetPin(found);
+    }
+  };
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-[#0F172A] text-white px-5 py-3 rounded-2xl shadow-xl border border-slate-700/60 flex items-center gap-4 animate-in fade-in slide-in-from-bottom-4 duration-200">
@@ -52,7 +39,7 @@ export function StudentRosterBatchBar(props?: StudentRosterBatchBarProps) {
       <div className="flex items-center gap-2">
         <button
           type="button"
-          onClick={onBatchAward}
+          onClick={() => handleQuickAward()}
           className="h-8.5 px-3 rounded-xl bg-[#0A62D6] hover:bg-[#0850B0] text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
         >
           <Award className="w-3.5 h-3.5" />
@@ -70,7 +57,7 @@ export function StudentRosterBatchBar(props?: StudentRosterBatchBarProps) {
 
         <button
           type="button"
-          onClick={onClearSelection}
+          onClick={handleClearSelection}
           className="h-8.5 px-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors flex items-center gap-1 text-xs cursor-pointer"
           title="Bỏ chọn tất cả"
         >

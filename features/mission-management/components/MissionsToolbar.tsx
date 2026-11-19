@@ -16,49 +16,31 @@ import {
   TeacherSelectOption,
 } from "@/components/ui/TeacherSelect";
 import { cn } from "@/lib/utils";
-import {
-  MissionStatusFilter,
-  MissionViewMode,
-} from "../types";
+import { MissionStatusFilter } from "../types";
 import { useManageMissionsContext } from "../contexts/ManageMissionsContext";
-
-interface MissionsToolbarProps {
-  statusFilter?: MissionStatusFilter;
-  onStatusFilterChange?: (filter: MissionStatusFilter) => void;
-  searchQuery?: string;
-  onSearchQueryChange?: (query: string) => void;
-  viewMode?: MissionViewMode;
-  onViewModeChange?: (mode: MissionViewMode) => void;
-  onRefresh?: () => void;
-  isRefreshing?: boolean;
-}
 
 /**
  * Thanh công cụ lọc, tìm kiếm và chuyển đổi chế độ xem (Bảng / Thẻ)
  * - Tối ưu chiều ngang tối đa: Lược bỏ lọc lớp học và lọc hình thức
  * - Tab Bảng / Thẻ được thiết kế chuẩn Segmented Control cao cấp
  */
-export function MissionsToolbar(props?: MissionsToolbarProps) {
-  const context = useManageMissionsContext();
-  const statusFilter = props?.statusFilter ?? context.statusFilter;
-  const onStatusFilterChange =
-    props?.onStatusFilterChange ?? context.setStatusFilter;
-  const searchQuery = props?.searchQuery ?? context.searchQuery;
-  const onSearchQueryChange =
-    props?.onSearchQueryChange ?? context.setSearchQuery;
-  const viewMode = props?.viewMode ?? context.viewMode;
-  const onViewModeChange = props?.onViewModeChange ?? context.setViewMode;
-  const onRefresh = props?.onRefresh ?? context.handleRefresh;
-  const isRefreshing = props?.isRefreshing ?? context.isRefreshing;
-
+export function MissionsToolbar() {
   const {
+    statusFilter,
+    setStatusFilter: onStatusFilterChange,
+    searchQuery,
+    setSearchQuery: onSearchQueryChange,
+    viewMode,
+    setViewMode: onViewModeChange,
+    handleRefresh: onRefresh,
+    isRefreshing,
     isAdmin,
     totalMissions,
     activeMissionsCount,
     expiredMissionsCount,
     inactiveMissionsCount,
     deletedMissionsCount,
-  } = context;
+  } = useManageMissionsContext();
 
   // Tùy chọn lọc Trạng thái bài tập (Tham khảo chuẩn Quản lý lớp học)
   const statusFilterOptions: TeacherSelectOption[] = useMemo(

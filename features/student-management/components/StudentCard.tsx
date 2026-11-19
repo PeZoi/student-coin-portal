@@ -9,38 +9,20 @@ import {
 import { StudentRowActions } from "./StudentRowActions";
 import { getStudentInitial } from "@/features/student-management/constants";
 import { formatDate } from "@/lib/date";
+import { useManageStudentsContext } from "@/features/student-management/contexts/ManageStudentsContext";
 
 interface StudentCardProps {
   item: StudentItem;
-  isSelected?: boolean;
-  onToggleSelect?: (id: string) => void;
-  onChangeClass?: (item: StudentItem) => void;
-  onEdit?: (item: StudentItem) => void;
-  onAdjustCoins?: (item: StudentItem) => void;
-  onOpenTransactions?: (item: StudentItem) => void;
-  onResetPin?: (item: StudentItem) => void;
-  onToggleStatus?: (item: StudentItem) => void;
-  onDelete?: (item: StudentItem) => void;
-  onRestore?: (item: StudentItem) => void;
-  onPermanentDelete?: (item: StudentItem) => void;
-  isRestoring?: boolean;
 }
 
-export function StudentCard({
-  item,
-  isSelected = false,
-  onToggleSelect,
-  onChangeClass,
-  onEdit,
-  onAdjustCoins,
-  onOpenTransactions,
-  onResetPin,
-  onToggleStatus,
-  onDelete,
-  onRestore,
-  onPermanentDelete,
-  isRestoring = false,
-}: StudentCardProps) {
+export function StudentCard({ item }: StudentCardProps) {
+  const {
+    isSelected: checkSelected,
+    handleToggleSelect: onToggleSelect,
+    handleOpenEditStudent: onEdit,
+    handleOpenTransactions: onOpenTransactions,
+  } = useManageStudentsContext();
+  const isSelected = checkSelected(item.id);
   const avatarLetter = getStudentInitial(item.full_name);
 
   return (
@@ -126,19 +108,7 @@ export function StudentCard({
 
       {/* Hàng 3: Các nút thao tác */}
       <div className="pt-2 border-t border-slate-100">
-        <StudentRowActions
-          item={item}
-          fullWidth
-          onChangeClass={onChangeClass}
-          onEdit={onEdit}
-          onAdjustCoins={onAdjustCoins}
-          onResetPin={onResetPin}
-          onToggleStatus={onToggleStatus}
-          onDelete={onDelete}
-          onRestore={onRestore}
-          onPermanentDelete={onPermanentDelete}
-          isRestoring={isRestoring}
-        />
+        <StudentRowActions item={item} fullWidth />
       </div>
     </div>
   );

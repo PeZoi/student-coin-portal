@@ -4,19 +4,17 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useManageMissionsContext } from "../contexts/ManageMissionsContext";
 
-interface MissionsHeaderProps {
-  onOpenCreate?: () => void;
-}
-
 /**
  * Header của trang Giao bài tập cho học sinh
  * - Đồng bộ 100% phong cách thiết kế với Quản lý lớp học, Quản lý học sinh và Quản lý giáo viên
  * - Tiêu đề trang nổi bật và nút Giao bài tập mới
  */
-export function MissionsHeader(props?: MissionsHeaderProps) {
-  const context = useManageMissionsContext();
-  const { handleOpenCreateMission, availableClasses, isAdmin } = context;
-  const onOpenCreate = props?.onOpenCreate ?? handleOpenCreateMission;
+export function MissionsHeader() {
+  const {
+    handleOpenCreateMission: onOpenCreate,
+    availableClasses,
+    isAdmin,
+  } = useManageMissionsContext();
   const hasNoClasses = !isAdmin && availableClasses.length === 0;
 
   const handleCreateClick = () => {

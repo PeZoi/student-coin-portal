@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { teacherStudentService } from "@/features/student-management/services/studentService";
 import { AdjustCoinsValues } from "@/features/student-management/types";
 import { CoinTxType } from "@/constants/coins";
+import { TeacherRosterStudent } from "../types";
+import { studentRosterExcelService } from "../services/studentRosterExcelService";
 import { useStudentRosterModals } from "./useStudentRosterModals";
 
 interface UseStudentRosterMutationsProps {
@@ -12,16 +14,22 @@ interface UseStudentRosterMutationsProps {
   modals: ReturnType<typeof useStudentRosterModals>;
   selectedIds?: string[];
   handleClearSelection?: () => void;
+  students?: TeacherRosterStudent[];
+  filteredStudents?: TeacherRosterStudent[];
+  currentClassName?: string;
 }
 
 /**
- * Micro-Hook 3: Quản lý các tương tác API Mutations (Thưởng xu, Đặt lại PIN, Làm mới dữ liệu)
+ * Micro-Hook 3: Quản lý các tương tác API Mutations (Thưởng xu, Đặt lại PIN, Làm mới dữ liệu, Xuất Excel)
  */
 export function useStudentRosterMutations({
   mutate,
   modals,
   selectedIds = [],
   handleClearSelection,
+  students = [],
+  filteredStudents = [],
+  currentClassName,
 }: UseStudentRosterMutationsProps) {
   const [isAwardSubmitting, setIsAwardSubmitting] = useState(false);
   const [isResetPinSubmitting, setIsResetPinSubmitting] = useState(false);
@@ -111,9 +119,40 @@ export function useStudentRosterMutations({
     }
   }, [mutate]);
 
+  // Xử lý xuất dữ liệu ra file Excel chuyên nghiệp với xlsx-js-style
   const handleExportExcel = useCallback(() => {
-    toast.info("Tính năng xuất Excel danh sách học sinh sẽ được bổ sung sau.");
-  }, []);
+    try {
+      const isPartialSelection = Boolean(selectedIds && selectedIds.length > 0);
+      const targetStudents = isPartialSelection
+        ? students.filter((s) => selectedIds.includes(s.id))
+        : filteredStudents.length > 0
+        ? filteredStudents
+        : students;
+
+      if (targetStudents.length === 0) {
+        toast.warning("Không có học sinh nào trong danh sách để xuất file Excel.");
+        return;
+      }
+
+      toast.info(
+        isPartialSelection
+          ? `Đang xuất Excel cho ${targetStudents.length} học sinh được chọn...`
+          : `Đang xuất danh sách ${targetStudents.length} học sinh ra file Excel...`
+      );
+
+      studentRosterExcelService.exportStudentsToExcel(targetStudents, {
+        className: currentClassName,
+        isPartialSelection,
+      });
+
+      toast.success(
+        `Đã xuất thành công file Excel (${targetStudents.length} học sinh)!`
+      );
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      toast.error(`Lỗi xuất file Excel: ${error.message}`);
+    }
+  }, [students, filteredStudents, selectedIds, currentClassName]);
 
   return {
     isAwardSubmitting,

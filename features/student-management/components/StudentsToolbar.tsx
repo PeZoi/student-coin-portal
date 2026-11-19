@@ -5,43 +5,24 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { TeacherSelect, TeacherSelectOption } from "@/components/ui/TeacherSelect";
 import { useManageStudentsContext } from "@/features/student-management/contexts/ManageStudentsContext";
 
-interface StudentsToolbarProps {
-  statusFilter?: StudentStatusFilter;
-  onStatusFilterChange?: (filter: StudentStatusFilter) => void;
-  selectedClassId?: string;
-  onSelectedClassIdChange?: (classId: string) => void;
-  searchQuery?: string;
-  onSearchQueryChange?: (query: string) => void;
-  totalCount?: number;
-  activeCount?: number;
-  lockedCount?: number;
-  inactiveCount?: number;
-  deletedCount?: number;
-  isAdmin?: boolean;
-  onRefresh?: () => void;
-  isRefreshing?: boolean;
-}
-
-export function StudentsToolbar(props?: StudentsToolbarProps) {
-  const context = useManageStudentsContext();
-  const statusFilter = props?.statusFilter ?? context.statusFilter;
-  const onStatusFilterChange =
-    props?.onStatusFilterChange ?? context.setStatusFilter;
-  const selectedClassId = props?.selectedClassId ?? context.selectedClassId;
-  const onSelectedClassIdChange =
-    props?.onSelectedClassIdChange ?? context.setSelectedClassId;
-  const searchQuery = props?.searchQuery ?? context.searchQuery;
-  const onSearchQueryChange =
-    props?.onSearchQueryChange ?? context.setSearchQuery;
-  const totalCount = props?.totalCount ?? context.totalStudents;
-  const activeCount = props?.activeCount ?? context.activeStudents;
-  const lockedCount = props?.lockedCount ?? context.lockedPinStudents;
-  const inactiveCount = props?.inactiveCount ?? context.inactiveStudents;
-  const deletedCount = props?.deletedCount ?? context.deletedStudents;
-  const isAdmin = props?.isAdmin ?? context.isAdmin;
-  const onRefresh = props?.onRefresh ?? context.handleRefresh;
-  const isRefreshing = props?.isRefreshing ?? context.isRefreshing;
-  const availableClasses = context.availableClasses;
+export function StudentsToolbar() {
+  const {
+    statusFilter,
+    setStatusFilter: onStatusFilterChange,
+    selectedClassId,
+    setSelectedClassId: onSelectedClassIdChange,
+    searchQuery,
+    setSearchQuery: onSearchQueryChange,
+    totalStudents: totalCount,
+    activeStudents: activeCount,
+    lockedPinStudents: lockedCount,
+    inactiveStudents: inactiveCount,
+    deletedStudents: deletedCount,
+    isAdmin,
+    handleRefresh: onRefresh,
+    isRefreshing,
+    availableClasses,
+  } = useManageStudentsContext();
 
   // 1. Tùy chọn lọc Trạng thái (chuyển từ các tab sang Select)
   const statusFilterOptions: TeacherSelectOption[] = useMemo(

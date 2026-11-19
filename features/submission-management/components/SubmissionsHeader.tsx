@@ -3,22 +3,14 @@
 import { CheckCheck } from "lucide-react";
 import { useManageSubmissionsContext } from "../contexts/ManageSubmissionsContext";
 
-interface SubmissionsHeaderProps {
-  validAiPendingCount?: number;
-  onBatchApproveValid?: () => void;
-}
-
 /**
  * Header của Studio Duyệt bài tập
  * - Hiển thị tiêu đề trang, mô tả hướng dẫn và nút thao tác Duyệt nhanh bài hợp lệ
  * - Các chỉ số KPI đã được tách riêng thành <SubmissionsKpiCards /> chuẩn hóa
  */
-export function SubmissionsHeader(props?: SubmissionsHeaderProps) {
-  const context = useManageSubmissionsContext();
-  const validAiPendingCount =
-    props?.validAiPendingCount ?? context.validAiPendingCount;
-  const handleBatchApproveValid =
-    props?.onBatchApproveValid ?? context.handleBatchApproveValid;
+export function SubmissionsHeader() {
+  const { validAiPendingCount, handleBatchApproveValid } =
+    useManageSubmissionsContext();
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

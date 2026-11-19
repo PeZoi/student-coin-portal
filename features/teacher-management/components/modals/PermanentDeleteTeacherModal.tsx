@@ -8,47 +8,34 @@ import {
 	ModalBody,
 	ModalFooter,
 } from "@/components/ui/modal";
-import { TeacherStaffItem } from "@/features/teacher-management/types";
 import { useManageTeachersContext } from "@/features/teacher-management/contexts/ManageTeachersContext";
-
-interface PermanentDeleteTeacherModalProps {
-	isOpen?: boolean;
-	onClose?: () => void;
-	item?: TeacherStaffItem | null;
-	batchCount?: number;
-	onConfirm?: () => Promise<boolean | void> | boolean | void;
-	isSubmitting?: boolean;
-}
 
 /**
  * Modal xác nhận Xóa vĩnh viễn Giáo viên (Tầng 2 dành riêng cho Admin)
  * - Tái sử dụng Modal, ModalHeader, ModalBody, ModalFooter từ @/components/ui/modal
  */
-export function PermanentDeleteTeacherModal(
-	props?: PermanentDeleteTeacherModalProps,
-) {
-	const context = useManageTeachersContext();
-	const isBatch = Boolean(
-		props?.batchCount || context.isBatchPermanentModalOpen,
-	);
+export function PermanentDeleteTeacherModal() {
+	const {
+		isBatchPermanentModalOpen,
+		isPermanentModalOpen,
+		handleCloseBatchPermanentModal,
+		handleClosePermanentModal,
+		permanentTargetTeacher: item,
+		selectedIds,
+		handleConfirmBatchPermanentDelete,
+		handleConfirmPermanentDelete,
+		isSubmitting,
+	} = useManageTeachersContext();
 
-	const isOpen = isBatch
-		? (props?.isOpen ?? context.isBatchPermanentModalOpen)
-		: (props?.isOpen ?? context.isPermanentModalOpen);
-
+	const isBatch = isBatchPermanentModalOpen;
+	const isOpen = isBatch ? isBatchPermanentModalOpen : isPermanentModalOpen;
 	const onClose = isBatch
-		? (props?.onClose ?? context.handleCloseBatchPermanentModal)
-		: (props?.onClose ?? context.handleClosePermanentModal);
-
-	const item =
-		props?.item !== undefined ? props.item : context.permanentTargetTeacher;
-	const count = props?.batchCount ?? context.selectedIds.length;
-
+		? handleCloseBatchPermanentModal
+		: handleClosePermanentModal;
+	const count = selectedIds.length;
 	const onConfirm = isBatch
-		? (props?.onConfirm ?? context.handleConfirmBatchPermanentDelete)
-		: (props?.onConfirm ?? context.handleConfirmPermanentDelete);
-
-	const isSubmitting = props?.isSubmitting ?? context.isSubmitting;
+		? handleConfirmBatchPermanentDelete
+		: handleConfirmPermanentDelete;
 
 	const handleClose = useCallback(() => {
 		if (!isSubmitting) {

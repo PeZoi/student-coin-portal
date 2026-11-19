@@ -1,28 +1,19 @@
 "use client";
 
 import { ConfirmDeleteModal } from "@/components/ui/modal";
-import { TeacherStaffItem } from "@/features/teacher-management/types";
 import { useManageTeachersContext } from "@/features/teacher-management/contexts/ManageTeachersContext";
-
-interface DeleteTeacherModalProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-  item?: TeacherStaffItem | null;
-  onConfirm?: () => Promise<boolean | void> | boolean | void;
-  isSubmitting?: boolean;
-}
 
 /**
  * Modal xác nhận xóa tài khoản giáo viên (Tái sử dụng ConfirmDeleteModal từ @/components/ui/modal)
  */
-export function DeleteTeacherModal(props?: DeleteTeacherModalProps) {
-  const context = useManageTeachersContext();
-  const isOpen = props?.isOpen ?? context.isDeleteModalOpen;
-  const onClose = props?.onClose ?? context.handleCloseDeleteModal;
-  const item =
-    props?.item !== undefined ? props.item : context.deletingTeacher;
-  const onConfirm = props?.onConfirm ?? context.handleConfirmDelete;
-  const isSubmitting = props?.isSubmitting ?? context.isSubmitting;
+export function DeleteTeacherModal() {
+  const {
+    isDeleteModalOpen: isOpen,
+    handleCloseDeleteModal: onClose,
+    deletingTeacher: item,
+    handleConfirmDelete: onConfirm,
+    isSubmitting,
+  } = useManageTeachersContext();
 
   if (!isOpen || !item) return null;
 

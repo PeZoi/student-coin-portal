@@ -1,27 +1,19 @@
 "use client";
 
 import { ConfirmDeleteModal } from "@/components/ui/modal";
-import { MockClassItem } from "@/features/class-management/types";
 import { useTeacherClassesContext } from "@/features/class-management/contexts/TeacherClassesContext";
-
-interface DeleteClassModalProps {
-	isOpen?: boolean;
-	onClose?: () => void;
-	item?: MockClassItem | null;
-	onConfirm?: () => Promise<boolean | void> | boolean | void;
-	isSubmitting?: boolean;
-}
 
 /**
  * Modal xác nhận xóa lớp học (Tái sử dụng ConfirmDeleteModal từ @/components/ui/modal)
  */
-export function DeleteClassModal(props?: DeleteClassModalProps) {
-	const context = useTeacherClassesContext();
-	const isOpen = props?.isOpen ?? context.isDeleteModalOpen;
-	const onClose = props?.onClose ?? context.handleCloseDeleteModal;
-	const item = props?.item !== undefined ? props.item : context.deletingClass;
-	const onConfirm = props?.onConfirm ?? context.handleConfirmDelete;
-	const isSubmitting = props?.isSubmitting ?? context.isSubmitting;
+export function DeleteClassModal() {
+	const {
+		isDeleteModalOpen: isOpen,
+		handleCloseDeleteModal: onClose,
+		deletingClass: item,
+		handleConfirmDelete: onConfirm,
+		isSubmitting,
+	} = useTeacherClassesContext();
 
 	if (!isOpen || !item) return null;
 

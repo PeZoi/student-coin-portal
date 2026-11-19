@@ -1,29 +1,20 @@
 "use client";
 
 import { ConfirmDeleteModal } from "@/components/ui/modal";
-import { StudentItem } from "@/features/student-management/types";
 import { useManageStudentsContext } from "@/features/student-management/contexts/ManageStudentsContext";
-
-interface DeleteStudentModalProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-  item?: StudentItem | null;
-  onConfirm?: () => Promise<boolean | void> | boolean | void;
-  isSubmitting?: boolean;
-}
 
 /**
  * Modal xác nhận xóa hồ sơ học sinh (chuyển thùng rác)
  * Tái sử dụng ConfirmDeleteModal từ @/components/ui/modal
  */
-export function DeleteStudentModal(props?: DeleteStudentModalProps) {
-  const context = useManageStudentsContext();
-  const isOpen = props?.isOpen ?? context.isDeleteModalOpen;
-  const onClose = props?.onClose ?? context.handleCloseDeleteModal;
-  const item =
-    props?.item !== undefined ? props.item : context.deletingStudent;
-  const onConfirm = props?.onConfirm ?? context.handleConfirmDelete;
-  const isSubmitting = props?.isSubmitting ?? context.isSubmitting;
+export function DeleteStudentModal() {
+  const {
+    isDeleteModalOpen: isOpen,
+    handleCloseDeleteModal: onClose,
+    deletingStudent: item,
+    handleConfirmDelete: onConfirm,
+    isSubmitting,
+  } = useManageStudentsContext();
 
   if (!isOpen || !item) return null;
 

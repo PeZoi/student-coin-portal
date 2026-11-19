@@ -4,40 +4,22 @@ import Image from "next/image";
 import { ListTodo, CheckCircle2, FileCheck2 } from "lucide-react";
 import { useManageMissionsContext } from "../contexts/ManageMissionsContext";
 
-interface MissionsKpiCardsProps {
-  activeMissionsCount?: number;
-  totalMissions?: number;
-  expiredMissionsCount?: number;
-  averageCompletionPercent?: number;
-  totalSubmittedSum?: number;
-  totalAssignedStudentsSum?: number;
-  pendingReviewTotal?: number;
-  totalCoinsAwardedAll?: number;
-  isLoading?: boolean;
-}
-
 /**
  * 4 Thẻ thống kê KPI trang Giao bài tập
  * - Đồng bộ 100% hệ thống thẻ KPI với Quản lý lớp học, Học sinh và Giáo viên
  */
-export function MissionsKpiCards(props?: MissionsKpiCardsProps) {
-  const context = useManageMissionsContext();
-  const activeMissionsCount =
-    props?.activeMissionsCount ?? context.activeMissionsCount;
-  const totalMissions = props?.totalMissions ?? context.totalMissions;
-  const expiredMissionsCount =
-    props?.expiredMissionsCount ?? context.expiredMissionsCount;
-  const averageCompletionPercent =
-    props?.averageCompletionPercent ?? context.averageCompletionPercent;
-  const totalSubmittedSum =
-    props?.totalSubmittedSum ?? context.totalSubmittedSum;
-  const totalAssignedStudentsSum =
-    props?.totalAssignedStudentsSum ?? context.totalAssignedStudentsSum;
-  const pendingReviewTotal =
-    props?.pendingReviewTotal ?? context.pendingReviewTotal;
-  const totalCoinsAwardedAll =
-    props?.totalCoinsAwardedAll ?? context.totalCoinsAwardedAll;
-  const isLoading = props?.isLoading ?? context.isLoading;
+export function MissionsKpiCards() {
+  const {
+    activeMissionsCount,
+    totalMissions,
+    expiredMissionsCount,
+    averageCompletionPercent,
+    totalSubmittedSum,
+    totalAssignedStudentsSum,
+    pendingReviewTotal,
+    totalCoinsAwardedAll,
+    isLoading,
+  } = useManageMissionsContext();
 
   if (isLoading) {
     return (

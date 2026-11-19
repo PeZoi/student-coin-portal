@@ -17,6 +17,7 @@ import {
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { StudentItem, StudentCoinTransactionItem } from "../../types";
 import { useOptionalManageStudentsContext } from "../../contexts/ManageStudentsContext";
+import { useOptionalStudentRosterContext } from "@/features/student-roster/contexts/StudentRosterContext";
 import { useStudentCoinTransactionsInfinite } from "../../hooks/useStudentCoinTransactionsInfinite";
 import { getCoinSourceConfig } from "@/constants/coins";
 import { formatDate } from "@/lib/date";
@@ -33,22 +34,19 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Coins,
 };
 
-interface StudentCoinTransactionsModalProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-  studentItem?: StudentItem | null;
-}
+export function StudentCoinTransactionsModal() {
+  const manageCtx = useOptionalManageStudentsContext();
+  const rosterCtx = useOptionalStudentRosterContext();
 
-export function StudentCoinTransactionsModal(
-  props?: StudentCoinTransactionsModalProps
-) {
-  const context = useOptionalManageStudentsContext();
-  const isOpen = props?.isOpen ?? context?.isTransactionsOpen ?? false;
-  const onClose = props?.onClose ?? context?.handleCloseTransactions ?? (() => {});
-  const studentItem =
-    props?.studentItem !== undefined
-      ? props.studentItem
-      : (context?.viewingTransactionsStudent ?? null);
+  const isOpen = manageCtx
+    ? manageCtx.isTransactionsOpen
+    : (rosterCtx?.isHistoryModalOpen ?? false);
+  const onClose = manageCtx
+    ? manageCtx.handleCloseTransactions
+    : (rosterCtx?.handleCloseHistoryModal ?? (() => {}));
+  const studentItem = manageCtx
+    ? manageCtx.viewingTransactionsStudent
+    : (rosterCtx?.toStudentItem(rosterCtx.historyStudent) ?? null);
 
   if (!isOpen || !studentItem) return null;
 

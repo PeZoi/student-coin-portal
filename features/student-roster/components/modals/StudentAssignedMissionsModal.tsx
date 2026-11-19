@@ -47,18 +47,15 @@ import {
 } from "../../hooks/useRosterAssignedMissionsInfinite";
 import { formatDate } from "@/lib/date";
 import { StudentMissionStatus } from "@/constants";
+import { useStudentRosterContext } from "../../contexts/StudentRosterContext";
 
-interface StudentAssignedMissionsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  student: TeacherRosterStudent | null;
-}
+export function StudentAssignedMissionsModal() {
+  const {
+    isMissionsModalOpen: isOpen,
+    handleCloseMissionsModal: onClose,
+    missionsStudent: student,
+  } = useStudentRosterContext();
 
-export function StudentAssignedMissionsModal({
-  isOpen,
-  onClose,
-  student,
-}: StudentAssignedMissionsModalProps) {
   if (!isOpen || !student) return null;
 
   return (

@@ -6,27 +6,14 @@ import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/moda
 import { TeacherStaffItem } from "@/features/teacher-management/types";
 import { useManageTeachersContext } from "@/features/teacher-management/contexts/ManageTeachersContext";
 
-interface ResetPasswordModalProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-  teacherItem?: TeacherStaffItem | null;
-  onSubmit?: (
-    teacherId: string,
-    newPassword: string
-  ) => Promise<boolean | void> | boolean | void;
-  isSubmitting?: boolean;
-}
-
-export function ResetPasswordModal(props?: ResetPasswordModalProps) {
-  const context = useManageTeachersContext();
-  const isOpen = props?.isOpen ?? context.isResetPasswordOpen;
-  const onClose = props?.onClose ?? context.handleCloseResetPassword;
-  const teacherItem =
-    props?.teacherItem !== undefined
-      ? props.teacherItem
-      : context.resettingTeacher;
-  const onSubmit = props?.onSubmit ?? context.handleResetPasswordSubmit;
-  const isSubmitting = props?.isSubmitting ?? context.isSubmitting;
+export function ResetPasswordModal() {
+  const {
+    isResetPasswordOpen: isOpen,
+    handleCloseResetPassword: onClose,
+    resettingTeacher: teacherItem,
+    handleResetPasswordSubmit: onSubmit,
+    isSubmitting,
+  } = useManageTeachersContext();
 
   if (!isOpen || !teacherItem) return null;
 

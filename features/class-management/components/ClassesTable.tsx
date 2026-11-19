@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { School, Users, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
-import { MockClassItem, SortField, SortDirection } from "@/features/class-management/types";
+import { SortField } from "@/features/class-management/types";
 import { StatusBadge } from "./StatusBadge";
 import { TeacherList } from "./TeacherList";
 import { RowActions } from "./RowActions";
@@ -16,39 +16,19 @@ import {
 import { useTeacherClassesContext } from "@/features/class-management/contexts/TeacherClassesContext";
 import { formatDate } from "@/lib/date";
 
-interface ClassesTableProps {
-  items?: MockClassItem[];
-  sortField?: SortField | null;
-  sortDirection?: SortDirection;
-  onSortToggle?: (field: SortField) => void;
-  onAssignTeacher?: (item: MockClassItem) => void;
-  onEdit?: (item: MockClassItem) => void;
-  onToggleStatus?: (item: MockClassItem) => void;
-  onViewClassDetails?: (item: MockClassItem) => void;
-  onDelete?: (item: MockClassItem) => void;
-  onRestore?: (item: MockClassItem) => void;
-  onPermanentDelete?: (item: MockClassItem) => void;
-  onOpenStudents?: (item: MockClassItem) => void;
-}
-
-export function ClassesTable(props?: ClassesTableProps) {
-  const context = useTeacherClassesContext();
-  const items = props?.items ?? context.paginatedClasses;
-  const sortField = props?.sortField !== undefined ? props.sortField : context.sortField;
-  const sortDirection = props?.sortDirection ?? context.sortDirection;
-  const onSortToggle = props?.onSortToggle ?? context.handleSortToggle;
-  const onAssignTeacher = props?.onAssignTeacher ?? context.handleOpenAssignTeacher;
-  const onEdit = props?.onEdit ?? context.handleOpenEditClass;
-  const onToggleStatus = props?.onToggleStatus ?? context.handleToggleClassStatus;
-  const onDelete = props?.onDelete ?? context.handleOpenDeleteModal;
-  const onRestore = props?.onRestore ?? context.handleRestoreClass;
-  const onPermanentDelete = props?.onPermanentDelete ?? context.handleOpenPermanentModal;
-  const onOpenStudents = props?.onOpenStudents ?? context.handleOpenStudentsModal;
-
-  const isAdmin = context.isAdmin;
-  const selectedIds = context.selectedIds;
-  const handleToggleSelect = context.handleToggleSelect;
-  const handleSelectAll = context.handleSelectAll;
+export function ClassesTable() {
+  const {
+    paginatedClasses: items,
+    sortField,
+    sortDirection,
+    handleSortToggle: onSortToggle,
+    handleOpenEditClass: onEdit,
+    handleOpenStudentsModal: onOpenStudents,
+    isAdmin,
+    selectedIds,
+    handleToggleSelect,
+    handleSelectAll,
+  } = useTeacherClassesContext();
 
   const allVisibleSelected =
     items.length > 0 && items.every((i) => selectedIds.includes(i.id));
@@ -280,15 +260,7 @@ export function ClassesTable(props?: ClassesTableProps) {
 
             {/* Thao tác */}
             <TableCell align="right" className="whitespace-nowrap">
-              <RowActions
-                item={item}
-                onAssignTeacher={onAssignTeacher}
-                onEdit={onEdit}
-                onToggleStatus={onToggleStatus}
-                onDelete={onDelete}
-                onRestore={onRestore}
-                onPermanentDelete={onPermanentDelete}
-              />
+              <RowActions item={item} />
             </TableCell>
           </TableRow>
         );

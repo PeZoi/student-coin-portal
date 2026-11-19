@@ -6,25 +6,14 @@ import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/moda
 import { TeacherSelect, TeacherSelectOption } from "@/components/ui/TeacherSelect";
 import { useManageStudentsContext } from "@/features/student-management/contexts/ManageStudentsContext";
 
-interface BatchChangeClassModalProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-  selectedIds?: string[];
-  onSubmit?: (
-    newClassId: string,
-    newClassName: string,
-    resetProgress?: boolean
-  ) => Promise<boolean | void> | boolean | void;
-  isSubmitting?: boolean;
-}
-
-export function BatchChangeClassModal(props?: BatchChangeClassModalProps) {
-  const context = useManageStudentsContext();
-  const isOpen = props?.isOpen ?? context.isBatchChangeClassOpen;
-  const onClose = props?.onClose ?? context.handleCloseBatchChangeClass;
-  const selectedIds = props?.selectedIds ?? context.selectedIds;
-  const onSubmit = props?.onSubmit ?? context.handleBatchChangeClassSubmit;
-  const isSubmitting = props?.isSubmitting ?? context.isSubmitting;
+export function BatchChangeClassModal() {
+  const {
+    isBatchChangeClassOpen: isOpen,
+    handleCloseBatchChangeClass: onClose,
+    selectedIds,
+    handleBatchChangeClassSubmit: onSubmit,
+    isSubmitting,
+  } = useManageStudentsContext();
 
   if (!isOpen || selectedIds.length === 0) return null;
 

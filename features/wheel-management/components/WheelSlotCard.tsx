@@ -15,23 +15,15 @@ import {
   getWheelPrizeConfig,
   formatWheelPrizeValue,
 } from "../constants/prizeConfig";
+import { useWheelConfigContext } from "../contexts/WheelConfigContext";
+import { checkIsSlotModified } from "../utils/wheelUtils";
 
 export type DropMode = "insert-before" | "insert-after" | "swap";
 
 interface WheelSlotCardProps {
   slot: WheelSlotItem;
-  totalWeight: number;
-  isSelected: boolean;
-  totalSlotsCount?: number;
-  isDirty?: boolean;
   isDragging?: boolean;
   dropMode?: DropMode | null;
-  onSelect: () => void;
-  onEdit: () => void;
-  onToggleActive: () => void;
-  onToggleLock: () => void;
-  onDelete: () => void;
-  onMoveSlot?: (id: string, newOrder: number) => void;
   onDragStart?: (id: string) => void;
   onDragOver?: (id: string, mode: DropMode) => void;
   onDragLeave?: (id: string) => void;
@@ -41,22 +33,32 @@ interface WheelSlotCardProps {
 
 export function WheelSlotCard({
   slot,
-  totalWeight,
-  isSelected,
-  isDirty = false,
   isDragging = false,
   dropMode = null,
-  onSelect,
-  onEdit,
-  onToggleActive,
-  onToggleLock,
-  onDelete,
   onDragStart,
   onDragOver,
   onDragLeave,
   onDrop,
   onDragEnd,
 }: WheelSlotCardProps) {
+  const {
+    totalWeight,
+    selectedSlotId,
+    savedSlots,
+    setSelectedSlotId,
+    setEditingSlot,
+    handleToggleActive,
+    handleToggleLock,
+    handleDeleteSlot,
+  } = useWheelConfigContext();
+
+  const isSelected = slot.id === selectedSlotId;
+  const isDirty = checkIsSlotModified(slot, savedSlots);
+  const onSelect = () => setSelectedSlotId(slot.id);
+  const onEdit = () => setEditingSlot(slot);
+  const onToggleActive = () => handleToggleActive(slot.id);
+  const onToggleLock = () => handleToggleLock(slot.id);
+  const onDelete = () => handleDeleteSlot(slot.id);
   // Tính tỷ lệ % theo tổng trọng số
   const percentage =
     totalWeight > 0

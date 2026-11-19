@@ -6,25 +6,15 @@ import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/moda
 import { MockClassItem } from "@/features/class-management/types";
 import { useTeacherClassesContext } from "@/features/class-management/contexts/TeacherClassesContext";
 
-interface ClassFormModalProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-  initialData?: MockClassItem | null;
-  onSubmit?: (
-    data: { class_name: string; is_active: boolean }
-  ) => Promise<boolean | void> | boolean | void;
-  isSubmitting?: boolean;
-}
-
-export function ClassFormModal(props?: ClassFormModalProps) {
-  const context = useTeacherClassesContext();
-  const isOpen = props?.isOpen ?? context.isClassFormOpen;
-  const onClose = props?.onClose ?? context.handleCloseClassForm;
-  const initialData =
-    props?.initialData !== undefined ? props.initialData : context.editingClass;
-  const onSubmit = props?.onSubmit ?? context.handleClassFormSubmit;
-  const isSubmitting = props?.isSubmitting ?? context.isSubmitting;
-  const formKey = context.formKey;
+export function ClassFormModal() {
+  const {
+    isClassFormOpen: isOpen,
+    handleCloseClassForm: onClose,
+    editingClass: initialData,
+    handleClassFormSubmit: onSubmit,
+    isSubmitting,
+    formKey,
+  } = useTeacherClassesContext();
 
   if (!isOpen) return null;
 

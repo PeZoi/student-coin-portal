@@ -17,15 +17,9 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
-import { TeacherRosterStudent } from "../../types";
 import { studentRosterService } from "../../services/studentRosterService";
+import { useStudentRosterContext } from "../../contexts/StudentRosterContext";
 import { CACHE_KEYS, ExchangeChoiceType, ExchangeRequestStatus } from "@/constants";
-
-interface StudentExchangeGiftsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  student: TeacherRosterStudent | null;
-}
 
 type GiftFilterTab = "all" | "cash" | "gift";
 
@@ -36,11 +30,12 @@ type GiftFilterTab = "all" | "cash" | "gift";
  *   1. 'cash': Đổi thành tiền thật (VNĐ) với đầy đủ thông tin hình thức trao, tỷ lệ quy đổi và người nhận
  *   2. 'gift': Đổi thành quà tự chọn bằng link kèm ghi chú món đồ và link mua hàng
  */
-export function StudentExchangeGiftsModal({
-  isOpen,
-  onClose,
-  student,
-}: StudentExchangeGiftsModalProps) {
+export function StudentExchangeGiftsModal() {
+  const {
+    isRewardsModalOpen: isOpen,
+    handleCloseRewardsModal: onClose,
+    rewardsStudent: student,
+  } = useStudentRosterContext();
   const [filterTab, setFilterTab] = useState<GiftFilterTab>("all");
 
   const { data: exchangeData, isLoading } = useSWR(

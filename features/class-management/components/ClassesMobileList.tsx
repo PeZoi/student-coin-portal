@@ -6,36 +6,12 @@ import { ClassCard } from "./ClassCard";
  * - Đọc danh sách và các hàm hành động trực tiếp từ Feature Context
  */
 export function ClassesMobileList() {
-  const {
-    paginatedClasses,
-    handleOpenAssignTeacher,
-    handleOpenEditClass,
-    handleToggleClassStatus,
-    handleOpenDeleteModal,
-    handleRestoreClass,
-    handleOpenPermanentModal,
-    handleOpenStudentsModal,
-    isAdmin,
-    selectedIds,
-    handleToggleSelect,
-  } = useTeacherClassesContext();
+  const { paginatedClasses } = useTeacherClassesContext();
 
   return (
     <div className="md:hidden p-4 space-y-3 bg-slate-50/50">
       {paginatedClasses.map((item) => (
-        <ClassCard
-          key={item.id}
-          item={item}
-          onAssignTeacher={handleOpenAssignTeacher}
-          onEdit={handleOpenEditClass}
-          onToggleStatus={handleToggleClassStatus}
-          onDelete={handleOpenDeleteModal}
-          onRestore={handleRestoreClass}
-          onPermanentDelete={handleOpenPermanentModal}
-          onOpenStudents={handleOpenStudentsModal}
-          isSelected={selectedIds.includes(item.id)}
-          onToggleSelect={isAdmin ? handleToggleSelect : undefined}
-        />
+        <ClassCard key={item.id} item={item} />
       ))}
     </div>
   );

@@ -15,27 +15,15 @@ import {
 import { StudentItem, StudentFormValues } from "@/features/student-management/types";
 import { useManageStudentsContext } from "@/features/student-management/contexts/ManageStudentsContext";
 
-interface StudentFormModalProps {
-	isOpen?: boolean;
-	onClose?: () => void;
-	initialData?: StudentItem | null;
-	onSubmit?: (
-		data: StudentFormValues,
-	) => Promise<boolean | void> | boolean | void;
-	isSubmitting?: boolean;
-}
-
-export function StudentFormModal(props?: StudentFormModalProps) {
-	const context = useManageStudentsContext();
-	const isOpen = props?.isOpen ?? context.isStudentFormOpen;
-	const onClose = props?.onClose ?? context.handleCloseStudentForm;
-	const initialData =
-		props?.initialData !== undefined
-			? props.initialData
-			: context.editingStudent;
-	const onSubmit = props?.onSubmit ?? context.handleStudentFormSubmit;
-	const isSubmitting = props?.isSubmitting ?? context.isSubmitting;
-	const formKey = context.formKey;
+export function StudentFormModal() {
+	const {
+		isStudentFormOpen: isOpen,
+		handleCloseStudentForm: onClose,
+		editingStudent: initialData,
+		handleStudentFormSubmit: onSubmit,
+		isSubmitting,
+		formKey,
+	} = useManageStudentsContext();
 
 	if (!isOpen) return null;
 

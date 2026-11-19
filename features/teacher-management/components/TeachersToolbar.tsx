@@ -5,35 +5,20 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { TeacherSelect, TeacherSelectOption } from "@/components/ui/TeacherSelect";
 import { useManageTeachersContext } from "@/features/teacher-management/contexts/ManageTeachersContext";
 
-interface TeachersToolbarProps {
-  statusFilter?: TeacherStatusFilter;
-  onStatusFilterChange?: (filter: TeacherStatusFilter) => void;
-  searchQuery?: string;
-  onSearchQueryChange?: (query: string) => void;
-  totalCount?: number;
-  activeCount?: number;
-  inactiveCount?: number;
-  deletedCount?: number;
-  isAdmin?: boolean;
-  onRefresh?: () => void;
-  isRefreshing?: boolean;
-}
-
-export function TeachersToolbar(props?: TeachersToolbarProps) {
-  const context = useManageTeachersContext();
-  const statusFilter = props?.statusFilter ?? context.statusFilter;
-  const onStatusFilterChange =
-    props?.onStatusFilterChange ?? context.setStatusFilter;
-  const searchQuery = props?.searchQuery ?? context.searchQuery;
-  const onSearchQueryChange =
-    props?.onSearchQueryChange ?? context.setSearchQuery;
-  const totalCount = props?.totalCount ?? context.totalTeachers;
-  const activeCount = props?.activeCount ?? context.activeTeachers;
-  const inactiveCount = props?.inactiveCount ?? context.inactiveTeachers;
-  const deletedCount = props?.deletedCount ?? context.deletedTeachers;
-  const isAdmin = props?.isAdmin ?? context.isAdmin;
-  const onRefresh = props?.onRefresh ?? context.handleRefresh;
-  const isRefreshing = props?.isRefreshing ?? context.isRefreshing;
+export function TeachersToolbar() {
+  const {
+    statusFilter,
+    setStatusFilter: onStatusFilterChange,
+    searchQuery,
+    setSearchQuery: onSearchQueryChange,
+    totalTeachers: totalCount,
+    activeTeachers: activeCount,
+    inactiveTeachers: inactiveCount,
+    deletedTeachers: deletedCount,
+    isAdmin,
+    handleRefresh: onRefresh,
+    isRefreshing,
+  } = useManageTeachersContext();
 
   // 1. Tùy chọn lọc Trạng thái (chuyển từ các tab sang Select)
   const statusFilterOptions: TeacherSelectOption[] = useMemo(

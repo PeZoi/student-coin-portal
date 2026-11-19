@@ -81,12 +81,20 @@ export function useStudentRoster({
   // 5. Micro-Hook 2: Quản lý 5 Modals
   const modals = useStudentRosterModals();
 
-  // 6. Micro-Hook 3: Các thao tác API Mutations
+  const currentClassName =
+    availableClasses.find((c) => c.id === activeClassId)?.class_name ||
+    students[0]?.class_name ||
+    "Lớp học";
+
+  // 6. Micro-Hook 3: Các thao tác API Mutations & Xuất Excel
   const mutations = useStudentRosterMutations({
     mutate,
     modals,
     selectedIds: selection.selectedIds,
     handleClearSelection: selection.handleClearSelection,
+    students,
+    filteredStudents: filters.filteredStudents,
+    currentClassName,
   });
 
   return {

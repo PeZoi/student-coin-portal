@@ -11,27 +11,27 @@ import {
 import { COIN_TX_DESCRIPTIONS, CoinTxType } from "@/constants";
 import { StudentItem, AdjustCoinsValues } from "@/features/student-management/types";
 import { useOptionalManageStudentsContext } from "@/features/student-management/contexts/ManageStudentsContext";
+import { useOptionalStudentRosterContext } from "@/features/student-roster/contexts/StudentRosterContext";
 
-interface AdjustStudentCoinsModalProps {
-	isOpen?: boolean;
-	onClose?: () => void;
-	studentItem?: StudentItem | null;
-	onSubmit?: (
-		values: AdjustCoinsValues,
-	) => Promise<boolean | void> | boolean | void;
-	isSubmitting?: boolean;
-}
+export function AdjustStudentCoinsModal() {
+	const manageCtx = useOptionalManageStudentsContext();
+	const rosterCtx = useOptionalStudentRosterContext();
 
-export function AdjustStudentCoinsModal(props?: AdjustStudentCoinsModalProps) {
-	const context = useOptionalManageStudentsContext();
-	const isOpen = props?.isOpen ?? context?.isAdjustCoinsOpen ?? false;
-	const onClose = props?.onClose ?? context?.handleCloseAdjustCoins ?? (() => {});
-	const studentItem =
-		props?.studentItem !== undefined
-			? props.studentItem
-			: (context?.adjustingCoinsStudent ?? null);
-	const onSubmit = props?.onSubmit ?? context?.handleAdjustCoinsSubmit;
-	const isSubmitting = props?.isSubmitting ?? context?.isSubmitting ?? false;
+	const isOpen = manageCtx
+		? manageCtx.isAdjustCoinsOpen
+		: (rosterCtx?.isAwardModalOpen ?? false);
+	const onClose = manageCtx
+		? manageCtx.handleCloseAdjustCoins
+		: (rosterCtx?.handleCloseAwardModal ?? (() => {}));
+	const studentItem = manageCtx
+		? manageCtx.adjustingCoinsStudent
+		: (rosterCtx?.toStudentItem(rosterCtx.awardStudent) ?? null);
+	const onSubmit = manageCtx
+		? manageCtx.handleAdjustCoinsSubmit
+		: rosterCtx?.handleAwardSubmit;
+	const isSubmitting = manageCtx
+		? manageCtx.isSubmitting
+		: (rosterCtx?.isAwardSubmitting ?? false);
 
 	if (!isOpen || !studentItem || !onSubmit) return null;
 

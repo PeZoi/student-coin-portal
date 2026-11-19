@@ -1,58 +1,44 @@
 "use client";
 
 import { useMemo } from "react";
-import { Search, X, RotateCw, Filter } from "lucide-react";
+import { Search, X, RotateCw, Filter, FileSpreadsheet } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
 import { StudentRosterStatusFilter } from "../types";
 import { TeacherSelect, TeacherSelectOption } from "@/components/ui/TeacherSelect";
-import { useOptionalStudentRosterContext } from "../contexts/StudentRosterContext";
-
-interface StudentRosterToolbarProps {
-  searchQuery?: string;
-  onSearchQueryChange?: (query: string) => void;
-  statusFilter?: StudentRosterStatusFilter;
-  onStatusFilterChange?: (filter: StudentRosterStatusFilter) => void;
-  totalStudents?: number;
-  activeCount?: number;
-  lockedCount?: number;
-  onResetFilters?: () => void;
-  hasActiveFilters?: boolean;
-  onRefresh?: () => void;
-  isRefreshing?: boolean;
-}
+import { useStudentRosterContext } from "../contexts/StudentRosterContext";
 
 /**
- * Toolbar tìm kiếm, lọc trạng thái danh sách học sinh
+ * Toolbar tìm kiếm, lọc trạng thái và xuất Excel danh sách học sinh
  * - Đồng bộ 100% bố cục với các trang quản lý (ClassesToolbar, TeachersToolbar, StudentsToolbar)
- * - Tự động kết nối StudentRosterContext (Quy tắc 10)
+ * - Tự động kết nối StudentRosterContext (Quy tắc 10 AGENTS.md)
  */
-export function StudentRosterToolbar(props?: StudentRosterToolbarProps) {
-  const context = useOptionalStudentRosterContext();
+export function StudentRosterToolbar() {
+  const {
+    searchQuery,
+    setSearchQuery,
+    statusFilter,
+    setStatusFilter,
+    students,
+    handleResetFilters,
+    hasActiveFilters,
+    handleRefresh,
+    isRefreshing,
+    handleExportExcel,
+  } = useStudentRosterContext();
 
-  const searchQuery = props?.searchQuery ?? context?.searchQuery ?? "";
-  const onSearchQueryChange =
-    props?.onSearchQueryChange ?? context?.setSearchQuery ?? (() => {});
-  const statusFilter = props?.statusFilter ?? context?.statusFilter ?? "all";
-  const onStatusFilterChange =
-    props?.onStatusFilterChange ?? context?.setStatusFilter ?? (() => {});
-  const totalStudents =
-    props?.totalStudents ?? context?.students.length ?? 0;
-  const activeCount =
-    props?.activeCount ??
-    context?.students.filter((s) => s.pin_status === "ok").length ??
-    0;
-  const lockedCount =
-    props?.lockedCount ??
-    context?.students.filter(
-      (s) => s.pin_status === "locked" || s.pin_status === "failed_attempts"
-    ).length ??
-    0;
-  const onResetFilters =
-    props?.onResetFilters ?? context?.handleResetFilters ?? (() => {});
-  const hasActiveFilters =
-    props?.hasActiveFilters ?? context?.hasActiveFilters ?? false;
-  const onRefresh = props?.onRefresh ?? context?.handleRefresh;
-  const isRefreshing = props?.isRefreshing ?? context?.isRefreshing ?? false;
+  const totalStudents = students.length;
+  const activeCount = useMemo(
+    () => students.filter((s) => s.pin_status === "ok").length,
+    [students]
+  );
+  const lockedCount = useMemo(
+    () =>
+      students.filter(
+        (s) => s.pin_status === "locked" || s.pin_status === "failed_attempts"
+      ).length,
+    [students]
+  );
+
   // Tùy chọn lọc trạng thái (kèm badge số lượng học sinh)
   const statusOptions: TeacherSelectOption[] = useMemo(
     () => [
@@ -74,9 +60,7 @@ export function StudentRosterToolbar(props?: StudentRosterToolbarProps) {
             size="sm"
             options={statusOptions}
             value={statusFilter}
-            onChange={(val) =>
-              onStatusFilterChange(val as StudentRosterStatusFilter)
-            }
+            onChange={(val) => setStatusFilter(val as StudentRosterStatusFilter)}
           />
         </div>
 
@@ -85,7 +69,7 @@ export function StudentRosterToolbar(props?: StudentRosterToolbarProps) {
           <Tooltip content="Khôi phục bộ lọc mặc định" side="top">
             <button
               type="button"
-              onClick={onResetFilters}
+              onClick={handleResetFilters}
               className="h-10 px-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs sm:text-sm font-semibold transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap active:scale-98 shrink-0"
             >
               <X className="w-3.5 h-3.5" />
@@ -95,7 +79,7 @@ export function StudentRosterToolbar(props?: StudentRosterToolbarProps) {
         )}
       </div>
 
-      {/* 2. Bên phải: Ô Tìm kiếm + Nút Làm mới */}
+      {/* 2. Bên phải: Ô Tìm kiếm + Nút Xuất Excel + Nút Làm mới */}
       <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
         {/* Ô tìm kiếm chuẩn form quản trị */}
         <div className="relative flex-1 sm:w-64 md:w-72">
@@ -103,7 +87,7 @@ export function StudentRosterToolbar(props?: StudentRosterToolbarProps) {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => onSearchQueryChange(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Tìm theo họ tên hoặc SĐT..."
             className="w-full h-10 pl-9 pr-8 rounded-xl bg-white border border-slate-300 text-xs sm:text-sm text-[#0F172A] placeholder-slate-400 transition-all focus:outline-none focus:border-[#0A62D6] focus:ring-2 focus:ring-[#0A62D6]/20"
           />
@@ -111,7 +95,7 @@ export function StudentRosterToolbar(props?: StudentRosterToolbarProps) {
             <Tooltip content="Xóa từ khóa tìm kiếm" side="top">
               <button
                 type="button"
-                onClick={() => onSearchQueryChange("")}
+                onClick={() => setSearchQuery("")}
                 className="w-5 h-5 absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
@@ -120,26 +104,39 @@ export function StudentRosterToolbar(props?: StudentRosterToolbarProps) {
           )}
         </div>
 
-        {/* Nút Làm mới danh sách */}
-        {onRefresh && (
-          <Tooltip
-            content={isRefreshing ? "Đang đồng bộ..." : "Làm mới danh sách học sinh"}
-            side="top"
+        {/* Nút Xuất Excel */}
+        <Tooltip
+          content="Xuất danh sách học sinh ra file Excel (.xlsx)"
+          side="top"
+        >
+          <button
+            type="button"
+            onClick={handleExportExcel}
+            className="h-10 px-3.5 rounded-xl bg-white hover:bg-emerald-50/80 border border-slate-300 hover:border-emerald-400 text-slate-700 hover:text-emerald-700 transition-all shadow-2xs flex items-center gap-2 cursor-pointer shrink-0 text-xs sm:text-sm font-semibold active:scale-98"
           >
-            <button
-              type="button"
-              onClick={onRefresh}
-              disabled={isRefreshing}
-              className="w-10 h-10 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 hover:text-[#0A62D6] hover:border-[#0A62D6]/40 flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-2xs disabled:opacity-50"
-            >
-              <RotateCw
-                className={`w-4 h-4 ${
-                  isRefreshing ? "animate-spin text-[#0A62D6]" : ""
-                }`}
-              />
-            </button>
-          </Tooltip>
-        )}
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <span className="hidden sm:inline">Xuất Excel</span>
+          </button>
+        </Tooltip>
+
+        {/* Nút Làm mới danh sách */}
+        <Tooltip
+          content={isRefreshing ? "Đang đồng bộ..." : "Làm mới danh sách học sinh"}
+          side="top"
+        >
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="w-10 h-10 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-600 hover:text-[#0A62D6] hover:border-[#0A62D6]/40 flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-2xs disabled:opacity-50"
+          >
+            <RotateCw
+              className={`w-4 h-4 ${
+                isRefreshing ? "animate-spin text-[#0A62D6]" : ""
+              }`}
+            />
+          </button>
+        </Tooltip>
       </div>
     </div>
   );

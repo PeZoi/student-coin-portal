@@ -10,12 +10,6 @@ import { MockClassItem } from "@/features/class-management/types";
 interface RowActionsProps {
   item: MockClassItem;
   fullWidth?: boolean;
-  onAssignTeacher?: (item: MockClassItem) => void;
-  onEdit?: (item: MockClassItem) => void;
-  onToggleStatus?: (item: MockClassItem) => void;
-  onDelete?: (item: MockClassItem) => void;
-  onRestore?: (item: MockClassItem) => void;
-  onPermanentDelete?: (item: MockClassItem) => void;
 }
 
 interface MenuPosition {
@@ -31,12 +25,6 @@ const VIEWPORT_PADDING = 12;
 export function RowActions({
   item,
   fullWidth = false,
-  onAssignTeacher,
-  onEdit,
-  onToggleStatus,
-  onDelete,
-  onRestore,
-  onPermanentDelete,
 }: RowActionsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [menuPos, setMenuPos] = useState<MenuPosition>({
@@ -47,17 +35,17 @@ export function RowActions({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  let restoringId: string | null = null;
-  let isAdmin = false;
-  let canSoftDelete = false;
-  try {
-    const context = useTeacherClassesContext();
-    restoringId = context.restoringId ?? null;
-    isAdmin = context.isAdmin ?? false;
-    canSoftDelete = context.canSoftDelete ?? false;
-  } catch {
-    // Nếu component được gọi độc lập ngoài context
-  }
+  const {
+    restoringId,
+    isAdmin,
+    canSoftDelete,
+    handleOpenAssignTeacher: onAssignTeacher,
+    handleOpenEditClass: onEdit,
+    handleToggleClassStatus: onToggleStatus,
+    handleOpenDeleteModal: onDelete,
+    handleRestoreClass: onRestore,
+    handleOpenPermanentModal: onPermanentDelete,
+  } = useTeacherClassesContext();
 
   // Mở/đóng menu và tự động tính toán hướng bung (lên trên hoặc xuống dưới) để không bị che khuất ở mép màn hình
   const handleToggleMenu = () => {

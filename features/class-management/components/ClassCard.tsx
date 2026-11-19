@@ -5,32 +5,22 @@ import { MockClassItem } from "@/features/class-management/types";
 import { StatusBadge } from "./StatusBadge";
 import { TeacherList } from "./TeacherList";
 import { RowActions } from "./RowActions";
+import { useTeacherClassesContext } from "@/features/class-management/contexts/TeacherClassesContext";
 
 interface ClassCardProps {
   item: MockClassItem;
-  onAssignTeacher?: (item: MockClassItem) => void;
-  onEdit?: (item: MockClassItem) => void;
-  onToggleStatus?: (item: MockClassItem) => void;
-  onDelete?: (item: MockClassItem) => void;
-  onRestore?: (item: MockClassItem) => void;
-  onPermanentDelete?: (item: MockClassItem) => void;
-  onOpenStudents?: (item: MockClassItem) => void;
-  isSelected?: boolean;
-  onToggleSelect?: (id: string) => void;
 }
 
-export function ClassCard({
-  item,
-  onAssignTeacher,
-  onEdit,
-  onToggleStatus,
-  onDelete,
-  onRestore,
-  onPermanentDelete,
-  onOpenStudents,
-  isSelected,
-  onToggleSelect,
-}: ClassCardProps) {
+export function ClassCard({ item }: ClassCardProps) {
+  const {
+    handleOpenEditClass: onEdit,
+    handleOpenStudentsModal: onOpenStudents,
+    isAdmin,
+    selectedIds,
+    handleToggleSelect,
+  } = useTeacherClassesContext();
+  const isSelected = selectedIds.includes(item.id);
+  const onToggleSelect = isAdmin ? handleToggleSelect : undefined;
   return (
     <div
       className={`rounded-2xl border p-4 space-y-3 shadow-2xs transition-colors ${
@@ -157,16 +147,7 @@ export function ClassCard({
 
       {/* Hàng 4: Các nút hành động */}
       <div className="pt-2 border-t border-slate-100">
-        <RowActions
-          item={item}
-          fullWidth
-          onAssignTeacher={onAssignTeacher}
-          onEdit={onEdit}
-          onToggleStatus={onToggleStatus}
-          onDelete={onDelete}
-          onRestore={onRestore}
-          onPermanentDelete={onPermanentDelete}
-        />
+        <RowActions item={item} fullWidth />
       </div>
     </div>
   );

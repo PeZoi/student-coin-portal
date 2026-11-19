@@ -1,20 +1,9 @@
 import { Users, CheckCircle2, ShieldAlert, Coins } from "lucide-react";
 import { useManageStudentsContext } from "@/features/student-management/contexts/ManageStudentsContext";
 
-interface StudentsKpiCardsProps {
-  totalStudents?: number;
-  activeStudents?: number;
-  lockedPinStudents?: number;
-  totalCoins?: number;
-}
-
-export function StudentsKpiCards(props?: StudentsKpiCardsProps) {
-  const context = useManageStudentsContext();
-  const totalStudents = props?.totalStudents ?? context.totalStudents;
-  const activeStudents = props?.activeStudents ?? context.activeStudents;
-  const lockedPinStudents =
-    props?.lockedPinStudents ?? context.lockedPinStudents;
-  const totalCoins = props?.totalCoins ?? context.totalCoins;
+export function StudentsKpiCards() {
+  const { totalStudents, activeStudents, lockedPinStudents, totalCoins } =
+    useManageStudentsContext();
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

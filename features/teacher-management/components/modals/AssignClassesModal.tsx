@@ -7,33 +7,16 @@ import { TeacherStaffItem, AvailableClassItem } from "@/features/teacher-managem
 import { normalizeText } from "@/features/class-management/utils";
 import { useManageTeachersContext } from "@/features/teacher-management/contexts/ManageTeachersContext";
 
-interface AssignClassesModalProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-  teacherItem?: TeacherStaffItem | null;
-  availableClasses?: AvailableClassItem[];
-  onSubmit?: (
-    teacherId: string,
-    assignedClassIds: string[]
-  ) => Promise<boolean | void> | boolean | void;
-  isSubmitting?: boolean;
-  isLoadingClasses?: boolean;
-}
-
-export function AssignClassesModal(props?: AssignClassesModalProps) {
-  const context = useManageTeachersContext();
-  const isOpen = props?.isOpen ?? context.isAssignModalOpen;
-  const onClose = props?.onClose ?? context.handleCloseAssignModal;
-  const teacherItem =
-    props?.teacherItem !== undefined
-      ? props.teacherItem
-      : context.assigningTeacher;
-  const availableClasses =
-    props?.availableClasses ?? context.availableClasses;
-  const onSubmit = props?.onSubmit ?? context.handleAssignClassesSubmit;
-  const isSubmitting = props?.isSubmitting ?? context.isSubmitting;
-  const isLoadingClasses =
-    props?.isLoadingClasses ?? context.isLoadingClasses;
+export function AssignClassesModal() {
+  const {
+    isAssignModalOpen: isOpen,
+    handleCloseAssignModal: onClose,
+    assigningTeacher: teacherItem,
+    availableClasses,
+    handleAssignClassesSubmit: onSubmit,
+    isSubmitting,
+    isLoadingClasses,
+  } = useManageTeachersContext();
 
   if (!isOpen || !teacherItem) return null;
 

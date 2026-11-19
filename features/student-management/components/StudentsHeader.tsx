@@ -1,18 +1,13 @@
 import { Plus } from "lucide-react";
 import { useManageStudentsContext } from "@/features/student-management/contexts/ManageStudentsContext";
 
-interface StudentsHeaderProps {
-  onOpenCreate?: () => void;
-}
-
 /**
  * Header của trang Quản lý học sinh
  * - Đồng bộ 100% phong cách thiết kế với Quản lý lớp học và Quản lý giáo viên
  * - Tiêu đề trang nổi bật và nút Thêm học sinh mới
  */
-export function StudentsHeader(props?: StudentsHeaderProps) {
-  const context = useManageStudentsContext();
-  const onOpenCreate = props?.onOpenCreate ?? context.handleOpenCreateStudent;
+export function StudentsHeader() {
+  const { handleOpenCreateStudent: onOpenCreate } = useManageStudentsContext();
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

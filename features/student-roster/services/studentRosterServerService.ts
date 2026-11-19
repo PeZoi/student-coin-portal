@@ -92,7 +92,7 @@ export async function getTeacherStudentRosterServer(
     ] = await Promise.all([
       supabase
         .from("student_missions")
-        .select("student_id, status")
+        .select("student_id, status, is_late")
         .in("student_id", studentIds),
       supabase
         .from("monthly_exchange_requests")
@@ -111,13 +111,13 @@ export async function getTeacherStudentRosterServer(
     // Map thống kê bài tập theo student_id
     const missionStatsMap = new Map<
       string,
-      { total: number; approved: number; submitted: number; exempt: number }
+      { total: number; approved: number; submitted: number; exempt: number; late: number }
     >();
 
     for (const sm of missionsAggData || []) {
       const sid = sm.student_id;
       if (!missionStatsMap.has(sid)) {
-        missionStatsMap.set(sid, { total: 0, approved: 0, submitted: 0, exempt: 0 });
+        missionStatsMap.set(sid, { total: 0, approved: 0, submitted: 0, exempt: 0, late: 0 });
       }
       const st = missionStatsMap.get(sid)!;
       st.total++;
@@ -127,6 +127,9 @@ export async function getTeacherStudentRosterServer(
         st.submitted++;
       } else if (sm.status === StudentMissionStatus.EXEMPT) {
         st.exempt++;
+      }
+      if (sm.is_late) {
+        st.late++;
       }
     }
 
@@ -145,6 +148,7 @@ export async function getTeacherStudentRosterServer(
         approved: 0,
         submitted: 0,
         exempt: 0,
+        late: 0,
       };
       const redeemedCount = redeemedCountsMap.get(s.id) || 0;
 
@@ -185,6 +189,7 @@ export async function getTeacherStudentRosterServer(
         total_missions_count: mStats.total,
         pending_missions_count: mStats.submitted,
         exempt_missions_count: mStats.exempt,
+        late_missions_count: mStats.late,
         last_login_at: lastLoginText,
         pin_status: pinStatus,
         failed_login_attempts: s.failed_login_attempts ?? 0,

@@ -7,7 +7,7 @@ import {
   ChevronsUpDown,
 } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
-import { TeacherStaffItem, TeacherSortField, SortDirection } from "@/features/teacher-management/types";
+import { TeacherSortField } from "@/features/teacher-management/types";
 import { TeacherStatusBadge, AssignedClassesList } from "./TeacherBadges";
 import { TeacherRowActions } from "./TeacherRowActions";
 import { getTeacherColor, getTeacherInitial } from "@/features/class-management/utils";
@@ -22,47 +22,19 @@ import {
 } from "@/components/ui/table";
 import { useManageTeachersContext } from "@/features/teacher-management/contexts/ManageTeachersContext";
 
-interface TeachersTableProps {
-  items?: TeacherStaffItem[];
-  sortField?: TeacherSortField | null;
-  sortDirection?: SortDirection;
-  onSortToggle?: (field: TeacherSortField) => void;
-  onAssignClasses?: (item: TeacherStaffItem) => void;
-  onEdit?: (item: TeacherStaffItem) => void;
-  onResetPassword?: (item: TeacherStaffItem) => void;
-  onToggleStatus?: (item: TeacherStaffItem) => void;
-  onViewDetails?: (item: TeacherStaffItem) => void;
-  onDelete?: (item: TeacherStaffItem) => void;
-  onRestore?: (item: TeacherStaffItem) => void;
-  onPermanentDelete?: (item: TeacherStaffItem) => void;
-}
-
-export function TeachersTable(props?: TeachersTableProps) {
-  const context = useManageTeachersContext();
-  const items = props?.items ?? context.paginatedTeachers;
-  const sortField =
-    props?.sortField !== undefined ? props.sortField : context.sortField;
-  const sortDirection = props?.sortDirection ?? context.sortDirection;
-  const onSortToggle = props?.onSortToggle ?? context.handleSortToggle;
-  const onAssignClasses =
-    props?.onAssignClasses ?? context.handleOpenAssignClasses;
-  const onEdit = props?.onEdit ?? context.handleOpenEditTeacher;
-  const onResetPassword =
-    props?.onResetPassword ?? context.handleOpenResetPassword;
-  const onToggleStatus =
-    props?.onToggleStatus ?? context.handleToggleTeacherStatus;
-  const onDelete = props?.onDelete ?? context.handleOpenDeleteModal;
-  const onRestore = props?.onRestore ?? context.handleRestoreTeacher;
-  const onPermanentDelete =
-    props?.onPermanentDelete ?? context.handleOpenPermanentModal;
-
+export function TeachersTable() {
   const {
+    isAdmin,
+    paginatedTeachers: items,
+    sortField,
+    sortDirection,
+    handleSortToggle: onSortToggle,
+    handleOpenEditTeacher: onEdit,
     handleToggleSelect,
     handleSelectAll,
     isSelected,
     isAllSelected,
-    restoringId,
-  } = context;
+  } = useManageTeachersContext();
 
   const allVisibleIds = items.map((i) => i.id);
   const isAllChecked = isAllSelected(allVisibleIds);
@@ -88,7 +60,7 @@ export function TeachersTable(props?: TeachersTableProps) {
       <TableHeader>
         <TableRow className="hover:bg-transparent">
           {/* Cột Checkbox chọn tất cả (Chỉ Quản trị viên tối cao) */}
-          {context.isAdmin && (
+          {isAdmin && (
             <TableHead className="w-12 px-4">
               <div className="flex items-center justify-center">
                 <input
@@ -178,7 +150,7 @@ export function TeachersTable(props?: TeachersTableProps) {
               }`}
             >
               {/* Checkbox chọn dòng (Chỉ Quản trị viên tối cao) */}
-              {context.isAdmin && (
+              {isAdmin && (
                 <TableCell className="w-12 px-4">
                   <div className="flex items-center justify-center">
                     <input
@@ -291,17 +263,7 @@ export function TeachersTable(props?: TeachersTableProps) {
 
               {/* 7. Thao tác */}
               <TableCell align="right" className="whitespace-nowrap">
-                <TeacherRowActions
-                  item={item}
-                  onAssignClasses={onAssignClasses}
-                  onEdit={onEdit}
-                  onResetPassword={onResetPassword}
-                  onToggleStatus={onToggleStatus}
-                  onDelete={onDelete}
-                  onRestore={onRestore}
-                  onPermanentDelete={onPermanentDelete}
-                  isRestoring={restoringId === item.id}
-                />
+                <TeacherRowActions item={item} />
               </TableCell>
             </TableRow>
           );

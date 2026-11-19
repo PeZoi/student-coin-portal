@@ -12,11 +12,7 @@ import {
   ShieldAlert,
   Award,
 } from "lucide-react";
-import {
-  TeacherRosterStudent,
-  StudentRosterSortField,
-  SortOrder,
-} from "../types";
+import { StudentRosterSortField } from "../types";
 import { Tooltip } from "@/components/ui/tooltip";
 import {
   Table,
@@ -27,49 +23,31 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { StudentCoinsBadge } from "@/features/student-management/components/StudentBadges";
-import { useOptionalStudentRosterContext } from "../contexts/StudentRosterContext";
+import { useStudentRosterContext } from "../contexts/StudentRosterContext";
 import { calculateStudentMissionProgress } from "../utils/missionProgress";
 
-interface StudentRosterTableProps {
-  students?: TeacherRosterStudent[];
-  selectedIds?: string[];
-  onToggleSelect?: (id: string) => void;
-  onSelectAll?: () => void;
-  sortField?: StudentRosterSortField;
-  sortOrder?: SortOrder;
-  onSortToggle?: (field: StudentRosterSortField) => void;
-  onQuickAward?: (student: TeacherRosterStudent) => void;
-  onResetPin?: (student: TeacherRosterStudent) => void;
-  onViewHistory?: (student: TeacherRosterStudent) => void;
-  onViewRedeemedRewards?: (student: TeacherRosterStudent) => void;
-  onViewMissions?: (student: TeacherRosterStudent) => void;
-}
+export function StudentRosterTable() {
+  const {
+    paginatedStudents: students,
+    selectedIds,
+    handleToggleSelect: onToggleSelect,
+    handleSelectAll,
+    sortField,
+    sortOrder,
+    handleSortToggle: onSortToggle,
+    handleQuickAward: onQuickAward,
+    handleResetPin: onResetPin,
+    handleViewHistory: onViewHistory,
+    handleViewRedeemedRewards: onViewRedeemedRewards,
+    handleViewMissions: onViewMissions,
+  } = useStudentRosterContext();
 
-export function StudentRosterTable(props?: StudentRosterTableProps) {
-  const context = useOptionalStudentRosterContext();
-
-  const students = props?.students ?? context?.paginatedStudents ?? [];
-  const selectedIds = props?.selectedIds ?? context?.selectedIds ?? [];
-  const onToggleSelect =
-    props?.onToggleSelect ?? context?.handleToggleSelect ?? (() => {});
-  const onSelectAll =
-    props?.onSelectAll ??
-    (() => {
-      context?.handleSelectAll(students.map((s) => s.id));
-    });
-  const sortField =
-    props?.sortField ?? context?.sortField ?? "current_coins";
-  const sortOrder = props?.sortOrder ?? context?.sortOrder ?? "desc";
-  const onSortToggle =
-    props?.onSortToggle ?? context?.handleSortToggle ?? (() => {});
-  const onQuickAward = props?.onQuickAward ?? context?.handleQuickAward;
-  const onResetPin = props?.onResetPin ?? context?.handleResetPin;
-  const onViewHistory = props?.onViewHistory ?? context?.handleViewHistory;
-  const onViewRedeemedRewards =
-    props?.onViewRedeemedRewards ?? context?.handleViewRedeemedRewards;
-  const onViewMissions = props?.onViewMissions ?? context?.handleViewMissions;
   const isAllChecked =
     students.length > 0 && selectedIds.length === students.length;
+
+  const onSelectAll = () => {
+    handleSelectAll(students.map((s) => s.id));
+  };
 
   const renderSortIcon = (field: StudentRosterSortField) => {
     if (sortField !== field || sortOrder === "none") {

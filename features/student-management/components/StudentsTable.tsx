@@ -7,7 +7,7 @@ import {
   ChevronDown,
   ChevronsUpDown,
 } from "lucide-react";
-import { StudentItem, StudentSortField, SortDirection } from "@/features/student-management/types";
+import { StudentSortField } from "@/features/student-management/types";
 import {
   StudentStatusBadge,
   StudentClassBadge,
@@ -27,49 +27,19 @@ import {
 } from "@/components/ui/table";
 import { useManageStudentsContext } from "@/features/student-management/contexts/ManageStudentsContext";
 
-interface StudentsTableProps {
-  items?: StudentItem[];
-  sortField?: StudentSortField | null;
-  sortDirection?: SortDirection;
-  onSortToggle?: (field: StudentSortField) => void;
-  onChangeClass?: (item: StudentItem) => void;
-  onEdit?: (item: StudentItem) => void;
-  onAdjustCoins?: (item: StudentItem) => void;
-  onOpenTransactions?: (item: StudentItem) => void;
-  onResetPin?: (item: StudentItem) => void;
-  onToggleStatus?: (item: StudentItem) => void;
-  onDelete?: (item: StudentItem) => void;
-  onRestore?: (item: StudentItem) => void;
-  onPermanentDelete?: (item: StudentItem) => void;
-}
-
-export function StudentsTable(props?: StudentsTableProps) {
-  const context = useManageStudentsContext();
-  const items = props?.items ?? context.paginatedStudents;
-  const sortField =
-    props?.sortField !== undefined ? props.sortField : context.sortField;
-  const sortDirection = props?.sortDirection ?? context.sortDirection;
-  const onSortToggle = props?.onSortToggle ?? context.handleSortToggle;
-  const onChangeClass = props?.onChangeClass ?? context.handleOpenChangeClass;
-  const onEdit = props?.onEdit ?? context.handleOpenEditStudent;
-  const onAdjustCoins = props?.onAdjustCoins ?? context.handleOpenAdjustCoins;
-  const onOpenTransactions =
-    props?.onOpenTransactions ?? context.handleOpenTransactions;
-  const onResetPin = props?.onResetPin ?? context.handleOpenResetPin;
-  const onToggleStatus =
-    props?.onToggleStatus ?? context.handleToggleStudentStatus;
-  const onDelete = props?.onDelete ?? context.handleOpenDeleteModal;
-  const onRestore = props?.onRestore ?? context.handleRestoreStudent;
-  const onPermanentDelete =
-    props?.onPermanentDelete ?? context.handleOpenPermanentModal;
-
+export function StudentsTable() {
   const {
+    paginatedStudents: items,
+    sortField,
+    sortDirection,
+    handleSortToggle: onSortToggle,
+    handleOpenEditStudent: onEdit,
+    handleOpenTransactions: onOpenTransactions,
     handleToggleSelect,
     handleSelectAll,
     isSelected,
     isAllSelected,
-    restoringId,
-  } = context;
+  } = useManageStudentsContext();
 
   const allVisibleIds = items.map((i) => i.id);
   const isAllChecked = isAllSelected(allVisibleIds);
@@ -296,18 +266,7 @@ export function StudentsTable(props?: StudentsTableProps) {
 
               {/* Cột Hành động */}
               <TableCell className="text-right pr-6">
-                <StudentRowActions
-                  item={student}
-                  onChangeClass={onChangeClass}
-                  onEdit={onEdit}
-                  onAdjustCoins={onAdjustCoins}
-                  onResetPin={onResetPin}
-                  onToggleStatus={onToggleStatus}
-                  onDelete={onDelete}
-                  onRestore={onRestore}
-                  onPermanentDelete={onPermanentDelete}
-                  isRestoring={restoringId === student.id}
-                />
+                <StudentRowActions item={student} />
               </TableCell>
             </TableRow>
           );

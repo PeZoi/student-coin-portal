@@ -1,22 +1,13 @@
 import { Users, CheckCircle2, School, UserCheck } from "lucide-react";
 import { useManageTeachersContext } from "@/features/teacher-management/contexts/ManageTeachersContext";
 
-interface TeachersKpiCardsProps {
-  totalTeachers?: number;
-  activeTeachers?: number;
-  assignedTeachersCount?: number;
-  unassignedTeachersCount?: number;
-}
-
-export function TeachersKpiCards(props?: TeachersKpiCardsProps) {
-  const context = useManageTeachersContext();
-  const totalTeachers = props?.totalTeachers ?? context.totalTeachers;
-  const activeTeachers = props?.activeTeachers ?? context.activeTeachers;
-  const assignedTeachersCount =
-    props?.assignedTeachersCount ?? context.assignedTeachersCount;
-  const unassignedTeachersCount =
-    props?.unassignedTeachersCount ??
-    Math.max(0, totalTeachers - assignedTeachersCount);
+export function TeachersKpiCards() {
+  const { totalTeachers, activeTeachers, assignedTeachersCount } =
+    useManageTeachersContext();
+  const unassignedTeachersCount = Math.max(
+    0,
+    totalTeachers - assignedTeachersCount
+  );
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

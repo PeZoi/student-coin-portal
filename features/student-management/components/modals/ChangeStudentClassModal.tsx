@@ -7,29 +7,14 @@ import { TeacherSelect, TeacherSelectOption } from "@/components/ui/TeacherSelec
 import { StudentItem } from "@/features/student-management/types";
 import { useManageStudentsContext } from "@/features/student-management/contexts/ManageStudentsContext";
 
-interface ChangeStudentClassModalProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-  studentItem?: StudentItem | null;
-  onSubmit?: (
-    studentId: string,
-    newClassId: string,
-    newClassName: string,
-    resetProgress?: boolean
-  ) => Promise<boolean | void> | boolean | void;
-  isSubmitting?: boolean;
-}
-
-export function ChangeStudentClassModal(props?: ChangeStudentClassModalProps) {
-  const context = useManageStudentsContext();
-  const isOpen = props?.isOpen ?? context.isChangeClassOpen;
-  const onClose = props?.onClose ?? context.handleCloseChangeClass;
-  const studentItem =
-    props?.studentItem !== undefined
-      ? props.studentItem
-      : context.changingClassStudent;
-  const onSubmit = props?.onSubmit ?? context.handleChangeClassSubmit;
-  const isSubmitting = props?.isSubmitting ?? context.isSubmitting;
+export function ChangeStudentClassModal() {
+  const {
+    isChangeClassOpen: isOpen,
+    handleCloseChangeClass: onClose,
+    changingClassStudent: studentItem,
+    handleChangeClassSubmit: onSubmit,
+    isSubmitting,
+  } = useManageStudentsContext();
 
   if (!isOpen || !studentItem) return null;
 

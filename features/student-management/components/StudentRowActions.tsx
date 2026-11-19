@@ -21,16 +21,6 @@ import { useManageStudentsContext } from "@/features/student-management/contexts
 interface StudentRowActionsProps {
   item: StudentItem;
   fullWidth?: boolean;
-  onChangeClass?: (item: StudentItem) => void;
-  onEdit?: (item: StudentItem) => void;
-  onAdjustCoins?: (item: StudentItem) => void;
-  onResetPin?: (item: StudentItem) => void;
-  onToggleStatus?: (item: StudentItem) => void;
-  onUnlock?: (item: StudentItem) => void;
-  onDelete?: (item: StudentItem) => void;
-  onRestore?: (item: StudentItem) => void;
-  onPermanentDelete?: (item: StudentItem) => void;
-  isRestoring?: boolean;
 }
 
 interface MenuPosition {
@@ -46,21 +36,22 @@ const VIEWPORT_PADDING = 12;
 export function StudentRowActions({
   item,
   fullWidth = false,
-  onChangeClass,
-  onEdit,
-  onAdjustCoins,
-  onResetPin,
-  onToggleStatus,
-  onUnlock,
-  onDelete,
-  onRestore,
-  onPermanentDelete,
-  isRestoring = false,
 }: StudentRowActionsProps) {
-  const context = useManageStudentsContext();
-  const isAdmin = context.isAdmin;
-  const canSoftDelete = context.canSoftDelete;
-  const handleUnlockAction = onUnlock ?? context.handleUnlockStudent;
+  const {
+    isAdmin,
+    canSoftDelete,
+    restoringId,
+    handleOpenChangeClass: onChangeClass,
+    handleOpenEditStudent: onEdit,
+    handleOpenAdjustCoins: onAdjustCoins,
+    handleOpenResetPin: onResetPin,
+    handleToggleStudentStatus: onToggleStatus,
+    handleUnlockStudent: handleUnlockAction,
+    handleOpenDeleteModal: onDelete,
+    handleRestoreStudent: onRestore,
+    handleOpenPermanentModal: onPermanentDelete,
+  } = useManageStudentsContext();
+  const isRestoring = restoringId === item.id;
   const [isOpen, setIsOpen] = useState(false);
   const [menuPos, setMenuPos] = useState<MenuPosition>({
     top: 0,

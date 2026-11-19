@@ -12,7 +12,6 @@ import {
 import { Tooltip } from "@/components/ui/tooltip";
 import { WHEEL_CONSTANTS } from "@/constants/wheel";
 import { useWheelConfigContext } from "../contexts/WheelConfigContext";
-import { checkIsSlotModified } from "../utils/wheelUtils";
 import { WheelSlotCard, DropMode } from "./WheelSlotCard";
 
 /**
@@ -22,22 +21,14 @@ import { WheelSlotCard, DropMode } from "./WheelSlotCard";
 export function WheelSlotsGrid() {
 	const {
 		slots,
-		savedSlots,
 		totalWeight,
-		selectedSlotId,
-		setSelectedSlotId,
 		isSlotsDirty: isDirty,
 		isSavingSlots: isSaving,
 		setIsAddModalOpen,
-		setEditingSlot,
-		handleToggleActive,
-		handleToggleLock,
-		handleDeleteSlot,
 		setConfirmBalanceMode,
 		handleResetSlots,
 		handleSaveSlots,
 		handleReorderSlots,
-		handleMoveSlot,
 	} = useWheelConfigContext();
 
 	// Quản lý trạng thái Kéo Thả (Drag and Drop Reordering)
@@ -186,22 +177,12 @@ export function WheelSlotsGrid() {
 					<WheelSlotCard
 						key={slot.id}
 						slot={slot}
-						totalWeight={totalWeight}
-						isSelected={slot.id === selectedSlotId}
-						totalSlotsCount={slots.length}
-						isDirty={checkIsSlotModified(slot, savedSlots)}
 						isDragging={draggedId === slot.id}
 						dropMode={
 							dragOverTarget?.id === slot.id && draggedId !== slot.id
 								? dragOverTarget.mode
 								: null
 						}
-						onSelect={() => setSelectedSlotId(slot.id)}
-						onEdit={() => setEditingSlot(slot)}
-						onToggleActive={() => handleToggleActive(slot.id)}
-						onToggleLock={() => handleToggleLock(slot.id)}
-						onDelete={() => handleDeleteSlot(slot.id)}
-						onMoveSlot={handleMoveSlot}
 						onDragStart={() => setDraggedId(slot.id)}
 						onDragOver={(id, mode) => {
 							if (draggedId && draggedId !== id) {

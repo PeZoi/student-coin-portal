@@ -49,12 +49,6 @@ import {
   getInitials,
 } from "../../utils";
 
-interface MissionProgressModalProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-  mission?: TeacherMissionItem | null;
-}
-
 /**
  * Modal hiển thị chi tiết tiến độ làm bài của học sinh (ai làm rồi, ai chưa làm)
  * - Tự động bóc tách và phân loại 2 nhóm: "Đã nộp bài" và "Chưa nộp bài"
@@ -63,14 +57,12 @@ interface MissionProgressModalProps {
  * - Nút sao chép danh sách học sinh chưa nộp gửi nhóm Zalo phụ huynh tiện lợi
  * - Nút chuyển tiếp nhanh sang Studio Duyệt bài tập
  */
-export function MissionProgressModal(props?: MissionProgressModalProps) {
-  const context = useManageMissionsContext();
-  const isOpen = props?.isOpen ?? context.isProgressModalOpen;
-  const onClose = props?.onClose ?? context.handleCloseProgressModal;
-  const mission =
-    props?.mission !== undefined
-      ? props.mission
-      : context.viewingProgressMission;
+export function MissionProgressModal() {
+  const {
+    isProgressModalOpen: isOpen,
+    handleCloseProgressModal: onClose,
+    viewingProgressMission: mission,
+  } = useManageMissionsContext();
 
   if (!isOpen || !mission) return null;
 

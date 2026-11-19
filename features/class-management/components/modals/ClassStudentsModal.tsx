@@ -32,12 +32,6 @@ import { useTeacherClassesContext } from "@/features/class-management/contexts/T
 import { normalizeText } from "@/features/class-management/utils";
 import { StudentCoinsBadge } from "@/features/student-management/components/StudentBadges";
 
-interface ClassStudentsModalProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-  item?: MockClassItem | null;
-}
-
 /**
  * Modal hiển thị danh sách học sinh của một lớp học cụ thể
  * - Sử dụng SWR để tự động cache và deduplicate request
@@ -45,11 +39,12 @@ interface ClassStudentsModalProps {
  * - Hỗ trợ 2 chế độ hiển thị: Dạng Bảng (Table) và Dạng Lưới (Grid)
  * - Hiển thị ảnh xu vàng 3D (/wheel/coin.webp) và avatar tối ưu
  */
-export function ClassStudentsModal(props?: ClassStudentsModalProps) {
-  const context = useTeacherClassesContext();
-  const isOpen = props?.isOpen ?? context.isStudentsModalOpen;
-  const onClose = props?.onClose ?? context.handleCloseStudentsModal;
-  const item = props?.item !== undefined ? props.item : context.viewingStudentsClass;
+export function ClassStudentsModal() {
+  const {
+    isStudentsModalOpen: isOpen,
+    handleCloseStudentsModal: onClose,
+    viewingStudentsClass: item,
+  } = useTeacherClassesContext();
 
   if (!isOpen || !item) return null;
 

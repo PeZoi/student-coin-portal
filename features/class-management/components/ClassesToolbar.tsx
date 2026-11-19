@@ -5,31 +5,20 @@ import { TeacherSelect, TeacherSelectOption } from "@/components/ui/TeacherSelec
 import { StatusFilter } from "@/features/class-management/types";
 import { useTeacherClassesContext } from "@/features/class-management/contexts/TeacherClassesContext";
 
-interface ClassesToolbarProps {
-  statusFilter?: StatusFilter;
-  onStatusFilterChange?: (filter: StatusFilter) => void;
-  searchQuery?: string;
-  onSearchQueryChange?: (query: string) => void;
-  totalCount?: number;
-  activeCount?: number;
-  inactiveCount?: number;
-  onRefresh?: () => void;
-  isRefreshing?: boolean;
-}
-
-export function ClassesToolbar(props?: ClassesToolbarProps) {
-  const context = useTeacherClassesContext();
-  const statusFilter = props?.statusFilter ?? context.statusFilter;
-  const onStatusFilterChange =
-    props?.onStatusFilterChange ?? context.setStatusFilter;
-  const searchQuery = props?.searchQuery ?? context.searchQuery;
-  const onSearchQueryChange =
-    props?.onSearchQueryChange ?? context.setSearchQuery;
-  const totalCount = props?.totalCount ?? context.totalClasses;
-  const activeCount = props?.activeCount ?? context.activeClasses;
-  const inactiveCount = props?.inactiveCount ?? context.inactiveClasses;
-  const onRefresh = props?.onRefresh ?? context.handleRefresh;
-  const isRefreshing = props?.isRefreshing ?? context.isRefreshing;
+export function ClassesToolbar() {
+  const {
+    statusFilter,
+    setStatusFilter: onStatusFilterChange,
+    searchQuery,
+    setSearchQuery: onSearchQueryChange,
+    totalClasses: totalCount,
+    activeClasses: activeCount,
+    inactiveClasses: inactiveCount,
+    deletedClasses,
+    isAdmin,
+    handleRefresh: onRefresh,
+    isRefreshing,
+  } = useTeacherClassesContext();
 
   // 1. Tùy chọn lọc Trạng thái (chuyển từ các tab sang Select)
   const statusFilterOptions: TeacherSelectOption[] = useMemo(
@@ -58,7 +47,7 @@ export function ClassesToolbar(props?: ClassesToolbarProps) {
         </div>
 
         {/* Nút Đã xóa riêng biệt (Chỉ hiển thị cho Admin, cảnh báo màu đỏ) */}
-        {context.isAdmin && (
+        {isAdmin && (
           <button
             type="button"
             onClick={() => onStatusFilterChange("deleted")}
@@ -68,7 +57,7 @@ export function ClassesToolbar(props?: ClassesToolbarProps) {
                 : "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80"
             }`}
           >
-            Đã xóa ({context.deletedClasses})
+            Đã xóa ({deletedClasses})
           </button>
         )}
       </div>

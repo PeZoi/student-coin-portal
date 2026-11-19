@@ -6,27 +6,15 @@ import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/ui/moda
 import { TeacherStaffItem, TeacherFormValues } from "@/features/teacher-management/types";
 import { useManageTeachersContext } from "@/features/teacher-management/contexts/ManageTeachersContext";
 
-interface TeacherFormModalProps {
-  isOpen?: boolean;
-  onClose?: () => void;
-  initialData?: TeacherStaffItem | null;
-  onSubmit?: (
-    data: TeacherFormValues
-  ) => Promise<boolean | void> | boolean | void;
-  isSubmitting?: boolean;
-}
-
-export function TeacherFormModal(props?: TeacherFormModalProps) {
-  const context = useManageTeachersContext();
-  const isOpen = props?.isOpen ?? context.isTeacherFormOpen;
-  const onClose = props?.onClose ?? context.handleCloseTeacherForm;
-  const initialData =
-    props?.initialData !== undefined
-      ? props.initialData
-      : context.editingTeacher;
-  const onSubmit = props?.onSubmit ?? context.handleTeacherFormSubmit;
-  const isSubmitting = props?.isSubmitting ?? context.isSubmitting;
-  const formKey = context.formKey;
+export function TeacherFormModal() {
+  const {
+    isTeacherFormOpen: isOpen,
+    handleCloseTeacherForm: onClose,
+    editingTeacher: initialData,
+    handleTeacherFormSubmit: onSubmit,
+    isSubmitting,
+    formKey,
+  } = useManageTeachersContext();
 
   if (!isOpen) return null;
 

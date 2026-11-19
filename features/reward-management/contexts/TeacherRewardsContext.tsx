@@ -43,14 +43,6 @@ export function TeacherRewardsProvider({
 }
 
 /**
- * Hook truy xuất Context an toàn (trả về null nếu nằm ngoài Provider)
- * - Dùng cho các Component hoặc Modal hỗ trợ tái sử dụng độc lập (standalone) bằng props
- */
-export function useOptionalTeacherRewardsContext(): TeacherRewardsContextType | null {
-  return useContext(TeacherRewardsContext);
-}
-
-/**
  * Hook truy xuất Context bắt buộc (ném Exception rõ ràng nếu quên bọc Provider)
  */
 export function useTeacherRewardsContext(): TeacherRewardsContextType {

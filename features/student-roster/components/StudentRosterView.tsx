@@ -112,26 +112,6 @@ function StudentRosterContent() {
     pageSize,
     setPageSize,
     totalPages,
-    rewardsStudent,
-    isRewardsModalOpen,
-    handleCloseRewardsModal,
-    historyStudent,
-    isHistoryModalOpen,
-    handleCloseHistoryModal,
-    missionsStudent,
-    isMissionsModalOpen,
-    handleCloseMissionsModal,
-    awardStudent,
-    isAwardModalOpen,
-    handleCloseAwardModal,
-    handleAwardSubmit,
-    isAwardSubmitting,
-    resetPinStudent,
-    isResetPinModalOpen,
-    handleCloseResetPinModal,
-    handleResetPinSubmit,
-    isResetPinSubmitting,
-    toStudentItem,
   } = useStudentRosterContext();
 
   return (
@@ -191,43 +171,19 @@ function StudentRosterContent() {
 
       {/* 5. Toàn bộ các Hộp thoại (Modals) quản lý học sinh */}
       {/* Modal 1: Chi tiết các phần quà Heo Đất đã đổi */}
-      <StudentExchangeGiftsModal
-        isOpen={isRewardsModalOpen}
-        onClose={handleCloseRewardsModal}
-        student={rewardsStudent}
-      />
+      <StudentExchangeGiftsModal />
 
       {/* Modal 2: Lịch sử sao kê giao dịch ví xu Heo Đất (Tái sử dụng modal dùng chung) */}
-      <StudentCoinTransactionsModal
-        isOpen={isHistoryModalOpen}
-        onClose={handleCloseHistoryModal}
-        studentItem={toStudentItem(historyStudent)}
-      />
+      <StudentCoinTransactionsModal />
 
       {/* Modal 3: Danh sách bài tập đã giao và duyệt bài ngoại lệ */}
-      <StudentAssignedMissionsModal
-        isOpen={isMissionsModalOpen}
-        onClose={handleCloseMissionsModal}
-        student={missionsStudent}
-      />
+      <StudentAssignedMissionsModal />
 
       {/* Modal 4: Thưởng nóng xu / Trừ xu */}
-      <AdjustStudentCoinsModal
-        isOpen={isAwardModalOpen}
-        onClose={handleCloseAwardModal}
-        studentItem={toStudentItem(awardStudent)}
-        onSubmit={handleAwardSubmit}
-        isSubmitting={isAwardSubmitting}
-      />
+      <AdjustStudentCoinsModal />
 
       {/* Modal 5: Đặt lại mã PIN */}
-      <ResetStudentPinModal
-        isOpen={isResetPinModalOpen}
-        onClose={handleCloseResetPinModal}
-        studentItem={toStudentItem(resetPinStudent)}
-        onSubmit={handleResetPinSubmit}
-        isSubmitting={isResetPinSubmitting}
-      />
+      <ResetStudentPinModal />
     </div>
   );
 }

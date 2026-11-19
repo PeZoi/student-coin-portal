@@ -20,14 +20,6 @@ import { useManageTeachersContext } from "@/features/teacher-management/contexts
 interface TeacherRowActionsProps {
   item: TeacherStaffItem;
   fullWidth?: boolean;
-  onAssignClasses?: (item: TeacherStaffItem) => void;
-  onEdit?: (item: TeacherStaffItem) => void;
-  onResetPassword?: (item: TeacherStaffItem) => void;
-  onToggleStatus?: (item: TeacherStaffItem) => void;
-  onDelete?: (item: TeacherStaffItem) => void;
-  onRestore?: (item: TeacherStaffItem) => void;
-  onPermanentDelete?: (item: TeacherStaffItem) => void;
-  isRestoring?: boolean;
 }
 
 interface MenuPosition {
@@ -43,24 +35,20 @@ const VIEWPORT_PADDING = 12;
 export function TeacherRowActions({
   item,
   fullWidth = false,
-  onAssignClasses,
-  onEdit,
-  onResetPassword,
-  onToggleStatus,
-  onDelete,
-  onRestore,
-  onPermanentDelete,
-  isRestoring = false,
 }: TeacherRowActionsProps) {
-  let isAdmin = false;
-  let canSoftDelete = false;
-  try {
-    const context = useManageTeachersContext();
-    isAdmin = context.isAdmin ?? false;
-    canSoftDelete = context.canSoftDelete ?? false;
-  } catch {
-    //
-  }
+  const {
+    isAdmin,
+    canSoftDelete,
+    restoringId,
+    handleOpenAssignClasses: onAssignClasses,
+    handleOpenEditTeacher: onEdit,
+    handleOpenResetPassword: onResetPassword,
+    handleToggleTeacherStatus: onToggleStatus,
+    handleOpenDeleteModal: onDelete,
+    handleRestoreTeacher: onRestore,
+    handleOpenPermanentModal: onPermanentDelete,
+  } = useManageTeachersContext();
+  const isRestoring = restoringId === item.id;
 
   const [isOpen, setIsOpen] = useState(false);
   const [menuPos, setMenuPos] = useState<MenuPosition>({

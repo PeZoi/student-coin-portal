@@ -4,31 +4,14 @@ import { TeacherStatusBadge, AssignedClassesList } from "./TeacherBadges";
 import { TeacherRowActions } from "./TeacherRowActions";
 import { getTeacherColor, getTeacherInitial } from "@/features/class-management/utils";
 import { formatDate } from "@/lib/date";
+import { useManageTeachersContext } from "@/features/teacher-management/contexts/ManageTeachersContext";
 
 interface TeacherCardProps {
   item: TeacherStaffItem;
-  onAssignClasses?: (item: TeacherStaffItem) => void;
-  onEdit?: (item: TeacherStaffItem) => void;
-  onResetPassword?: (item: TeacherStaffItem) => void;
-  onToggleStatus?: (item: TeacherStaffItem) => void;
-  onViewDetails?: (item: TeacherStaffItem) => void;
-  onDelete?: (item: TeacherStaffItem) => void;
-  onRestore?: (item: TeacherStaffItem) => void;
-  onPermanentDelete?: (item: TeacherStaffItem) => void;
-  isRestoring?: boolean;
 }
 
-export function TeacherCard({
-  item,
-  onAssignClasses,
-  onEdit,
-  onResetPassword,
-  onToggleStatus,
-  onDelete,
-  onRestore,
-  onPermanentDelete,
-  isRestoring = false,
-}: TeacherCardProps) {
+export function TeacherCard({ item }: TeacherCardProps) {
+  const { handleOpenEditTeacher: onEdit } = useManageTeachersContext();
   const color = getTeacherColor(item.full_name);
   const initial = getTeacherInitial(item.full_name);
 
@@ -122,18 +105,7 @@ export function TeacherCard({
 
       {/* Hàng 5: Nút "Gán lớp" chiếm phần lớn chiều rộng + nút "⋯" hoặc Khôi phục / Xóa vĩnh viễn */}
       <div className="pt-2 border-t border-slate-100">
-        <TeacherRowActions
-          item={item}
-          fullWidth
-          onAssignClasses={onAssignClasses}
-          onEdit={onEdit}
-          onResetPassword={onResetPassword}
-          onToggleStatus={onToggleStatus}
-          onDelete={onDelete}
-          onRestore={onRestore}
-          onPermanentDelete={onPermanentDelete}
-          isRestoring={isRestoring}
-        />
+        <TeacherRowActions item={item} fullWidth />
       </div>
     </div>
   );
