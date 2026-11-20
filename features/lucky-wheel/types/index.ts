@@ -72,13 +72,25 @@ export interface SpinWheelPayload {
   finalAngle?: number;
 }
 
+export interface WheelHistoryPagination {
+  page: number;
+  limit: number;
+  total: number;
+  has_more: boolean;
+}
+
+export interface WheelHistoryPageData {
+  items: WheelWinner[];
+  pagination: WheelHistoryPagination;
+}
+
 /**
  * Dữ liệu khởi tạo Vòng quay cho Học sinh (Tên trường đồng bộ với bảng public.users)
  */
 export interface StudentWheelInitialData {
   config: WheelConfig;
-  allWinners: WheelWinner[];
-  myHistory: WheelWinner[];
+  allWinners?: WheelWinner[];
+  myHistory?: WheelWinner[];
   free_spins: number;
   current_coins: number;
 }

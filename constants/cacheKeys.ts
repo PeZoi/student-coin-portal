@@ -82,6 +82,11 @@ export const CACHE_KEYS = {
       page !== undefined
         ? `teacher-wheel-spins-p${page}`
         : "teacher-wheel-spins",
+    /** Lịch sử lượt quay may mắn trong Modal học sinh (Infinite Scroll: Toàn bộ / Bản thân) */
+    STUDENT_HISTORY: (tab: "all" | "personal", page?: number) =>
+      page !== undefined
+        ? (["student-wheel-history", tab, page] as const)
+        : (["student-wheel-history", tab] as const),
   },
 
   // 7. Duyệt bài tập Studio (Submission Management)

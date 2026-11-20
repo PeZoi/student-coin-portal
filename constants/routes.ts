@@ -52,6 +52,11 @@ export const AppRoutes = {
       ME: "/api/auth/me",
     },
     CLASSES: "/api/classes",
+    STUDENT: {
+      WHEEL: "/api/student/wheel",
+      WHEEL_SPIN: "/api/student/wheel/spin",
+      WHEEL_HISTORY: "/api/student/wheel/history",
+    },
     TEACHER: {
       CLASSES: "/api/teacher/classes",
       MY_CLASSES: "/api/teacher/my-classes",

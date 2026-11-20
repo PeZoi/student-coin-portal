@@ -1,6 +1,11 @@
 import { http } from "@/lib/http/httpClient";
 import { ApiResponse } from "@/types/api";
-import { StudentWheelInitialData, WheelPrize } from "../types";
+import { AppRoutes } from "@/constants/routes";
+import {
+  StudentWheelInitialData,
+  WheelPrize,
+  WheelHistoryPageData,
+} from "../types";
 
 export interface SpinApiResponseData {
   config_changed: boolean;
@@ -43,6 +48,24 @@ export const luckyWheelService = {
     );
     if (!res.data) {
       throw new Error("Không nhận được phản hồi kết quả quay từ máy chủ.");
+    }
+    return res.data;
+  },
+
+  /**
+   * Lấy danh sách lịch sử lượt quay may mắn cho học sinh (hỗ trợ phân trang Infinite Scroll)
+   */
+  async getSpinHistory(params: {
+    tab?: "all" | "personal";
+    page?: number;
+    limit?: number;
+  }): Promise<WheelHistoryPageData> {
+    const { tab = "all", page = 1, limit = 20 } = params;
+    const res = await http.get<ApiResponse<WheelHistoryPageData>>(
+      `${AppRoutes.API.STUDENT.WHEEL_HISTORY}?tab=${tab}&page=${page}&limit=${limit}`
+    );
+    if (!res.data) {
+      throw new Error("Không thể tải danh sách lịch sử vòng quay.");
     }
     return res.data;
   },

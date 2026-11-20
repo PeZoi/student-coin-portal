@@ -15,6 +15,7 @@ import {
   WheelConfig,
   PrizeType,
   StudentWheelInitialData,
+  WheelHistoryPageData,
 } from "../types";
 import { defaultWheelConfig } from "../data/wheelData";
 
@@ -60,7 +61,8 @@ function mapSpinRowToWinner(row: SpinHistoryRow): WheelWinner {
 }
 
 /**
- * Server Service: Lấy cấu hình Vòng Quay May Mắn và lịch sử trúng thưởng thực tế từ CSDL cho học sinh
+ * Server Service: Lấy cấu hình Vòng Quay May Mắn cho học sinh (SSR nhẹ nhàng 0ms độ trễ)
+ * - Lịch sử trúng thưởng được lazy-load chỉ khi học sinh mở popup (Quy tắc 9 AGENTS.md)
  */
 export async function getStudentWheelInitialDataServer(
   session?: AuthTokenPayload | null
@@ -68,50 +70,30 @@ export async function getStudentWheelInitialDataServer(
   try {
     const studentId = session?.userId;
 
-    const [prizesRes, settingsRes, recentSpinsRes, mySpinsRes, studentRes] =
-      await Promise.all([
-        supabase
-          .from("wheel_prizes")
-          .select(
-            "id, slot_order, label, short_label, prize_type, reward_coins, reward_free_spins, probability_weight"
-          )
-          .eq("is_deleted", false)
-          .eq("is_active", true)
-          .order("slot_order", { ascending: true }),
+    const [prizesRes, settingsRes, studentRes] = await Promise.all([
+      supabase
+        .from("wheel_prizes")
+        .select(
+          "id, slot_order, label, short_label, prize_type, reward_coins, reward_free_spins, probability_weight"
+        )
+        .eq("is_deleted", false)
+        .eq("is_active", true)
+        .order("slot_order", { ascending: true }),
 
-        supabase
-          .from("system_settings")
-          .select("value")
-          .eq("key", WHEEL_CONSTANTS.SYSTEM_SETTING_KEY)
-          .maybeSingle(),
+      supabase
+        .from("system_settings")
+        .select("value")
+        .eq("key", WHEEL_CONSTANTS.SYSTEM_SETTING_KEY)
+        .maybeSingle(),
 
-        supabase
-          .from("wheel_spins")
-          .select(
-            "id, student_id, prize_label_snapshot, prize_type_snapshot, reward_coins, reward_free_spins, created_at, users(full_name, avatar_url, classes!users_class_id_fkey(class_name))"
-          )
-          .order("created_at", { ascending: false })
-          .limit(WHEEL_CONSTANTS.RECENT_WINNERS_LIMIT),
-
-        studentId
-          ? supabase
-              .from("wheel_spins")
-              .select(
-                "id, student_id, prize_label_snapshot, prize_type_snapshot, reward_coins, reward_free_spins, created_at"
-              )
-              .eq("student_id", studentId)
-              .order("created_at", { ascending: false })
-              .limit(WHEEL_CONSTANTS.RECENT_WINNERS_LIMIT)
-          : Promise.resolve({ data: [] as SpinHistoryRow[] }),
-
-        studentId
-          ? supabase
-              .from("users")
-              .select("current_coins, free_spins")
-              .eq("id", studentId)
-              .maybeSingle()
-          : Promise.resolve({ data: null }),
-      ]);
+      studentId
+        ? supabase
+            .from("users")
+            .select("current_coins, free_spins")
+            .eq("id", studentId)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
 
     const prizes: WheelPrize[] = (prizesRes.data || []).map((p) => ({
       id: p.id,
@@ -149,32 +131,13 @@ export async function getStudentWheelInitialDataServer(
       prizes,
     };
 
-    const allWinners: WheelWinner[] = (
-      (recentSpinsRes.data as SpinHistoryRow[] | null) || []
-    ).map(mapSpinRowToWinner);
-
-    const myHistory: WheelWinner[] = (
-      (mySpinsRes.data as SpinHistoryRow[] | null) || []
-    ).map((row) => ({
-      id: row.id,
-      student_name: "Bạn",
-      class_name: "Lớp học",
-      avatar_url: WHEEL_ASSETS.DEFAULT_AVATAR,
-      prize_label_snapshot: row.prize_label_snapshot,
-      prize_type_snapshot:
-        (row.prize_type_snapshot as PrizeType) || WHEEL_PRIZE_TYPES.COIN,
-      reward_coins: Number(row.reward_coins) || 0,
-      reward_free_spins: Number(row.reward_free_spins) || 0,
-      created_at: formatShortDateTime(row.created_at),
-    }));
-
     const current_coins = Number(studentRes.data?.current_coins ?? 0);
     const free_spins = Number(studentRes.data?.free_spins ?? 0);
 
     return {
       config,
-      allWinners,
-      myHistory,
+      allWinners: [],
+      myHistory: [],
       free_spins,
       current_coins,
     };
@@ -187,6 +150,141 @@ export async function getStudentWheelInitialDataServer(
       myHistory: [],
       free_spins: 0,
       current_coins: 0,
+    };
+  }
+}
+
+/**
+ * Server Service: Lấy danh sách lịch sử lượt quay thực tế có phân trang (Hỗ trợ Infinite Scroll & Lazy Load khi mở Popup)
+ */
+export async function getStudentWheelHistoryPageServer({
+  studentId,
+  tab = "all",
+  page = 1,
+  limit = WHEEL_CONSTANTS.RECENT_WINNERS_LIMIT,
+}: {
+  studentId?: string;
+  tab?: "all" | "personal";
+  page?: number;
+  limit?: number;
+}): Promise<WheelHistoryPageData> {
+  const safePage = Math.max(1, page);
+  const safeLimit = Math.max(1, Math.min(50, limit));
+  const from = (safePage - 1) * safeLimit;
+  const to = from + safeLimit - 1;
+
+  try {
+    if (tab === "personal") {
+      if (!studentId) {
+        return {
+          items: [],
+          pagination: {
+            page: safePage,
+            limit: safeLimit,
+            total: 0,
+            has_more: false,
+          },
+        };
+      }
+
+      const { data, count, error } = await supabase
+        .from("wheel_spins")
+        .select(
+          "id, student_id, prize_label_snapshot, prize_short_label_snapshot, prize_type_snapshot, reward_coins, reward_free_spins, created_at",
+          { count: "exact" }
+        )
+        .eq("student_id", studentId)
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      if (error) {
+        console.error("Lỗi khi tải lịch sử quay cá nhân:", error.message);
+        return {
+          items: [],
+          pagination: {
+            page: safePage,
+            limit: safeLimit,
+            total: 0,
+            has_more: false,
+          },
+        };
+      }
+
+      const total = count ?? 0;
+      const items: WheelWinner[] = ((data as SpinHistoryRow[]) || []).map(
+        (row) => ({
+          id: row.id,
+          student_name: "Bạn",
+          class_name: "Lớp học",
+          avatar_url: WHEEL_ASSETS.DEFAULT_AVATAR,
+          prize_label_snapshot: row.prize_label_snapshot,
+          prize_type_snapshot:
+            (row.prize_type_snapshot as PrizeType) || WHEEL_PRIZE_TYPES.COIN,
+          reward_coins: Number(row.reward_coins) || 0,
+          reward_free_spins: Number(row.reward_free_spins) || 0,
+          created_at: formatShortDateTime(row.created_at),
+        })
+      );
+
+      return {
+        items,
+        pagination: {
+          page: safePage,
+          limit: safeLimit,
+          total,
+          has_more: to + 1 < total,
+        },
+      };
+    }
+
+    // Tab "all" (Toàn bộ học sinh)
+    const { data, count, error } = await supabase
+      .from("wheel_spins")
+      .select(
+        "id, student_id, prize_label_snapshot, prize_short_label_snapshot, prize_type_snapshot, reward_coins, reward_free_spins, created_at, users(full_name, avatar_url, classes!users_class_id_fkey(class_name))",
+        { count: "exact" }
+      )
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      console.error("Lỗi khi tải lịch sử quay toàn bộ:", error.message);
+      return {
+        items: [],
+        pagination: {
+          page: safePage,
+          limit: safeLimit,
+          total: 0,
+          has_more: false,
+        },
+      };
+    }
+
+    const total = count ?? 0;
+    const items: WheelWinner[] = (
+      (data as SpinHistoryRow[]) || []
+    ).map(mapSpinRowToWinner);
+
+    return {
+      items,
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        has_more: to + 1 < total,
+      },
+    };
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    console.error("Lỗi ngoại lệ khi tải lịch sử quay:", error.message);
+    return {
+      items: [],
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total: 0,
+        has_more: false,
+      },
     };
   }
 }

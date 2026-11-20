@@ -1,19 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
-import dynamic from "next/dynamic";
-import { ArrowLeft, HelpCircle, History, Volume2, VolumeX } from "lucide-react";
 import { Button3D } from "@/components/ui/Button3D";
-import { DashboardBackgroundDecor } from "@/features/dashboard/components/DashboardBackgroundDecor";
-import { WheelSpinner } from "./WheelSpinner";
 import { WHEEL_ASSETS } from "@/constants/wheel";
-import { StudentWheelInitialData, WheelConfig } from "../types";
+import { DashboardBackgroundDecor } from "@/features/dashboard/components/DashboardBackgroundDecor";
+import { ArrowLeft, HelpCircle, History } from "lucide-react";
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 import { useWheelAudio } from "../audio/useWheelAudio";
 import {
   LuckyWheelProvider,
   useLuckyWheelContext,
 } from "../contexts/LuckyWheelContext";
+import { StudentWheelInitialData, WheelConfig } from "../types";
+import { WheelSpinner } from "./WheelSpinner";
 
 // Dynamic imports cho modal để giảm initial bundle size
 const WheelPrizeModal = dynamic(
@@ -40,8 +40,6 @@ function LuckyWheelContent() {
     rules,
     winningPrize,
     showPrizeModal,
-    winners,
-    myHistory,
     currentCoins,
     handleClosePrizeModal,
   } = useLuckyWheelContext();
@@ -139,22 +137,6 @@ function LuckyWheelContent() {
             <HelpCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
             <span>Hướng dẫn</span>
           </Button3D>
-
-          {/* Nút Bật/Tắt Âm thanh: Cùng chiều cao h-8 sm:h-9 */}
-          <Button3D
-            variant={audio.muted ? "gray" : "yellow"}
-            size="sm"
-            onClick={audio.toggleMute}
-            aria-label={audio.muted ? "Bật âm thanh" : "Tắt âm thanh"}
-            title={audio.muted ? "Bật âm thanh" : "Tắt âm thanh"}
-            className="h-8 sm:h-9 px-2 sm:px-2.5 text-xs sm:text-sm tracking-wide shadow-sm whitespace-nowrap flex-shrink-0 inline-flex items-center justify-center"
-          >
-            {audio.muted ? (
-              <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
-            ) : (
-              <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
-            )}
-          </Button3D>
         </div>
       </div>
 
@@ -200,8 +182,6 @@ function LuckyWheelContent() {
           audio.playClick();
           setShowHistoryModal(false);
         }}
-        allWinners={winners}
-        myHistory={myHistory}
       />
     </div>
   );
