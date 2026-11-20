@@ -23,6 +23,7 @@ interface ExecuteWheelSpinRpcResult {
   current_coins: number;
   total_earned_coins: number;
   free_spins: number;
+  unclaimed_gifts?: number;
 }
 
 /**

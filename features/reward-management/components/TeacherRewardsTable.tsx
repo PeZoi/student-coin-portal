@@ -8,6 +8,7 @@ import {
   XCircle,
   Banknote,
   ShoppingBag,
+  Gift,
   Clock,
   CheckCircle2,
   AlertCircle,
@@ -196,9 +197,11 @@ export function TeacherRewardsTable() {
       <TableBody>
         {requests.map((req) => {
           const isCash = req.choice_type === ExchangeChoiceType.CASH;
+          const isSpinGift = req.choice_type === ExchangeChoiceType.SPIN_GIFT;
           const isGift =
             req.choice_type === ExchangeChoiceType.GIFT ||
             (req.choice_type as string) === "shopee";
+          const isGiftLike = isGift || isSpinGift;
 
           const checked = isSelected(req.id);
 
@@ -265,6 +268,11 @@ export function TeacherRewardsTable() {
                     <Banknote className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                     <span>Tiền mặt</span>
                   </span>
+                ) : isSpinGift ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-50 text-purple-700 border border-purple-200/80 text-xs font-bold whitespace-nowrap">
+                    <Gift className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                    <span>Quà tuỳ chọn (Spin)</span>
+                  </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-50 text-orange-700 border border-orange-200/80 text-xs font-bold whitespace-nowrap">
                     <ShoppingBag className="w-3.5 h-3.5 text-orange-600 shrink-0" />
@@ -278,23 +286,25 @@ export function TeacherRewardsTable() {
                 <div className="font-extrabold text-[#0F172A] text-xs sm:text-sm tabular-nums truncate">
                   {req.amount_vnd.toLocaleString("vi-VN")} đ
                 </div>
-                <div className="inline-flex items-center gap-1 text-xs font-bold text-amber-700 mt-0.5 tabular-nums">
-                  <Image
-                    src="/coin.webp"
-                    alt="Xu"
-                    width={14}
-                    height={14}
-                    unoptimized
-                    style={{ height: "auto" }}
-                    className="w-3.5 h-3.5 object-contain shrink-0"
-                  />
-                  <span>-{req.coins_to_exchange.toLocaleString("vi-VN")}</span>
-                </div>
+                {!isSpinGift && (
+                  <div className="inline-flex items-center gap-1 text-xs font-bold text-amber-700 mt-0.5 tabular-nums">
+                    <Image
+                      src="/coin.webp"
+                      alt="Xu"
+                      width={14}
+                      height={14}
+                      unoptimized
+                      style={{ height: "auto" }}
+                      className="w-3.5 h-3.5 object-contain shrink-0"
+                    />
+                    <span>-{req.coins_to_exchange.toLocaleString("vi-VN")}</span>
+                  </div>
+                )}
               </TableCell>
 
               {/* Cột 4: Chi tiết / Link món quà (Kèm cảnh báo khi thiếu link) */}
               <TableCell className="py-3 px-3">
-                {isGift ? (
+                {isGiftLike ? (
                   <div className="space-y-1.5 min-w-0">
                     {!req.shopee_product_url ? (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold">
@@ -426,7 +436,14 @@ export function TeacherRewardsTable() {
 
                   {/* Khi PENDING: Nút Từ chối (Icon X đỏ với Tooltip) */}
                   {req.status === ExchangeRequestStatus.PENDING && onReject && (
-                    <Tooltip content="Từ chối yêu cầu (Hoàn xu)" side="top">
+                    <Tooltip
+                      content={
+                        isSpinGift
+                          ? "Từ chối yêu cầu (Hoàn hộp quà)"
+                          : "Từ chối yêu cầu (Hoàn xu)"
+                      }
+                      side="top"
+                    >
                       <button
                         type="button"
                         onClick={() => onReject(req)}

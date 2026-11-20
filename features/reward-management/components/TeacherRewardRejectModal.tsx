@@ -32,6 +32,7 @@ export function TeacherRewardRejectModal() {
   if (!request) return null;
 
   const isCash = request.choice_type === ExchangeChoiceType.CASH;
+  const isSpinGift = request.choice_type === ExchangeChoiceType.SPIN_GIFT;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,20 +60,35 @@ export function TeacherRewardRejectModal() {
         />
 
         <ModalBody className="p-5 space-y-4">
-          {/* Thông tin hoàn trả xu tự động */}
+          {/* Thông tin hoàn trả tự động (Xu hoặc Hộp quà Spin) */}
           <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200/90 text-amber-900 text-xs flex items-start gap-3 shadow-2xs">
             <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <p className="font-bold">Hệ thống sẽ tự động hoàn xu cho học sinh:</p>
-              <p>
-                Hoàn lại{" "}
-                <strong className="text-amber-700 font-extrabold">
-                  +{request.coins_to_exchange.toLocaleString("vi-VN")} xu
-                </strong>{" "}
-                vào Heo Đất của bé ({isCash ? "quy đổi tiền mặt" : "quà tặng tự chọn"}{" "}
-                {request.amount_vnd.toLocaleString("vi-VN")} đ) và gửi thông báo
-                chuông kèm lý do từ chối.
+              <p className="font-bold">
+                {isSpinGift
+                  ? "Hệ thống sẽ tự động hoàn lại lượt mở Hộp quà cho học sinh:"
+                  : "Hệ thống sẽ tự động hoàn xu cho học sinh:"}
               </p>
+              {isSpinGift ? (
+                <p>
+                  Hoàn lại{" "}
+                  <strong className="text-purple-700 font-extrabold">
+                    +1 Hộp quà (Spin)
+                  </strong>{" "}
+                  để bé chọn lại món quà khác (giá trị món quà:{" "}
+                  {request.amount_vnd.toLocaleString("vi-VN")} đ).
+                </p>
+              ) : (
+                <p>
+                  Hoàn lại{" "}
+                  <strong className="text-amber-700 font-extrabold">
+                    +{request.coins_to_exchange.toLocaleString("vi-VN")} xu
+                  </strong>{" "}
+                  vào Heo Đất của bé (
+                  {isCash ? "quy đổi tiền mặt" : "quà tặng tự chọn"}{" "}
+                  {request.amount_vnd.toLocaleString("vi-VN")} đ).
+                </p>
+              )}
             </div>
           </div>
 
@@ -142,7 +158,11 @@ export function TeacherRewardRejectModal() {
             ) : (
               <>
                 <XCircle className="w-3.5 h-3.5" />
-                <span>Xác nhận từ chối & Hoàn xu</span>
+                <span>
+                  {isSpinGift
+                    ? "Xác nhận từ chối & Hoàn hộp quà"
+                    : "Xác nhận từ chối & Hoàn xu"}
+                </span>
               </>
             )}
           </button>

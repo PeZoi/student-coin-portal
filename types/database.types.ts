@@ -1038,6 +1038,7 @@ export type Database = {
           pin_number: string | null
           role: string
           total_earned_coins: number
+          unclaimed_gifts: number
           updated_at: string | null
           updated_by: string | null
           username: string | null
@@ -1065,6 +1066,7 @@ export type Database = {
           pin_number?: string | null
           role?: string
           total_earned_coins?: number
+          unclaimed_gifts?: number
           updated_at?: string | null
           updated_by?: string | null
           username?: string | null
@@ -1092,6 +1094,7 @@ export type Database = {
           pin_number?: string | null
           role?: string
           total_earned_coins?: number
+          unclaimed_gifts?: number
           updated_at?: string | null
           updated_by?: string | null
           username?: string | null
@@ -1296,6 +1299,17 @@ export type Database = {
           user_id: string
         }[]
       }
+      claim_wheel_gift_box: {
+        Args: {
+          p_amount_vnd: number
+          p_month: number
+          p_shopee_note: string | null
+          p_shopee_product_url: string
+          p_student_id: string
+          p_year: number
+        }
+        Returns: Json
+      }
       execute_wheel_spin: {
         Args: {
           p_allow_free_spin: boolean
@@ -1364,7 +1378,7 @@ export type Database = {
         | "punctuation"
         | "content"
       mission_submission_type: "platform_proof" | "subjective_writing"
-      monthly_exchange_choice: "cash" | "gift"
+      monthly_exchange_choice: "cash" | "gift" | "spin_gift"
       monthly_exchange_status:
         | "pending"
         | "completed"
@@ -1511,7 +1525,7 @@ export const Constants = {
       ai_error_severity: ["minor", "major"],
       ai_error_type: ["spelling", "grammar", "vocab", "punctuation", "content"],
       mission_submission_type: ["platform_proof", "subjective_writing"],
-      monthly_exchange_choice: ["cash", "gift"],
+      monthly_exchange_choice: ["cash", "gift", "spin_gift"],
       monthly_exchange_status: [
         "pending",
         "completed",

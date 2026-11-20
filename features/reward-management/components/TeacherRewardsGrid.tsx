@@ -8,6 +8,7 @@ import {
   XCircle,
   Banknote,
   ShoppingBag,
+  Gift,
   Clock,
   CheckCircle2,
   Calendar,
@@ -118,9 +119,11 @@ export function TeacherRewardsGrid() {
     <div className="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {requests.map((req) => {
         const isCash = req.choice_type === ExchangeChoiceType.CASH;
+        const isSpinGift = req.choice_type === ExchangeChoiceType.SPIN_GIFT;
         const isGift =
           req.choice_type === ExchangeChoiceType.GIFT ||
           (req.choice_type as string) === "shopee";
+        const isGiftLike = isGift || isSpinGift;
         const theme = getCardStatusTheme(req.status);
 
         return (
@@ -197,18 +200,26 @@ export function TeacherRewardsGrid() {
                       "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-2xs border",
                       isCash
                         ? "bg-emerald-50 text-emerald-600 border-emerald-200/80"
-                        : "bg-orange-50 text-orange-600 border-orange-200/80"
+                        : isSpinGift
+                          ? "bg-purple-50 text-purple-600 border-purple-200/80"
+                          : "bg-orange-50 text-orange-600 border-orange-200/80"
                     )}
                   >
                     {isCash ? (
                       <Banknote className="w-5 h-5 stroke-[2.2]" />
+                    ) : isSpinGift ? (
+                      <Gift className="w-5 h-5 stroke-[2.2]" />
                     ) : (
                       <ShoppingBag className="w-5 h-5 stroke-[2.2]" />
                     )}
                   </div>
                   <div className="min-w-0">
                     <span className="text-[10px] font-extrabold uppercase tracking-wider block text-slate-500">
-                      {isCash ? "Tiền mặt" : "Quà tự chọn"}
+                      {isCash
+                        ? "Tiền mặt"
+                        : isSpinGift
+                          ? "Quà tuỳ chọn (Spin)"
+                          : "Quà tự chọn"}
                     </span>
                     <span className="text-base font-black text-[#0F172A] tracking-tight truncate block">
                       {req.amount_vnd.toLocaleString("vi-VN")} đ
@@ -216,28 +227,30 @@ export function TeacherRewardsGrid() {
                   </div>
                 </div>
 
-                {/* Badge Xu khấu trừ: Luôn sắc nét trên nền box trắng */}
-                <div className="text-right shrink-0">
-                  <span className="text-[10px] font-semibold text-slate-500 block mb-0.5">
-                    Xu khấu trừ
-                  </span>
-                  <div className="inline-flex items-center gap-1 text-xs font-black text-amber-800 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200/90 shadow-2xs">
-                    <Image
-                      src="/coin.webp"
-                      alt="Xu"
-                      width={13}
-                      height={13}
-                      unoptimized
-                      style={{ height: "auto" }}
-                      className="w-3.5 object-contain"
-                    />
-                    <span>-{req.coins_to_exchange.toLocaleString("vi-VN")}</span>
+                {/* Badge Xu khấu trừ: Chỉ hiển thị cho đơn đổi bằng xu (ẩn với Quà tuỳ chọn Spin) */}
+                {!isSpinGift && (
+                  <div className="text-right shrink-0">
+                    <span className="text-[10px] font-semibold text-slate-500 block mb-0.5">
+                      Xu khấu trừ
+                    </span>
+                    <div className="inline-flex items-center gap-1 text-xs font-black text-amber-800 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200/90 shadow-2xs">
+                      <Image
+                        src="/coin.webp"
+                        alt="Xu"
+                        width={13}
+                        height={13}
+                        unoptimized
+                        style={{ height: "auto" }}
+                        className="w-3.5 object-contain"
+                      />
+                      <span>-{req.coins_to_exchange.toLocaleString("vi-VN")}</span>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Thông tin Món quà hoặc ghi chú tiền mặt: Đặt trên thẻ trắng nhẹ nhàng */}
-              {isGift && (
+              {isGiftLike && (
                 <div
                   className={cn(
                     "p-3 rounded-xl border space-y-1.5 text-xs transition-colors",
@@ -342,7 +355,14 @@ export function TeacherRewardsGrid() {
 
                 {/* Khi PENDING: Nút Từ chối tinh tế */}
                 {req.status === ExchangeRequestStatus.PENDING && onReject && (
-                  <Tooltip content="Từ chối (Hoàn xu)" side="top">
+                  <Tooltip
+                    content={
+                      isSpinGift
+                        ? "Từ chối (Hoàn hộp quà)"
+                        : "Từ chối (Hoàn xu)"
+                    }
+                    side="top"
+                  >
                     <button
                       type="button"
                       onClick={() => onReject(req)}

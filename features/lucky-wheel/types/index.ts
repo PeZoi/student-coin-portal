@@ -55,6 +55,13 @@ export interface ExecuteWheelSpinRpcResult {
   current_coins: number;
   total_earned_coins: number;
   free_spins: number;
+  unclaimed_gifts?: number;
+}
+
+export interface ClaimWheelGiftResponseData {
+  request_id: string;
+  unclaimed_gifts: number;
+  created_at: string;
 }
 
 export interface SpinWheelPayload {
@@ -86,4 +93,5 @@ export interface StudentWheelInitialData {
   myHistory?: WheelWinner[];
   free_spins: number;
   current_coins: number;
+  unclaimed_gifts?: number;
 }

@@ -86,14 +86,19 @@ export const rewardExcelService = {
       const choiceLabel =
         req.choice_type === ExchangeChoiceType.CASH
           ? "Tiền mặt"
-          : "Quà tự chọn";
+          : req.choice_type === ExchangeChoiceType.SPIN_GIFT
+            ? "Quà tuỳ chọn (Spin)"
+            : "Quà tự chọn";
 
-      const giftDetail =
-        req.choice_type === ExchangeChoiceType.GIFT
-          ? req.shopee_product_url
-            ? `${req.shopee_product_url}${req.shopee_note ? ` (${req.shopee_note})` : ""}`
-            : req.shopee_note || "Chưa có link quà"
-          : req.shopee_note || "Tiền mặt tại lớp";
+      const isGiftLike =
+        req.choice_type === ExchangeChoiceType.GIFT ||
+        req.choice_type === ExchangeChoiceType.SPIN_GIFT;
+
+      const giftDetail = isGiftLike
+        ? req.shopee_product_url
+          ? `${req.shopee_product_url}${req.shopee_note ? ` (${req.shopee_note})` : ""}`
+          : req.shopee_note || "Chưa có link quà"
+        : req.shopee_note || "Tiền mặt tại lớp";
 
       const noteText = req.shopee_note || "";
       const dateText = req.processed_at

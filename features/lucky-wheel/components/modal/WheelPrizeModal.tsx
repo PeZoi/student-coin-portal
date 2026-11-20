@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { Sparkles, Star, X, Check, ArrowRight } from "lucide-react";
+import { Sparkles, Star, X, Check, ArrowRight, Gift } from "lucide-react";
 import { WheelPrize } from "../../types";
 import {
   getWheelPrizeModalContent,
@@ -17,12 +17,14 @@ interface WheelPrizeModalProps {
   prize: WheelPrize | null;
   isOpen: boolean;
   onClose: () => void;
+  onOpenGiftClaim?: () => void;
 }
 
 export function WheelPrizeModal({
   prize,
   isOpen,
   onClose,
+  onOpenGiftClaim,
 }: WheelPrizeModalProps) {
   useBodyScrollLock(isOpen && !!prize);
 
@@ -212,20 +214,41 @@ export function WheelPrizeModal({
         </p>
 
         {/* Nút hành động 3D nổi bật: Kích cỡ lớn, màu sắc đồng điệu theo theme */}
-        <div className="w-full z-10">
-          <Button3D
-            variant={theme.buttonVariant}
-            size="lg"
-            onClick={onClose}
-            className="w-full py-2.5 sm:py-3 text-sm sm:text-base tracking-wide font-black shadow-lg gap-2"
-          >
-            {theme.isDeduct || theme.isLuck ? (
-              <ArrowRight className="w-5 h-5 stroke-[3]" />
-            ) : (
-              <Check className="w-5 h-5 stroke-[3]" />
-            )}
-            <span>{theme.buttonText}</span>
-          </Button3D>
+        <div className="w-full z-10 space-y-2.5">
+          {theme.isGift && onOpenGiftClaim ? (
+            <>
+              <Button3D
+                variant={theme.buttonVariant}
+                size="lg"
+                onClick={onOpenGiftClaim}
+                className="w-full py-2.5 sm:py-3 text-sm sm:text-base tracking-wide font-black shadow-lg gap-2"
+              >
+                <Gift className="w-5 h-5 stroke-[2.5]" />
+                <span>Chọn quà & dán link ngay!</span>
+              </Button3D>
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full py-2 px-3 rounded-xl text-xs sm:text-[13px] font-heading font-bold text-purple-800/80 hover:text-purple-950 hover:bg-purple-200/50 transition-colors cursor-pointer"
+              >
+                Để dành vào Hộp quà (Chọn sau)
+              </button>
+            </>
+          ) : (
+            <Button3D
+              variant={theme.buttonVariant}
+              size="lg"
+              onClick={onClose}
+              className="w-full py-2.5 sm:py-3 text-sm sm:text-base tracking-wide font-black shadow-lg gap-2"
+            >
+              {theme.isDeduct || theme.isLuck ? (
+                <ArrowRight className="w-5 h-5 stroke-[3]" />
+              ) : (
+                <Check className="w-5 h-5 stroke-[3]" />
+              )}
+              <span>{theme.buttonText}</span>
+            </Button3D>
+          )}
         </div>
       </div>
     </div>

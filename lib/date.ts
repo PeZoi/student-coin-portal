@@ -111,3 +111,25 @@ export function parseDateTime(dateTimeStr?: string | null): number {
   return parseDate(trimmed);
 }
 
+/**
+ * Lấy tháng và năm hiện tại theo múi giờ Việt Nam (Asia/Ho_Chi_Minh)
+ */
+export function getCurrentVietnamMonthYear(
+  dateInput: Date = new Date()
+): { month: number; year: number } {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "numeric",
+  }).formatToParts(dateInput);
+
+  const month =
+    Number(parts.find((p) => p.type === "month")?.value) ||
+    dateInput.getMonth() + 1;
+  const year =
+    Number(parts.find((p) => p.type === "year")?.value) ||
+    dateInput.getFullYear();
+
+  return { month, year };
+}
+

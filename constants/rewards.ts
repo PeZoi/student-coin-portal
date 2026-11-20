@@ -15,10 +15,16 @@ export const REWARD_CONFIG = {
   DEFAULT_VND_PER_STEP: 25000,
   /** Số xu tối thiểu để có thể gửi yêu cầu đổi thưởng */
   MIN_EXCHANGE_COINS: 5000,
+  /** Hạn mức tối đa cho mỗi Hộp quà trúng thưởng Vòng quay (VNĐ) */
+  MAX_SPIN_GIFT_VND: 25000,
+  /** Số xu quy đổi tương đương của mỗi Hộp quà trúng thưởng Vòng quay */
+  SPIN_GIFT_EQUIVALENT_COINS: 5000,
 } as const;
 
 export const COIN_STEP = REWARD_CONFIG.DEFAULT_COIN_STEP;
 export const VND_PER_STEP = REWARD_CONFIG.DEFAULT_VND_PER_STEP;
+export const MAX_SPIN_GIFT_VND = REWARD_CONFIG.MAX_SPIN_GIFT_VND;
+export const SPIN_GIFT_EQUIVALENT_COINS = REWARD_CONFIG.SPIN_GIFT_EQUIVALENT_COINS;
 
 /**
  * 1. Trạng thái yêu cầu đổi quà hàng tháng (monthly_exchange_requests.status)
@@ -60,17 +66,21 @@ export const ExchangeChoiceType = {
   CASH: "cash",
   /** Đổi thành quà tặng tự chọn (sách vở, đồ chơi, link sản phẩm Shopee/Tiki...) */
   GIFT: "gift",
+  /** Quà tặng tự chọn trúng từ Vòng quay may mắn (Miễn phí xu, giới hạn theo hộp quà) */
+  SPIN_GIFT: "spin_gift",
 } as const;
 
-export type ExchangeChoiceTypeValue = "cash" | "gift";
+export type ExchangeChoiceTypeValue = "cash" | "gift" | "spin_gift";
 export type ExchangeChoiceType = ExchangeChoiceTypeValue;
 
 export const ALL_EXCHANGE_CHOICE_TYPES: readonly ExchangeChoiceTypeValue[] = [
   ExchangeChoiceType.CASH,
   ExchangeChoiceType.GIFT,
+  ExchangeChoiceType.SPIN_GIFT,
 ] as const;
 
 export const EXCHANGE_CHOICE_TYPE_LABELS: Record<ExchangeChoiceTypeValue, string> = {
   [ExchangeChoiceType.CASH]: "Tiền mặt",
   [ExchangeChoiceType.GIFT]: "Quà tự chọn",
+  [ExchangeChoiceType.SPIN_GIFT]: "Quà tuỳ chọn (Spin)",
 };

@@ -9,6 +9,7 @@ import {
   XCircle,
   Banknote,
   ShoppingBag,
+  Gift,
   Clock,
   CheckCircle2,
   Calendar,
@@ -42,7 +43,11 @@ export function TeacherRewardDetailModal() {
   if (!request) return null;
 
   const isCash = request.choice_type === ExchangeChoiceType.CASH;
-  const isGift = request.choice_type === ExchangeChoiceType.GIFT
+  const isSpinGift = request.choice_type === ExchangeChoiceType.SPIN_GIFT;
+  const isGift =
+    request.choice_type === ExchangeChoiceType.GIFT ||
+    (request.choice_type as string) === "shopee";
+  const isGiftLike = isGift || isSpinGift;
 
   const handleCopyLink = () => {
     if (!request.shopee_product_url) return;
@@ -61,11 +66,15 @@ export function TeacherRewardDetailModal() {
             className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
               isCash
                 ? "bg-emerald-50 text-emerald-600 border-emerald-200"
-                : "bg-orange-50 text-orange-600 border-orange-200"
+                : isSpinGift
+                  ? "bg-purple-50 text-purple-600 border-purple-200"
+                  : "bg-orange-50 text-orange-600 border-orange-200"
             }`}
           >
             {isCash ? (
               <Banknote className="w-5 h-5" />
+            ) : isSpinGift ? (
+              <Gift className="w-5 h-5" />
             ) : (
               <ShoppingBag className="w-5 h-5" />
             )}
@@ -133,7 +142,11 @@ export function TeacherRewardDetailModal() {
             {request.status === ExchangeRequestStatus.REJECTED && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-300 text-xs font-extrabold">
                 <XCircle className="w-3.5 h-3.5" />
-                <span>Đã từ chối (Hoàn xu)</span>
+                <span>
+                  {isSpinGift
+                    ? "Đã từ chối (Hoàn hộp quà)"
+                    : "Đã từ chối (Hoàn xu)"}
+                </span>
               </span>
             )}
           </div>
@@ -170,33 +183,37 @@ export function TeacherRewardDetailModal() {
         )}
 
         {/* Khối 2: Thông số Quy đổi (Xu Heo đất -> VNĐ) */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200/80 flex items-center justify-between">
-            <div>
-              <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">
-                Xu Heo Đất khấu trừ
-              </span>
-              <span className="text-xl sm:text-2xl font-black text-amber-900 font-heading">
-                -{request.coins_to_exchange.toLocaleString("vi-VN")}
-              </span>
+        <div
+          className={`grid gap-3 ${isSpinGift ? "grid-cols-1" : "grid-cols-2"}`}
+        >
+          {!isSpinGift && (
+            <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200/80 flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider block">
+                  Xu Heo Đất khấu trừ
+                </span>
+                <span className="text-xl sm:text-2xl font-black text-amber-900 font-heading">
+                  -{request.coins_to_exchange.toLocaleString("vi-VN")}
+                </span>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0">
+                <Image
+                  src="/coin.webp"
+                  alt="Coin"
+                  width={20}
+                  height={20}
+                  unoptimized
+                  style={{ height: "auto" }}
+                  className="w-5"
+                />
+              </div>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0">
-              <Image
-                src="/coin.webp"
-                alt="Coin"
-                width={20}
-                height={20}
-                unoptimized
-                style={{ height: "auto" }}
-                className="w-5"
-              />
-            </div>
-          </div>
+          )}
 
           <div className="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-200/80 flex items-center justify-between">
             <div>
               <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">
-                Giá trị quy đổi
+                {isSpinGift ? "Giá trị món quà" : "Giá trị quy đổi"}
               </span>
               <span className="text-xl sm:text-2xl font-black text-emerald-900 font-heading">
                 {request.amount_vnd.toLocaleString("vi-VN")} đ
@@ -215,12 +232,16 @@ export function TeacherRewardDetailModal() {
               Hình thức nhận quà
             </span>
             <span className="text-xs font-extrabold text-[#0F172A]">
-              {isCash ? "Tiền mặt / Chuyển khoản" : "Tự chọn quà"}
+              {isCash
+                ? "Tiền mặt / Chuyển khoản"
+                : isSpinGift
+                  ? "Quà tuỳ chọn (Spin)"
+                  : "Tự chọn quà"}
             </span>
           </div>
 
-          {/* Trường hợp 1: Quà tặng tự chọn */}
-          {isGift && (
+          {/* Trường hợp 1: Quà tặng tự chọn (đổi xu hoặc trúng Spin) */}
+          {isGiftLike && (
             <div className="space-y-3">
               {request.shopee_product_url && (
                 <div className="p-3 rounded-xl bg-orange-50/70 border border-orange-200/80 space-y-2">
@@ -349,7 +370,9 @@ export function TeacherRewardDetailModal() {
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-all border border-rose-200 cursor-pointer"
             >
               <XCircle className="w-3.5 h-3.5" />
-              <span>Từ chối (Hoàn xu)</span>
+              <span>
+                {isSpinGift ? "Từ chối (Hoàn hộp quà)" : "Từ chối (Hoàn xu)"}
+              </span>
             </button>
           )}
 

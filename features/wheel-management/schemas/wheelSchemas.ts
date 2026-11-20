@@ -1,5 +1,9 @@
 import { z } from "zod";
 import { WHEEL_CONSTANTS } from "@/constants/wheel";
+import {
+  MAX_SPIN_GIFT_VND,
+  SPIN_GIFT_EQUIVALENT_COINS,
+} from "@/constants/rewards";
 
 export const wheelPrizeTypeSchema = z.enum([
   "coin",
@@ -96,3 +100,29 @@ export const studentSpinRequestSchema = z.object({
   /** Danh sách ID các ô active hiện đang vẽ trên đĩa quay của trình duyệt học sinh (dùng để chống lệch kim chỉ Desync Animation) */
   client_slot_ids: z.array(z.string()).optional(),
 });
+
+export const claimWheelGiftSchema = z.object({
+  link: z
+    .string()
+    .trim()
+    .min(1, "Con hãy dán link món quà muốn nhận nhé!")
+    .refine((val) => {
+      try {
+        const parsed = new URL(val);
+        return parsed.protocol === "http:" || parsed.protocol === "https:";
+      } catch {
+        return false;
+      }
+    }, "Link món quà phải là đường dẫn hợp lệ"),
+  priceVnd: z
+    .number({ message: "Số tiền món quà phải là số hợp lệ." })
+    .finite("Số tiền món quà không hợp lệ.")
+    .positive("Số tiền món quà phải lớn hơn 0đ.")
+    .max(
+      MAX_SPIN_GIFT_VND,
+      `Món quà từ Hộp quà vòng quay chỉ được có giá tối đa ${MAX_SPIN_GIFT_VND.toLocaleString("vi-VN")}đ (tương đương ${SPIN_GIFT_EQUIVALENT_COINS.toLocaleString("vi-VN")} xu).`
+    ),
+  note: z.string().trim().max(500, "Ghi chú tối đa 500 ký tự.").optional(),
+});
+
+export type ClaimWheelGiftInput = z.infer<typeof claimWheelGiftSchema>;

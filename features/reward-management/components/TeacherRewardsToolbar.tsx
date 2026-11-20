@@ -73,12 +73,13 @@ export function TeacherRewardsToolbar() {
 		[counts.all, counts.pending, counts.completed, counts.rejected],
 	);
 
-	// 2. Tùy chọn lọc Hình thức đổi (Tiền mặt / Quà tự chọn)
+	// 2. Tùy chọn lọc Hình thức đổi (Tiền mặt / Quà tự chọn / Quà tuỳ chọn Spin)
 	const choiceTypeOptions: TeacherSelectOption[] = useMemo(
 		() => [
 			{ label: "Tất cả hình thức", value: "all" },
 			{ label: "Tiền mặt", value: ExchangeChoiceType.CASH },
 			{ label: "Quà tự chọn", value: ExchangeChoiceType.GIFT },
+			{ label: "Quà tuỳ chọn (Spin)", value: ExchangeChoiceType.SPIN_GIFT },
 		],
 		[],
 	);

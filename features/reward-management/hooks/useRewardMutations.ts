@@ -64,12 +64,15 @@ export function useRewardMutations({
 
         await rewardService.approveReward(req.id);
 
+        const choiceLabel =
+          req.choice_type === ExchangeChoiceType.CASH
+            ? "tiền mặt"
+            : req.choice_type === ExchangeChoiceType.SPIN_GIFT
+              ? "quà tặng (Spin)"
+              : "quà tặng";
+
         toast.success(
-          `Đã duyệt thành công yêu cầu ${
-            req.choice_type === ExchangeChoiceType.CASH
-              ? "tiền mặt"
-              : "quà tặng"
-          } của học sinh ${req.student_name}!`
+          `Đã duyệt thành công yêu cầu ${choiceLabel} của học sinh ${req.student_name}!`
         );
 
         // Revalidate dữ liệu tươi mới từ server & cập nhật badge sidebar
@@ -108,10 +111,13 @@ export function useRewardMutations({
 
         await rewardService.rejectReward(req.id, reason);
 
+        const isSpinGift = req.choice_type === ExchangeChoiceType.SPIN_GIFT;
         toast.info(
-          `Đã từ chối yêu cầu của học sinh ${req.student_name} và hoàn lại ${req.coins_to_exchange.toLocaleString(
-            "vi-VN"
-          )} xu vào Heo Đất.`
+          isSpinGift
+            ? `Đã từ chối yêu cầu của học sinh ${req.student_name} và hoàn lại 1 lượt mở Hộp quà (Spin).`
+            : `Đã từ chối yêu cầu của học sinh ${req.student_name} và hoàn lại ${req.coins_to_exchange.toLocaleString(
+                "vi-VN"
+              )} xu vào Heo Đất.`
         );
 
         onCloseRejectModal?.();

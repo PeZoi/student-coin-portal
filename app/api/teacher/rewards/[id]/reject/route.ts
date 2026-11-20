@@ -4,7 +4,7 @@ import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus } from "@/constants/http";
 import { UserRole } from "@/constants/auth";
 import { CoinTxType, CoinReferenceType } from "@/constants/coins";
-import { ExchangeRequestStatus } from "@/constants/rewards";
+import { ExchangeChoiceType, ExchangeRequestStatus } from "@/constants/rewards";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -60,6 +60,7 @@ export async function POST(req: Request, { params }: RouteParams) {
           id,
           full_name,
           current_coins,
+          unclaimed_gifts,
           class_id
         )
       `)
@@ -106,10 +107,75 @@ export async function POST(req: Request, { params }: RouteParams) {
       }
     }
     const studentName = student?.full_name || "Học sinh";
+    const isSpinGift = requestRecord.choice_type === ExchangeChoiceType.SPIN_GIFT;
+    const now = new Date().toISOString();
+
+    if (isSpinGift) {
+      const currentUnclaimedGifts = student?.unclaimed_gifts ?? 0;
+      const newUnclaimedGifts = currentUnclaimedGifts + 1;
+
+      // Hoàn lại +1 lượt mở Hộp quà cho học sinh (không hoàn xu)
+      const { error: updateGiftError } = await supabase
+        .from("users")
+        .update({
+          unclaimed_gifts: newUnclaimedGifts,
+        })
+        .eq("id", requestRecord.student_id);
+
+      if (updateGiftError) {
+        console.error("Lỗi khi hoàn hộp quà cho học sinh:", updateGiftError.message);
+        return apiError("Không thể hoàn trả lượt mở Hộp quà cho học sinh. Vui lòng thử lại.");
+      }
+
+      const { error: updateReqError } = await supabase
+        .from("monthly_exchange_requests")
+        .update({
+          status: ExchangeRequestStatus.REJECTED,
+          rejection_reason: reason,
+          processed_by: session.userId,
+          processed_at: now,
+          updated_by: session.userId,
+          updated_at: now,
+        })
+        .eq("id", id);
+
+      if (updateReqError) {
+        console.error("Lỗi cập nhật trạng thái từ chối:", updateReqError.message);
+        return apiError("Không thể cập nhật trạng thái từ chối. Vui lòng thử lại.");
+      }
+
+      const { error: notifError } = await supabase.from("notifications").insert({
+        user_id: requestRecord.student_id,
+        title: "Yêu cầu nhận quà vòng quay chưa được chấp thuận",
+        content: `Yêu cầu nhận quà vòng quay của con đã bị từ chối (Lý do: ${reason}). Cô đã hoàn lại 1 lượt mở Hộp quà để con chọn lại món quà khác nhé!`,
+        type: "exchange_rejected",
+        icon_type: "alert-triangle",
+        reference_type: "monthly_exchange_requests",
+        reference_id: id,
+        created_by: session.userId,
+        created_at: now,
+      });
+
+      if (notifError) {
+        console.warn("Cảnh báo gửi thông báo từ chối:", notifError.message);
+      }
+
+      return apiSuccess(
+        {
+          id,
+          status: ExchangeRequestStatus.REJECTED,
+          rejection_reason: reason,
+          refunded_coins: 0,
+          refunded_gifts: 1,
+          processed_at: now,
+        },
+        `Đã từ chối yêu cầu của học sinh ${studentName} và hoàn lại 1 lượt mở Hộp quà (Spin)!`
+      );
+    }
+
     const currentCoins = student?.current_coins ?? 0;
     const refundCoins = requestRecord.coins_to_exchange;
     const newCoins = currentCoins + refundCoins;
-    const now = new Date().toISOString();
 
     // 2. Hoàn lại xu vào ví học sinh (users.current_coins)
     const { error: updateUserError } = await supabase

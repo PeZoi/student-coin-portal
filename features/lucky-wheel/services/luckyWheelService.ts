@@ -5,6 +5,7 @@ import {
   StudentWheelInitialData,
   WheelPrize,
   WheelHistoryPageData,
+  ClaimWheelGiftResponseData,
 } from "../types";
 
 export interface SpinApiResponseData {
@@ -22,6 +23,7 @@ export interface SpinApiResponseData {
     current_coins: number;
     total_earned_coins: number;
     free_spins: number;
+    unclaimed_gifts?: number;
   };
 }
 
@@ -66,6 +68,24 @@ export const luckyWheelService = {
     );
     if (!res.data) {
       throw new Error("Không thể tải danh sách lịch sử vòng quay.");
+    }
+    return res.data;
+  },
+
+  /**
+   * Mở Hộp quà Vòng quay và gửi yêu cầu nhận quà tuỳ chọn (Spin)
+   */
+  async claimGiftBox(payload: {
+    link: string;
+    priceVnd: number;
+    note?: string;
+  }): Promise<ClaimWheelGiftResponseData> {
+    const res = await http.post<ApiResponse<ClaimWheelGiftResponseData>>(
+      AppRoutes.API.STUDENT.WHEEL_CLAIM_GIFT,
+      payload
+    );
+    if (!res.data) {
+      throw new Error("Không nhận được phản hồi khi gửi yêu cầu nhận quà.");
     }
     return res.data;
   },

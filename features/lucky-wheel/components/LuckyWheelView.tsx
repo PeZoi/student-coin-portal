@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { ArrowLeft, History } from "lucide-react";
+import { ArrowLeft, Gift, History } from "lucide-react";
+import { toast } from "sonner";
 import { Button3D } from "@/components/ui/Button3D";
+import { cn } from "@/lib/utils";
 import { WHEEL_ASSETS } from "@/constants/wheel";
 import { DashboardBackgroundDecor } from "@/features/dashboard/components/DashboardBackgroundDecor";
 import { useWheelAudio } from "../audio/useWheelAudio";
@@ -13,7 +15,11 @@ import {
 } from "../contexts/LuckyWheelContext";
 import { StudentWheelInitialData, WheelConfig } from "../types";
 import { WheelSpinner } from "./WheelSpinner";
-import { WheelPrizeModal, WheelHistoryModal } from "./modal";
+import {
+  WheelPrizeModal,
+  WheelHistoryModal,
+  WheelGiftClaimModal,
+} from "./modal";
 
 interface LuckyWheelViewProps {
   initialData?: StudentWheelInitialData;
@@ -25,7 +31,14 @@ function LuckyWheelContent() {
     winningPrize,
     showPrizeModal,
     currentCoins,
+    unclaimedGiftsLeft,
+    showGiftClaimModal,
+    isClaimingGift,
     handleClosePrizeModal,
+    handleOpenGiftClaimModal,
+    handleCloseGiftClaimModal,
+    handleOpenGiftClaimFromPrizeModal,
+    handleConfirmClaimGift,
   } = useLuckyWheelContext();
 
   const audio = useWheelAudio();
@@ -91,6 +104,40 @@ function LuckyWheelContent() {
             </div>
           </div>
 
+          {/* Nút Hộp quà (Mở quà trúng vòng quay) */}
+          <Button3D
+            variant="purple"
+            size="sm"
+            onClick={() => {
+              if (unclaimedGiftsLeft > 0) {
+                handleOpenGiftClaimModal();
+              } else {
+                toast.info(
+                  "Bé hiện chưa có hộp quà nào chưa mở. Hãy quay trúng ô Hộp quà để nhận quà nhé!"
+                );
+              }
+            }}
+            className="h-8 sm:h-9 gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 text-xs sm:text-sm tracking-wide shadow-sm whitespace-nowrap flex-shrink-0 inline-flex items-center justify-center"
+          >
+            <Gift
+              className={cn(
+                "w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]",
+                unclaimedGiftsLeft > 0 && "animate-bounce"
+              )}
+            />
+            <span>Hộp quà</span>
+            <span
+              className={cn(
+                "ml-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black leading-none tabular-nums",
+                unclaimedGiftsLeft > 0
+                  ? "bg-amber-300 text-purple-950 shadow-xs"
+                  : "bg-white/25 text-white"
+              )}
+            >
+              {unclaimedGiftsLeft}
+            </span>
+          </Button3D>
+
           {/* Nút Lịch sử (Không phát tiếng click) */}
           <Button3D
             variant="blue"
@@ -121,6 +168,18 @@ function LuckyWheelContent() {
           audio.stopReward();
           handleClosePrizeModal();
         }}
+        onOpenGiftClaim={handleOpenGiftClaimFromPrizeModal}
+      />
+
+      {/* ======================================================== */}
+      {/* POPUP MODAL MỞ HỘP QUÀ VÒNG QUAY (DÁN LINK QUÀ <= 25K) */}
+      {/* ======================================================== */}
+      <WheelGiftClaimModal
+        isOpen={showGiftClaimModal}
+        onClose={handleCloseGiftClaimModal}
+        unclaimedGiftsCount={unclaimedGiftsLeft}
+        isSubmitting={isClaimingGift}
+        onConfirm={handleConfirmClaimGift}
       />
 
       {/* ======================================================== */}

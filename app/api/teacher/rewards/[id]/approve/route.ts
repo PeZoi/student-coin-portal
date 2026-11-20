@@ -113,10 +113,12 @@ export async function POST(req: Request, { params }: RouteParams) {
 
     // 3. Gửi thông báo đến học sinh
     const studentName = student?.full_name || "Học sinh";
-    const isCash = requestRecord.choice_type === ExchangeChoiceType.CASH;
-    const rewardDescription = isCash
-      ? `tiền mặt ${requestRecord.amount_vnd.toLocaleString("vi-VN")} đ`
-      : "món quà tặng tự chọn";
+    const rewardDescription =
+      requestRecord.choice_type === ExchangeChoiceType.CASH
+        ? `tiền mặt ${requestRecord.amount_vnd.toLocaleString("vi-VN")} đ`
+        : requestRecord.choice_type === ExchangeChoiceType.SPIN_GIFT
+          ? "món quà trúng thưởng vòng quay"
+          : "món quà tặng tự chọn";
 
     const { error: notifError } = await supabase.from("notifications").insert({
       user_id: requestRecord.student_id,

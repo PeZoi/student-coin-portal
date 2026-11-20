@@ -55,6 +55,11 @@ export function useLuckyWheel(
   const [showPrizeModal, setShowPrizeModal] = useState<boolean>(false);
 
   const [localFreeSpins, setLocalFreeSpins] = useState<number | null>(null);
+  const [localUnclaimedGifts, setLocalUnclaimedGifts] = useState<number | null>(
+    null
+  );
+  const [showGiftClaimModal, setShowGiftClaimModal] = useState<boolean>(false);
+  const [isClaimingGift, setIsClaimingGift] = useState<boolean>(false);
   const [localWinners, setLocalWinners] = useState<WheelWinner[]>([]);
   const [localMyHistory, setLocalMyHistory] = useState<WheelWinner[]>([]);
 
@@ -62,6 +67,11 @@ export function useLuckyWheel(
     localFreeSpins !== null
       ? localFreeSpins
       : (wheelData?.free_spins ?? 0);
+
+  const unclaimedGiftsLeft =
+    localUnclaimedGifts !== null
+      ? localUnclaimedGifts
+      : (wheelData?.unclaimed_gifts ?? 0);
 
   const winners = useMemo(() => {
     const serverWinners = wheelData?.allWinners || [];
@@ -205,11 +215,14 @@ export function useLuckyWheel(
       setWinningPrize(selectedPrize);
       setShowPrizeModal(true);
 
-      // Đồng bộ số dư xu và lượt quay cuối cùng từ CSDL
+      // Đồng bộ số dư xu, lượt quay và hộp quà cuối cùng từ CSDL
       setStudent({
         current_coins: spinResult.current_coins,
       });
       setLocalFreeSpins(spinResult.free_spins);
+      if (typeof spinResult.unclaimed_gifts === "number") {
+        setLocalUnclaimedGifts(spinResult.unclaimed_gifts);
+      }
 
       if (wheelData) {
         mutate(
@@ -217,6 +230,10 @@ export function useLuckyWheel(
             ...wheelData,
             current_coins: spinResult.current_coins,
             free_spins: spinResult.free_spins,
+            unclaimed_gifts:
+              typeof spinResult.unclaimed_gifts === "number"
+                ? spinResult.unclaimed_gifts
+                : wheelData.unclaimed_gifts,
           },
           false
         );
@@ -256,6 +273,59 @@ export function useLuckyWheel(
     setShowPrizeModal(false);
   }, []);
 
+  const handleOpenGiftClaimModal = useCallback(() => {
+    setShowGiftClaimModal(true);
+  }, []);
+
+  const handleCloseGiftClaimModal = useCallback(() => {
+    if (isClaimingGift) return;
+    setShowGiftClaimModal(false);
+  }, [isClaimingGift]);
+
+  const handleOpenGiftClaimFromPrizeModal = useCallback(() => {
+    wheelAudio.stopReward();
+    setShowPrizeModal(false);
+    setShowGiftClaimModal(true);
+  }, []);
+
+  const handleConfirmClaimGift = useCallback(
+    async (link: string, note: string, priceVnd: number): Promise<boolean> => {
+      if (isClaimingGift) return false;
+      setIsClaimingGift(true);
+      try {
+        const result = await luckyWheelService.claimGiftBox({
+          link,
+          priceVnd,
+          note,
+        });
+
+        setLocalUnclaimedGifts(result.unclaimed_gifts);
+        if (wheelData) {
+          mutate(
+            {
+              ...wheelData,
+              unclaimed_gifts: result.unclaimed_gifts,
+            },
+            false
+          );
+        }
+
+        toast.success(
+          "🎉 Đã gửi link món quà thành công! Cô sẽ kiểm tra và trao quà cho con nhé!"
+        );
+        setShowGiftClaimModal(false);
+        return true;
+      } catch (err: unknown) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        toast.error(error.message || "Không thể gửi yêu cầu nhận quà lúc này.");
+        return false;
+      } finally {
+        setIsClaimingGift(false);
+      }
+    },
+    [isClaimingGift, wheelData, mutate]
+  );
+
   return {
     config,
     prizes: config.prizes,
@@ -266,11 +336,18 @@ export function useLuckyWheel(
     winningPrize,
     showPrizeModal,
     freeSpinsLeft,
+    unclaimedGiftsLeft,
+    showGiftClaimModal,
+    isClaimingGift,
     winners,
     myHistory,
     currentCoins,
     handleSpin,
     handleSpinComplete,
     handleClosePrizeModal,
+    handleOpenGiftClaimModal,
+    handleCloseGiftClaimModal,
+    handleOpenGiftClaimFromPrizeModal,
+    handleConfirmClaimGift,
   };
 }

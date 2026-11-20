@@ -134,10 +134,12 @@ export async function POST(req: Request) {
 
     // 4. Gửi thông báo đến từng học sinh
     const notificationsToInsert = validRequests.map((r) => {
-      const isCash = r.choice_type === ExchangeChoiceType.CASH;
-      const desc = isCash
-        ? `tiền mặt ${r.amount_vnd.toLocaleString("vi-VN")} đ`
-        : "món quà tặng tự chọn";
+      const desc =
+        r.choice_type === ExchangeChoiceType.CASH
+          ? `tiền mặt ${r.amount_vnd.toLocaleString("vi-VN")} đ`
+          : r.choice_type === ExchangeChoiceType.SPIN_GIFT
+            ? "món quà trúng thưởng vòng quay"
+            : "món quà tặng tự chọn";
 
       return {
         user_id: r.student_id,

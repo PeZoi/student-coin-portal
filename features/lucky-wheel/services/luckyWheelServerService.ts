@@ -89,7 +89,7 @@ export async function getStudentWheelInitialDataServer(
       studentId
         ? supabase
             .from("users")
-            .select("current_coins, free_spins")
+            .select("current_coins, free_spins, unclaimed_gifts")
             .eq("id", studentId)
             .maybeSingle()
         : Promise.resolve({ data: null }),
@@ -133,6 +133,7 @@ export async function getStudentWheelInitialDataServer(
 
     const current_coins = Number(studentRes.data?.current_coins ?? 0);
     const free_spins = Number(studentRes.data?.free_spins ?? 0);
+    const unclaimed_gifts = Number(studentRes.data?.unclaimed_gifts ?? 0);
 
     return {
       config,
@@ -140,6 +141,7 @@ export async function getStudentWheelInitialDataServer(
       myHistory: [],
       free_spins,
       current_coins,
+      unclaimed_gifts,
     };
   } catch (error) {
     unstable_rethrow(error);
@@ -150,6 +152,7 @@ export async function getStudentWheelInitialDataServer(
       myHistory: [],
       free_spins: 0,
       current_coins: 0,
+      unclaimed_gifts: 0,
     };
   }
 }
