@@ -10,9 +10,7 @@ import {
 
 /**
  * Micro-hook chuyên trách: Tải và đồng bộ số lượng badge trên Menu Sidebar của giáo viên
- * - Tự động tải ngầm bằng SWR, không gây lag giao diện
- * - Tự động cập nhật lại khi giáo viên chuyển đổi lớp trên Header (Workspace)
- * - Làm mới định kỳ mỗi 60 giây và tự động revalidate khi focus tab
+ * - Tự động cập nhật lại khi giáo viên chuyển đổi lớp trên Header (Workspace) hoặc khi gọi mutate
  */
 export function useSidebarBadges() {
   const selectedClassId = useTeacherWorkspaceStore(
@@ -23,9 +21,10 @@ export function useSidebarBadges() {
     CACHE_KEYS.SIDEBAR.TEACHER_BADGES(selectedClassId),
     () => teacherBadgeService.getSidebarBadges(selectedClassId),
     {
-      revalidateOnFocus: true,
-      revalidateOnMount: true,
-      refreshInterval: 60000,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      revalidateIfStale: true,
+      refreshInterval: 0,
     }
   );
 
