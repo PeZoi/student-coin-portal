@@ -1,6 +1,6 @@
 "use client";
 
-import { WHEEL_CONSTANTS, WHEEL_PRIZE_TYPES } from "@/constants/wheel";
+import { WHEEL_PRIZE_TYPES } from "@/constants/wheel";
 import { WheelSpinner } from "@/features/lucky-wheel/components/WheelSpinner";
 import {
   Award,
@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { useMemo } from "react";
 import { useWheelConfigContext } from "../contexts/WheelConfigContext";
-import { useWheelSimulator } from "../hooks/useWheelSimulator";
 import { WheelPrizeImage } from "./WheelPrizeImage";
 
 /**
@@ -32,13 +31,13 @@ import { WheelPrizeImage } from "./WheelPrizeImage";
 export function WheelConfigAnalytics() {
   const {
     dynamicStats: stats,
-    slots,
     settings,
     setSettings: onUpdateSettings,
     isEconomyDirty,
     isSavingEconomy,
     handleSaveEconomy: onSaveEconomy,
     handleResetEconomy: onResetEconomy,
+    simulator,
   } = useWheelConfigContext();
 
   const {
@@ -48,7 +47,7 @@ export function WheelConfigAnalytics() {
     lastWonSlot,
     handleTestSpin,
     handleResetSimulator,
-  } = useWheelSimulator(slots);
+  } = simulator;
 
   // Tính toán các chỉ số kỳ vọng toán học trên mỗi lượt quay (Expected Value) từ cấu hình thực tế
   const economyMetrics = useMemo(() => {
@@ -320,14 +319,7 @@ export function WheelConfigAnalytics() {
 
           {/* Đĩa Vòng Quay Thử Nghiệm */}
           <div className="py-2 flex flex-col items-center justify-center">
-            <WheelSpinner
-              mode="simulator"
-              prizes={activeSlots}
-              rotation={rotationAngle}
-              isSpinning={isSpinning}
-              transitionDurationMs={WHEEL_CONSTANTS.SIMULATOR_SPIN_DURATION_MS}
-              onSpin={handleTestSpin}
-            />
+            <WheelSpinner />
 
             {/* Cụm nút điều khiển quay thử & đặt lại */}
             <div className="mt-1.5 flex flex-col items-center gap-2 w-full">

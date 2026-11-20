@@ -8,9 +8,12 @@ import { Button3D } from "@/components/ui/Button3D";
 import { DashboardBackgroundDecor } from "@/features/dashboard/components/DashboardBackgroundDecor";
 import { WheelSpinner } from "./WheelSpinner";
 import { WHEEL_ASSETS } from "@/constants/wheel";
-import { useLuckyWheel } from "../hooks/useLuckyWheel";
 import { StudentWheelInitialData, WheelConfig } from "../types";
 import { useWheelAudio } from "../audio/useWheelAudio";
+import {
+  LuckyWheelProvider,
+  useLuckyWheelContext,
+} from "../contexts/LuckyWheelContext";
 
 // Dynamic imports cho modal để giảm initial bundle size
 const WheelPrizeModal = dynamic(
@@ -31,25 +34,17 @@ interface LuckyWheelViewProps {
   initialConfig?: Partial<WheelConfig>;
 }
 
-export function LuckyWheelView({
-  initialData,
-  initialConfig,
-}: LuckyWheelViewProps = {}) {
+function LuckyWheelContent() {
   const {
     config,
-    prizes,
     rules,
-    spinCost,
-    rotation,
-    isSpinning,
     winningPrize,
     showPrizeModal,
     winners,
     myHistory,
     currentCoins,
-    handleSpin,
     handleClosePrizeModal,
-  } = useLuckyWheel(initialData, initialConfig);
+  } = useLuckyWheelContext();
 
   const audio = useWheelAudio();
 
@@ -167,13 +162,7 @@ export function LuckyWheelView({
       {/* VÒNG QUAY MAY MẮN Ở TRUNG TÂM TO HẾT CỠ */}
       {/* ======================================================== */}
       <div className="relative z-10 w-full max-w-full flex-1 flex flex-col items-center justify-center min-h-0 py-1 overflow-visible">
-        <WheelSpinner
-          prizes={prizes}
-          rotation={rotation}
-          isSpinning={isSpinning}
-          spinCost={spinCost}
-          onSpin={handleSpin}
-        />
+        <WheelSpinner />
       </div>
 
       {/* ======================================================== */}
@@ -215,5 +204,16 @@ export function LuckyWheelView({
         myHistory={myHistory}
       />
     </div>
+  );
+}
+
+export function LuckyWheelView({
+  initialData,
+  initialConfig,
+}: LuckyWheelViewProps = {}) {
+  return (
+    <LuckyWheelProvider initialData={initialData} initialConfig={initialConfig}>
+      <LuckyWheelContent />
+    </LuckyWheelProvider>
   );
 }

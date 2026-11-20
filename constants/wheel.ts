@@ -35,7 +35,6 @@ export const WHEEL_PRIZE_TYPES = {
   FREE_SPIN: "free_spin",
   GIFT: "gift",
   LUCK: "luck",
-  MULTIPLIER: "multiplier",
 } as const;
 
 /**
@@ -152,18 +151,18 @@ export function getWheelPrizeModalContent(prize: {
   const badgeText = isLuck
     ? WHEEL_PRIZE_MODAL_TEXTS.BADGE.LUCK
     : isDeduct
-    ? WHEEL_PRIZE_MODAL_TEXTS.BADGE.DEDUCT
-    : WHEEL_PRIZE_MODAL_TEXTS.BADGE.WIN;
+      ? WHEEL_PRIZE_MODAL_TEXTS.BADGE.DEDUCT
+      : WHEEL_PRIZE_MODAL_TEXTS.BADGE.WIN;
 
   const descriptionText = isLuck
     ? WHEEL_PRIZE_MODAL_TEXTS.DESCRIPTION.LUCK
     : isDeduct
-    ? WHEEL_PRIZE_MODAL_TEXTS.DESCRIPTION.DEDUCT(prize.label)
-    : isFreeSpin
-    ? WHEEL_PRIZE_MODAL_TEXTS.DESCRIPTION.FREE_SPIN(
-        prize.reward_free_spins || 1
-      )
-    : WHEEL_PRIZE_MODAL_TEXTS.DESCRIPTION.REWARD(prize.label);
+      ? WHEEL_PRIZE_MODAL_TEXTS.DESCRIPTION.DEDUCT(prize.label)
+      : isFreeSpin
+        ? WHEEL_PRIZE_MODAL_TEXTS.DESCRIPTION.FREE_SPIN(
+          prize.reward_free_spins || 1
+        )
+        : WHEEL_PRIZE_MODAL_TEXTS.DESCRIPTION.REWARD(prize.label);
 
   const buttonText =
     isLuck || isDeduct

@@ -5,10 +5,11 @@ import { CACHE_KEYS } from "@/constants/cacheKeys";
 import { InitialWheelConfigData } from "../services/wheelServerService";
 import { wheelService } from "../services/wheelService";
 
-// Import 3 Micro-Hooks chuyên trách (Đồng bộ kiến trúc với class-management, student-management, teacher-management)
+// Import 4 Micro-Hooks chuyên trách (Đồng bộ kiến trúc với class-management, student-management, teacher-management)
 import { useWheelModals } from "./useWheelModals";
 import { useWheelSlotsState } from "./useWheelSlotsState";
 import { useWheelMutations } from "./useWheelMutations";
+import { useWheelSimulator } from "./useWheelSimulator";
 
 /**
  * Root Orchestrator Hook: Quản lý toàn bộ tính năng Cấu hình Vòng quay
@@ -49,10 +50,14 @@ export function useWheelConfig(initialData?: InitialWheelConfigData) {
     mutate,
   });
 
+  // 5. Micro-hook: Quản lý tính toán & trạng thái mô phỏng vòng quay thử nghiệm trực tiếp
+  const simulator = useWheelSimulator(slotsState.slots);
+
   return {
     initialSpinHistory: serverConfig?.initialSpinHistory,
     ...modals,
     ...slotsState,
     ...mutations,
+    simulator,
   };
 }

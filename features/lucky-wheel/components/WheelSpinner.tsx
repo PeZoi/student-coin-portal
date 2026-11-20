@@ -3,8 +3,8 @@
 import { useUserStore } from "@/stores/useUserStore";
 import { Gift, Smile, Star, RotateCw } from "lucide-react";
 import Image from "next/image";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { WheelPrize, PrizeType } from "../types";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { PrizeType, SpinWheelPayload } from "../types";
 import {
   WHEEL_CONSTANTS,
   WHEEL_THEME,
@@ -15,6 +15,8 @@ import {
 } from "@/constants/wheel";
 import { wheelAudio, AUDIO_CONFIG } from "../audio/wheelAudio";
 import { WheelDynamicDisc } from "./WheelDynamicDisc";
+import { useLuckyWheelContextOptional } from "../contexts/LuckyWheelContext";
+import { useWheelConfigContextOptional } from "@/features/wheel-management/contexts/WheelConfigContext";
 
 export interface WheelSpinnerItem {
   id: string;
@@ -24,14 +26,6 @@ export interface WheelSpinnerItem {
 }
 
 export interface WheelSpinnerProps {
-  prizes: (WheelPrize | WheelSpinnerItem)[];
-  rotation: number;
-  isSpinning: boolean;
-  spinCost?: number;
-  onSpin: () => void;
-  currentCoins?: number;
-  mode?: "student" | "simulator";
-  transitionDurationMs?: number;
   sizeClassName?: string;
 }
 
@@ -76,7 +70,6 @@ function renderPrizeIcon(prize: WheelSpinnerItem) {
 
   const iconComponentMap = {
     [WHEEL_PRIZE_TYPES.GIFT]: Gift,
-    [WHEEL_PRIZE_TYPES.MULTIPLIER]: Star,
     [WHEEL_PRIZE_TYPES.LUCK]: Smile,
   };
 
@@ -193,23 +186,32 @@ function getComputedRotationDeg(el: HTMLElement | null): number {
   }
 }
 
-export function WheelSpinner({
-  prizes,
-  rotation,
-  isSpinning,
-  spinCost = 0,
-  onSpin,
-  currentCoins: propCoins,
-  mode = "student",
-  transitionDurationMs = WHEEL_CONSTANTS.SPIN_DURATION_MS,
-  sizeClassName,
-}: WheelSpinnerProps) {
+export function WheelSpinner({ sizeClassName }: WheelSpinnerProps = {}) {
+  const luckyWheelCtx = useLuckyWheelContextOptional();
+  const wheelConfigCtx = useWheelConfigContextOptional();
+
+  // Tự động nhận diện ngữ cảnh: Học sinh (LuckyWheelContext) hoặc Giáo viên Simulator (WheelConfigContext)
+  const isSimulator = !luckyWheelCtx && !!wheelConfigCtx;
+  const simulator = wheelConfigCtx?.simulator;
+
+  const prizes = luckyWheelCtx?.prizes ?? simulator?.activeSlots ?? [];
+  const rotation = luckyWheelCtx?.rotation ?? simulator?.rotationAngle ?? 0;
+  const isSpinning = luckyWheelCtx?.isSpinning ?? simulator?.isSpinning ?? false;
+  const spinCost = luckyWheelCtx?.spinCost ?? 0;
+  const freeSpins = luckyWheelCtx?.freeSpinsLeft ?? 0;
+  const onSpin = luckyWheelCtx?.handleSpin ?? simulator?.handleTestSpin;
+  const onSpinComplete =
+    luckyWheelCtx?.handleSpinComplete ?? simulator?.handleSimulatorComplete;
+  const transitionDurationMs = isSimulator
+    ? WHEEL_CONSTANTS.SIMULATOR_SPIN_DURATION_MS
+    : WHEEL_CONSTANTS.SPIN_DURATION_MS;
+
   const storeCoins = useUserStore(
     (state) => state.student?.current_coins ?? 0
   );
-  const isSimulator = mode === "simulator";
-  const actualCoins = propCoins !== undefined ? propCoins : storeCoins;
-  const isOutOfCoins = !isSimulator && actualCoins < spinCost;
+  const actualCoins = luckyWheelCtx?.currentCoins ?? storeCoins;
+  const hasFreeSpin = !isSimulator && freeSpins > 0;
+  const isOutOfCoins = !isSimulator && !hasFreeSpin && actualCoins < spinCost;
 
   const totalItems = Math.max(1, prizes.length);
   const segmentAngle = 360 / totalItems;
@@ -217,12 +219,34 @@ export function WheelSpinner({
   const discRef = useRef<HTMLDivElement>(null);
   const pointerRef = useRef<HTMLDivElement>(null);
 
+  // Quản lý trạng thái quay nội bộ tức thì (0ms Latency Eager Spin)
+  const [internalSpinning, setInternalSpinning] = useState<boolean>(false);
+  const isCurrentlySpinning = isSpinning || internalSpinning;
+  const currentAngleRef = useRef<number>(rotation ?? 0);
+  const animFrameIdRef = useRef<number>(0);
+
   // Quản lý trạng thái đèn LED
   const [ledStep, setLedStep] = useState<number>(0);
   const [isWinningFlash, setIsWinningFlash] = useState<boolean>(false);
-  const prevSpinningRef = useRef<boolean>(isSpinning);
+  const prevSpinningRef = useRef<boolean>(isCurrentlySpinning);
 
-  // Biến tracking góc thực tế và vận tốc góc qua getComputedStyle transform matrix
+  // Đồng bộ góc quay vào ref khi không quay (không gọi setState trong effect)
+  useEffect(() => {
+    if (!isCurrentlySpinning) {
+      currentAngleRef.current = rotation ?? 0;
+    }
+  }, [rotation, isCurrentlySpinning]);
+
+  // Hủy rAF khi unmount
+  useEffect(() => {
+    return () => {
+      if (animFrameIdRef.current) {
+        cancelAnimationFrame(animFrameIdRef.current);
+      }
+    };
+  }, []);
+
+  // Biến tracking góc thực tế cho chế độ quay cũ (Fallback / Simulator legacy)
   const startRotationRef = useRef<number>(rotation);
   const accumulatedAngleRef = useRef<number>(rotation);
   const lastRawAngleRef = useRef<number>(0);
@@ -230,8 +254,296 @@ export function WheelSpinner({
   const lastSnapTimeRef = useRef<number>(0);
   const prevTimeRef = useRef<number>(0);
 
-  // Vòng lặp requestAnimationFrame đọc góc xoay thực tế, điều khiển kim chỉ chạm divider và phát tiếng tick
+  // Vòng lặp rAF vật lý tức thì (0ms Eager Spin Animation Engine)
+  const startEagerAnimation = useCallback(
+    (
+      spinPromise: Promise<
+        SpinWheelPayload | { prizeIndex: number; wonItem?: unknown } | null | void
+      >
+    ) => {
+      if (animFrameIdRef.current) {
+        cancelAnimationFrame(animFrameIdRef.current);
+      }
+
+      const startAngle = currentAngleRef.current;
+      const startTime = performance.now();
+      let lastFrameTime = startTime;
+      let currentAngle = startAngle;
+      let currentSpeed = 0;
+      const maxSpeed = 850; // Vận tốc góc cực đại: 850 độ/giây
+      const accelDuration = 0.6; // 600ms tăng tốc mượt
+      const decelDuration = 4.4; // 4.4s hãm phanh Hermite mượt mà
+      let phase: "ACCEL" | "CRUISE" | "DECEL" | "ABORTING" = "ACCEL";
+
+      let targetResolved = false;
+      let targetPrizeIndex: number | null = null;
+      let targetPayload:
+        | SpinWheelPayload
+        | { prizeIndex: number; wonItem?: unknown }
+        | null = null;
+
+      let decelStartTime = 0;
+      let decelStartAngle = 0;
+      let decelDeltaTheta = 0;
+      let decelV0 = 0;
+
+      let lastPeg = Math.floor(startAngle / segmentAngle);
+      let lastSnapTime = startTime;
+
+      spinPromise
+        .then((res) => {
+          if (
+            !res ||
+            (typeof res === "object" &&
+              "configChanged" in res &&
+              res.configChanged)
+          ) {
+            phase = "ABORTING";
+            decelStartTime = performance.now();
+            decelStartAngle = currentAngle;
+            decelV0 = currentSpeed * 1.2;
+            decelDeltaTheta = Math.max(360, currentSpeed * 0.6);
+            return;
+          }
+
+          if (typeof res === "object" && typeof res.prizeIndex === "number") {
+            targetPrizeIndex = res.prizeIndex;
+            targetPayload = res;
+            targetResolved = true;
+          } else {
+            phase = "ABORTING";
+            decelStartTime = performance.now();
+            decelStartAngle = currentAngle;
+            decelV0 = currentSpeed * 1.2;
+            decelDeltaTheta = Math.max(360, currentSpeed * 0.6);
+          }
+        })
+        .catch(() => {
+          phase = "ABORTING";
+          decelStartTime = performance.now();
+          decelStartAngle = currentAngle;
+          decelV0 = currentSpeed * 1.2;
+          decelDeltaTheta = Math.max(360, currentSpeed * 0.6);
+        });
+
+      const loop = (now: number) => {
+        if (!discRef.current) return;
+        const dt = Math.max(
+          0.001,
+          Math.min(0.1, (now - lastFrameTime) / 1000)
+        );
+        lastFrameTime = now;
+        const elapsedTotal = (now - startTime) / 1000;
+
+        // 1. Pha tăng tốc ban đầu (0ms -> 600ms)
+        if (phase === "ACCEL") {
+          if (elapsedTotal < accelDuration) {
+            const u = elapsedTotal / accelDuration;
+            currentSpeed = maxSpeed * Math.sin((u * Math.PI) / 2);
+            currentAngle =
+              startAngle +
+              maxSpeed *
+                ((2 * accelDuration) / Math.PI) *
+                (1 - Math.cos((u * Math.PI) / 2));
+          } else {
+            currentSpeed = maxSpeed;
+            currentAngle =
+              startAngle + maxSpeed * ((2 * accelDuration) / Math.PI);
+            phase = "CRUISE";
+          }
+        }
+
+        // 2. Pha bay tốc độ cao (chờ Server response hoặc hết accelDuration)
+        if (phase === "CRUISE") {
+          currentSpeed = maxSpeed;
+          currentAngle += currentSpeed * dt;
+
+          if (targetResolved && targetPrizeIndex !== null) {
+            phase = "DECEL";
+            decelStartTime = now;
+            decelStartAngle = currentAngle;
+            decelV0 = currentSpeed * decelDuration;
+
+            const midAngle =
+              targetPrizeIndex * segmentAngle + segmentAngle / 2;
+            const targetOffset = (360 - midAngle) % 360;
+            const safeJitterMax = Math.min(
+              WHEEL_CONSTANTS.JITTER_ANGLE_RANGE / 2,
+              segmentAngle * 0.22
+            );
+            const randomJitter =
+              (Math.random() - 0.5) * (safeJitterMax * 2);
+            const finalTargetOffset =
+              ((targetOffset + randomJitter) % 360 + 360) % 360;
+
+            // Công thức điểm vàng Hermite cho hãm phanh đơn điệu không giật
+            const idealDelta = 0.5 * decelV0;
+            const currentMod = ((decelStartAngle % 360) + 360) % 360;
+            const diff = (finalTargetOffset - currentMod + 360) % 360;
+            const spins = Math.round((idealDelta - diff) / 360);
+            decelDeltaTheta = spins * 360 + diff;
+          }
+        }
+
+        // 3. Pha hãm phanh mượt mà không khựng (Hermite cubic)
+        if (phase === "DECEL") {
+          const u = Math.min(
+            1,
+            (now - decelStartTime) / (decelDuration * 1000)
+          );
+          if (u < 1) {
+            const a = -2 * decelDeltaTheta + decelV0;
+            const b = 3 * decelDeltaTheta - 2 * decelV0;
+            const c = decelV0;
+            currentAngle =
+              decelStartAngle + a * u * u * u + b * u * u + c * u;
+            currentSpeed = Math.max(
+              0,
+              (3 * a * u * u + 2 * b * u + c) / decelDuration
+            );
+          } else {
+            currentAngle = decelStartAngle + decelDeltaTheta;
+            currentSpeed = 0;
+          }
+        }
+
+        // 4. Pha dừng khẩn cấp khi mất mạng
+        if (phase === "ABORTING") {
+          const u = Math.min(1, (now - decelStartTime) / 1200);
+          if (u < 1) {
+            const a = -2 * decelDeltaTheta + decelV0;
+            const b = 3 * decelDeltaTheta - 2 * decelV0;
+            const c = decelV0;
+            currentAngle =
+              decelStartAngle + a * u * u * u + b * u * u + c * u;
+            currentSpeed = Math.max(
+              0,
+              (3 * a * u * u + 2 * b * u + c) / 1.2
+            );
+          } else {
+            currentAngle = decelStartAngle + decelDeltaTheta;
+            currentSpeed = 0;
+          }
+        }
+
+        // Cập nhật DOM góc xoay trực tiếp
+        currentAngleRef.current = currentAngle;
+        discRef.current.style.transform = `rotate(${currentAngle.toFixed(2)}deg)`;
+
+        // Âm thanh và rung xúc giác theo peg
+        const speedRatio = Math.max(0, Math.min(1, currentSpeed / 1100));
+        wheelAudio.updateSpinLoopVelocity(speedRatio);
+
+        const currentPeg = Math.floor(currentAngle / segmentAngle);
+        if (currentPeg !== lastPeg) {
+          lastPeg = currentPeg;
+          lastSnapTime = now;
+          wheelAudio.playTick(speedRatio);
+
+          if (
+            currentSpeed <
+              AUDIO_CONFIG.tick.lowSpeedVelocityThreshold &&
+            typeof navigator !== "undefined" &&
+            navigator.vibrate
+          ) {
+            try {
+              navigator.vibrate(8);
+            } catch {}
+          }
+        }
+
+        // Hiệu ứng kim nảy theo divider
+        if (pointerRef.current) {
+          let pointerAngle = 0;
+          if (currentSpeed > 450) {
+            pointerAngle = 6.5 + Math.sin(now * 0.08) * 2.2;
+          } else {
+            const mod =
+              ((currentAngle % segmentAngle) + segmentAngle) %
+              segmentAngle;
+            const distToPeg = segmentAngle - mod;
+            const contactZone = 5.2;
+
+            if (distToPeg <= contactZone) {
+              const pushRatio = (contactZone - distToPeg) / contactZone;
+              pointerAngle = pushRatio * 8.5;
+            } else {
+              const timeSinceSnap = (now - lastSnapTime) / 1000;
+              if (timeSinceSnap < 0.07) {
+                pointerAngle =
+                  -3.5 *
+                  Math.exp(-45 * timeSinceSnap) *
+                  Math.cos(65 * timeSinceSnap);
+              } else {
+                pointerAngle = 0;
+              }
+            }
+          }
+          pointerRef.current.style.transform = `translateX(-50%) rotate(${pointerAngle.toFixed(2)}deg)`;
+        }
+
+        // Kiểm tra kết thúc quay
+        if (
+          (phase === "DECEL" &&
+            now - decelStartTime >= decelDuration * 1000) ||
+          (phase === "ABORTING" && now - decelStartTime >= 1200)
+        ) {
+          const finalAngle = decelStartAngle + decelDeltaTheta;
+          currentAngleRef.current = finalAngle;
+          if (discRef.current) {
+            discRef.current.style.transform = `rotate(${finalAngle.toFixed(2)}deg)`;
+          }
+
+          setInternalSpinning(false);
+          wheelAudio.playSpinEnd();
+          wheelAudio.playReboundTick();
+
+          if (phase === "DECEL" && targetPayload) {
+            setIsWinningFlash(true);
+            setTimeout(() => setIsWinningFlash(false), 1800);
+            onSpinComplete?.({
+              ...targetPayload,
+              finalAngle,
+            });
+          }
+          return;
+        }
+
+        animFrameIdRef.current = requestAnimationFrame(loop);
+      };
+
+      animFrameIdRef.current = requestAnimationFrame(loop);
+    },
+    [segmentAngle, onSpinComplete]
+  );
+
+  const handleCenterButtonClick = useCallback(() => {
+    if (isCurrentlySpinning) return;
+    if (prizes.length === 0 || isOutOfCoins || !onSpin) return;
+
+    const spinPromise = onSpin();
+    if (
+      spinPromise &&
+      typeof (spinPromise as Promise<unknown>).then === "function"
+    ) {
+      setInternalSpinning(true);
+      startEagerAnimation(
+        spinPromise as Promise<
+          SpinWheelPayload | { prizeIndex: number; wonItem?: unknown } | null
+        >
+      );
+    }
+  }, [
+    isCurrentlySpinning,
+    prizes.length,
+    isOutOfCoins,
+    onSpin,
+    startEagerAnimation,
+  ]);
+
+  // Vòng lặp requestAnimationFrame dự phòng cho chế độ điều khiển quay ngoài props (Simulator / Legacy)
   useEffect(() => {
+    if (internalSpinning) return;
     let animId: number;
 
     if (isSpinning) {
@@ -338,18 +650,18 @@ export function WheelSpinner({
           wheelAudio.playReboundTick();
         }
       }
-      startRotationRef.current = rotation;
+      startRotationRef.current = rotation ?? 0;
 
       if (pointerRef.current) {
         const mod =
-          ((rotation % segmentAngle) + segmentAngle) % segmentAngle;
+          (((rotation ?? 0) % segmentAngle) + segmentAngle) % segmentAngle;
         const distToPeg = segmentAngle - mod;
         const staticAngle =
           distToPeg <= 5.2 ? ((5.2 - distToPeg) / 5.2) * 8.5 : 0;
         pointerRef.current.style.transform = `translateX(-50%) rotate(${staticAngle.toFixed(2)}deg)`;
       }
     }
-  }, [isSpinning, rotation, segmentAngle]);
+  }, [isSpinning, rotation, segmentAngle, internalSpinning]);
 
   // Nhận biết khi vừa kết thúc quay để kích hoạt flash mừng trúng thưởng
   useEffect(() => {
@@ -507,12 +819,13 @@ export function WheelSpinner({
                 <div className="relative w-full h-full rounded-full overflow-hidden">
                   <div
                     ref={discRef}
-                    className="relative w-full h-full rounded-full"
+                    className="relative w-full h-full rounded-full will-change-transform"
                     style={{
                       transform: `rotate(${rotation}deg)`,
-                      transition: isSpinning
-                        ? `transform ${transitionDurationMs}ms cubic-bezier(0.17, 0.67, 0.12, 0.99)`
-                        : "none",
+                      transition:
+                        isSpinning && !internalSpinning
+                          ? `transform ${transitionDurationMs}ms cubic-bezier(0.17, 0.67, 0.12, 0.99)`
+                          : "none",
                     }}
                   >
                     {/* ĐĨA QUAY ĐỘNG SVG */}
@@ -593,27 +906,31 @@ export function WheelSpinner({
               {/* 8. NÚT TÂM "QUAY" */}
               <button
                 type="button"
-                onClick={!isSpinning ? onSpin : undefined}
-                disabled={isSpinning || prizes.length === 0}
-                aria-disabled={isSpinning || isOutOfCoins}
+                onClick={!isCurrentlySpinning ? handleCenterButtonClick : undefined}
+                disabled={isCurrentlySpinning || prizes.length === 0}
+                aria-disabled={isCurrentlySpinning || isOutOfCoins}
                 aria-label={
-                  isSpinning
+                  isCurrentlySpinning
                     ? "Đang quay vòng quay may mắn"
                     : isSimulator
                     ? "Bấm để quay thử nghiệm"
+                    : hasFreeSpin
+                    ? `Nhấn để quay miễn phí (còn ${freeSpins} lượt)`
                     : isOutOfCoins
                     ? `Cần ${spinCost.toLocaleString("vi-VN")} xu để quay`
                     : `Nhấn để quay, chi phí ${spinCost.toLocaleString("vi-VN")} xu`
                 }
                 title={
-                  isOutOfCoins && !isSpinning
+                  isOutOfCoins && !isCurrentlySpinning
                     ? `Cần ${spinCost.toLocaleString("vi-VN")} xu để quay`
                     : isSimulator
                     ? "Bấm để quay thử nghiệm"
+                    : hasFreeSpin && !isCurrentlySpinning
+                    ? `Bạn có ${freeSpins} lượt quay miễn phí!`
                     : undefined
                 }
                 className={`group absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-[21%] h-[21%] rounded-full p-[2px] sm:p-[2.5px] md:p-1 flex items-center justify-center select-none focus:outline-none transition-transform duration-100 ease-out ${
-                  isSpinning
+                  isCurrentlySpinning
                     ? "cursor-not-allowed opacity-90"
                     : isOutOfCoins
                     ? "cursor-not-allowed filter grayscale"
@@ -623,7 +940,7 @@ export function WheelSpinner({
                   background: isOutOfCoins
                     ? "linear-gradient(to bottom, #E5E7EB, #9CA3AF)"
                     : `linear-gradient(to bottom, #FFFFFF, ${WHEEL_THEME.action.ring})`,
-                  boxShadow: isSpinning
+                  boxShadow: isCurrentlySpinning
                     ? "0 4px 12px rgba(0,0,0,0.3)"
                     : isOutOfCoins
                     ? "0 4px 12px rgba(0,0,0,0.25)"
@@ -633,7 +950,7 @@ export function WheelSpinner({
                 <div
                   className="relative w-full h-full rounded-full flex flex-col items-center justify-center overflow-hidden"
                   style={{
-                    background: isSpinning
+                    background: isCurrentlySpinning
                       ? "linear-gradient(to bottom, #9CA3AF, #6B7280)"
                       : isOutOfCoins
                       ? "linear-gradient(to bottom, #6B7280, #4B5563)"
@@ -646,7 +963,7 @@ export function WheelSpinner({
                   <div className="absolute top-0.5 left-1/2 -translate-x-1/2 w-[76%] h-[42%] rounded-full bg-gradient-to-b from-white/45 via-white/10 to-transparent pointer-events-none" />
 
                   <div className="relative z-10 flex flex-col items-center justify-center">
-                    {isSpinning && isSimulator ? (
+                    {isCurrentlySpinning && isSimulator ? (
                       <RotateCw className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-spin stroke-[2.5]" />
                     ) : (
                       <>
@@ -654,28 +971,32 @@ export function WheelSpinner({
                           className="font-heading font-black text-[9.5px] min-[360px]:text-[11px] sm:text-[15px] md:text-[18px] lg:text-[15px] xl:text-[16.5px] 2xl:text-[18px] tracking-widest uppercase leading-tight text-white"
                           style={{
                             textShadow:
-                              isSpinning || isOutOfCoins
+                              isCurrentlySpinning || isOutOfCoins
                                 ? "none"
                                 : `0 2px 0 ${WHEEL_THEME.action.shadow}`,
                           }}
                         >
-                          {!isSpinning && "QUAY"}
+                          {!isCurrentlySpinning && "QUAY"}
                         </span>
 
                         <span
                           className="inline-flex items-center gap-0.5 sm:gap-1 font-heading font-black text-[8px] min-[360px]:text-[9.5px] sm:text-[11px] md:text-[13px] lg:text-[12px] xl:text-[13.5px] 2xl:text-[14.5px] leading-tight mt-0.5 text-white/95"
                           style={{
                             textShadow:
-                              isSpinning || isOutOfCoins
+                              isCurrentlySpinning || isOutOfCoins
                                 ? "none"
                                 : "0 1px 2px rgba(0,0,0,0.6)",
                           }}
                         >
-                          {isSpinning ? (
+                          {isCurrentlySpinning ? (
                             <span className="opacity-75">Đang quay</span>
                           ) : isSimulator ? (
                             <span className="text-amber-200 text-[8.5px] sm:text-[10px] tracking-tight uppercase">
                               THỬ NGHIỆM
+                            </span>
+                          ) : hasFreeSpin ? (
+                            <span className="text-[#FEF08A] whitespace-nowrap text-[7.5px] min-[360px]:text-[9px] sm:text-[11px] md:text-[12.5px] lg:text-[11px] xl:text-[12px] 2xl:text-[13px]">
+                              Miễn phí ({freeSpins})
                             </span>
                           ) : isOutOfCoins ? (
                             <span className="text-amber-200 whitespace-nowrap">

@@ -44,3 +44,11 @@ export function useWheelConfigContext(): WheelConfigContextType {
   }
   return context;
 }
+
+/**
+ * Hook truy xuất context Cấu hình vòng quay tùy chọn (Optional Fallback)
+ * - Trả về null nếu không nằm trong WheelConfigProvider
+ */
+export function useWheelConfigContextOptional(): WheelConfigContextType | null {
+  return useContext(WheelConfigContext);
+}

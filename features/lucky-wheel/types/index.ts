@@ -4,7 +4,6 @@ export type PrizeType =
   | "luck"
   | "free_spin"
   | "deduct_coin"
-  | "multiplier";
 
 /**
  * Ô phần thưởng trên Vòng quay may mắn (Tên trường đồng bộ 100% với bảng public.wheel_prizes)
@@ -51,6 +50,26 @@ export interface WheelConfig {
   daily_free_spins: number;
   is_maintenance?: boolean;
   prizes: WheelPrize[];
+}
+
+export interface ExecuteWheelSpinRpcResult {
+  spin_id: string;
+  created_at: string;
+  is_free_spin: boolean;
+  spin_cost: number;
+  actual_reward_coins: number;
+  actual_reward_free_spins: number;
+  current_coins: number;
+  total_earned_coins: number;
+  free_spins: number;
+}
+
+export interface SpinWheelPayload {
+  prizeIndex: number;
+  winningPrize?: WheelPrize;
+  spinResult?: ExecuteWheelSpinRpcResult;
+  configChanged?: boolean;
+  finalAngle?: number;
 }
 
 /**

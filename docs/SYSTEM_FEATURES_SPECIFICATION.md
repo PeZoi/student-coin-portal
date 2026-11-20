@@ -278,7 +278,7 @@ Quản lý tập trung các bộ System Prompt chuyên biệt cho từng cơ ch�
 | `id` | VARCHAR(50) | PK | Mã giải (ví dụ: 'p1', 'p2'...) |
 | `label` | VARCHAR(100) | NOT NULL | Tên giải đầy đủ (ví dụ: "+100 Xu May Mắn", "+2 Lượt Quay Free") |
 | `short_label` | VARCHAR(50) | NOT NULL | Tên hiển thị trên nan quay (ví dụ: "+100 Xu", "+2 Free") |
-| `prize_type` | VARCHAR(20) | NOT NULL | `coin` (cộng xu), `free_spin` (thêm lượt quay free), `multiplier`, `gift`, `luck` |
+| `prize_type` | VARCHAR(20) | NOT NULL | `coin` (cộng xu), `free_spin` (thêm lượt quay free), `gift`, `luck` |
 | `reward_coins` | INTEGER | DEFAULT 0 | Số xu thưởng (0 nếu là ô free_spin) |
 | `reward_free_spins`| INTEGER | DEFAULT 0 | Số lượt quay miễn phí thưởng thêm (ví dụ: 1 hoặc 2 lượt) |
 | `icon_name` | VARCHAR(50) | NOT NULL | Icon: `coins`, `ticket`, `gift`, `sparkles`, `star`, `smile`, `trophy` |

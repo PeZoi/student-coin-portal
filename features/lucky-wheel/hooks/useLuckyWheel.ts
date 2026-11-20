@@ -13,6 +13,7 @@ import {
   WheelWinner,
   WheelConfig,
   StudentWheelInitialData,
+  SpinWheelPayload,
 } from "../types";
 import {
   defaultWheelConfig,
@@ -63,9 +64,7 @@ export function useLuckyWheel(
   const freeSpinsLeft =
     localFreeSpins !== null
       ? localFreeSpins
-      : config.allow_free_spin
-      ? (wheelData?.free_spins ?? 0)
-      : 0;
+      : (wheelData?.free_spins ?? 0);
 
   const winners = useMemo(() => {
     const serverWinners = wheelData?.allWinners || [];
@@ -91,16 +90,16 @@ export function useLuckyWheel(
   const currentRotationRef = useRef<number>(0);
   const isProcessingSpinRef = useRef<boolean>(false);
 
-  // Xử lý quay vòng quay kết nối trực tiếp Server-Authoritative API
-  const handleSpin = useCallback(async () => {
-    if (isSpinning || isProcessingSpinRef.current) return;
+  // Xử lý bắt đầu quay: Khởi động tức thì (0ms Latency) và gọi Server API ngầm
+  const handleSpin = useCallback(async (): Promise<SpinWheelPayload | null> => {
+    if (isSpinning || isProcessingSpinRef.current) return null;
 
     if (config.is_maintenance) {
       wheelAudio.playError();
       toast.error(
         "Vòng quay may mắn hiện đang tạm dừng bảo trì. Bé vui lòng quay lại sau nhé!"
       );
-      return;
+      return null;
     }
 
     if (config.prizes.length < WHEEL_CONSTANTS.MIN_SLOTS) {
@@ -108,36 +107,48 @@ export function useLuckyWheel(
       toast.error(
         "Vòng quay hiện đang được giáo viên cập nhật phần thưởng. Bé vui lòng quay lại sau nhé!"
       );
-      return;
+      return null;
     }
 
-    const isFree = config.allow_free_spin && freeSpinsLeft > 0;
+    const isFree = freeSpinsLeft > 0;
     if (!isFree && currentCoins < config.spin_cost) {
       wheelAudio.playError();
       toast.error(
         `Bạn cần ít nhất ${config.spin_cost.toLocaleString("vi-VN")} xu để quay lượt này! Hãy làm bài tập để tích lũy thêm xu nhé!`
       );
-      return;
+      return null;
     }
 
-    // Khóa đồng bộ ngay lập tức chống Spam Click
+    // 1. Phản hồi tức thì ngay tại millisecond đầu tiên (0ms Latency)
     isProcessingSpinRef.current = true;
     wheelAudio.unlock();
+    wheelAudio.playSpinStart();
+    setIsSpinning(true);
+    setWinningPrize(null);
+
+    // 2. Trừ số dư hiển thị tức thì (Optimistic UI)
+    if (isFree) {
+      setLocalFreeSpins(Math.max(0, freeSpinsLeft - 1));
+    } else {
+      setStudent({
+        current_coins: Math.max(0, currentCoins - config.spin_cost),
+      });
+    }
 
     try {
+      // 3. Gọi Server API ngầm trong lúc đĩa quay đang tăng tốc
       const clientSlotIds = config.prizes.map((p) => p.id);
       const response = await luckyWheelService.spinWheel(clientSlotIds);
 
-      // Nếu giáo viên vừa thay đổi cơ cấu giải thưởng trong lúc học sinh đang mở trang (Desync Animation Guard)
+      // Nếu giáo viên vừa thay đổi cơ cấu giải thưởng trong lúc học sinh đang mở trang
       if (response.config_changed && response.updated_data) {
         isProcessingSpinRef.current = false;
+        setIsSpinning(false);
         await mutate(response.updated_data, false);
-        currentRotationRef.current = 0;
-        setRotation(0);
         toast.info(
           "Giáo viên vừa cập nhật cơ cấu giải thưởng mới! Đĩa quay đã được làm mới, bé hãy bấm quay lại nhé!"
         );
-        return;
+        return { prizeIndex: 0, configChanged: true };
       }
 
       const prizeIndex = response.prize_index ?? 0;
@@ -146,109 +157,102 @@ export function useLuckyWheel(
       const spinResult = response.spin_result;
 
       if (!selectedPrize || !spinResult) {
-        isProcessingSpinRef.current = false;
-        toast.error("Không thể lấy kết quả vòng quay. Vui lòng thử lại!");
-        return;
+        throw new Error("Không thể lấy kết quả vòng quay. Vui lòng thử lại!");
       }
 
-      // Cập nhật số dư sau khi trừ phí quay (trước khi nhận thưởng lúc đĩa dừng)
-      if (!spinResult.is_free_spin && spinResult.spin_cost > 0) {
-        setStudent({
-          current_coins: Math.max(0, currentCoins - spinResult.spin_cost),
-        });
-      }
-      if (spinResult.is_free_spin) {
-        setLocalFreeSpins(
-          Math.max(0, spinResult.free_spins - spinResult.actual_reward_free_spins)
-        );
-      }
-
-      wheelAudio.playSpinStart();
-      setIsSpinning(true);
-      setWinningPrize(null);
-
-      // Tính toán góc dừng chính xác theo prizeIndex do Server chỉ định
-      const segmentAngle = 360 / config.prizes.length;
-      const midAngle = prizeIndex * segmentAngle + segmentAngle / 2;
-      const targetOffset = (360 - midAngle) % 360;
-
-      // Độ lệch ngẫu nhiên an toàn bên trong nan quạt
-      const safeJitterMax = Math.min(
-        WHEEL_CONSTANTS.JITTER_ANGLE_RANGE / 2,
-        segmentAngle * 0.22
-      );
-      const randomJitter = (Math.random() - 0.5) * (safeJitterMax * 2);
-
-      // Quay thêm từ MIN_EXTRA_ROUNDS đến MAX_EXTRA_ROUNDS vòng đầy đủ
-      const extraRoundRange =
-        WHEEL_CONSTANTS.MAX_EXTRA_ROUNDS - WHEEL_CONSTANTS.MIN_EXTRA_ROUNDS + 1;
-      const extraRounds =
-        (WHEEL_CONSTANTS.MIN_EXTRA_ROUNDS +
-          Math.floor(Math.random() * extraRoundRange)) *
-        360;
-
-      const currentBase = Math.floor(currentRotationRef.current / 360) * 360;
-      const nextRotation =
-        currentBase + extraRounds + targetOffset + randomJitter;
-
-      currentRotationRef.current = nextRotation;
-      setRotation(nextRotation);
-
-      // Kết thúc sau khi đĩa quay dừng (SPIN_DURATION_MS)
-      setTimeout(() => {
-        setIsSpinning(false);
-        isProcessingSpinRef.current = false;
-        setWinningPrize(selectedPrize);
-        setShowPrizeModal(true);
-
-        // Đồng bộ số dư xu và lượt quay cuối cùng từ CSDL
-        setStudent({
-          current_coins: spinResult.current_coins,
-        });
-        setLocalFreeSpins(spinResult.free_spins);
-
-        // Thông báo toast theo loại giải thưởng
-        if (selectedPrize.prize_type === WHEEL_PRIZE_TYPES.LUCK) {
-          toast.info(
-            "Lần này may mắn chưa mỉm cười, chúc bạn may mắn ở lượt tiếp theo nhé!"
-          );
-        } else if (selectedPrize.prize_type === WHEEL_PRIZE_TYPES.DEDUCT_COIN) {
-          toast.warning(`Ôi tiếc quá! Bạn quay vào ô "${selectedPrize.label}".`);
-        } else {
-          toast.success(`🎉 Chúc mừng bạn đã trúng ${selectedPrize.label}!`);
-        }
-
-        const newWinner: WheelWinner = {
-          id: spinResult.spin_id,
-          student_name: student?.display_name || "Bạn",
-          class_name: student?.class_name || "Lớp học",
-          avatar_url: student?.avatar_url || WHEEL_ASSETS.DEFAULT_AVATAR,
-          prize_label_snapshot: selectedPrize.label,
-          prize_type_snapshot: selectedPrize.prize_type,
-          reward_coins: spinResult.actual_reward_coins,
-          reward_free_spins: spinResult.actual_reward_free_spins,
-          created_at: "Vừa xong",
-        };
-
-        setLocalWinners((prev) => [newWinner, ...prev]);
-        setLocalMyHistory((prev) => [newWinner, ...prev]);
-      }, WHEEL_CONSTANTS.SPIN_DURATION_MS);
+      return {
+        prizeIndex,
+        winningPrize: selectedPrize,
+        spinResult,
+      };
     } catch (err: unknown) {
       isProcessingSpinRef.current = false;
       setIsSpinning(false);
       wheelAudio.playError();
+      // Hoàn trả số dư optimistic nếu xảy ra lỗi
+      if (isFree) {
+        setLocalFreeSpins(freeSpinsLeft);
+      } else {
+        setStudent({ current_coins: currentCoins });
+      }
       const error = err instanceof Error ? err : new Error(String(err));
       toast.error(error.message || "Không thể thực hiện lượt quay lúc này.");
+      throw error;
     }
   }, [
     isSpinning,
     config,
     freeSpinsLeft,
     currentCoins,
-    student,
     setStudent,
     mutate,
   ]);
+
+  // Xử lý khi đĩa quay đã hãm phanh dừng lại chính xác tại ô trúng thưởng
+  const handleSpinComplete = useCallback(
+    (payload?: SpinWheelPayload) => {
+      setIsSpinning(false);
+      isProcessingSpinRef.current = false;
+
+      // Giữ nguyên góc quay tại vị trí ô trúng thưởng
+      if (typeof payload?.finalAngle === "number") {
+        currentRotationRef.current = payload.finalAngle;
+        setRotation(payload.finalAngle);
+      }
+
+      if (!payload || !payload.winningPrize || !payload.spinResult) {
+        return;
+      }
+
+      const { winningPrize: selectedPrize, spinResult } = payload;
+      setWinningPrize(selectedPrize);
+      setShowPrizeModal(true);
+
+      // Đồng bộ số dư xu và lượt quay cuối cùng từ CSDL
+      setStudent({
+        current_coins: spinResult.current_coins,
+      });
+      setLocalFreeSpins(spinResult.free_spins);
+
+      if (wheelData) {
+        mutate(
+          {
+            ...wheelData,
+            current_coins: spinResult.current_coins,
+            free_spins: spinResult.free_spins,
+          },
+          false
+        );
+      }
+
+      // Thông báo toast theo loại giải thưởng
+      if (selectedPrize.prize_type === WHEEL_PRIZE_TYPES.LUCK) {
+        toast.info(
+          "Lần này may mắn chưa mỉm cười, chúc bạn may mắn ở lượt tiếp theo nhé!"
+        );
+      } else if (selectedPrize.prize_type === WHEEL_PRIZE_TYPES.DEDUCT_COIN) {
+        toast.warning(`Ôi tiếc quá! Bạn quay vào ô "${selectedPrize.label}".`);
+      } else {
+        toast.success(`🎉 Chúc mừng bạn đã trúng ${selectedPrize.label}!`);
+      }
+
+      const newWinner: WheelWinner = {
+        id: spinResult.spin_id,
+        student_name: student?.display_name || "Bạn",
+        class_name: student?.class_name || "Lớp học",
+        avatar_url: student?.avatar_url || WHEEL_ASSETS.DEFAULT_AVATAR,
+        prize_label_snapshot: selectedPrize.label,
+        prize_type_snapshot: selectedPrize.prize_type,
+        reward_coins: spinResult.actual_reward_coins,
+        reward_free_spins: spinResult.actual_reward_free_spins,
+        created_at: "Vừa xong",
+      };
+
+      setLocalWinners((prev) => [newWinner, ...prev]);
+      setLocalMyHistory((prev) => [newWinner, ...prev]);
+    },
+    [student, setStudent, mutate, wheelData]
+  );
 
   const handleClosePrizeModal = useCallback(() => {
     wheelAudio.stopReward();
@@ -270,6 +274,7 @@ export function useLuckyWheel(
     myHistory,
     currentCoins,
     handleSpin,
+    handleSpinComplete,
     handleClosePrizeModal,
   };
 }

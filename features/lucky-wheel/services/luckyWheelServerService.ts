@@ -169,9 +169,7 @@ export async function getStudentWheelInitialDataServer(
     }));
 
     const current_coins = Number(studentRes.data?.current_coins ?? 0);
-    const free_spins = allow_free_spin
-      ? Number(studentRes.data?.free_spins ?? 0)
-      : 0;
+    const free_spins = Number(studentRes.data?.free_spins ?? 0);
 
     return {
       config,

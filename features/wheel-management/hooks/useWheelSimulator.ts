@@ -30,7 +30,7 @@ export function useWheelSimulator(slots: WheelSlotItem[]) {
 
   // Thuật toán quay thử nghiệm ngẫu nhiên theo đúng Trọng số xác suất hiện tại
   const handleTestSpin = useCallback(() => {
-    if (isSpinning || activeSlots.length === 0) return;
+    if (isSpinning || activeSlots.length === 0) return null;
 
     wheelAudio.unlock();
     wheelAudio.playSpinStart();
@@ -53,43 +53,42 @@ export function useWheelSimulator(slots: WheelSlotItem[]) {
 
     const wonItem = activeSlots[winningIndex];
 
-    // 2. Tính toán góc quay vật lý đồng bộ chuẩn với WheelSpinner
-    const midAngle = winningIndex * segmentAngle + segmentAngle / 2;
-    const targetOffset = (360 - midAngle) % 360;
-    const safeJitterMax = Math.min(
-      WHEEL_CONSTANTS.JITTER_ANGLE_RANGE / 2,
-      segmentAngle * 0.22
-    );
-    const randomJitter = (Math.random() - 0.5) * (safeJitterMax * 2);
+    return Promise.resolve({
+      prizeIndex: winningIndex,
+      wonItem,
+    });
+  }, [isSpinning, activeSlots, totalWeight]);
 
-    const extraRounds = WHEEL_CONSTANTS.MIN_EXTRA_ROUNDS * 360;
-    const currentBase = Math.floor(currentRotationRef.current / 360) * 360;
-    const nextAngle =
-      currentBase + extraRounds + targetOffset + randomJitter;
-
-    currentRotationRef.current = nextAngle;
-    setRotationAngle(nextAngle);
-
-    setTimeout(() => {
+  // Xử lý khi đĩa quay thử nghiệm kết thúc và dừng lại tại ô trúng
+  const handleSimulatorComplete = useCallback(
+    (payload?: { prizeIndex: number; wonItem?: unknown; finalAngle?: number }) => {
       setIsSpinning(false);
-      setLastWonSlot(wonItem);
-      wheelAudio.playReward();
-
-      if (wonItem.prize_type === WHEEL_PRIZE_TYPES.COIN) {
-        toast.success(
-          `🎉 Quay thử trúng: ${wonItem.label}! (+${wonItem.reward_coins} xu)`
-        );
-      } else if (wonItem.prize_type === WHEEL_PRIZE_TYPES.DEDUCT_COIN) {
-        toast.error(
-          `⚠️ Quay thử trúng ô trừ: ${wonItem.label} (${wonItem.reward_coins} xu)`
-        );
-      } else if (wonItem.prize_type === WHEEL_PRIZE_TYPES.FREE_SPIN) {
-        toast.info(`🎁 Quay thử trúng: ${wonItem.label}`);
-      } else {
-        toast(`✨ Quay thử trúng: ${wonItem.label}`);
+      if (typeof payload?.finalAngle === "number") {
+        currentRotationRef.current = payload.finalAngle;
+        setRotationAngle(payload.finalAngle);
       }
-    }, WHEEL_CONSTANTS.SIMULATOR_SPIN_DURATION_MS);
-  }, [isSpinning, activeSlots, totalWeight, segmentAngle]);
+      const wonItem = payload?.wonItem as WheelSlotItem | undefined;
+      if (wonItem) {
+        setLastWonSlot(wonItem);
+        wheelAudio.playReward();
+
+        if (wonItem.prize_type === WHEEL_PRIZE_TYPES.COIN) {
+          toast.success(
+            `🎉 Quay thử trúng: ${wonItem.label}! (+${wonItem.reward_coins} xu)`
+          );
+        } else if (wonItem.prize_type === WHEEL_PRIZE_TYPES.DEDUCT_COIN) {
+          toast.error(
+            `⚠️ Quay thử trúng ô trừ: ${wonItem.label} (${wonItem.reward_coins} xu)`
+          );
+        } else if (wonItem.prize_type === WHEEL_PRIZE_TYPES.FREE_SPIN) {
+          toast.info(`🎁 Quay thử trúng: ${wonItem.label}`);
+        } else {
+          toast(`✨ Quay thử trúng: ${wonItem.label}`);
+        }
+      }
+    },
+    []
+  );
 
   // Đặt lại kim chỉ và góc quay về trạng thái 0 độ ban đầu
   const handleResetSimulator = useCallback(() => {
@@ -108,6 +107,7 @@ export function useWheelSimulator(slots: WheelSlotItem[]) {
     rotationAngle,
     lastWonSlot,
     handleTestSpin,
+    handleSimulatorComplete,
     handleResetSimulator,
   };
 }
