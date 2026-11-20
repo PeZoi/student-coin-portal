@@ -17,7 +17,6 @@ import {
 } from "../types";
 import {
   defaultWheelConfig,
-  getWheelRules,
 } from "../data/wheelData";
 import { wheelAudio } from "../audio/wheelAudio";
 import { luckyWheelService } from "../services/luckyWheelService";
@@ -49,8 +48,6 @@ export function useLuckyWheel(
       prizes: customConfig?.prizes || baseCfg.prizes || [],
     };
   }, [wheelData?.config, customConfig]);
-
-  const rules = useMemo(() => getWheelRules(config), [config]);
 
   const [rotation, setRotation] = useState<number>(0);
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
@@ -262,7 +259,6 @@ export function useLuckyWheel(
   return {
     config,
     prizes: config.prizes,
-    rules,
     spinCost: config.spin_cost,
     allowFreeSpin: config.allow_free_spin,
     rotation,

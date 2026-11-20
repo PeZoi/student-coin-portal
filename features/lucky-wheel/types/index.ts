@@ -34,13 +34,6 @@ export interface WheelWinner {
   created_at: string;
 }
 
-export interface WheelRule {
-  id: string;
-  title: string;
-  description: string;
-  icon: "ticket" | "coin" | "refresh" | "shield";
-}
-
 /**
  * Cấu hình động cho Vòng quay may mắn (Tên trường đồng bộ với system_settings.value)
  */

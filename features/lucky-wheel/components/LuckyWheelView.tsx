@@ -1,12 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import { ArrowLeft, History } from "lucide-react";
 import { Button3D } from "@/components/ui/Button3D";
 import { WHEEL_ASSETS } from "@/constants/wheel";
 import { DashboardBackgroundDecor } from "@/features/dashboard/components/DashboardBackgroundDecor";
-import { ArrowLeft, HelpCircle, History } from "lucide-react";
-import dynamic from "next/dynamic";
-import Image from "next/image";
-import { useEffect, useState } from "react";
 import { useWheelAudio } from "../audio/useWheelAudio";
 import {
   LuckyWheelProvider,
@@ -14,20 +13,7 @@ import {
 } from "../contexts/LuckyWheelContext";
 import { StudentWheelInitialData, WheelConfig } from "../types";
 import { WheelSpinner } from "./WheelSpinner";
-
-// Dynamic imports cho modal để giảm initial bundle size
-const WheelPrizeModal = dynamic(
-  () => import("./WheelPrizeModal").then((m) => m.WheelPrizeModal),
-  { ssr: false }
-);
-const WheelRulesModal = dynamic(
-  () => import("./WheelRulesModal").then((m) => m.WheelRulesModal),
-  { ssr: false }
-);
-const WheelHistoryModal = dynamic(
-  () => import("./WheelHistoryModal").then((m) => m.WheelHistoryModal),
-  { ssr: false }
-);
+import { WheelPrizeModal, WheelHistoryModal } from "./modal";
 
 interface LuckyWheelViewProps {
   initialData?: StudentWheelInitialData;
@@ -36,8 +22,6 @@ interface LuckyWheelViewProps {
 
 function LuckyWheelContent() {
   const {
-    config,
-    rules,
     winningPrize,
     showPrizeModal,
     currentCoins,
@@ -46,8 +30,6 @@ function LuckyWheelContent() {
 
   const audio = useWheelAudio();
 
-  // State mở Modal thể lệ & tỷ lệ phần thưởng (Hướng dẫn)
-  const [showRulesModal, setShowRulesModal] = useState<boolean>(false);
   // State mở Modal lịch sử quay (Toàn bộ / Bản thân)
   const [showHistoryModal, setShowHistoryModal] = useState<boolean>(false);
 
@@ -67,24 +49,23 @@ function LuckyWheelContent() {
       <DashboardBackgroundDecor />
 
       {/* ======================================================== */}
-      {/* THANH ĐỈNH: QUAY LẠI (TRÁI) VÀ SỐ DƯ, LỊCH SỬ, HƯỚNG DẪN (PHẢI) */}
+      {/* THANH ĐỈNH: QUAY LẠI (TRÁI) VÀ SỐ DƯ, LỊCH SỬ (PHẢI) */}
       {/* ======================================================== */}
       <div className="relative z-30 w-full max-w-5xl flex items-center justify-between gap-2 mb-1 sm:mb-2 flex-shrink-0 pt-0.5 px-1 sm:px-2">
-        {/* Nút Quay lại */}
+        {/* Nút Quay lại (Không phát tiếng click) */}
         <Button3D
           href="/student"
           variant="yellow"
           size="sm"
-          onClick={() => audio.playClick()}
           className="h-8 sm:h-9 gap-1 sm:gap-1.5 px-3 sm:px-3.5 text-xs sm:text-sm tracking-wide flex-shrink-0 inline-flex items-center justify-center"
         >
           <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
           <span>Quay lại</span>
         </Button3D>
 
-        {/* Cụm bên phải: Số dư Heo Đất + Nút Lịch sử + Nút Hướng dẫn */}
+        {/* Cụm bên phải: Số dư Heo Đất + Nút Lịch sử */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 flex-nowrap justify-end">
-          {/* Badge Số dư Heo Đất: Cùng chiều cao h-8 sm:h-9, cùng baseline với các nút */}
+          {/* Badge Số dư Heo Đất */}
           <div className="h-8 sm:h-9 flex items-center gap-1.5 px-2.5 sm:px-3.5 rounded-full bg-gradient-to-b from-[#FFA238] via-[#FF6A00] to-[#E04F00] border-2 border-white/95 shadow-[0_3px_8px_rgba(224,79,0,0.35),0_1.5px_0_#8F2800,inset_0_1.5px_2px_rgba(255,255,255,0.85),inset_0_-1.5px_2px_rgba(143,40,0,0.4)] select-none flex-shrink-0">
             <div className="relative w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 drop-shadow-[0_1.5px_2px_rgba(100,25,0,0.45)]">
               <Image
@@ -110,32 +91,15 @@ function LuckyWheelContent() {
             </div>
           </div>
 
-          {/* Nút Lịch sử: Cùng chiều cao h-8 sm:h-9 */}
+          {/* Nút Lịch sử (Không phát tiếng click) */}
           <Button3D
             variant="blue"
             size="sm"
-            onClick={() => {
-              audio.playClick();
-              setShowHistoryModal(true);
-            }}
+            onClick={() => setShowHistoryModal(true)}
             className="h-8 sm:h-9 gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 text-xs sm:text-sm tracking-wide shadow-sm whitespace-nowrap flex-shrink-0 inline-flex items-center justify-center"
           >
             <History className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
             <span>Lịch sử</span>
-          </Button3D>
-
-          {/* Nút Hướng dẫn: Cùng chiều cao h-8 sm:h-9 */}
-          <Button3D
-            variant="purple"
-            size="sm"
-            onClick={() => {
-              audio.playClick();
-              setShowRulesModal(true);
-            }}
-            className="h-8 sm:h-9 gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 text-xs sm:text-sm tracking-wide shadow-sm whitespace-nowrap flex-shrink-0 inline-flex items-center justify-center"
-          >
-            <HelpCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
-            <span>Hướng dẫn</span>
           </Button3D>
         </div>
       </div>
@@ -155,22 +119,8 @@ function LuckyWheelContent() {
         isOpen={showPrizeModal}
         onClose={() => {
           audio.stopReward();
-          audio.playClick();
           handleClosePrizeModal();
         }}
-      />
-
-      {/* ======================================================== */}
-      {/* POPUP MODAL THỂ LỆ & TỶ LỆ TRÚNG THƯỞNG MINH BẠCH */}
-      {/* ======================================================== */}
-      <WheelRulesModal
-        isOpen={showRulesModal}
-        onClose={() => {
-          audio.playClick();
-          setShowRulesModal(false);
-        }}
-        config={config}
-        rules={rules}
       />
 
       {/* ======================================================== */}
@@ -178,10 +128,7 @@ function LuckyWheelContent() {
       {/* ======================================================== */}
       <WheelHistoryModal
         isOpen={showHistoryModal}
-        onClose={() => {
-          audio.playClick();
-          setShowHistoryModal(false);
-        }}
+        onClose={() => setShowHistoryModal(false)}
       />
     </div>
   );

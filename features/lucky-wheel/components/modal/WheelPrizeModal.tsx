@@ -3,7 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import { Sparkles, Check, X } from "lucide-react";
-import { WheelPrize } from "../types";
+import { WheelPrize } from "../../types";
 import { getWheelPrizeModalContent } from "@/constants/wheel";
 import { Button3D } from "@/components/ui/Button3D";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";

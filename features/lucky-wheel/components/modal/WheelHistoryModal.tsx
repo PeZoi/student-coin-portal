@@ -16,11 +16,11 @@ import {
   WHEEL_PRIZE_IMAGES,
   WHEEL_ASSETS,
 } from "@/constants/wheel";
-import { WheelWinner } from "../types";
+import { WheelWinner } from "../../types";
 import { Button3D } from "@/components/ui/Button3D";
 import { cn } from "@/lib/utils";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
-import { useWheelHistoryInfinite } from "../hooks/useWheelHistoryInfinite";
+import { useWheelHistoryInfinite } from "../../hooks/useWheelHistoryInfinite";
 
 export interface WheelHistoryModalProps {
   isOpen: boolean;
