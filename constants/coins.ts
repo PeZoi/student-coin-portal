@@ -299,5 +299,21 @@ export function formatWheelPrizeTxDescription(
   return `Kết quả Vòng Quay May Mắn: ${cleanLabel}`;
 }
 
+/**
+ * Helper tạo mô tả chuẩn cho giao dịch giữ xu khi học sinh gửi yêu cầu đổi quà Heo Đất
+ */
+export function formatExchangeHoldTxDescription(
+  choiceType: "cash" | "gift",
+  coins: number,
+  amountVnd: number
+): string {
+  const formattedCoins = coins.toLocaleString("vi-VN");
+  const formattedAmount = amountVnd.toLocaleString("vi-VN");
+  if (choiceType === "cash") {
+    return `Giữ ${formattedCoins} xu đổi ${formattedAmount}đ tiền mặt`;
+  }
+  return `Giữ ${formattedCoins} xu đổi quà tặng tự chọn (trị giá ${formattedAmount}đ)`;
+}
+
 
 

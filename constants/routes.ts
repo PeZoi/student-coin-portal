@@ -57,6 +57,7 @@ export const AppRoutes = {
       WHEEL_SPIN: "/api/student/wheel/spin",
       WHEEL_HISTORY: "/api/student/wheel/history",
       WHEEL_CLAIM_GIFT: "/api/student/wheel/claim-gift",
+      REWARDS_EXCHANGE: "/api/student/rewards/exchange",
     },
     TEACHER: {
       CLASSES: "/api/teacher/classes",

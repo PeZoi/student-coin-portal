@@ -63,3 +63,15 @@ export interface TeacherExchangeRequestItem extends MonthlyExchangeRequest {
   phone_zalo?: string | null;
   processor_name?: string | null;
 }
+
+/**
+ * Kết quả trả về từ API đổi quà (Tiền mặt / Quà tự chọn) của Học sinh
+ */
+export interface SubmitRewardExchangeResponseData {
+  request_id: string;
+  hold_tx_id: string;
+  current_coins: number;
+  coins_to_exchange: number;
+  amount_vnd: number;
+  created_at: string;
+}

@@ -1367,6 +1367,20 @@ export type Database = {
         Args: { p_requesting_user_id: string; p_target_user_id: string }
         Returns: string
       }
+      submit_reward_exchange: {
+        Args: {
+          p_amount_vnd: number
+          p_choice_type: Database["public"]["Enums"]["monthly_exchange_choice"]
+          p_coins_to_exchange: number
+          p_month: number
+          p_shopee_note: string | null
+          p_shopee_product_url: string | null
+          p_student_id: string
+          p_tx_description: string
+          p_year: number
+        }
+        Returns: Json
+      }
       temp_drop_missions_icon_type: { Args: never; Returns: undefined }
     }
     Enums: {

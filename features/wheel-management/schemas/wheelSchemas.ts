@@ -4,6 +4,7 @@ import {
   MAX_SPIN_GIFT_VND,
   SPIN_GIFT_EQUIVALENT_COINS,
 } from "@/constants/rewards";
+import { httpUrlSchema } from "@/features/rewards/schemas/rewardSchemas";
 
 export const wheelPrizeTypeSchema = z.enum([
   "coin",
@@ -102,18 +103,7 @@ export const studentSpinRequestSchema = z.object({
 });
 
 export const claimWheelGiftSchema = z.object({
-  link: z
-    .string()
-    .trim()
-    .min(1, "Con hãy dán link món quà muốn nhận nhé!")
-    .refine((val) => {
-      try {
-        const parsed = new URL(val);
-        return parsed.protocol === "http:" || parsed.protocol === "https:";
-      } catch {
-        return false;
-      }
-    }, "Link món quà phải là đường dẫn hợp lệ"),
+  link: httpUrlSchema,
   priceVnd: z
     .number({ message: "Số tiền món quà phải là số hợp lệ." })
     .finite("Số tiền món quà không hợp lệ.")
