@@ -41,6 +41,8 @@ interface DbWheelStatsSummary {
   total_coins_deducted_today: number;
   all_time_rewarded_coins: number;
   all_time_spin_fee_collected: number;
+  all_time_total_collected?: number;
+  all_time_net_coins_flow?: number;
   hit_counts: Record<string, number>;
 }
 
@@ -260,7 +262,13 @@ export async function getInitialWheelConfigServer(
         ? 100
         : 0;
 
-    const netCoinsFlow = totalCoinsRewardedToday - totalCoinsDeductedToday;
+    // Dòng tiền xu ròng toàn thời gian (All-time Net Coins Flow)
+    const netCoinsFlow =
+      typeof dbSummary.all_time_net_coins_flow === "number"
+        ? Number(dbSummary.all_time_net_coins_flow)
+        : allTimeRewardedCoins -
+          (Number(dbSummary.all_time_total_collected) ||
+            allTimeSpinFeeCollected);
 
     const activeSlots = slots.filter((s) => s.is_active);
     const totalWeight = activeSlots.reduce(

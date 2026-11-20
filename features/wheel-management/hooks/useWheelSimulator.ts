@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback, useRef } from "react";
 import { toast } from "sonner";
-import { WHEEL_CONSTANTS, WHEEL_PRIZE_TYPES } from "@/constants/wheel";
+import { WHEEL_PRIZE_TYPES } from "@/constants/wheel";
 import { wheelAudio } from "@/features/lucky-wheel/audio/wheelAudio";
 import { WheelSlotItem } from "../types";
 
@@ -24,9 +24,6 @@ export function useWheelSimulator(slots: WheelSlotItem[]) {
     () => activeSlots.reduce((sum, s) => sum + s.probability_weight, 0),
     [activeSlots]
   );
-
-  const totalSlices = Math.max(1, activeSlots.length);
-  const segmentAngle = 360 / totalSlices;
 
   // Thuật toán quay thử nghiệm ngẫu nhiên theo đúng Trọng số xác suất hiện tại
   const handleTestSpin = useCallback(() => {

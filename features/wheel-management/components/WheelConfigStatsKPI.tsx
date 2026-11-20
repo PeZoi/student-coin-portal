@@ -43,7 +43,25 @@ export function WheelConfigStatsKPI() {
         </div>
       </div>
 
-      {/* 2. Tổng lượt quay */}
+      {/* 2. Tỷ lệ hoàn trả */}
+      <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-2xs text-left">
+        <div className="flex items-start justify-between gap-2">
+          <span className="text-sm font-semibold text-[#475569]">
+            Tỷ lệ hoàn xu
+          </span>
+          <div className="w-10 h-10 rounded-xl bg-[#F3E8FF] text-[#7E22CE] flex items-center justify-center shrink-0">
+            <Percent className="w-5 h-5" />
+          </div>
+        </div>
+        <div className="mt-3 flex items-baseline gap-1.5">
+          <span className="text-3xl font-heading font-extrabold text-[#0F172A] tracking-tight">
+            {stats.rtp_rate}%
+          </span>
+          <span className="text-sm font-semibold text-slate-500">hoàn trả</span>
+        </div>
+      </div>
+
+      {/* 3. Tổng lượt quay */}
       <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-2xs text-left">
         <div className="flex items-start justify-between gap-2">
           <span className="text-sm font-semibold text-[#475569]">
@@ -61,7 +79,7 @@ export function WheelConfigStatsKPI() {
         </div>
       </div>
 
-      {/* 3. Dòng tiền xu ròng */}
+      {/* 4. Dòng tiền xu ròng */}
       <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-2xs text-left">
         <div className="flex items-start justify-between gap-2">
           <span className="text-sm font-semibold text-[#475569]">
@@ -80,23 +98,7 @@ export function WheelConfigStatsKPI() {
         </div>
       </div>
 
-      {/* 4. Tỷ lệ hoàn trả */}
-      <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-2xs text-left">
-        <div className="flex items-start justify-between gap-2">
-          <span className="text-sm font-semibold text-[#475569]">
-            Tỷ lệ hoàn xu
-          </span>
-          <div className="w-10 h-10 rounded-xl bg-[#F3E8FF] text-[#7E22CE] flex items-center justify-center shrink-0">
-            <Percent className="w-5 h-5" />
-          </div>
-        </div>
-        <div className="mt-3 flex items-baseline gap-1.5">
-          <span className="text-3xl font-heading font-extrabold text-[#0F172A] tracking-tight">
-            {stats.rtp_rate}%
-          </span>
-          <span className="text-sm font-semibold text-slate-500">hoàn trả</span>
-        </div>
-      </div>
+      
     </div>
   );
 }
