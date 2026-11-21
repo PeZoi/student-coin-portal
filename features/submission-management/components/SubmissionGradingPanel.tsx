@@ -10,8 +10,10 @@ import {
   FileText,
   ArrowRight,
   Check,
+  CheckCheck,
   XCircle,
   Eye,
+  Plus,
 } from "lucide-react";
 import { cn, onlyNumberKeyDown } from "@/lib/utils";
 import { SubmissionApprovalStatus } from "@/constants";
@@ -26,10 +28,13 @@ import { useManageSubmissionsContext } from "../contexts/ManageSubmissionsContex
 /**
  * Cột 3 (Phải): Bảng AI Co-pilot, Bóc tách lỗi từng dòng & Chấm thưởng Xu Heo Đất
  * - Sử dụng `key` theo Quy tắc 8 để tự động khởi tạo lại số xu và lời phê khi đổi học sinh
+ * - Tối ưu hóa UX Chấm bài Thần tốc: 1-Click "Duyệt & Bạn tiếp theo"
  */
 export function SubmissionGradingPanel() {
   const {
     activeSubmission,
+    activeIndex,
+    filteredSubmissions,
     activePhotoIndex,
     setActivePhotoIndex,
     isSubmitting,
@@ -43,6 +48,8 @@ export function SubmissionGradingPanel() {
     <SubmissionGradingFormContent
       key={`${activeSubmission.id}-${activeSubmission.approval_status}`}
       submission={activeSubmission}
+      currentIndex={activeIndex}
+      totalInQueue={filteredSubmissions.length}
       activePhotoIndex={activePhotoIndex}
       setActivePhotoIndex={setActivePhotoIndex}
       isSubmitting={isSubmitting}
@@ -54,6 +61,8 @@ export function SubmissionGradingPanel() {
 
 function SubmissionGradingFormContent({
   submission,
+  currentIndex,
+  totalInQueue,
   activePhotoIndex,
   setActivePhotoIndex,
   isSubmitting,
@@ -61,6 +70,8 @@ function SubmissionGradingFormContent({
   onReject,
 }: {
   submission: TeacherGradingSubmissionItem;
+  currentIndex: number;
+  totalInQueue: number;
   activePhotoIndex: number;
   setActivePhotoIndex: (idx: number) => void;
   isSubmitting: boolean;
@@ -87,14 +98,21 @@ function SubmissionGradingFormContent({
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col h-[740px] overflow-hidden">
-      {/* 1. Header của Panel chấm điểm */}
+      {/* 1. Header của Panel chấm điểm: Vị trí hàng đợi + Trạng thái */}
       <div className="p-4 border-b border-slate-200/80 bg-slate-50/70 flex items-center justify-between gap-2 shrink-0">
         <div>
-          <span className="text-xs font-extrabold text-[#0F172A] uppercase tracking-wider block">
-            AI Đánh giá &amp; Chấm điểm
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-extrabold text-[#0F172A] uppercase tracking-wider block">
+              AI Đánh giá &amp; Chấm điểm
+            </span>
+            {totalInQueue > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-700 font-bold text-[10px]">
+                {currentIndex + 1} / {totalInQueue}
+              </span>
+            )}
+          </div>
           <span className="text-[11px] text-slate-500">
-            Khung thưởng bài tập: +{submission.min_reward_coins} ~{" "}
+            Khung thưởng: +{submission.min_reward_coins} ~{" "}
             {submission.max_reward_coins} xu
           </span>
         </div>
@@ -111,6 +129,7 @@ function SubmissionGradingFormContent({
           </span>
         ) : (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
             <span>Đang chờ duyệt</span>
           </span>
         )}
@@ -213,7 +232,7 @@ function SubmissionGradingFormContent({
             </span>
             {submission.errors.length > 0 && (
               <span className="text-[11px] text-slate-400">
-                Bấm vào lỗi để chuyển tới trang ảnh
+                Bấm vào lỗi để soi trang ảnh
               </span>
             )}
           </div>
@@ -313,7 +332,7 @@ function SubmissionGradingFormContent({
             </button>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <input
               type="number"
               min={0}
@@ -323,7 +342,7 @@ function SubmissionGradingFormContent({
               onChange={(e) =>
                 setCoinsInput(Math.max(0, Number(e.target.value) || 0))
               }
-              className="w-28 h-10 px-3 rounded-xl bg-white border border-amber-300 text-sm font-black text-amber-900 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 tabular-nums"
+              className="w-24 h-9 px-3 rounded-xl bg-white border border-amber-300 text-sm font-black text-amber-900 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 tabular-nums"
             />
 
             <button
@@ -363,6 +382,20 @@ function SubmissionGradingFormContent({
               )}
             >
               Tối đa ({submission.max_reward_coins})
+            </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                setCoinsInput((prev) =>
+                  Math.min(submission.max_reward_coins + 10, prev + 5)
+                )
+              }
+              className="inline-flex items-center gap-0.5 px-2 h-9 rounded-xl border border-amber-200 bg-white text-amber-900 text-xs font-bold hover:bg-amber-100/60 transition-colors"
+              title="Thưởng thêm 5 xu cho học sinh sáng tạo"
+            >
+              <Plus className="w-3 h-3 text-amber-600" />
+              <span>5 xu</span>
             </button>
           </div>
         </div>
@@ -406,26 +439,41 @@ function SubmissionGradingFormContent({
       </div>
 
       {/* 3. Sticky Footer: Cụm nút Duyệt bài / Yêu cầu nộp lại */}
-      <div className="p-3.5 border-t border-slate-200/80 bg-slate-50/80 flex items-center gap-2 shrink-0">
+      <div className="p-3.5 border-t border-slate-200/80 bg-slate-50/90 flex flex-col sm:flex-row items-center gap-2 shrink-0">
         <button
           type="button"
           disabled={isSubmitting}
           onClick={() => onReject(submission.id, feedbackInput, true)}
-          className="inline-flex items-center justify-center gap-1.5 h-10 px-3.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/90 text-xs font-bold transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 h-10 px-3.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/90 text-xs font-bold transition-colors cursor-pointer shrink-0 disabled:opacity-50"
         >
           <XCircle className="w-4 h-4 shrink-0" />
           <span>Yêu cầu nộp lại</span>
         </button>
 
+        {/* Nút Phụ: Chỉ duyệt bài này */}
+        <button
+          type="button"
+          disabled={isSubmitting}
+          onClick={() =>
+            onApprove(submission.id, coinsInput, feedbackInput, false)
+          }
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 h-10 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+          title="Chỉ duyệt và giữ nguyên học sinh này"
+        >
+          <Check className="w-3.5 h-3.5" />
+          <span>Chỉ duyệt</span>
+        </button>
+
+        {/* Nút Chính Nổi Bật Nhất: Duyệt & Bạn tiếp theo */}
         <button
           type="button"
           disabled={isSubmitting}
           onClick={() =>
             onApprove(submission.id, coinsInput, feedbackInput, true)
           }
-          className="flex-1 inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer active:scale-98 disabled:opacity-50"
+          className="w-full sm:flex-1 inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer active:scale-98 disabled:opacity-50"
         >
-          <Check className="w-4 h-4 shrink-0" />
+          <CheckCheck className="w-4 h-4 shrink-0" />
           <span>Duyệt (+{coinsInput} xu) &amp; Tiếp</span>
           <ArrowRight className="w-3.5 h-3.5 shrink-0" />
         </button>

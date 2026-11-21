@@ -28,6 +28,10 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import {
+  TeacherSelect,
+  TeacherSelectOption,
+} from "@/components/ui/TeacherSelect";
+import {
   Table,
   TableHeader,
   TableBody,
@@ -320,6 +324,44 @@ function MissionProgressModalContent({
     mission.is_deleted
   );
 
+  // Danh sách tùy chọn cho TeacherSelect lọc theo lớp
+  const classFilterOptions: TeacherSelectOption[] = useMemo(
+    () => [
+      {
+        label: "Tất cả các lớp",
+        value: "all",
+        badge: `${totalCount}`,
+      },
+      ...assignedClasses.map((cls) => ({
+        label: cls.class_name,
+        value: cls.id,
+        badge: `${cls.student_count} HS`,
+      })),
+    ],
+    [assignedClasses, totalCount]
+  );
+
+  // Danh sách tùy chọn cho TeacherSelect lọc trạng thái duyệt
+  const approvalFilterOptions: TeacherSelectOption[] = useMemo(
+    () => [
+      {
+        label: "Tất cả trạng thái duyệt",
+        value: "all",
+      },
+      {
+        label: "Chờ cô duyệt",
+        value: SubmissionApprovalStatus.PENDING_APPROVAL,
+        badge: `${pendingCount}`,
+      },
+      {
+        label: "Đã duyệt",
+        value: SubmissionApprovalStatus.APPROVED,
+        badge: `${approvedCount}`,
+      },
+    ],
+    [pendingCount, approvedCount]
+  );
+
   // 5. Điều hướng sang Studio Duyệt bài
   const handleGoToStudio = (studentId?: string) => {
     onClose();
@@ -506,33 +548,30 @@ function MissionProgressModalContent({
           <div className="flex items-center gap-2.5 flex-wrap">
             {/* 1. Lọc theo lớp học */}
             {assignedClasses.length > 1 && (
-              <select
-                value={selectedClassId}
-                onChange={(e) => setSelectedClassId(e.target.value)}
-                className="h-8.5 px-2.5 rounded-xl bg-white border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0A62D6]/20 cursor-pointer"
-              >
-                <option value="all">Tất cả các lớp ({totalCount})</option>
-                {assignedClasses.map((cls) => (
-                  <option key={cls.id} value={cls.id}>
-                    {cls.class_name} ({cls.student_count} HS)
-                  </option>
-                ))}
-              </select>
+              <div className="w-full sm:w-48 shrink-0">
+                <TeacherSelect
+                  size="sm"
+                  options={classFilterOptions}
+                  value={selectedClassId}
+                  onChange={setSelectedClassId}
+                  placeholder="Chọn lớp học"
+                  className="h-8.5 text-xs font-medium border-slate-200"
+                />
+              </div>
             )}
 
             {/* 2. Lọc theo trạng thái duyệt bài (nếu ở tab Đã làm hoặc Tất cả) */}
             {activeTab !== "not_submitted" && (
-              <select
-                value={approvalFilter}
-                onChange={(e) => setApprovalFilter(e.target.value)}
-                className="h-8.5 px-2.5 rounded-xl bg-white border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0A62D6]/20 cursor-pointer"
-              >
-                <option value="all">Tất cả trạng thái duyệt</option>
-                <option value={SubmissionApprovalStatus.PENDING_APPROVAL}>
-                  Chờ cô duyệt ({pendingCount})
-                </option>
-                <option value={SubmissionApprovalStatus.APPROVED}>Đã duyệt ({approvedCount})</option>
-              </select>
+              <div className="w-full sm:w-52 shrink-0">
+                <TeacherSelect
+                  size="sm"
+                  options={approvalFilterOptions}
+                  value={approvalFilter}
+                  onChange={setApprovalFilter}
+                  placeholder="Trạng thái duyệt"
+                  className="h-8.5 text-xs font-medium border-slate-200"
+                />
+              </div>
             )}
 
             {/* 3. Ô tìm kiếm học sinh */}
