@@ -23,6 +23,7 @@ interface UseMissionMutationsParams {
  * Micro-Hook 3: Quản lý các thao tác tương tác API thực tế & Cập nhật lạc quan (Optimistic UI)
  */
 export function useMissionMutations({
+  missionsList,
   mutateMissions,
   selectedIds,
   handleClearSelection,
@@ -66,29 +67,34 @@ export function useMissionMutations({
     [modals, mutateMissions]
   );
 
-  // 2. Bật / Tắt trạng thái mở nhận bài (Optimistic Update 0ms)
+  // 2. Bật / Tắt trạng thái mở nhận bài (Optimistic Update 0ms an toàn)
   const handleToggleMissionStatus = useCallback(
     async (mission: TeacherMissionItem) => {
       const nextActive = !mission.is_active;
 
-      // Cập nhật lạc quan ngay lập tức trên UI
-      mutateMissions(
-        (prev) =>
-          prev?.map((m) =>
-            m.id === mission.id ? { ...m, is_active: nextActive } : m
-          ) ?? [],
-        {
-          optimisticData: (prev) =>
-            prev?.map((m) =>
-              m.id === mission.id ? { ...m, is_active: nextActive } : m
-            ) ?? [],
-          rollbackOnError: true,
-          revalidate: false,
-        }
-      );
-
       try {
-        await missionService.toggleMissionStatus(mission.id, nextActive);
+        await mutateMissions(
+          async (current) => {
+            await missionService.toggleMissionStatus(mission.id, nextActive);
+            const base = current && current.length > 0 ? current : missionsList;
+            return base.map((m) =>
+              m.id === mission.id ? { ...m, is_active: nextActive } : m
+            );
+          },
+          {
+            optimisticData: (current) => {
+              const base =
+                current && current.length > 0 ? current : missionsList;
+              return base.map((m) =>
+                m.id === mission.id ? { ...m, is_active: nextActive } : m
+              );
+            },
+            rollbackOnError: true,
+            populateCache: true,
+            revalidate: true,
+          }
+        );
+
         toast.success(
           nextActive
             ? `Đã mở nhận bài cho "${mission.title}"!`
@@ -100,7 +106,7 @@ export function useMissionMutations({
         await mutateMissions();
       }
     },
-    [mutateMissions]
+    [missionsList, mutateMissions]
   );
 
   // 3. Xóa mềm bài tập qua RPC safe_delete_mission

@@ -58,32 +58,32 @@ export const AI_GRADING_FOCUS_OPTIONS: {
   label: string;
   desc: string;
 }[] = [
-  {
-    id: AiGradingErrorType.SPELLING,
-    label: "Chính tả (Spelling)",
-    desc: "Phát hiện viết sai chữ cái, thiếu nét, nhầm từ",
-  },
-  {
-    id: AiGradingErrorType.GRAMMAR,
-    label: "Ngữ pháp (Grammar)",
-    desc: "Chia động từ, số ít/số nhiều, cấu trúc câu",
-  },
-  {
-    id: AiGradingErrorType.VOCAB,
-    label: "Từ vựng (Vocabulary)",
-    desc: "Dùng từ đúng ngữ cảnh và chủ đề bài học",
-  },
-  {
-    id: AiGradingErrorType.PUNCTUATION,
-    label: "Dấu câu & Viết hoa",
-    desc: "Chấm câu, viết hoa đầu câu và tên riêng",
-  },
-  {
-    id: AiGradingErrorType.CONTENT,
-    label: "Đúng yêu cầu đề bài",
-    desc: "Đảm bảo đủ số câu và sát với đề bài cô giao",
-  },
-];
+    {
+      id: AiGradingErrorType.SPELLING,
+      label: "Chính tả (Spelling)",
+      desc: "Phát hiện viết sai chữ cái, thiếu nét, nhầm từ",
+    },
+    {
+      id: AiGradingErrorType.GRAMMAR,
+      label: "Ngữ pháp (Grammar)",
+      desc: "Chia động từ, số ít/số nhiều, cấu trúc câu",
+    },
+    {
+      id: AiGradingErrorType.VOCAB,
+      label: "Từ vựng (Vocabulary)",
+      desc: "Dùng từ đúng ngữ cảnh và chủ đề bài học",
+    },
+    {
+      id: AiGradingErrorType.PUNCTUATION,
+      label: "Dấu câu & Viết hoa",
+      desc: "Chấm câu, viết hoa đầu câu và tên riêng",
+    },
+    {
+      id: AiGradingErrorType.CONTENT,
+      label: "Đúng yêu cầu đề bài",
+      desc: "Đảm bảo đủ số câu và sát với đề bài cô giao",
+    },
+  ];
 
 /**
  * Mẫu bài tập tạo nhanh (1-Click Quick Templates) dành cho Giáo viên
@@ -116,8 +116,8 @@ export const MISSION_QUICK_TEMPLATES: MissionQuickTemplate[] = [
       description:
         "Viết tay rõ ràng vào vở ô ly từ 5 đến 7 câu tiếng Anh giới thiệu các thành viên trong gia đình, sau đó chụp ảnh trang vở thật rõ nét để nộp bài.",
       submission_type: MissionSubmissionType.SUBJECTIVE_WRITING,
-      min_reward_coins: 30,
-      max_reward_coins: 60,
+      min_reward_coins: 20,
+      max_reward_coins: 40,
       grading_focus: [
         AiGradingErrorType.SPELLING,
         AiGradingErrorType.GRAMMAR,
@@ -139,8 +139,8 @@ export const MISSION_QUICK_TEMPLATES: MissionQuickTemplate[] = [
       description:
         "Chép mỗi từ vựng mới 2 dòng vào vở và dịch đoạn hội thoại trang 42 từ tiếng Anh sang tiếng Việt.",
       submission_type: MissionSubmissionType.SUBJECTIVE_WRITING,
-      min_reward_coins: 25,
-      max_reward_coins: 50,
+      min_reward_coins: 20,
+      max_reward_coins: 40,
       grading_focus: [
         AiGradingErrorType.SPELLING,
         AiGradingErrorType.VOCAB,
@@ -161,8 +161,8 @@ export const MISSION_QUICK_TEMPLATES: MissionQuickTemplate[] = [
       description:
         "Các con đọc kỹ 8 câu tiếng Việt cô giao và dịch sang tiếng Anh vào vở, chú ý cấu trúc am/is/are + V-ing nhé!",
       submission_type: MissionSubmissionType.SUBJECTIVE_WRITING,
-      min_reward_coins: 50,
-      max_reward_coins: 100,
+      min_reward_coins: 20,
+      max_reward_coins: 40,
       grading_focus: [
         AiGradingErrorType.GRAMMAR,
         AiGradingErrorType.SPELLING,
@@ -176,3 +176,23 @@ export const MISSION_QUICK_TEMPLATES: MissionQuickTemplate[] = [
     },
   },
 ];
+
+/**
+ * Tùy chọn lọc trạng thái bài tập trên Toolbar
+ */
+export const MISSION_STATUS_FILTER_OPTIONS: {
+  value: "recent" | "archived" | "all";
+  label: string;
+}[] = [
+    { value: "recent", label: "Hoạt động gần đây" },
+    { value: "archived", label: "Lưu trữ" },
+    { value: "all", label: "Tất cả trạng thái" },
+  ];
+
+/**
+ * Tùy chọn tab chế độ xem danh sách bài tập (Bảng / Thẻ)
+ */
+export const MISSION_VIEW_MODE_OPTIONS = [
+  { mode: "table", label: "Bảng" },
+  { mode: "grid", label: "Thẻ" },
+] as const;

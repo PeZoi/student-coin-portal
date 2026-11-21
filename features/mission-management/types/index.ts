@@ -165,18 +165,12 @@ export interface MissionFormValues {
 
 /**
  * Bộ lọc trạng thái bài tập trên Toolbar
- * - `all`: Tất cả bài tập (trừ thùng rác)
- * - `active`: Đang mở & Còn hạn nộp
- * - `expired`: Đang mở nhưng Đã qua hạn nộp (`due_at < now`)
- * - `inactive`: Đang tạm ẩn / Đóng nhận bài (`is_active = false`)
+ * - `recent`: Hoạt động gần đây (Mặc định: chưa hết hạn hoặc mới hết hạn <= 7 ngày, trừ thùng rác)
+ * - `archived`: Đã lưu trữ (Đã hết hạn quá 1 tuần > 7 ngày, trừ thùng rác)
+ * - `all`: Tất cả trạng thái từ trước đến giờ (trừ thùng rác)
  * - `deleted`: Trong thùng rác (`is_deleted = true`)
  */
-export type MissionStatusFilter =
-  | "all"
-  | "active"
-  | "expired"
-  | "inactive"
-  | "deleted";
+export type MissionStatusFilter = "recent" | "archived" | "all" | "deleted";
 
 /**
  * Bộ lọc hình thức nộp bài

@@ -10,7 +10,12 @@ import {
   SortDirection,
 } from "../types";
 import { DEFAULT_MISSION_PAGE_SIZE } from "../constants";
-import { isMissionExpired, normalizeText, parseDateTime } from "../utils";
+import {
+  isMissionExpired,
+  isMissionExpiredOverOneWeek,
+  normalizeText,
+  parseDateTime,
+} from "../utils";
 
 interface UseMissionFiltersParams {
   missionsList: TeacherMissionItem[];
@@ -25,7 +30,7 @@ export function useMissionFilters({
   onFilterChange,
 }: UseMissionFiltersParams) {
   const [statusFilter, setStatusFilterState] =
-    useState<MissionStatusFilter>("all");
+    useState<MissionStatusFilter>("recent");
   const [typeFilter, setTypeFilterState] = useState<MissionTypeFilter>("all");
   const [selectedClassId, setSelectedClassIdState] = useState<string>("all");
   const [searchQuery, setSearchQueryState] = useState<string>("");
@@ -80,7 +85,7 @@ export function useMissionFilters({
   }, []);
 
   const handleResetFilter = useCallback(() => {
-    setStatusFilterState("all");
+    setStatusFilterState("recent");
     setTypeFilterState("all");
     setSelectedClassIdState("all");
     setSearchQueryState("");
@@ -110,6 +115,8 @@ export function useMissionFilters({
     const nonDeleted = missionsList.filter((m) => !m.is_deleted);
     const deletedCount = missionsList.filter((m) => m.is_deleted).length;
 
+    let recentCount = 0;
+    let archivedCount = 0;
     let activeCount = 0;
     let expiredCount = 0;
     let inactiveCount = 0;
@@ -120,6 +127,14 @@ export function useMissionFilters({
 
     for (const m of nonDeleted) {
       const expired = isMissionExpired(m.due_at);
+      const expiredOverOneWeek = isMissionExpiredOverOneWeek(m.due_at);
+
+      if (expiredOverOneWeek) {
+        archivedCount += 1;
+      } else {
+        recentCount += 1;
+      }
+
       if (!m.is_active) {
         inactiveCount += 1;
       } else if (expired) {
@@ -144,6 +159,8 @@ export function useMissionFilters({
 
     return {
       totalMissions: nonDeleted.length,
+      recentMissionsCount: recentCount,
+      archivedMissionsCount: archivedCount,
       activeMissionsCount: activeCount,
       expiredMissionsCount: expiredCount,
       inactiveMissionsCount: inactiveCount,
@@ -166,17 +183,18 @@ export function useMissionFilters({
         if (!item.is_deleted) return false;
       } else {
         if (item.is_deleted) return false;
-        const expired = isMissionExpired(item.due_at);
+        const expiredOverOneWeek = isMissionExpiredOverOneWeek(item.due_at);
 
-        if (statusFilter === "active" && (!item.is_active || expired)) {
-          return false;
+        // 1. Hoạt động gần đây (Mặc định: ẩn bài tập hết hạn quá 1 tuần)
+        if (statusFilter === "recent") {
+          if (expiredOverOneWeek) return false;
         }
-        if (statusFilter === "expired" && (!item.is_active || !expired)) {
-          return false;
+
+        // 2. Lưu trữ: Chỉ hiển thị bài tập đã hết hạn quá 1 tuần
+        if (statusFilter === "archived") {
+          if (!expiredOverOneWeek) return false;
         }
-        if (statusFilter === "inactive" && item.is_active) {
-          return false;
-        }
+        // "all": Hiển thị tất cả bài tập từ trước đến nay (chỉ trừ bài đã xóa mềm)
       }
 
       // Lọc theo hình thức nộp bài

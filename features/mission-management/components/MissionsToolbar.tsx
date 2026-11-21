@@ -17,6 +17,10 @@ import {
 } from "@/components/ui/TeacherSelect";
 import { cn } from "@/lib/utils";
 import { MissionStatusFilter } from "../types";
+import {
+  MISSION_STATUS_FILTER_OPTIONS,
+  MISSION_VIEW_MODE_OPTIONS,
+} from "../constants";
 import { useManageMissionsContext } from "../contexts/ManageMissionsContext";
 
 /**
@@ -36,42 +40,28 @@ export function MissionsToolbar() {
     isRefreshing,
     isAdmin,
     totalMissions,
-    activeMissionsCount,
-    expiredMissionsCount,
-    inactiveMissionsCount,
+    recentMissionsCount,
+    archivedMissionsCount,
     deletedMissionsCount,
   } = useManageMissionsContext();
 
-  // Tùy chọn lọc Trạng thái bài tập (Tham khảo chuẩn Quản lý lớp học)
+  // Tùy chọn lọc Trạng thái bài tập ánh xạ từ cấu hình chuẩn constants
   const statusFilterOptions: TeacherSelectOption[] = useMemo(
-    () => [
-      {
-        label: "Tất cả trạng thái",
-        value: "all",
-        badge: `${totalMissions}`,
-      },
-      {
-        label: "Đang mở nhận bài",
-        value: "active",
-        badge: `${activeMissionsCount}`,
-      },
-      {
-        label: "Đã qua hạn nộp",
-        value: "expired",
-        badge: `${expiredMissionsCount}`,
-      },
-      {
-        label: "Tạm ẩn / Bản nháp",
-        value: "inactive",
-        badge: `${inactiveMissionsCount}`,
-      },
-    ],
-    [
-      totalMissions,
-      activeMissionsCount,
-      expiredMissionsCount,
-      inactiveMissionsCount,
-    ]
+    () =>
+      MISSION_STATUS_FILTER_OPTIONS.map((opt) => {
+        let badge: string | undefined;
+        if (opt.value === "recent") badge = `${recentMissionsCount ?? 0}`;
+        else if (opt.value === "archived")
+          badge = `${archivedMissionsCount ?? 0}`;
+        else if (opt.value === "all") badge = `${totalMissions}`;
+
+        return {
+          label: opt.label,
+          value: opt.value,
+          badge,
+        };
+      }),
+    [recentMissionsCount, archivedMissionsCount, totalMissions]
   );
 
   const isDeletedTab = statusFilter === "deleted";
@@ -80,7 +70,7 @@ export function MissionsToolbar() {
     <div className="p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
       {/* 1. Bên trái: Select Trạng thái (Width rộng rãi chuẩn Quản lý lớp học) + Nút Thùng rác nhanh */}
       <div className="flex items-center gap-2">
-        <div className="w-full sm:w-56 shrink-0">
+        <div className="w-full sm:w-60 shrink-0">
           <TeacherSelect
             icon={<Filter className="w-3.5 h-3.5 text-slate-500" />}
             size="sm"
@@ -104,7 +94,7 @@ export function MissionsToolbar() {
             <button
               type="button"
               onClick={() =>
-                onStatusFilterChange(isDeletedTab ? "all" : "deleted")
+                onStatusFilterChange(isDeletedTab ? "recent" : "deleted")
               }
               className={cn(
                 "h-10 px-3.5 rounded-xl text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap cursor-pointer shrink-0 flex items-center gap-1.5",
@@ -147,33 +137,26 @@ export function MissionsToolbar() {
 
         {/* Cụm nút chuyển đổi Chế độ xem: Bảng (Table) hoặc Thẻ (Grid) */}
         <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200/90 shrink-0 gap-1 h-10">
-          <button
-            type="button"
-            onClick={() => onViewModeChange("table")}
-            className={cn(
-              "flex items-center gap-1.5 px-3 h-8 rounded-lg text-xs transition-all cursor-pointer select-none",
-              viewMode === "table"
-                ? "bg-white text-[#0A62D6] font-bold shadow-xs border border-slate-200/90"
-                : "text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 font-medium"
-            )}
-          >
-            <List className="w-4 h-4 shrink-0" />
-            <span>Bảng</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onViewModeChange("grid")}
-            className={cn(
-              "flex items-center gap-1.5 px-3 h-8 rounded-lg text-xs transition-all cursor-pointer select-none",
-              viewMode === "grid"
-                ? "bg-white text-[#0A62D6] font-bold shadow-xs border border-slate-200/90"
-                : "text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 font-medium"
-            )}
-          >
-            <LayoutGrid className="w-4 h-4 shrink-0" />
-            <span>Thẻ</span>
-          </button>
+          {MISSION_VIEW_MODE_OPTIONS.map(({ mode, label }) => {
+            const Icon = mode === "table" ? List : LayoutGrid;
+            const isActive = viewMode === mode;
+            return (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => onViewModeChange(mode)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 h-8 rounded-lg text-xs transition-all cursor-pointer select-none",
+                  isActive
+                    ? "bg-white text-[#0A62D6] font-bold shadow-xs border border-slate-200/90"
+                    : "text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 font-medium"
+                )}
+              >
+                <Icon className="w-4 h-4 shrink-0" />
+                <span>{label}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Nút Làm mới danh sách */}

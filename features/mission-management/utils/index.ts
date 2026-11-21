@@ -13,6 +13,16 @@ export function isMissionExpired(dueAt: string): boolean {
 }
 
 /**
+ * Kiểm tra xem bài tập đã hết hạn quá 1 tuần (7 ngày) hay chưa
+ */
+export function isMissionExpiredOverOneWeek(dueAt: string): boolean {
+  const date = toValidDate(dueAt);
+  if (!date) return false;
+  const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+  return Date.now() - date.getTime() > ONE_WEEK_MS;
+}
+
+/**
  * Format hiển thị khoảng xu thưởng từ `min_reward_coins` đến `max_reward_coins`
  * - Nếu min === max: "+40"
  * - Nếu min < max: "+20 ~ 40"

@@ -111,15 +111,15 @@ export async function getTeacherMissionsServer(
       query = query.eq("is_deleted", false);
     }
 
-    // Lọc theo trạng thái hoạt động / hết hạn
+    // Lọc theo trạng thái hoạt động gần đây / lưu trữ
     if (options?.status && options.status !== "all" && options.status !== "deleted") {
-      const nowIso = new Date().toISOString();
-      if (options.status === "active") {
-        query = query.eq("is_active", true).gt("due_at", nowIso);
-      } else if (options.status === "expired") {
-        query = query.eq("is_active", true).lte("due_at", nowIso);
-      } else if (options.status === "inactive") {
-        query = query.eq("is_active", false);
+      const oneWeekAgoIso = new Date(
+        Date.now() - 7 * 24 * 60 * 60 * 1000
+      ).toISOString();
+      if (options.status === "recent") {
+        query = query.gte("due_at", oneWeekAgoIso);
+      } else if (options.status === "archived") {
+        query = query.lt("due_at", oneWeekAgoIso);
       }
     }
 
