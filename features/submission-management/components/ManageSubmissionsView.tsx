@@ -1,8 +1,13 @@
 "use client";
 
-import { CheckCircle2, RotateCcw } from "lucide-react";
+import Link from "next/link";
+import { AlertCircle, ArrowLeft, CheckCircle2, RotateCcw } from "lucide-react";
 import { SubmissionApprovalStatus } from "@/constants";
-import { TeacherGradingSubmissionItem } from "../types";
+import { AppRoutes } from "@/constants/routes";
+import {
+  TeacherGradingSubmissionItem,
+  MissionDetailViewMode,
+} from "../types";
 import {
   ManageSubmissionsProvider,
   useManageSubmissionsContext,
@@ -18,6 +23,7 @@ import { SubmissionGradingPanel } from "./SubmissionGradingPanel";
 interface ManageSubmissionsViewProps {
   initialSubmissions?: TeacherGradingSubmissionItem[];
   initialMissionId?: string;
+  initialViewMode?: MissionDetailViewMode;
 }
 
 /**
@@ -28,11 +34,13 @@ interface ManageSubmissionsViewProps {
 export function ManageSubmissionsView({
   initialSubmissions,
   initialMissionId,
+  initialViewMode,
 }: ManageSubmissionsViewProps) {
   return (
     <ManageSubmissionsProvider
       initialSubmissions={initialSubmissions}
       initialMissionId={initialMissionId}
+      initialViewMode={initialViewMode}
     >
       <ManageSubmissionsContent />
     </ManageSubmissionsProvider>
@@ -41,6 +49,7 @@ export function ManageSubmissionsView({
 
 function ManageSubmissionsContent() {
   const {
+    selectedMission,
     selectedMissionId,
     viewMode,
     filteredSubmissions,
@@ -56,6 +65,31 @@ function ManageSubmissionsContent() {
     return <MissionsOverviewView />;
   }
 
+  if (selectedMissionId !== "all" && !selectedMission) {
+    return (
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-12 text-center space-y-3">
+        <div className="w-14 h-14 rounded-2xl bg-slate-100 border border-slate-200 text-slate-500 flex items-center justify-center mx-auto">
+          <AlertCircle className="w-7 h-7" />
+        </div>
+        <h2 className="text-base sm:text-lg font-extrabold text-[#0F172A]">
+          Không tìm thấy bài tập
+        </h2>
+        <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
+          Bài tập bạn đang tìm không tồn tại hoặc đã bị gỡ khỏi danh sách duyệt bài.
+        </p>
+        <div className="pt-2">
+          <Link
+            href={AppRoutes.TEACHER.SUBMISSIONS}
+            className="inline-flex items-center gap-1.5 h-9 px-4 rounded-xl bg-[#0A62D6] hover:bg-[#0850B0] text-white text-xs font-bold transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Quay lại danh sách bài tập</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   // =========================================================================
   // LEVEL 2: Đã chọn một Bài tập -> Không gian Chi tiết Bài tập & Chấm Điểm
   // =========================================================================
@@ -65,7 +99,7 @@ function ManageSubmissionsContent() {
       <MissionDetailHeader />
 
       {/* 2. CHẾ ĐỘ XEM: Danh sách toàn bộ Học sinh (Student Roster) */}
-      {viewMode === "roster" && <StudentRosterView />}
+      {viewMode === "roster" && <StudentRosterView key={selectedMissionId} />}
 
       {/* 3. CHẾ ĐỘ XEM: Studio Chấm bài 3 cột (Grading Studio Split-View) */}
       {viewMode === "studio" && (

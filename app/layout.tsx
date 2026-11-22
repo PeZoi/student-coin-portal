@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Baloo_2, Nunito } from "next/font/google";
 import { Toaster } from "sonner";
 import { UserInitializer } from "@/features/auth/components/UserInitializer";
@@ -31,7 +32,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${baloo2.variable} ${nunito.variable} min-h-full antialiased`}
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col font-sans">
-        <UserInitializer />
+        <Suspense fallback={null}>
+          <UserInitializer />
+        </Suspense>
         {children}
         <Toaster richColors position="top-right" />
       </body>

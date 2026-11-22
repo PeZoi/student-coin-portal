@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { TeacherSidebar } from "./TeacherSidebar";
 import { TeacherHeader } from "./TeacherHeader";
 
@@ -22,10 +22,19 @@ export function TeacherLayoutShell({ children }: TeacherLayoutShellProps) {
   return (
     <div className="teacher-portal min-h-screen bg-slate-50 text-slate-800 flex antialiased">
       {/* Sidebar Navigation */}
-      <TeacherSidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-      />
+      <Suspense
+        fallback={
+          <aside
+            aria-hidden="true"
+            className="fixed top-0 bottom-0 left-0 z-50 w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col"
+          />
+        }
+      >
+        <TeacherSidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+      </Suspense>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 pt-16 lg:pl-64">

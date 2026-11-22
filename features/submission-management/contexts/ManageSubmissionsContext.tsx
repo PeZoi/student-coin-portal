@@ -1,7 +1,10 @@
 "use client";
 
 import { createContext, useContext, ReactNode } from "react";
-import { TeacherGradingSubmissionItem } from "../types";
+import {
+  TeacherGradingSubmissionItem,
+  MissionDetailViewMode,
+} from "../types";
 import { useManageSubmissions } from "../hooks/useManageSubmissions";
 
 export type ManageSubmissionsContextType = ReturnType<
@@ -15,14 +18,20 @@ interface ManageSubmissionsProviderProps {
   children: ReactNode;
   initialSubmissions?: TeacherGradingSubmissionItem[];
   initialMissionId?: string;
+  initialViewMode?: MissionDetailViewMode;
 }
 
 export function ManageSubmissionsProvider({
   children,
   initialSubmissions,
   initialMissionId,
+  initialViewMode,
 }: ManageSubmissionsProviderProps) {
-  const value = useManageSubmissions(initialSubmissions, initialMissionId);
+  const value = useManageSubmissions(
+    initialSubmissions,
+    initialMissionId,
+    initialViewMode
+  );
 
   return (
     <ManageSubmissionsContext.Provider value={value}>

@@ -7,6 +7,7 @@ import {
   SubmissionMissionFilterOption,
   MissionSubmissionSummary,
   StudentRosterItem,
+  MissionDetailViewMode,
 } from "../types";
 import {
   MOCK_GRADING_SUBMISSIONS,
@@ -26,7 +27,8 @@ import { useSubmissionMutations } from "./useSubmissionMutations";
  */
 export function useManageSubmissions(
   initialSubmissions?: TeacherGradingSubmissionItem[],
-  initialMissionId?: string
+  initialMissionId?: string,
+  initialViewMode?: MissionDetailViewMode
 ) {
   const [submissionsList, setSubmissionsList] = useState<
     TeacherGradingSubmissionItem[]
@@ -44,6 +46,7 @@ export function useManageSubmissions(
   const filters = useSubmissionFilters({
     submissionsList,
     initialMissionId,
+    initialViewMode,
   });
 
   // 2. Micro-Hook Chấm điểm, Duyệt bài, Yêu cầu nộp lại & Duyệt hàng loạt
@@ -112,37 +115,87 @@ export function useManageSubmissions(
 
   // Danh sách toàn bộ học sinh (cả đã nộp và chưa nộp) cho bài tập đang chọn
   const studentRoster = useMemo<StudentRosterItem[]>(() => {
-    if (!filters.selectedMissionId) return [];
+    const missionId = filters.selectedMissionId;
+    if (!missionId) return [];
 
-    const baseRoster =
-      MOCK_CLASS_STUDENTS_ROSTER[filters.selectedMissionId] ||
-      MOCK_CLASS_STUDENTS_ROSTER["msn-001"] ||
-      [];
+    const staticRoster = MOCK_CLASS_STUDENTS_ROSTER[missionId];
 
-    // Đồng bộ lại trạng thái nộp bài với submissionsList hiện tại
-    return baseRoster.map((rosterItem) => {
-      const liveSub = submissionsList.find(
-        (s) =>
-          s.mission_id === filters.selectedMissionId &&
-          s.student_id === rosterItem.student_id
-      );
+    // Nếu bài tập có danh sách tĩnh (như msn-001): đồng bộ lại trạng thái nộp bài theo submissionsList
+    if (staticRoster) {
+      return staticRoster.map((rosterItem) => {
+        const liveSub = submissionsList.find(
+          (s) =>
+            s.mission_id === missionId &&
+            s.student_id === rosterItem.student_id
+        );
 
-      if (!liveSub) return rosterItem;
+        if (!liveSub) return rosterItem;
 
-      return {
-        ...rosterItem,
-        submission_id: liveSub.id,
-        has_submitted: true,
-        submitted_at: liveSub.created_at,
-        is_late: liveSub.is_late,
-        proof_image_count: liveSub.proof_image_urls.length,
-        ai_score: liveSub.ai_score,
-        approval_status: liveSub.approval_status,
-        final_coins: liveSub.final_coins,
-        readable: liveSub.readable,
-      };
-    });
-  }, [filters.selectedMissionId, submissionsList]);
+        return {
+          ...rosterItem,
+          submission_id: liveSub.id,
+          has_submitted: true,
+          submitted_at: liveSub.created_at,
+          is_late: liveSub.is_late,
+          proof_image_count: liveSub.proof_image_urls.length,
+          ai_score: liveSub.ai_score,
+          ai_summary:
+            liveSub.ai_raw_response?.summary_comment ?? rosterItem.ai_summary,
+          approval_status: liveSub.approval_status,
+          final_coins: liveSub.final_coins,
+          readable: liveSub.readable,
+        };
+      });
+    }
+
+    // Các bài tập chưa có danh sách tĩnh: tổng hợp từ bài nộp thực tế của bài tập + danh sách học sinh nền
+    const missionSubs = submissionsList.filter(
+      (s) => s.mission_id === missionId
+    );
+    const className = selectedMission?.class_name ?? "Lớp 3A1";
+
+    const submittedItems: StudentRosterItem[] = missionSubs.map((sub) => ({
+      id: `ros-${missionId}-${sub.student_id}`,
+      student_id: sub.student_id,
+      student_name: sub.student_name,
+      student_avatar: sub.student_avatar,
+      student_phone: sub.student_phone,
+      class_name: className,
+      submission_id: sub.id,
+      has_submitted: true,
+      submitted_at: sub.created_at,
+      is_late: sub.is_late,
+      proof_image_count: sub.proof_image_urls.length,
+      ai_score: sub.ai_score,
+      ai_summary: sub.ai_raw_response?.summary_comment ?? null,
+      approval_status: sub.approval_status,
+      final_coins: sub.final_coins,
+      readable: sub.readable,
+    }));
+
+    const submittedStudentIds = new Set(missionSubs.map((s) => s.student_id));
+    const baseStudents = MOCK_CLASS_STUDENTS_ROSTER["msn-001"] ?? [];
+
+    const unsubmittedItems: StudentRosterItem[] = baseStudents
+      .filter((st) => !submittedStudentIds.has(st.student_id))
+      .map((st) => ({
+        ...st,
+        id: `ros-${missionId}-${st.student_id}`,
+        class_name: selectedMission?.class_name ?? st.class_name,
+        submission_id: null,
+        has_submitted: false,
+        submitted_at: null,
+        is_late: false,
+        proof_image_count: 0,
+        ai_score: null,
+        ai_summary: null,
+        approval_status: "unsubmitted",
+        final_coins: null,
+        readable: false,
+      }));
+
+    return [...submittedItems, ...unsubmittedItems];
+  }, [filters.selectedMissionId, submissionsList, selectedMission]);
 
   // Thống kê toàn cục trên toàn bộ các bài tập (Level 1 KPIs)
   const globalKpis = useMemo(() => {

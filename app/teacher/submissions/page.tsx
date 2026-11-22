@@ -20,7 +20,12 @@ async function SubmissionsDataContainer({
   const missionId =
     typeof params?.missionId === "string" ? params.missionId : undefined;
 
-  return <ManageSubmissionsView initialMissionId={missionId} />;
+  return (
+    <ManageSubmissionsView
+      key={missionId ?? "overview"}
+      initialMissionId={missionId}
+    />
+  );
 }
 
 export default function SubmissionsPage({ searchParams }: SubmissionsPageProps) {

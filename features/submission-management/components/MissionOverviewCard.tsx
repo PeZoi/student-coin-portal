@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import {
   Clock,
   ArrowRight,
@@ -10,14 +11,12 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AppRoutes } from "@/constants/routes";
 import { MissionSubmissionSummary } from "../types";
 import { formatDate } from "@/lib/date";
 
 interface MissionOverviewCardProps {
   mission: MissionSubmissionSummary;
-  onSelect: (missionId: string) => void;
-  onQuickGrade: (missionId: string) => void;
-  onViewRoster: (missionId: string) => void;
 }
 
 /**
@@ -30,12 +29,8 @@ interface MissionOverviewCardProps {
  *   + Bỏ hoàn toàn hàng AI TB, ảnh mờ và avatar học sinh
  *   + Đánh dấu rõ ràng bài tập đã quá hạn nộp
  */
-export function MissionOverviewCard({
-  mission,
-  onSelect,
-  onQuickGrade,
-  onViewRoster,
-}: MissionOverviewCardProps) {
+export function MissionOverviewCard({ mission }: MissionOverviewCardProps) {
+  const detailHref = AppRoutes.TEACHER.SUBMISSION_DETAIL(mission.id);
   // Trạng thái quá hạn nộp đã được tính toán sẵn từ Hook (100% Pure Component, không gọi Date.now trong render)
   const isExpired = Boolean(mission.is_expired);
 
@@ -87,13 +82,14 @@ export function MissionOverviewCard({
           </div>
 
           <div className="min-w-0 flex-1">
-            <h3
-              onClick={() => onSelect(mission.id)}
-              className="text-base font-extrabold text-[#0F172A] group-hover:text-[#0A62D6] transition-colors cursor-pointer line-clamp-2 leading-snug"
-              title={mission.title}
-            >
-              {mission.title}
-            </h3>
+            <Link href={detailHref} className="block">
+              <h3
+                className="text-base font-extrabold text-[#0F172A] group-hover:text-[#0A62D6] transition-colors cursor-pointer line-clamp-2 leading-snug"
+                title={mission.title}
+              >
+                {mission.title}
+              </h3>
+            </Link>
           </div>
         </div>
 
@@ -258,36 +254,25 @@ export function MissionOverviewCard({
         </div>
       </div>
 
-      {/* 3. Footer Thao Tác: Chấm bài ngay & Xem danh sách học sinh */}
-      <div className="p-4 bg-white flex items-center justify-between gap-2.5">
-        <button
-          type="button"
-          onClick={() => onViewRoster(mission.id)}
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
-        >
-          <Users className="w-3.5 h-3.5" />
-          <span>Danh sách học sinh</span>
-        </button>
-
+      {/* 3. Footer Thao Tác: Mở danh sách học sinh của bài tập */}
+      <div className="p-4 bg-white flex items-center justify-end gap-2.5">
         {hasPending ? (
-          <button
-            type="button"
-            onClick={() => onQuickGrade(mission.id)}
+          <Link
+            href={detailHref}
             className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#0A62D6] hover:bg-[#0850B0] text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-98 shrink-0"
           >
             <FileCheck2 className="w-3.5 h-3.5" />
-            <span>Chấm bài ngay ({pending})</span>
+            <span>Chấm bài ({pending})</span>
             <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
-          </button>
+          </Link>
         ) : (
-          <button
-            type="button"
-            onClick={() => onSelect(mission.id)}
+          <Link
+            href={detailHref}
             className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition-colors cursor-pointer"
           >
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
             <span>Đã duyệt xong (100%)</span>
-          </button>
+          </Link>
         )}
       </div>
     </div>

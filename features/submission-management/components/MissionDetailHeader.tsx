@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   BookOpen,
@@ -14,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/date";
+import { AppRoutes } from "@/constants/routes";
 import {
   TeacherSelect,
   TeacherSelectOption,
@@ -27,11 +30,11 @@ import { SUBMISSION_SUBJECT_META } from "../constants";
  * - Cho phép chuyển đổi linh hoạt giữa "Studio Chấm bài 3 cột" và "Danh sách học sinh"
  */
 export function MissionDetailHeader() {
+  const router = useRouter();
   const {
     selectedMission,
     selectedMissionId,
     missionFilterOptions,
-    handleSelectMission,
     viewMode,
     setViewMode,
     pendingCount,
@@ -61,14 +64,13 @@ export function MissionDetailHeader() {
       {/* 1. Thanh Breadcrumb & Nút Quay Lại */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs">
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => handleSelectMission(null)}
+          <Link
+            href={AppRoutes.TEACHER.SUBMISSIONS}
             className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer shrink-0 active:scale-98"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Tất cả bài tập</span>
-          </button>
+          </Link>
 
           <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500 font-medium truncate">
             <span>Duyệt bài</span>
@@ -92,7 +94,9 @@ export function MissionDetailHeader() {
         <div className="w-full sm:w-80 shrink-0">
           <TeacherSelect
             value={selectedMissionId || "msn-001"}
-            onChange={(val) => handleSelectMission(val)}
+            onChange={(val) =>
+              router.push(AppRoutes.TEACHER.SUBMISSION_DETAIL(val))
+            }
             options={missionSelectOptions}
             icon={<BookOpen className="w-3.5 h-3.5" />}
             className="w-full"

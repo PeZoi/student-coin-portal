@@ -12,6 +12,7 @@ import {
 interface UseSubmissionFiltersParams {
   submissionsList: TeacherGradingSubmissionItem[];
   initialMissionId?: string;
+  initialViewMode?: MissionDetailViewMode;
 }
 
 /**
@@ -22,6 +23,7 @@ interface UseSubmissionFiltersParams {
 export function useSubmissionFilters({
   submissionsList,
   initialMissionId,
+  initialViewMode,
 }: UseSubmissionFiltersParams) {
   // 1. Quản lý Bài tập đang chọn: null = Màn hình Danh sách Bài tập; string = Màn hình Chi tiết Bài tập
   const [selectedMissionId, setSelectedMissionId] = useState<string | null>(
@@ -29,7 +31,9 @@ export function useSubmissionFilters({
   );
 
   // 2. Chế độ xem trong màn hình Chi tiết: "studio" (Chấm nhanh 3 cột) hoặc "roster" (Danh sách toàn bộ học sinh)
-  const [viewMode, setViewMode] = useState<MissionDetailViewMode>("studio");
+  const [viewMode, setViewMode] = useState<MissionDetailViewMode>(
+    initialViewMode ?? "studio"
+  );
 
   // 3. Bộ lọc trạng thái bài nộp trong Studio/Roster
   const [statusFilter, setStatusFilter] =
@@ -184,11 +188,21 @@ export function useSubmissionFilters({
   );
 
   // Mở Studio chấm bài cho một học sinh cụ thể từ Danh sách Học sinh (Roster)
-  const handleOpenStudentGrading = useCallback((submissionId: string) => {
-    setSelectedSubmissionId(submissionId);
-    setViewMode("studio");
-    setActivePhotoIndex(0);
-  }, []);
+  const handleOpenStudentGrading = useCallback(
+    (submissionId: string) => {
+      const targetSubmission = submissionsList.find(
+        (sub) => sub.id === submissionId
+      );
+      if (targetSubmission) {
+        setStatusFilter(targetSubmission.approval_status);
+        setSearchQuery("");
+      }
+      setSelectedSubmissionId(submissionId);
+      setViewMode("studio");
+      setActivePhotoIndex(0);
+    },
+    [submissionsList]
+  );
 
   const handleChangeStatusFilter = useCallback(
     (nextStatus: SubmissionStatusFilter) => {

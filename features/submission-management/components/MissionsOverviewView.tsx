@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import {
   BookOpen,
   FileCheck2,
@@ -24,15 +23,7 @@ export function MissionsOverviewView() {
     totalApprovedAllMissions,
     totalSubmittedAllMissions,
     overallSubmissionRate,
-    handleSelectMission,
-    handleQuickGradeMission,
-    setViewMode,
   } = useManageSubmissionsContext();
-
-  const handleViewRoster = (missionId: string) => {
-    handleSelectMission(missionId);
-    setViewMode("roster");
-  };
 
   return (
     <div className="space-y-6">
@@ -140,13 +131,7 @@ export function MissionsOverviewView() {
       {/* 3. Lưới Thẻ Bài Tập (Đã sắp xếp: Bài còn hạn lên trước, Bài quá hạn ở cuối) */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 items-stretch">
         {missionsOverview.map((mission) => (
-          <MissionOverviewCard
-            key={mission.id}
-            mission={mission}
-            onSelect={handleSelectMission}
-            onQuickGrade={handleQuickGradeMission}
-            onViewRoster={handleViewRoster}
-          />
+          <MissionOverviewCard key={mission.id} mission={mission} />
         ))}
       </div>
     </div>
