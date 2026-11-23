@@ -356,11 +356,12 @@ export type Database = {
           correct_count: number | null
           created_at: string | null
           final_coins: number | null
+          final_score: number | null
           id: string
           is_late: boolean
           is_media_purged: boolean
           media_purged_at: string | null
-          mission_id: string | null
+          mission_id: string
           proof_image_urls: Json
           readable: boolean
           reviewed_at: string | null
@@ -383,11 +384,12 @@ export type Database = {
           correct_count?: number | null
           created_at?: string | null
           final_coins?: number | null
+          final_score?: number | null
           id?: string
           is_late?: boolean
           is_media_purged?: boolean
           media_purged_at?: string | null
-          mission_id?: string | null
+          mission_id: string
           proof_image_urls: Json
           readable?: boolean
           reviewed_at?: string | null
@@ -410,11 +412,12 @@ export type Database = {
           correct_count?: number | null
           created_at?: string | null
           final_coins?: number | null
+          final_score?: number | null
           id?: string
           is_late?: boolean
           is_media_purged?: boolean
           media_purged_at?: string | null
-          mission_id?: string | null
+          mission_id?: string
           proof_image_urls?: Json
           readable?: boolean
           reviewed_at?: string | null
@@ -1289,6 +1292,18 @@ export type Database = {
       }
     }
     Functions: {
+      approve_homework_submission: {
+        Args: {
+          p_correct_count?: number
+          p_final_coins: number
+          p_final_score?: number
+          p_reviewer_id: string
+          p_submission_id: string
+          p_teacher_feedback?: string
+          p_total_questions?: number
+        }
+        Returns: Json
+      }
       audit_user_coin_balance: {
         Args: { target_user_id: string }
         Returns: {
@@ -1299,11 +1314,15 @@ export type Database = {
           user_id: string
         }[]
       }
+      cancel_homework_submission: {
+        Args: { p_student_id: string; p_submission_id: string }
+        Returns: Json
+      }
       claim_wheel_gift_box: {
         Args: {
           p_amount_vnd: number
           p_month: number
-          p_shopee_note: string | null
+          p_shopee_note: string
           p_shopee_product_url: string
           p_student_id: string
           p_year: number
@@ -1340,6 +1359,7 @@ export type Database = {
         Args: { submission_ids: string[] }
         Returns: number
       }
+      migrate_monthly_exchange_status: { Args: never; Returns: string }
       purge_expired_audit_logs: {
         Args: { retention_days?: number }
         Returns: number
@@ -1351,6 +1371,14 @@ export type Database = {
       purge_expired_notifications: {
         Args: { retention_days?: number }
         Returns: number
+      }
+      reject_homework_submission: {
+        Args: {
+          p_reviewer_id: string
+          p_submission_id: string
+          p_teacher_feedback: string
+        }
+        Returns: Json
       }
       restore_class: { Args: { p_class_id: string }; Returns: boolean }
       restore_mission: { Args: { p_mission_id: string }; Returns: boolean }
@@ -1373,8 +1401,8 @@ export type Database = {
           p_choice_type: Database["public"]["Enums"]["monthly_exchange_choice"]
           p_coins_to_exchange: number
           p_month: number
-          p_shopee_note: string | null
-          p_shopee_product_url: string | null
+          p_shopee_note: string
+          p_shopee_product_url: string
           p_student_id: string
           p_tx_description: string
           p_year: number

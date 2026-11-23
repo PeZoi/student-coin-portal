@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AppRoutes } from "@/constants/routes";
@@ -36,11 +37,154 @@ interface NavItem {
 	badgeColor?: string;
 }
 
+interface TeacherSidebarNavContentProps {
+	pathname: string | null;
+	navItems: NavItem[];
+	managementItems: NavItem[];
+	adminItems: NavItem[];
+	isAdmin: boolean;
+	isSuperTeacher: boolean;
+	onClose?: () => void;
+}
+
+function SidebarNavLink({
+	item,
+	isActive,
+	onClose,
+}: {
+	item: NavItem;
+	isActive: boolean;
+	onClose?: () => void;
+}) {
+	const Icon = item.icon;
+
+	return (
+		<Link
+			href={item.href}
+			onClick={onClose}
+			className={`group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+				isActive
+					? "bg-blue-50 text-blue-900 border border-blue-200/90 shadow-2xs"
+					: "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
+			}`}
+		>
+			<div className='flex items-center gap-3'>
+				<Icon
+					className={`w-4 h-4 transition-colors ${
+						isActive
+							? "text-[#0A62D6]"
+							: "text-slate-400 group-hover:text-slate-700"
+					}`}
+				/>
+				<span>{item.label}</span>
+			</div>
+
+			{item.badge !== undefined && (
+				<span
+					className={`text-[10px] font-black px-1.5 py-0.5 rounded-full border ${
+						item.badgeColor ||
+						"bg-slate-100 text-slate-700 border-slate-200"
+					}`}
+				>
+					{item.badge}
+				</span>
+			)}
+		</Link>
+	);
+}
+
+function TeacherSidebarNavContent({
+	pathname,
+	navItems,
+	managementItems,
+	adminItems,
+	isAdmin,
+	isSuperTeacher,
+	onClose,
+}: TeacherSidebarNavContentProps) {
+	return (
+		<nav className='flex-1 px-3 py-2 space-y-1 overflow-y-auto'>
+			<div className='px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider'>
+				Lớp học
+			</div>
+
+			{navItems.map((item) => {
+				const isActive =
+					pathname !== null &&
+					(item.href === AppRoutes.TEACHER.DASHBOARD
+						? pathname === AppRoutes.TEACHER.DASHBOARD
+						: pathname.startsWith(item.href));
+
+				return (
+					<SidebarNavLink
+						key={item.href}
+						item={item}
+						isActive={isActive}
+						onClose={onClose}
+					/>
+				);
+			})}
+
+			{/* Quản lý cấp Trường (Dành riêng cho Super-Teacher & Admin) */}
+			{(isAdmin || isSuperTeacher) && (
+				<div className='pt-3 mt-2 border-t border-slate-100 space-y-1'>
+					<div className='px-3 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center justify-between'>
+						<span>Tiện ích</span>
+					</div>
+
+					{managementItems.map((item) => {
+						const isActive =
+							pathname !== null && pathname.startsWith(item.href);
+
+						return (
+							<SidebarNavLink
+								key={item.href}
+								item={item}
+								isActive={isActive}
+								onClose={onClose}
+							/>
+						);
+					})}
+				</div>
+			)}
+
+			{/* Quản trị Hệ thống Tối cao (Độc quyền Admin) */}
+			{isAdmin && (
+				<div className='pt-3 mt-2 border-t border-slate-100 space-y-1'>
+					<div className='px-3 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center justify-between'>
+						<span>Quản trị hệ thống</span>
+					</div>
+
+					{adminItems.map((item) => {
+						const isActive =
+							pathname !== null && pathname.startsWith(item.href);
+
+						return (
+							<SidebarNavLink
+								key={item.href}
+								item={item}
+								isActive={isActive}
+								onClose={onClose}
+							/>
+						);
+					})}
+				</div>
+			)}
+		</nav>
+	);
+}
+
+function TeacherSidebarNavWithPathname(
+	props: Omit<TeacherSidebarNavContentProps, "pathname">
+) {
+	const pathname = usePathname();
+	return <TeacherSidebarNavContent {...props} pathname={pathname} />;
+}
+
 export function TeacherSidebar({
 	isOpen = false,
 	onClose,
 }: TeacherSidebarProps) {
-	const pathname = usePathname();
 	const { student } = useUserStore();
 	const isAdmin = student?.role === UserRole.ADMIN;
 	const isSuperTeacher = student?.role === UserRole.SUPER_TEACHER;
@@ -129,6 +273,15 @@ export function TeacherSidebar({
 		},
 	];
 
+	const navProps: Omit<TeacherSidebarNavContentProps, "pathname"> = {
+		navItems,
+		managementItems,
+		adminItems,
+		isAdmin,
+		isSuperTeacher,
+		onClose,
+	};
+
 	return (
 		<>
 			{/* Mobile Backdrop */}
@@ -177,153 +330,12 @@ export function TeacherSidebar({
 					</button>
 				</div>
 
-				{/* Navigation Menu */}
-				<nav className='flex-1 px-3 py-2 space-y-1 overflow-y-auto'>
-					<div className='px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider'>
-						Lớp học
-					</div>
-
-					{navItems.map((item) => {
-						const Icon = item.icon;
-						const isActive =
-							item.href === AppRoutes.TEACHER.DASHBOARD
-								? pathname === AppRoutes.TEACHER.DASHBOARD
-								: pathname.startsWith(item.href);
-
-						return (
-							<Link
-								key={item.href}
-								href={item.href}
-								onClick={onClose}
-								className={`group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
-									isActive
-										? "bg-blue-50 text-blue-900 border border-blue-200/90 shadow-2xs"
-										: "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
-								}`}
-							>
-								<div className='flex items-center gap-3'>
-									<Icon
-										className={`w-4 h-4 transition-colors ${
-											isActive
-												? "text-[#0A62D6]"
-												: "text-slate-400 group-hover:text-slate-700"
-										}`}
-									/>
-									<span>{item.label}</span>
-								</div>
-
-								{item.badge !== undefined && (
-									<span
-										className={`text-[10px] font-black px-1.5 py-0.5 rounded-full border ${
-											item.badgeColor ||
-											"bg-slate-100 text-slate-700 border-slate-200"
-										}`}
-									>
-										{item.badge}
-									</span>
-								)}
-							</Link>
-						);
-					})}
-
-					{/* Quản lý cấp Trường (Dành riêng cho Super-Teacher & Admin) */}
-					{(isAdmin || isSuperTeacher) && (
-						<div className='pt-3 mt-2 border-t border-slate-100 space-y-1'>
-							<div className='px-3 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center justify-between'>
-								<span>Tiện ích</span>
-							</div>
-
-							{managementItems.map((item) => {
-								const Icon = item.icon;
-								const isActive = pathname.startsWith(item.href);
-
-								return (
-									<Link
-										key={item.href}
-										href={item.href}
-										onClick={onClose}
-										className={`group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
-											isActive
-												? "bg-blue-50 text-blue-900 border border-blue-200/90 shadow-2xs"
-												: "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
-										}`}
-									>
-										<div className='flex items-center gap-3'>
-											<Icon
-												className={`w-4 h-4 transition-colors ${
-													isActive
-														? "text-[#0A62D6]"
-														: "text-slate-400 group-hover:text-slate-700"
-												}`}
-											/>
-											<span>{item.label}</span>
-										</div>
-
-										{item.badge !== undefined && (
-											<span
-												className={`text-[10px] font-black px-1.5 py-0.5 rounded-full border ${
-													item.badgeColor ||
-													"bg-slate-100 text-slate-700 border-slate-200"
-												}`}
-											>
-												{item.badge}
-											</span>
-										)}
-									</Link>
-								);
-							})}
-						</div>
-					)}
-
-					{/* Quản trị Hệ thống Tối cao (Độc quyền Admin) */}
-					{isAdmin && (
-						<div className='pt-3 mt-2 border-t border-slate-100 space-y-1'>
-							<div className='px-3 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center justify-between'>
-								<span>Quản trị hệ thống</span>
-							</div>
-
-							{adminItems.map((item) => {
-								const Icon = item.icon;
-								const isActive = pathname.startsWith(item.href);
-
-								return (
-									<Link
-										key={item.href}
-										href={item.href}
-										onClick={onClose}
-										className={`group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
-											isActive
-												? "bg-blue-50 text-blue-900 border border-blue-200/90 shadow-2xs"
-												: "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
-										}`}
-									>
-										<div className='flex items-center gap-3'>
-											<Icon
-												className={`w-4 h-4 transition-colors ${
-													isActive
-														? "text-[#0A62D6]"
-														: "text-slate-400 group-hover:text-slate-700"
-												}`}
-											/>
-											<span>{item.label}</span>
-										</div>
-
-										{item.badge !== undefined && (
-											<span
-												className={`text-[10px] font-black px-1.5 py-0.5 rounded-full border ${
-													item.badgeColor ||
-													"bg-slate-100 text-slate-700 border-slate-200"
-												}`}
-											>
-												{item.badge}
-											</span>
-										)}
-									</Link>
-								);
-							})}
-						</div>
-					)}
-				</nav>
+				{/* Navigation Menu (chỉ bọc Suspense phần đọc usePathname để logo + menu hiển thị ngay trong static shell) */}
+				<Suspense
+					fallback={<TeacherSidebarNavContent {...navProps} pathname={null} />}
+				>
+					<TeacherSidebarNavWithPathname {...navProps} />
+				</Suspense>
 			</aside>
 		</>
 	);

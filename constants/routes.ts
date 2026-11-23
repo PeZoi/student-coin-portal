@@ -28,6 +28,8 @@ export const AppRoutes = {
     DASHBOARD: "/teacher",
     SUBMISSIONS: "/teacher/submissions",
     SUBMISSION_DETAIL: (id: string) => `/teacher/submissions/${id}`,
+    STUDENT_GRADING: (missionId: string, studentId: string) =>
+      `/teacher/submissions/${missionId}/${studentId}`,
     MISSIONS: "/teacher/missions",
     REWARDS: "/teacher/rewards",
     STUDENTS: "/teacher/students",

@@ -1,8 +1,19 @@
 -- ==============================================================================
--- DATABASE SCHEMA: STUDENT COIN PORTAL (BẢN CHUẨN HÓA FINTECH & KIỂM SOÁT TOÀN VẸN)
--- Hệ quản trị CSDL mục tiêu: PostgreSQL (Tương thích 100% để Import vào drawDB.app)
--- Toàn bộ bảng, cột, ràng buộc CHECK, chỉ mục IDEMPOTENCY và TRIGGER bảo vệ bất biến
+-- DATABASE SCHEMA: STUDENT COIN PORTAL (ĐỒNG BỘ 100% VỚI SUPABASE PRODUCTION)
+-- Hệ quản trị CSDL mục tiêu: PostgreSQL (Supabase)
+-- Toàn bộ ENUM, bảng, cột, view, ràng buộc CHECK, chỉ mục IDEMPOTENCY, TRIGGER và RPC
 -- ==============================================================================
+
+-- ==============================================================================
+-- 0. CÁC KIỂU DỮ LIỆU ENUM CHUẨN HÓA (POSTGRESQL ENUMS)
+-- ==============================================================================
+CREATE TYPE ai_error_severity AS ENUM ('minor', 'major');
+CREATE TYPE ai_error_type AS ENUM ('spelling', 'grammar', 'vocab', 'punctuation', 'content');
+CREATE TYPE mission_submission_type AS ENUM ('platform_proof', 'subjective_writing');
+CREATE TYPE monthly_exchange_choice AS ENUM ('cash', 'gift', 'spin_gift');
+CREATE TYPE monthly_exchange_status AS ENUM ('pending', 'completed', 'rejected', 'cancelled');
+CREATE TYPE student_mission_status AS ENUM ('assigned', 'submitted', 'approved', 'rejected', 'exempt');
+CREATE TYPE submission_approval_status AS ENUM ('pending_approval', 'approved', 'rejected', 'cancelled');
 
 -- ==============================================================================
 -- 1. BẢNG LỚP HỌC (CLASSES)
@@ -91,6 +102,9 @@ CREATE TABLE users (
     
     -- Tổng số xu tích lũy kiếm được trong lịch sử (Chỉ tăng khi nhận thưởng EARN, không bị giảm khi tiêu dùng)
     total_earned_coins INTEGER NOT NULL DEFAULT 0 CHECK (total_earned_coins >= 0),
+
+    -- Số hộp quà quay trúng từ vòng quay may mắn chưa nhận/chưa gửi link Shopee
+    unclaimed_gifts INTEGER NOT NULL DEFAULT 0 CHECK (unclaimed_gifts >= 0),
     
     -- Cờ kiểm tra: false = lần đầu đăng nhập (kích hoạt tour hướng dẫn), true = đã xem
     has_completed_onboarding BOOLEAN DEFAULT FALSE,
@@ -112,6 +126,9 @@ CREATE TABLE users (
     
     -- Thời điểm hết hạn khóa tài khoản (Khóa tạm thời, hoặc NULL nếu tài khoản bình thường / chờ giáo viên mở khóa)
     locked_until TIMESTAMP WITH TIME ZONE,
+
+    -- Thời điểm đăng nhập thành công gần nhất
+    last_login_at TIMESTAMP WITH TIME ZONE,
     
     -- Khóa ngoại: Người tạo tài khoản (Giáo viên hoặc Admin tạo học sinh/giáo viên; NULL nếu học sinh tự đăng ký)
     created_by UUID REFERENCES users(id) ON DELETE SET NULL,
@@ -142,6 +159,41 @@ ALTER TABLE classes
     FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL;
 
 -- ==============================================================================
+-- 2.1. BẢNG PHÂN CÔNG GIÁO VIÊN PHỤ TRÁCH LỚP (TEACHER_CLASSES)
+-- Quản lý quan hệ N-N giữa Giáo viên và Lớp học phụ trách
+-- ==============================================================================
+CREATE TABLE teacher_classes (
+    -- Khóa chính: Mã định danh bản ghi phân công
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    -- Khóa ngoại: Giáo viên được phân công
+    teacher_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+
+    -- Khóa ngoại: Lớp học được phụ trách
+    class_id UUID NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+
+    -- Thời điểm phân công
+    assigned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    -- Khóa ngoại: Quản trị viên thực hiện phân công
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+
+    CONSTRAINT uq_teacher_class UNIQUE (teacher_id, class_id)
+);
+
+-- ==============================================================================
+-- 2.2. VIEW THỐNG KÊ SĨ SỐ & TỔNG XU THEO LỚP (CLASS_STATISTICS)
+-- ==============================================================================
+CREATE OR REPLACE VIEW class_statistics AS
+SELECT
+    class_id,
+    COUNT(*)::INTEGER AS student_count,
+    COALESCE(SUM(current_coins), 0)::INTEGER AS total_coins
+FROM users
+WHERE role = 'student' AND is_deleted = FALSE
+GROUP BY class_id;
+
+-- ==============================================================================
 -- 3. BẢNG HOẠT ĐỘNG & BÀI TẬP CỘNG XU (MISSIONS)
 -- Lưu danh sách các hoạt động do giáo viên tự do thêm/sửa/xóa trên web
 -- ==============================================================================
@@ -152,14 +204,13 @@ CREATE TABLE missions (
     -- Tiêu đề hoạt động (Ví dụ: 'Đọc 1 cuốn sách', 'Làm bài tập Tiếng Anh Unit 6')
     title VARCHAR(255) NOT NULL CHECK (length(trim(title)) > 0),
     
-    -- Hướng dẫn chi tiết yêu cầu bài tập/hoạt động cô giáo giao
-    description TEXT NOT NULL,
+    -- Hướng dẫn chi tiết yêu cầu bài tập/hoạt động cô giáo giao (Có thể NULL)
+    description TEXT,
 
-    -- Cơ chế bài tập & Hình thức minh chứng yêu cầu nộp (Khớp với màn hình cấu hình bài tập của cô giáo):
+    -- Cơ chế bài tập & Hình thức minh chứng yêu cầu nộp (ENUM mission_submission_type):
     -- 'platform_proof': 1. Minh chứng nền tảng khác (ảnh chụp bảng điểm Quizizz, Wordwall, Azota, Kahoot...)
     -- 'subjective_writing': 2. Đoạn văn / Tự luận (ảnh chụp vở viết tay, AI chấm ngữ pháp & cô giáo double-check)
-    submission_type VARCHAR(50) NOT NULL DEFAULT 'platform_proof' 
-        CHECK (submission_type IN ('platform_proof', 'subjective_writing')),
+    submission_type mission_submission_type NOT NULL DEFAULT 'platform_proof',
 
     -- Mức xu tham khảo tối thiểu (Ví dụ: 20 xu khi làm chưa đúng hết hoặc mức sàn gợi ý cho giáo viên)
     min_reward_coins INTEGER NOT NULL DEFAULT 0 CHECK (min_reward_coins >= 0),
@@ -167,11 +218,20 @@ CREATE TABLE missions (
     -- Mức xu tham khảo tối đa (Ví dụ: 40 xu khi làm đúng 100% hoặc trần thưởng cho bài xuất sắc)
     max_reward_coins INTEGER NOT NULL CHECK (max_reward_coins >= min_reward_coins),
     
-    -- Icon hiển thị trên thẻ bài tập
-    icon_type VARCHAR(50),
-    
     -- Hạn chót nộp bài (Sau thời điểm này bài nộp sẽ tự động bị đánh dấu is_late = true)
     due_at TIMESTAMP WITH TIME ZONE NOT NULL,
+
+    -- Trọng tâm tiêu chí AI chấm bài (Mảng ENUM ai_error_type: spelling, grammar, vocab, punctuation, content)
+    grading_focus ai_error_type[],
+
+    -- Cho phép học sinh nộp bài sau hạn chót hay không
+    allow_late_submission BOOLEAN NOT NULL DEFAULT TRUE,
+
+    -- Khóa ngoại: Mẫu Prompt AI sử dụng cho bài tập này (tham chiếu ai_prompt_templates)
+    ai_prompt_template_id UUID,
+
+    -- Prompt AI tùy chỉnh riêng cho bài tập này (ghi đè hoặc bổ sung cho mẫu mặc định)
+    custom_ai_prompt TEXT,
 
     -- Khóa ngoại: Người tạo ra nhiệm vụ này (Giáo viên hoặc Admin nào tạo)
     created_by UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
@@ -231,14 +291,13 @@ CREATE TABLE student_missions (
     -- Khóa ngoại: Lớp học của học sinh tại thời điểm được giao bài
     class_id UUID NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
     
-    -- Trạng thái tiến độ bài tập của học sinh:
+    -- Trạng thái tiến độ bài tập của học sinh (ENUM student_mission_status):
     -- 'assigned': Đang làm (chưa nộp)
     -- 'submitted': Đã nộp bài (đang chờ cô chấm)
     -- 'approved': Đã hoàn thành (cô duyệt cộng xu)
     -- 'rejected': Cô từ chối (yêu cầu nộp lại)
     -- 'exempt': Miễn làm (học sinh mới vào lớp sau khi bài hết hạn hoặc nghỉ ốm)
-    status VARCHAR(30) NOT NULL DEFAULT 'assigned' 
-        CHECK (status IN ('assigned', 'submitted', 'approved', 'rejected', 'exempt')),
+    status student_mission_status NOT NULL DEFAULT 'assigned',
 
     -- Cờ nộp trễ hạn / quá hạn
     is_late BOOLEAN NOT NULL DEFAULT FALSE,
@@ -268,14 +327,14 @@ CREATE TABLE homework_submissions (
     -- Số thứ tự lần nộp bài (1: nộp lần đầu, 2: nộp lại sau khi bị reject...)
     attempt_number INTEGER NOT NULL DEFAULT 1,
     
-    -- Khóa ngoại: Thuộc nhiệm vụ nào trong bảng missions (có thể NULL nếu nhiệm vụ bị xóa hoặc nộp tự do)
-    mission_id UUID REFERENCES missions(id) ON DELETE SET NULL,
+    -- Khóa ngoại: Thuộc nhiệm vụ nào trong bảng missions (Bắt buộc NOT NULL, ON DELETE RESTRICT bảo toàn lịch sử bài nộp)
+    mission_id UUID NOT NULL REFERENCES missions(id) ON DELETE RESTRICT,
     
     -- Khóa ngoại: Học sinh thực hiện nộp bài
     student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     
-    -- Snapshot cơ chế nộp bài (Giữ nguyên thông tin ngay cả khi mission bị xóa để AI/Hệ thống biết cách chấm)
-    submission_type VARCHAR(50) NOT NULL CHECK (submission_type IN ('platform_proof', 'subjective_writing')),
+    -- Snapshot cơ chế nộp bài (ENUM mission_submission_type)
+    submission_type mission_submission_type NOT NULL,
 
     -- Cờ đánh dấu nộp trễ hạn: true = nộp sau missions.due_at
     is_late BOOLEAN NOT NULL DEFAULT FALSE,
@@ -289,16 +348,16 @@ CREATE TABLE homework_submissions (
     -- Lý do từ chối nếu chữ quá xấu hoặc ảnh mờ (Yêu cầu học sinh viết lại, không tính xu)
     unreadable_reason TEXT,
     
-    -- Toàn bộ phản hồi JSON thô từ AI (Lưu trữ đầy đủ nhận xét, điểm mạnh/yếu, gợi ý sửa đổi, metadata phản hồi)
+    -- Toàn bộ phản hồi JSON thô từ AI (Chuẩn snake_case: transcribed_text, overall_comment, strengths, weaknesses, suggestions, uncertainties...)
     ai_raw_response JSONB,
     
     -- Cột riêng phục vụ thống kê: Điểm số quy đổi thang 10 do AI tính toán
     ai_score DECIMAL(3,1),
 
-    -- Số câu làm đúng nhận diện được từ ảnh trắc nghiệm (Ví dụ: 14)
+    -- Số câu làm đúng (AI nhận diện hoặc Giáo viên chốt lại khi duyệt bài chụp minh chứng)
     correct_count INTEGER,
     
-    -- Tổng số câu hỏi trắc nghiệm của bài kiểm tra (Ví dụ: 14)
+    -- Tổng số câu hỏi (AI nhận diện hoặc Giáo viên chốt lại khi duyệt bài chụp minh chứng)
     total_questions INTEGER,
     
     -- Số xu AI đề xuất dựa trên quy tắc của bài tập
@@ -306,14 +365,16 @@ CREATE TABLE homework_submissions (
     
     -- Số xu thực tế được Giáo viên chốt cộng sau khi duyệt cuối ngày
     final_coins INTEGER DEFAULT 0 CHECK (final_coins >= 0),
+
+    -- Điểm số thực tế thang 10 do Giáo viên chốt cuối cùng (giữ nguyên ai_score để đối soát)
+    final_score DECIMAL(3,1) CHECK (final_score IS NULL OR (final_score >= 0 AND final_score <= 10)),
     
     -- Lời phê, góp ý trực tiếp của Giáo viên gửi cho học sinh
     teacher_feedback TEXT,
     
-    -- Trạng thái duyệt cuối ngày: 
-    -- 'pending_approval' (chờ cô duyệt), 'approved' (đã duyệt cộng xu), 'rejected' (cô từ chối), 'cancelled' (học sinh hủy trước hạn để nộp lại)
-    approval_status VARCHAR(20) NOT NULL DEFAULT 'pending_approval' 
-        CHECK (approval_status IN ('pending_approval', 'approved', 'rejected', 'cancelled')),
+    -- Trạng thái duyệt cuối ngày (ENUM submission_approval_status):
+    -- 'pending_approval' (chờ cô duyệt), 'approved' (đã duyệt cộng xu), 'rejected' (cô từ chối), 'cancelled' (học sinh hủy để nộp lại)
+    approval_status submission_approval_status NOT NULL DEFAULT 'pending_approval',
     
     -- Khóa ngoại: Giáo viên thực hiện duyệt bài tập cuối ngày
     reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
@@ -378,11 +439,11 @@ CREATE TABLE ai_submission_errors (
     -- Đoạn văn bản sửa lại chuẩn mực (Ví dụ: 'My brother plays football')
     correction_text TEXT NOT NULL,
     
-    -- Phân loại lỗi cơ học câu chữ
-    error_type VARCHAR(30) NOT NULL CHECK (error_type IN ('spelling', 'grammar', 'vocab', 'punctuation', 'content')),
+    -- Phân loại lỗi cơ học câu chữ (ENUM ai_error_type)
+    error_type ai_error_type NOT NULL,
     
-    -- Mức độ nghiêm trọng: 'minor' (trừ 0.5đ trong code), 'major' (trừ 1.0đ trong code)
-    severity VARCHAR(20) NOT NULL CHECK (severity IN ('minor', 'major')),
+    -- Mức độ nghiêm trọng (ENUM ai_error_severity): 'minor' (trừ 0.5đ), 'major' (trừ 1.0đ)
+    severity ai_error_severity NOT NULL,
     
     -- Lời giải thích ngắn gọn bằng tiếng Việt dễ hiểu cho học sinh tiểu học
     explanation TEXT,
@@ -430,6 +491,15 @@ CREATE TABLE wheel_prizes (
     -- Trạng thái: true = đang kích hoạt trên vòng quay, false = tạm ẩn (Không xóa cứng vì có khóa ngoại wheel_spins RESTRICT)
     is_active BOOLEAN DEFAULT TRUE,
 
+    -- Cờ xóa mềm (Soft delete) bảo toàn lịch sử quay
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- Thời điểm xóa mềm ô giải thưởng
+    deleted_at TIMESTAMP WITH TIME ZONE,
+
+    -- Khóa ngoại: Người thực hiện xóa mềm ô giải thưởng
+    deleted_by UUID REFERENCES users(id) ON DELETE SET NULL,
+
     -- Thời điểm tạo ô giải thưởng
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 
@@ -456,6 +526,12 @@ CREATE TABLE wheel_spins (
     
     -- Snapshot tên giải thưởng tại thời điểm quay (Đề phòng giải thưởng trong wheel_prizes bị sửa đổi sau này)
     prize_label_snapshot VARCHAR(100) NOT NULL,
+
+    -- Snapshot nhãn ngắn gọn của giải thưởng tại thời điểm quay
+    prize_short_label_snapshot VARCHAR(50),
+
+    -- Snapshot loại giải thưởng tại thời điểm quay ('coin', 'free_spin', 'gift', 'luck', 'deduct_coin')
+    prize_type_snapshot VARCHAR(20) NOT NULL DEFAULT 'coin',
 
     -- Mức phí bị trừ cho lượt quay này (Lấy chính xác theo cấu hình tại thời điểm quay, không có giá trị hardcode)
     spin_cost INTEGER NOT NULL CHECK (spin_cost >= 0),
@@ -554,16 +630,16 @@ CREATE TABLE monthly_exchange_requests (
     -- Khóa ngoại: Học sinh gửi yêu cầu đổi xu
     student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     
-    -- Lựa chọn của học sinh: 'cash' (tiền mặt), 'gift' (quà tặng tự chọn)
-    choice_type VARCHAR(20) NOT NULL CHECK (choice_type IN ('cash', 'gift')),
+    -- Lựa chọn của học sinh (ENUM monthly_exchange_choice): 'cash' (tiền mặt), 'gift' (quà tặng tự chọn), 'spin_gift' (nhận quà trúng vòng quay)
+    choice_type monthly_exchange_choice NOT NULL,
     
-    -- Số lượng xu học sinh chọn đổi (> 0): Tiền mặt theo mốc step_coins, Quà tự chọn tính chính xác theo tỷ giá (amount_vnd * step_coins / vnd_per_step) để không làm tròn gây thiệt cho học sinh
+    -- Số lượng xu học sinh chọn đổi (> 0 với cash/gift; = 0 với spin_gift)
     coins_to_exchange INTEGER NOT NULL DEFAULT 0 CHECK (coins_to_exchange >= 0),
     
-    -- Số tiền mặt VNĐ tương ứng nhận được (Cứ mỗi 5.000 xu = 25.000 VNĐ; = 0 nếu save_piggy)
+    -- Số tiền mặt VNĐ tương ứng nhận được (Cứ mỗi 5.000 xu = 25.000 VNĐ)
     amount_vnd INTEGER NOT NULL DEFAULT 0 CHECK (amount_vnd >= 0),
     
-    -- Link sản phẩm Shopee do học sinh dán vào (Nếu chọn phương án Quà Shopee)
+    -- Link sản phẩm Shopee do học sinh dán vào (Nếu chọn phương án Quà Shopee / Nhận quà vòng quay)
     shopee_product_url TEXT,
     
     -- Ghi chú chi tiết cho cô giáo khi mua quà (Màu sắc, kích cỡ, phân loại)
@@ -572,13 +648,12 @@ CREATE TABLE monthly_exchange_requests (
     -- Lý do giáo viên từ chối yêu cầu đổi quà (nếu status = 'rejected')
     rejection_reason TEXT,
     
-    -- Trạng thái xử lý yêu cầu:
+    -- Trạng thái xử lý yêu cầu (ENUM monthly_exchange_status):
     -- 'pending': chờ cô giáo duyệt và chuẩn bị tiền/quà
     -- 'completed': cô giáo duyệt và trao tiền/quà thành công (quy trình 1 chạm)
     -- 'rejected': cô từ chối yêu cầu (hoàn lại xu hold cho bé)
     -- 'cancelled': học sinh tự hủy yêu cầu
-    status VARCHAR(20) NOT NULL DEFAULT 'pending' 
-        CHECK (status IN ('pending', 'completed', 'rejected', 'cancelled')),
+    status monthly_exchange_status NOT NULL DEFAULT 'pending',
     
     -- Khóa ngoại tham chiếu giao dịch GIỮ XU (HOLD) trong bảng coin_transactions
     -- Khi học sinh bấm gửi yêu cầu, số xu bị trừ/khóa ngay lập tức để không thể mang đi quay vòng quay
@@ -709,6 +784,9 @@ CREATE TABLE coin_transactions (
     
     -- Lời diễn giải chi tiết bằng tiếng Việt để phụ huynh và học sinh đọc hiểu trên sổ giao dịch
     description VARCHAR(255) NOT NULL CHECK (length(trim(description)) > 0),
+
+    -- Khóa ngoại: Người tạo/kích hoạt giao dịch (Giáo viên duyệt bài, học sinh tự quay/đổi quà, hoặc NULL nếu hệ thống tự động)
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
     
     -- Thời điểm phát sinh giao dịch ví (Bất biến)
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -774,6 +852,11 @@ CREATE TABLE ai_prompt_templates (
     -- Thời điểm cập nhật mẫu prompt lần cuối
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Gắn khóa ngoại missions.ai_prompt_template_id -> ai_prompt_templates(id)
+ALTER TABLE missions
+    ADD CONSTRAINT missions_ai_prompt_template_id_fkey
+    FOREIGN KEY (ai_prompt_template_id) REFERENCES ai_prompt_templates(id) ON DELETE SET NULL;
 
 -- ==============================================================================
 -- 18. BẢNG NHẬT KÝ ĐĂNG NHẬP / XÁC THỰC (AUTH_LOGS)
@@ -1410,13 +1493,30 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ==============================================================================
--- BẢO MẬT BẢN GHI CẤP DÒNG: KÍCH HOẠT ROW LEVEL SECURITY (RLS) TOÀN BỘ 21 BẢNG
+-- CÁC HÀM RPC GIAO DỊCH DUYỆT / TỪ CHỐI / HỦY BÀI NỘP (ATOMIC ACID TRANSACTIONS)
+-- Đảm bảo cập nhật đồng bộ homework_submissions + student_missions + users + coin_transactions + notifications
+-- ==============================================================================
+-- Chi tiết cài đặt xem tại migration:
+-- supabase/migrations/20261123154500_submission_grading_schema_and_rpcs.sql
+--   1. approve_homework_submission(p_submission_id, p_reviewer_id, p_final_coins, p_final_score, p_teacher_feedback, p_correct_count, p_total_questions) -> jsonb
+--   2. reject_homework_submission(p_submission_id, p_reviewer_id, p_teacher_feedback) -> jsonb
+--   3. cancel_homework_submission(p_submission_id, p_student_id) -> jsonb
+-- Các RPC giao dịch vòng quay & đổi thưởng khác:
+--   4. execute_wheel_spin(...) -> jsonb
+--   5. claim_wheel_gift_box(...) -> jsonb
+--   6. submit_reward_exchange(...) -> jsonb
+--   7. get_wheel_config_stats() -> jsonb
+
+-- ==============================================================================
+-- BẢO MẬT BẢN GHI CẤP DÒNG: KÍCH HOẠT ROW LEVEL SECURITY (RLS)
 -- Ngăn chặn truy cập nặc danh trái phép qua REST API / Supabase Client public
 -- ==============================================================================
 ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE teacher_classes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE missions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mission_classes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE student_missions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE homework_submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ai_submission_errors ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wheel_prizes ENABLE ROW LEVEL SECURITY;

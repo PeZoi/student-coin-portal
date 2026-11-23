@@ -210,9 +210,6 @@ export function MissionOverviewCard({ mission }: MissionOverviewCardProps) {
                 hasPending ? "text-amber-700" : "text-slate-800"
               )}
             >
-              {hasPending && (
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
-              )}
               <span>{pending} bài</span>
             </div>
           </div>

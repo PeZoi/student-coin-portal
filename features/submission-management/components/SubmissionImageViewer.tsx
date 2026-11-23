@@ -81,12 +81,6 @@ function SubmissionImageViewerCanvas({
     setActivePhotoIndex,
   });
 
-  // Đếm số lỗi AI phát hiện trên từng trang ảnh (1-based page_index)
-  const getErrorCountOnPage = (zeroBasedIndex: number) => {
-    const pageNum = zeroBasedIndex + 1;
-    return submission.errors.filter((err) => err.page_index === pageNum).length;
-  };
-
   return (
     <div
       className={cn(
@@ -282,7 +276,6 @@ function SubmissionImageViewerCanvas({
         <div className="flex items-center gap-2">
           {photos.map((imgUrl, idx) => {
             const isCurrent = idx === activePhotoIndex;
-            const pageErrorsCount = getErrorCountOnPage(idx);
 
             return (
               <button
@@ -308,19 +301,6 @@ function SubmissionImageViewerCanvas({
                   />
                 </div>
                 <span>Trang {idx + 1}</span>
-
-                {pageErrorsCount > 0 && (
-                  <span
-                    className={cn(
-                      "px-1.5 py-0.5 rounded-full text-[10px] font-extrabold leading-none",
-                      isCurrent
-                        ? "bg-rose-500 text-white"
-                        : "bg-rose-500/20 text-rose-300 border border-rose-500/40"
-                    )}
-                  >
-                    {pageErrorsCount} lỗi
-                  </span>
-                )}
               </button>
             );
           })}

@@ -18,6 +18,7 @@ interface ManageSubmissionsProviderProps {
   children: ReactNode;
   initialSubmissions?: TeacherGradingSubmissionItem[];
   initialMissionId?: string;
+  initialStudentId?: string;
   initialViewMode?: MissionDetailViewMode;
 }
 
@@ -25,12 +26,14 @@ export function ManageSubmissionsProvider({
   children,
   initialSubmissions,
   initialMissionId,
+  initialStudentId,
   initialViewMode,
 }: ManageSubmissionsProviderProps) {
   const value = useManageSubmissions(
     initialSubmissions,
     initialMissionId,
-    initialViewMode
+    initialViewMode,
+    initialStudentId
   );
 
   return (

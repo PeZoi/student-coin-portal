@@ -1,266 +1,252 @@
 "use client";
 
-import { useMemo } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  BookOpen,
-  CheckCheck,
-  LayoutGrid,
-  Users,
-  Coins,
   Clock,
-  Sparkles,
-  ChevronRight,
+  AlertCircle,
+  TrendingUp,
+  FileCheck2,
+  CheckCircle2,
+  AlertTriangle,
+  UserX,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/date";
 import { AppRoutes } from "@/constants/routes";
-import {
-  TeacherSelect,
-  TeacherSelectOption,
-} from "@/components/ui/TeacherSelect";
 import { useManageSubmissionsContext } from "../contexts/ManageSubmissionsContext";
-import { SUBMISSION_SUBJECT_META } from "../constants";
 
 /**
  * Header Không gian Chi tiết Bài tập (Level 2 Header)
- * - Cung cấp nút quay lại danh sách bài tập, KPI của riêng bài tập đang duyệt
- * - Cho phép chuyển đổi linh hoạt giữa "Studio Chấm bài 3 cột" và "Danh sách học sinh"
+ * - Nút Back đặt gọn phía trên: quay về danh sách bài tập (Roster) hoặc danh sách học sinh (Studio)
+ * - Hiển thị icon, tiêu đề, mô tả bài tập kèm Hạn nộp & Xu thưởng bên phải
+ * - 5 thẻ KPI độc lập đồng bộ chuẩn Design System các trang quản trị
  */
 export function MissionDetailHeader() {
-  const router = useRouter();
   const {
     selectedMission,
-    selectedMissionId,
-    missionFilterOptions,
-    viewMode,
-    setViewMode,
     pendingCount,
     approvedCount,
-    validAiPendingCount,
-    totalCoinsAwarded,
-    handleBatchApproveValid,
+    lateCount,
+    studentRoster,
   } = useManageSubmissionsContext();
 
-  const subjectMeta = selectedMission
-    ? SUBMISSION_SUBJECT_META[selectedMission.subject_code] ||
-      SUBMISSION_SUBJECT_META.other
-    : SUBMISSION_SUBJECT_META.other;
+  const isExpired = Boolean(selectedMission?.is_expired);
+  const thumbnailSrc =
+    selectedMission?.submission_type === "platform_proof"
+      ? "/submissions/capture.webp"
+      : "/submissions/write.webp";
 
-  // Options chuyển đổi bài tập nhanh
-  const missionSelectOptions = useMemo<TeacherSelectOption[]>(() => {
-    return missionFilterOptions.map((m) => ({
-      value: m.id,
-      label: m.title,
-      badge:
-        m.pending_count > 0 ? `${m.pending_count} chờ` : `${m.total_submitted} nộp`,
-    }));
-  }, [missionFilterOptions]);
+  const totalStudents =
+    selectedMission?.total_students ?? studentRoster.length;
+  const submittedCount =
+    selectedMission?.submitted_count ??
+    studentRoster.filter((s) => s.has_submitted).length;
+  const submissionRate =
+    totalStudents > 0 ? Math.round((submittedCount / totalStudents) * 100) : 0;
+  const unsubmittedCount = selectedMission
+    ? Math.max(0, selectedMission.total_students - selectedMission.submitted_count)
+    : studentRoster.filter((s) => !s.has_submitted).length;
 
   return (
-    <div className="space-y-4">
-      {/* 1. Thanh Breadcrumb & Nút Quay Lại */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs">
-        <div className="flex items-center gap-3">
-          <Link
-            href={AppRoutes.TEACHER.SUBMISSIONS}
-            className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer shrink-0 active:scale-98"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Tất cả bài tập</span>
-          </Link>
+    <div className="space-y-5">
+      {/* 1. Nút Back gọn gàng phía trên tiêu đề */}
+      <div>
+        <Link
+          href={AppRoutes.TEACHER.SUBMISSIONS}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-[#E2E8F0] text-xs sm:text-sm font-bold text-slate-700 hover:text-[#0A62D6] transition-colors shadow-2xs group"
+        >
+          <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+          <span>Quay lại danh sách bài tập</span>
+        </Link>
+      </div>
 
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500 font-medium truncate">
-            <span>Duyệt bài</span>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span
-              className={cn(
-                "font-bold px-2 py-0.5 rounded text-[11px] border",
-                subjectMeta.badgeClass
-              )}
-            >
-              {selectedMission?.subject || "Môn học"}
-            </span>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span className="text-slate-800 font-semibold truncate max-w-xs">
-              {selectedMission?.title}
-            </span>
+      {/* 2. Thông tin Bài tập: Icon + Tiêu đề/Mô tả & Hạn nộp/Xu thưởng bên phải */}
+      <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-start gap-3.5 sm:gap-4 min-w-0 flex-1">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden border border-slate-200/90 bg-white shrink-0 shadow-2xs">
+            <Image
+              src={thumbnailSrc}
+              alt={selectedMission?.title || "Bài tập"}
+              width={56}
+              height={56}
+              style={{ height: "auto" }}
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <h1 className="text-lg sm:text-2xl font-black text-[#0F172A] font-heading tracking-tight leading-snug">
+              {selectedMission?.title || "Chi tiết bài tập"}
+            </h1>
+            {selectedMission?.description && (
+              <p className="text-xs sm:text-sm text-[#475569] mt-1 leading-relaxed max-w-3xl">
+                {selectedMission.description}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Dropdown chuyển đổi bài tập nhanh */}
-        <div className="w-full sm:w-80 shrink-0">
-          <TeacherSelect
-            value={selectedMissionId || "msn-001"}
-            onChange={(val) =>
-              router.push(AppRoutes.TEACHER.SUBMISSION_DETAIL(val))
-            }
-            options={missionSelectOptions}
-            icon={<BookOpen className="w-3.5 h-3.5" />}
-            className="w-full"
-          />
+        <div className="flex items-center gap-2 flex-wrap shrink-0 lg:self-start">
+          <div
+            className={cn(
+              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold whitespace-nowrap",
+              isExpired
+                ? "bg-rose-50 text-rose-700 border-rose-200"
+                : "bg-slate-50 text-slate-600 border-slate-200/90"
+            )}
+          >
+            <Clock
+              className={cn(
+                "w-3.5 h-3.5 shrink-0",
+                isExpired ? "text-rose-500" : "text-slate-400"
+              )}
+            />
+            <span>
+              Hạn nộp:{" "}
+              {selectedMission
+                ? formatDate(selectedMission.due_at, "HH:mm - dd/MM/yyyy")
+                : "--"}
+            </span>
+            {isExpired && (
+              <span className="inline-flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded-md bg-rose-100/80 text-rose-700 text-[10px] font-bold">
+                <AlertCircle className="w-3 h-3 shrink-0" />
+                <span>Đã quá hạn</span>
+              </span>
+            )}
+          </div>
+
+          {selectedMission && (
+            <div className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-50 text-amber-900 border border-amber-200/80 text-xs font-black shrink-0 whitespace-nowrap shadow-2xs">
+              <Image
+                src="/coin.webp"
+                alt="Xu Heo Đất"
+                width={15}
+                height={15}
+                style={{ height: "auto" }}
+                className="w-3.5 select-none shrink-0"
+              />
+              <span>
+                +{selectedMission.min_reward_coins}~
+                {selectedMission.max_reward_coins} xu
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* 2. Banner Tóm Tắt Bài Tập & 4 Thẻ KPI */}
-      <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-2xs space-y-5">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="space-y-1.5 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span
-                className={cn(
-                  "inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold border",
-                  subjectMeta.badgeClass
-                )}
-              >
-                {selectedMission?.subject}
-              </span>
-              <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-                {selectedMission?.class_name || "Lớp 3A1"}
-              </span>
-              <div className="inline-flex items-center gap-1 text-xs text-slate-500">
-                <Clock className="w-3.5 h-3.5 text-slate-400" />
-                <span>
-                  Hạn nộp:{" "}
-                  {selectedMission
-                    ? formatDate(selectedMission.due_at, "HH:mm - dd/MM/yyyy")
-                    : "--"}
-                </span>
-              </div>
+      {/* 3. 5 Thẻ KPI độc lập đồng bộ với các trang quản trị */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
+        {/* KPI 1: Tiến độ nộp bài */}
+        <div className="bg-white p-4 xl:p-5 rounded-2xl border border-[#E2E8F0] shadow-2xs text-left">
+          <div className="flex items-start justify-between gap-2">
+            <span className="text-sm font-semibold text-[#475569]">
+              Tiến độ nộp bài
+            </span>
+            <div className="w-10 h-10 rounded-xl bg-[#EAF2FF] text-[#0A62D6] flex items-center justify-center shrink-0">
+              <TrendingUp className="w-5 h-5" />
             </div>
-
-            <h1 className="text-xl sm:text-2xl font-black text-[#0F172A] font-heading tracking-tight">
-              {selectedMission?.title || "Chi tiết bài tập"}
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 max-w-3xl leading-relaxed">
-              {selectedMission?.description}
-            </p>
           </div>
-
-          {/* Cụm nút hành động trên Header */}
-          <div className="flex items-center gap-2.5 flex-wrap shrink-0">
-            {/* Nút Duyệt nhanh bài hợp lệ */}
-            {validAiPendingCount > 0 && (
-              <button
-                type="button"
-                onClick={handleBatchApproveValid}
-                className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold transition-all shadow-xs cursor-pointer active:scale-98"
-              >
-                <CheckCheck className="w-4 h-4 shrink-0" />
-                <span>Duyệt nhanh bài hợp lệ ({validAiPendingCount})</span>
-              </button>
-            )}
-
-            {/* Toggle View Mode: Studio 3 Cột ↔ Danh Sách Học Sinh */}
-            <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200/80">
-              <button
-                type="button"
-                onClick={() => setViewMode("studio")}
-                className={cn(
-                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer",
-                  viewMode === "studio"
-                    ? "bg-white text-[#0A62D6] shadow-2xs"
-                    : "text-slate-600 hover:text-slate-900"
-                )}
-                title="Chế độ Studio Chấm nhanh 3 cột"
-              >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                <span>Studio Chấm bài</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("roster")}
-                className={cn(
-                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer",
-                  viewMode === "roster"
-                    ? "bg-white text-[#0A62D6] shadow-2xs"
-                    : "text-slate-600 hover:text-slate-900"
-                )}
-                title="Xem danh sách toàn bộ học sinh lớp đối với bài này"
-              >
-                <Users className="w-3.5 h-3.5" />
-                <span>Danh sách học sinh</span>
-              </button>
-            </div>
+          <div className="mt-3 flex items-baseline gap-1.5 flex-wrap">
+            <span className="text-3xl font-heading font-extrabold text-[#0F172A] tracking-tight tabular-nums">
+              {submissionRate}%
+            </span>
+            <span className="text-xs font-semibold text-slate-500 tabular-nums">
+              ({submittedCount}/{totalStudents} em)
+            </span>
           </div>
         </div>
 
-        {/* 4 Thẻ KPI của bài tập này */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-1 border-t border-slate-100">
-          {/* KPI 1: Đã nộp */}
-          <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/70">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              Tiến độ nộp bài
+        {/* KPI 2: Chờ duyệt */}
+        <div className="bg-white p-4 xl:p-5 rounded-2xl border border-[#E2E8F0] shadow-2xs text-left">
+          <div className="flex items-start justify-between gap-2">
+            <span className="text-sm font-semibold text-[#475569]">
+              Chờ duyệt
             </span>
-            <span className="text-xl font-black text-slate-900 mt-0.5 block">
-              {selectedMission?.submitted_count ?? 0} /{" "}
-              {selectedMission?.total_students ?? 32} em
-            </span>
-            <span className="text-[11px] text-slate-500 font-medium">
-              Tỷ lệ hoàn thành:{" "}
-              {Math.round(
-                ((selectedMission?.submitted_count ?? 0) /
-                  (selectedMission?.total_students ?? 32)) *
-                  100
+            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+              <FileCheck2 className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-1.5 flex-wrap">
+            <span
+              className={cn(
+                "text-3xl font-heading font-extrabold tracking-tight tabular-nums",
+                pendingCount > 0 ? "text-amber-600" : "text-[#0F172A]"
               )}
-              %
+            >
+              {pendingCount}
+            </span>
+            <span className="text-sm font-semibold text-slate-500">
+              bài nộp
             </span>
           </div>
+        </div>
 
-          {/* KPI 2: Chờ duyệt */}
-          <div
-            className={cn(
-              "p-3.5 rounded-xl border transition-all",
-              pendingCount > 0
-                ? "bg-amber-50/80 border-amber-300"
-                : "bg-slate-50/80 border-slate-200/70"
-            )}
-          >
-            <span className="text-[11px] font-bold text-amber-900 uppercase tracking-wider block">
-              Chờ giáo viên duyệt
+        {/* KPI 3: Đã duyệt */}
+        <div className="bg-white p-4 xl:p-5 rounded-2xl border border-[#E2E8F0] shadow-2xs text-left">
+          <div className="flex items-start justify-between gap-2">
+            <span className="text-sm font-semibold text-[#475569]">
+              Đã duyệt
             </span>
-            <span className="text-xl font-black text-amber-950 mt-0.5 flex items-center gap-1.5">
-              {pendingCount > 0 && (
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            <div className="w-10 h-10 rounded-xl bg-[#ECFDF3] text-[#15803D] flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-1.5 flex-wrap">
+            <span className="text-3xl font-heading font-extrabold text-[#0F172A] tracking-tight tabular-nums">
+              {approvedCount}
+            </span>
+            <span className="text-sm font-semibold text-slate-500">bài</span>
+          </div>
+        </div>
+
+        {/* KPI 4: Nộp muộn */}
+        <div className="bg-white p-4 xl:p-5 rounded-2xl border border-[#E2E8F0] shadow-2xs text-left">
+          <div className="flex items-start justify-between gap-2">
+            <span className="text-sm font-semibold text-[#475569]">
+              Nộp muộn
+            </span>
+            <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-1.5 flex-wrap">
+            <span
+              className={cn(
+                "text-3xl font-heading font-extrabold tracking-tight tabular-nums",
+                lateCount > 0 ? "text-orange-600" : "text-[#0F172A]"
               )}
-              {pendingCount} bài nộp
+            >
+              {lateCount}
             </span>
-            <span className="text-[11px] text-amber-800 font-medium">
-              {validAiPendingCount > 0
-                ? `${validAiPendingCount} bài AI đánh giá tốt`
-                : "Cần giáo viên chấm trực tiếp"}
-            </span>
-          </div>
-
-          {/* KPI 3: Đã duyệt */}
-          <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/70">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              Đã duyệt hoàn thành
-            </span>
-            <span className="text-xl font-black text-emerald-800 mt-0.5 block">
-              {approvedCount} bài
-            </span>
-            <span className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
-              <Coins className="w-3 h-3 text-emerald-600" />
-              <span>Đã trao: +{totalCoinsAwarded} xu Heo Đất</span>
+            <span className="text-sm font-semibold text-slate-500">
+              bài nộp
             </span>
           </div>
+        </div>
 
-          {/* KPI 4: Đánh giá AI */}
-          <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/70">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              Đánh giá AI Co-pilot
+        {/* KPI 5: Chưa làm */}
+        <div className="bg-white p-4 xl:p-5 rounded-2xl border border-[#E2E8F0] shadow-2xs text-left col-span-2 sm:col-span-1">
+          <div className="flex items-start justify-between gap-2">
+            <span className="text-sm font-semibold text-[#475569]">
+              Chưa làm
             </span>
-            <span className="text-xl font-black text-indigo-900 mt-0.5 flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-indigo-600" />
-              <span>
-                {selectedMission?.ai_average_score?.toFixed(1) ?? "9.2"}/10 ⭐
-              </span>
+            <div className="w-10 h-10 rounded-xl bg-[#FFF1F2] text-[#E11D48] flex items-center justify-center shrink-0">
+              <UserX className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="mt-3 flex items-baseline gap-1.5 flex-wrap">
+            <span
+              className={cn(
+                "text-3xl font-heading font-extrabold tracking-tight tabular-nums",
+                unsubmittedCount > 0 ? "text-rose-600" : "text-[#0F172A]"
+              )}
+            >
+              {unsubmittedCount}
             </span>
-            <span className="text-[11px] text-indigo-700 font-medium">
-              Độ chính xác và rõ nét cao
+            <span className="text-sm font-semibold text-slate-500">
+              học sinh
             </span>
           </div>
         </div>

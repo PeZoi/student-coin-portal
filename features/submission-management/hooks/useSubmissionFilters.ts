@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useParams } from "next/navigation";
 import { normalizeText } from "@/lib/utils";
 import { SubmissionApprovalStatus } from "@/constants";
 import {
@@ -13,6 +14,7 @@ interface UseSubmissionFiltersParams {
   submissionsList: TeacherGradingSubmissionItem[];
   initialMissionId?: string;
   initialViewMode?: MissionDetailViewMode;
+  initialStudentId?: string;
 }
 
 /**
@@ -24,49 +26,87 @@ export function useSubmissionFilters({
   submissionsList,
   initialMissionId,
   initialViewMode,
+  initialStudentId,
 }: UseSubmissionFiltersParams) {
-  // 1. Quản lý Bài tập đang chọn: null = Màn hình Danh sách Bài tập; string = Màn hình Chi tiết Bài tập
-  const [selectedMissionId, setSelectedMissionId] = useState<string | null>(
-    initialMissionId || null
+  // Đọc thông số trực tiếp từ URL (Single Source of Truth)
+  const params = useParams();
+  const urlMissionId =
+    (params?.id as string | undefined) || initialMissionId || null;
+  const urlStudentId =
+    (params?.studentId as string | undefined) || initialStudentId || null;
+
+  // 1. Quản lý Bài tập đang chọn: Ưu tiên tuyệt đối id trên URL
+  const [internalMissionId, setInternalMissionId] = useState<string | null>(
+    urlMissionId || null
   );
+  const selectedMissionId = urlMissionId || internalMissionId;
 
-  // 2. Chế độ xem trong màn hình Chi tiết: "studio" (Chấm nhanh 3 cột) hoặc "roster" (Danh sách toàn bộ học sinh)
-  const [viewMode, setViewMode] = useState<MissionDetailViewMode>(
-    initialViewMode ?? "studio"
-  );
+  // 2. Chế độ xem: Quyết định 100% dựa vào link URL
+  // - Nếu link có [studentId] (/teacher/submissions/[id]/[studentId]) -> CHẮC CHẮN là "studio"
+  // - Nếu link chỉ có [id] (/teacher/submissions/[id]) -> CHẮC CHẮN là "roster"
+  const [internalViewMode, setInternalViewMode] =
+    useState<MissionDetailViewMode>(
+      urlStudentId ? "studio" : (initialViewMode ?? "roster")
+    );
+  const viewMode: MissionDetailViewMode = urlMissionId
+    ? urlStudentId
+      ? "studio"
+      : "roster"
+    : internalViewMode;
 
-  // 3. Bộ lọc trạng thái bài nộp trong Studio/Roster
-  const [statusFilter, setStatusFilter] =
-    useState<SubmissionStatusFilter>(SubmissionApprovalStatus.PENDING_APPROVAL);
-
-  // 4. Từ khóa tìm kiếm học sinh
-  const [searchQuery, setSearchQuery] = useState<string>("");
-
-  // 5. Học sinh / Bài nộp đang được active trong Studio
-  const [selectedSubmissionId, setSelectedSubmissionId] = useState<
-    string | null
-  >(null);
-
-  // 6. Trang ảnh đang soi (0-based index: 0..4)
-  const [activePhotoIndex, setActivePhotoIndex] = useState<number>(0);
-
-  // Danh sách bài nộp thuộc phạm vi Bài tập đang chọn
+  // 3. Danh sách bài nộp thuộc phạm vi Bài tập đang chọn
   const missionScopedList = useMemo(() => {
     if (!selectedMissionId || selectedMissionId === "all") {
       return submissionsList;
     }
-    return submissionsList.filter((item) => item.mission_id === selectedMissionId);
+    return submissionsList.filter(
+      (item) => item.mission_id === selectedMissionId
+    );
   }, [submissionsList, selectedMissionId]);
+
+  // Tìm bài nộp đích danh của học sinh trên URL (nếu có)
+  const targetSubmissionFromUrl = useMemo(() => {
+    if (!urlStudentId) return null;
+    return (
+      missionScopedList.find(
+        (s) => s.student_id === urlStudentId || s.id === urlStudentId
+      ) ??
+      submissionsList.find(
+        (s) => s.student_id === urlStudentId || s.id === urlStudentId
+      ) ??
+      null
+    );
+  }, [missionScopedList, submissionsList, urlStudentId]);
+
+  // 4. Bộ lọc trạng thái bài nộp trong Studio/Roster
+  const [statusFilter, setStatusFilter] = useState<SubmissionStatusFilter>(() =>
+    targetSubmissionFromUrl ? "all" : SubmissionApprovalStatus.PENDING_APPROVAL
+  );
+
+  // 5. Từ khóa tìm kiếm học sinh
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // 6. Học sinh / Bài nộp đang được active trong Studio
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState<
+    string | null
+  >(() => targetSubmissionFromUrl?.id || urlStudentId || null);
+
+  // 7. Trang ảnh đang soi (0-based index: 0..4)
+  const [activePhotoIndex, setActivePhotoIndex] = useState<number>(0);
 
   // Thống kê KPIs trên phạm vi bài tập đang chọn
   const kpiStats = useMemo(() => {
     let pendingCount = 0;
     let approvedCount = 0;
     let rejectedCount = 0;
+    let lateCount = 0;
     let validAiPendingCount = 0;
     let totalCoinsAwarded = 0;
 
     for (const sub of missionScopedList) {
+      if (sub.is_late) {
+        lateCount += 1;
+      }
       if (sub.approval_status === SubmissionApprovalStatus.PENDING_APPROVAL) {
         pendingCount += 1;
         if (sub.readable && (sub.ai_score === null || sub.ai_score >= 8.0)) {
@@ -85,6 +125,7 @@ export function useSubmissionFilters({
       pendingCount,
       approvedCount,
       rejectedCount,
+      lateCount,
       validAiPendingCount,
       totalCoinsAwarded,
     };
@@ -107,17 +148,27 @@ export function useSubmissionFilters({
     });
   }, [missionScopedList, statusFilter, searchQuery]);
 
-  // Suy luận bài nộp đang chọn trực tiếp khi render
+  // Suy luận bài nộp đang chọn trực tiếp khi render (ưu tiên bài nộp theo URL studentId)
   const activeSubmission = useMemo(() => {
-    if (filteredSubmissions.length === 0) return null;
-    if (selectedSubmissionId) {
-      const found = filteredSubmissions.find(
-        (s) => s.id === selectedSubmissionId
-      );
-      if (found) return found;
+    if (urlStudentId && targetSubmissionFromUrl) {
+      return targetSubmissionFromUrl;
     }
+    if (selectedSubmissionId) {
+      const foundInScope = missionScopedList.find(
+        (s) =>
+          s.id === selectedSubmissionId || s.student_id === selectedSubmissionId
+      );
+      if (foundInScope) return foundInScope;
+    }
+    if (filteredSubmissions.length === 0) return null;
     return filteredSubmissions[0];
-  }, [filteredSubmissions, selectedSubmissionId]);
+  }, [
+    urlStudentId,
+    targetSubmissionFromUrl,
+    missionScopedList,
+    filteredSubmissions,
+    selectedSubmissionId,
+  ]);
 
   const activeIndex = useMemo(() => {
     if (!activeSubmission) return -1;
@@ -156,7 +207,7 @@ export function useSubmissionFilters({
 
   // Chọn hoặc đổi Bài tập (null để quay về Danh sách bài tập Level 1)
   const handleSelectMission = useCallback((missionId: string | null) => {
-    setSelectedMissionId(missionId);
+    setInternalMissionId(missionId);
     setSelectedSubmissionId(null);
     setActivePhotoIndex(0);
     setSearchQuery("");
@@ -166,8 +217,8 @@ export function useSubmissionFilters({
   // Chấm bài siêu tốc: Nhảy thẳng vào Studio của bài tập đó và chọn bài chờ duyệt đầu tiên
   const handleQuickGradeMission = useCallback(
     (missionId: string) => {
-      setSelectedMissionId(missionId);
-      setViewMode("studio");
+      setInternalMissionId(missionId);
+      setInternalViewMode("studio");
       setStatusFilter(SubmissionApprovalStatus.PENDING_APPROVAL);
       setSearchQuery("");
       setActivePhotoIndex(0);
@@ -189,16 +240,20 @@ export function useSubmissionFilters({
 
   // Mở Studio chấm bài cho một học sinh cụ thể từ Danh sách Học sinh (Roster)
   const handleOpenStudentGrading = useCallback(
-    (submissionId: string) => {
+    (submissionOrStudentId: string) => {
       const targetSubmission = submissionsList.find(
-        (sub) => sub.id === submissionId
+        (sub) =>
+          sub.id === submissionOrStudentId ||
+          sub.student_id === submissionOrStudentId
       );
       if (targetSubmission) {
         setStatusFilter(targetSubmission.approval_status);
         setSearchQuery("");
+        setSelectedSubmissionId(targetSubmission.id);
+      } else {
+        setSelectedSubmissionId(submissionOrStudentId);
       }
-      setSelectedSubmissionId(submissionId);
-      setViewMode("studio");
+      setInternalViewMode("studio");
       setActivePhotoIndex(0);
     },
     [submissionsList]
@@ -222,11 +277,11 @@ export function useSubmissionFilters({
 
   return {
     selectedMissionId,
-    setSelectedMissionId,
+    setSelectedMissionId: setInternalMissionId,
     missionIdFilter: selectedMissionId ?? "all",
     setMissionIdFilter: handleSelectMission,
     viewMode,
-    setViewMode,
+    setViewMode: setInternalViewMode,
     statusFilter,
     setStatusFilter: handleChangeStatusFilter,
     searchQuery,
