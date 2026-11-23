@@ -4,8 +4,9 @@ import {
   BookOpen,
   FileCheck2,
   CheckCircle2,
-  TrendingUp,
+  RotateCcw,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useManageSubmissionsContext } from "../contexts/ManageSubmissionsContext";
 import { MissionOverviewCard } from "./MissionOverviewCard";
 
@@ -21,8 +22,7 @@ export function MissionsOverviewView() {
     totalMissionsCount,
     totalPendingAllMissions,
     totalApprovedAllMissions,
-    totalSubmittedAllMissions,
-    overallSubmissionRate,
+    totalRejectedAllMissions,
   } = useManageSubmissionsContext();
 
   return (
@@ -107,22 +107,29 @@ export function MissionsOverviewView() {
           </div>
         </div>
 
-        {/* Card 4: Tỷ lệ hoàn thành */}
+        {/* Card 4: Cần sửa / Nộp lại */}
         <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-2xs text-left">
           <div className="flex items-start justify-between gap-2">
             <span className="text-sm font-semibold text-[#475569]">
-              Tiến độ nộp bài
+              Cần sửa / Nộp lại
             </span>
-            <div className="w-10 h-10 rounded-xl bg-[#FAF5FF] text-[#7E22CE] flex items-center justify-center shrink-0">
-              <TrendingUp className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-[#FFF1F2] text-[#E11D48] flex items-center justify-center shrink-0">
+              <RotateCcw className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline gap-1.5 flex-wrap">
-            <span className="text-3xl font-heading font-extrabold text-[#0F172A] tracking-tight tabular-nums">
-              {overallSubmissionRate}%
+            <span
+              className={cn(
+                "text-3xl font-heading font-extrabold tracking-tight tabular-nums",
+                totalRejectedAllMissions > 0
+                  ? "text-rose-600"
+                  : "text-[#0F172A]"
+              )}
+            >
+              {totalRejectedAllMissions}
             </span>
-            <span className="text-xs font-semibold text-slate-500">
-              ({totalSubmittedAllMissions} lượt nộp)
+            <span className="text-sm font-semibold text-slate-500">
+              bài nộp
             </span>
           </div>
         </div>

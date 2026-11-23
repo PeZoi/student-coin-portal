@@ -250,27 +250,19 @@ export function useManageSubmissions(
   const globalKpis = useMemo(() => {
     let totalPending = 0;
     let totalApproved = 0;
-    let totalSubmitted = 0;
-    let totalStudentsSum = 0;
+    let totalRejected = 0;
 
     for (const mission of missionsOverview) {
       totalPending += mission.pending_count;
       totalApproved += mission.approved_count;
-      totalSubmitted += mission.submitted_count;
-      totalStudentsSum += mission.total_students;
+      totalRejected += mission.rejected_count;
     }
-
-    const overallRate =
-      totalStudentsSum > 0
-        ? Math.round((totalSubmitted / totalStudentsSum) * 100)
-        : 0;
 
     return {
       totalMissionsCount: missionsOverview.length,
       totalPendingAllMissions: totalPending,
       totalApprovedAllMissions: totalApproved,
-      totalSubmittedAllMissions: totalSubmitted,
-      overallSubmissionRate: overallRate,
+      totalRejectedAllMissions: totalRejected,
     };
   }, [missionsOverview]);
 
