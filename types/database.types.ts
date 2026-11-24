@@ -1314,6 +1314,14 @@ export type Database = {
           user_id: string
         }[]
       }
+      batch_approve_homework_submissions: {
+        Args: {
+          p_default_feedback?: string
+          p_reviewer_id: string
+          p_submission_ids: string[]
+        }
+        Returns: Json
+      }
       cancel_homework_submission: {
         Args: { p_student_id: string; p_submission_id: string }
         Returns: Json
@@ -1352,6 +1360,27 @@ export type Database = {
           reviewed_at: string
           student_id: string
           submission_id: string
+        }[]
+      }
+      get_submission_missions_overview: {
+        Args: { p_class_ids?: string[]; p_expired_window_days?: number }
+        Returns: {
+          allow_late_submission: boolean
+          approved_count: number
+          description: string
+          due_at: string
+          exempt_count: number
+          grading_focus: Database["public"]["Enums"]["ai_error_type"][]
+          id: string
+          is_expired: boolean
+          max_reward_coins: number
+          min_reward_coins: number
+          pending_count: number
+          rejected_count: number
+          submission_type: Database["public"]["Enums"]["mission_submission_type"]
+          submitted_count: number
+          title: string
+          total_students: number
         }[]
       }
       get_wheel_config_stats: { Args: never; Returns: Json }

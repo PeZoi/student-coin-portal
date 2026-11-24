@@ -2,12 +2,14 @@ import {
   MissionSubmissionType,
   SubmissionApprovalStatus,
   AiGradingErrorType,
-} from "@/features/mission-management/types";
+  AiGradingSeverity,
+} from "@/constants";
 
 export type {
   MissionSubmissionType,
   SubmissionApprovalStatus,
   AiGradingErrorType,
+  AiGradingSeverity,
 };
 
 /**
@@ -20,7 +22,7 @@ export interface GradingSubmissionErrorItem {
   student_text: string;
   correction_text: string;
   error_type: AiGradingErrorType;
-  severity: "minor" | "major";
+  severity: AiGradingSeverity;
   explanation: string | null;
 }
 
@@ -154,6 +156,49 @@ export interface StudentRosterItem {
   reviewed_by?: string | null;
   reviewed_by_name?: string | null;
   reviewed_at?: string | null;
+}
+
+/**
+ * Gói dữ liệu đầy đủ cho màn hình Chi tiết Bài tập (Level 2: Roster & Grading Studio)
+ */
+export interface MissionSubmissionDetailPayload {
+  mission: MissionSubmissionSummary;
+  roster: StudentRosterItem[];
+  submissions: TeacherGradingSubmissionItem[];
+}
+
+/**
+ * Kết quả trả về từ API Duyệt 1 bài nộp
+ */
+export interface ApproveSubmissionResult {
+  submission_id: string;
+  approval_status: SubmissionApprovalStatus;
+  final_coins: number;
+  final_score: number | null;
+  correct_count: number | null;
+  total_questions: number | null;
+  current_coins: number;
+  coin_tx_id: string | null;
+  reviewed_at: string;
+}
+
+/**
+ * Kết quả trả về từ API Yêu cầu nộp lại
+ */
+export interface RejectSubmissionResult {
+  submission_id: string;
+  approval_status: SubmissionApprovalStatus;
+  teacher_feedback: string;
+  reviewed_at: string;
+}
+
+/**
+ * Kết quả trả về từ API Duyệt nhanh hàng loạt
+ */
+export interface BatchApproveSubmissionsResult {
+  approved_count: number;
+  approved_ids: string[];
+  total_coins_awarded: number;
 }
 
 /**

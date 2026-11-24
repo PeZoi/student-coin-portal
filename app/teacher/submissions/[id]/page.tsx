@@ -1,7 +1,12 @@
 import { Metadata } from "next";
 import { Suspense } from "react";
+import { requireTeacher } from "@/lib/auth/guard";
 import { ManageSubmissionsView } from "@/features/submission-management/components/ManageSubmissionsView";
 import { SubmissionDetailSkeleton } from "@/features/submission-management/components/SubmissionsSkeleton";
+import {
+  getMissionSubmissionDetailServer,
+  resolveTeacherActiveClassIdServer,
+} from "@/features/submission-management/services/submissionServerService";
 
 export const metadata: Metadata = {
   title: "Danh Sách Học Sinh | Duyệt Bài Tập | Góc Giáo Viên",
@@ -18,8 +23,19 @@ async function SubmissionDetailDataContainer({
   params,
   searchParams,
 }: SubmissionDetailPageProps) {
-  const { id } = await params;
-  const search = searchParams ? await searchParams : {};
+  const [session, { id }, search] = await Promise.all([
+    requireTeacher(),
+    params,
+    searchParams ??
+      Promise.resolve({} as { studentId?: string; submissionId?: string }),
+  ]);
+  const activeClassId = await resolveTeacherActiveClassIdServer(session);
+  const initialDetail = await getMissionSubmissionDetailServer(
+    id,
+    session,
+    activeClassId
+  );
+
   const studentId = search.studentId || search.submissionId;
 
   return (
@@ -28,6 +44,8 @@ async function SubmissionDetailDataContainer({
       initialMissionId={id}
       initialStudentId={studentId}
       initialViewMode={studentId ? "studio" : "roster"}
+      initialDetail={initialDetail}
+      initialClassId={activeClassId}
     />
   );
 }

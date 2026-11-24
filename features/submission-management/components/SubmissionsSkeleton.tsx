@@ -179,3 +179,87 @@ export function SubmissionDetailSkeleton() {
     </div>
   );
 }
+
+/**
+ * Component Skeleton thuần UI cho Studio Chấm Bài Học Sinh (`/teacher/submissions/[id]/[studentId]`)
+ * - Server Component tĩnh (không 'use client', không hook, không gọi API)
+ * - Khớp 100% bố cục Header + 5 KPI + TopBar Studio + 2 cột (Ảnh 7/12 & AI/Form 5/12)
+ */
+export function SubmissionStudioSkeleton() {
+  return (
+    <div className="space-y-5 animate-pulse">
+      {/* 1. Nút Back */}
+      <div>
+        <div className="h-8 w-48 bg-slate-200/80 rounded-xl" />
+      </div>
+
+      {/* 2. Thông tin Bài tập */}
+      <div className="bg-white p-5 rounded-2xl border border-[#E2E8F0] shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-start gap-3.5 sm:gap-4 min-w-0 flex-1">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-slate-100 shrink-0" />
+          <div className="space-y-2 flex-1 min-w-0">
+            <div className="h-6 sm:h-7 w-full max-w-lg bg-slate-200 rounded-xl" />
+            <div className="h-4 w-full max-w-2xl bg-slate-100 rounded-md" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="h-8 w-44 bg-slate-100 rounded-xl" />
+          <div className="h-8 w-24 bg-slate-100 rounded-xl" />
+        </div>
+      </div>
+
+      {/* 3. 5 Thẻ KPI */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
+        {[1, 2, 3, 4, 5].map((kpi) => (
+          <div
+            key={kpi}
+            className="bg-white p-4 xl:p-5 rounded-2xl border border-[#E2E8F0] shadow-2xs"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="h-4 w-24 bg-slate-100 rounded-md" />
+              <div className="w-10 h-10 rounded-xl bg-slate-100 shrink-0" />
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <div className="h-8 w-14 bg-slate-200 rounded-lg" />
+              <div className="h-4 w-16 bg-slate-100 rounded-md" />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 4. Studio Top Bar */}
+      <div className="bg-white p-4 rounded-2xl border border-[#E2E8F0] shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-48 bg-slate-100 rounded-xl" />
+          <div className="w-9 h-9 rounded-full bg-slate-100" />
+          <div className="space-y-1.5">
+            <div className="h-4 w-36 bg-slate-200 rounded" />
+            <div className="h-3 w-52 bg-slate-100 rounded" />
+          </div>
+        </div>
+        <div className="h-8 w-44 bg-slate-100 rounded-full" />
+      </div>
+
+      {/* 5. Studio 2 cột: Ảnh bài làm (7/12) & AI + Form cô giáo (5/12) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+        <div className="lg:col-span-7 h-[740px] rounded-2xl bg-slate-900/90 border border-slate-800 p-4 flex flex-col justify-between">
+          <div className="h-10 w-full bg-slate-800 rounded-xl" />
+          <div className="flex-1 my-4 bg-slate-800/60 rounded-xl" />
+          <div className="h-12 w-full bg-slate-800 rounded-xl" />
+        </div>
+        <div className="lg:col-span-5 h-[740px] rounded-2xl bg-white border border-slate-200 p-4 flex flex-col justify-between gap-4">
+          <div className="h-10 w-full bg-slate-100 rounded-xl" />
+          <div className="grid grid-cols-4 gap-2">
+            {[1, 2, 3, 4].map((m) => (
+              <div key={m} className="h-16 bg-slate-100 rounded-xl" />
+            ))}
+          </div>
+          <div className="h-28 w-full bg-slate-50 rounded-xl border border-slate-100" />
+          <div className="h-40 w-full bg-amber-50/50 rounded-2xl border border-amber-100" />
+          <div className="h-24 w-full bg-slate-50 rounded-xl" />
+          <div className="h-10 w-full bg-slate-200 rounded-xl" />
+        </div>
+      </div>
+    </div>
+  );
+}

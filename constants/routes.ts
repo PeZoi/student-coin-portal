@@ -105,6 +105,15 @@ export const AppRoutes = {
       MISSION_PERMANENT: (id: string) => `/api/teacher/missions/${id}/permanent`,
       MISSION_BATCH: "/api/teacher/missions/batch",
       MISSION_PROGRESS: (id: string) => `/api/teacher/missions/${id}/progress`,
+      // Duyệt bài tập (Submission Management)
+      SUBMISSIONS: "/api/teacher/submissions",
+      SUBMISSION_MISSION_DETAIL: (missionId: string) =>
+        `/api/teacher/submissions/missions/${missionId}`,
+      SUBMISSION_APPROVE: (submissionId: string) =>
+        `/api/teacher/submissions/${submissionId}/approve`,
+      SUBMISSION_REJECT: (submissionId: string) =>
+        `/api/teacher/submissions/${submissionId}/reject`,
+      SUBMISSION_BATCH_APPROVE: "/api/teacher/submissions/batch-approve",
     },
     SYSTEM: {
       CONFIG: "/api/system/config",

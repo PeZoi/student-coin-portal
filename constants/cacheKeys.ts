@@ -91,13 +91,14 @@ export const CACHE_KEYS = {
 
   // 7. Duyệt bài tập Studio (Submission Management)
   SUBMISSIONS: {
-    /** Danh sách bài nộp chờ duyệt hoặc lọc theo bài tập */
-    QUEUE: (missionId?: string | null) =>
-      missionId
-        ? (["teacher-submissions", missionId] as const)
-        : "teacher-submissions",
-    /** Chi tiết một bài nộp cụ thể */
-    DETAIL: (submissionId: string) => `submission-detail-${submissionId}`,
+    /** Prefix định danh cache danh sách tổng quan bài tập duyệt bài */
+    OVERVIEW_PREFIX: "teacher-submissions-overview",
+    /** Danh sách tổng quan các bài tập cần duyệt (hỗ trợ lọc theo lớp workspace) */
+    OVERVIEW: (classId?: string | null) =>
+      ["teacher-submissions-overview", classId ?? "all"] as const,
+    /** Chi tiết bài tập, danh sách học sinh (roster) và bài nộp kèm lỗi AI */
+    MISSION_DETAIL: (missionId: string, classId?: string | null) =>
+      ["teacher-submission-mission", missionId, classId ?? "all"] as const,
   },
 
   // 8. Bảng xếp hạng (Leaderboard)

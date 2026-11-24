@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { useParams } from "next/navigation";
-import { normalizeText } from "@/lib/utils";
 import { SubmissionApprovalStatus } from "@/constants";
+import { SUBMISSION_GRADING_CONFIG } from "../constants";
 import {
   TeacherGradingSubmissionItem,
-  SubmissionStatusFilter,
   MissionDetailViewMode,
 } from "../types";
 
@@ -18,9 +17,8 @@ interface UseSubmissionFiltersParams {
 }
 
 /**
- * Micro-Hook 1: Quản lý Bộ lọc, Điều hướng Bài tập (Level 1 ↔ Level 2),
- * Thống kê KPI và Danh sách Học sinh trong Studio Duyệt Bài Tập
- * - Tuân thủ Quy tắc 8: Tính toán trực tiếp khi render (Derive State), không dùng `useEffect`
+ * Micro-Hook: Điều hướng URL (Single Source of Truth), Thống kê KPI Level 2,
+ * xác định bài nộp đang chấm (`activeSubmission`) và học sinh chờ duyệt kế tiếp (`nextPendingSubmission`)
  */
 export function useSubmissionFilters({
   submissionsList,
@@ -35,63 +33,16 @@ export function useSubmissionFilters({
   const urlStudentId =
     (params?.studentId as string | undefined) || initialStudentId || null;
 
-  // 1. Quản lý Bài tập đang chọn: Ưu tiên tuyệt đối id trên URL
-  const [internalMissionId, setInternalMissionId] = useState<string | null>(
-    urlMissionId || null
-  );
-  const selectedMissionId = urlMissionId || internalMissionId;
+  const selectedMissionId = urlMissionId;
 
-  // 2. Chế độ xem: Quyết định 100% dựa vào link URL
-  // - Nếu link có [studentId] (/teacher/submissions/[id]/[studentId]) -> CHẮC CHẮN là "studio"
-  // - Nếu link chỉ có [id] (/teacher/submissions/[id]) -> CHẮC CHẮN là "roster"
-  const [internalViewMode, setInternalViewMode] =
-    useState<MissionDetailViewMode>(
-      urlStudentId ? "studio" : (initialViewMode ?? "roster")
-    );
+  // Quyết định chế độ xem hoàn toàn dựa vào URL
   const viewMode: MissionDetailViewMode = urlMissionId
     ? urlStudentId
       ? "studio"
-      : "roster"
-    : internalViewMode;
+      : (initialViewMode ?? "roster")
+    : "roster";
 
-  // 3. Danh sách bài nộp thuộc phạm vi Bài tập đang chọn
-  const missionScopedList = useMemo(() => {
-    if (!selectedMissionId || selectedMissionId === "all") {
-      return submissionsList;
-    }
-    return submissionsList.filter(
-      (item) => item.mission_id === selectedMissionId
-    );
-  }, [submissionsList, selectedMissionId]);
-
-  // Tìm bài nộp đích danh của học sinh trên URL (nếu có)
-  const targetSubmissionFromUrl = useMemo(() => {
-    if (!urlStudentId) return null;
-    return (
-      missionScopedList.find(
-        (s) => s.student_id === urlStudentId || s.id === urlStudentId
-      ) ??
-      submissionsList.find(
-        (s) => s.student_id === urlStudentId || s.id === urlStudentId
-      ) ??
-      null
-    );
-  }, [missionScopedList, submissionsList, urlStudentId]);
-
-  // 4. Bộ lọc trạng thái bài nộp trong Studio/Roster
-  const [statusFilter, setStatusFilter] = useState<SubmissionStatusFilter>(() =>
-    targetSubmissionFromUrl ? "all" : SubmissionApprovalStatus.PENDING_APPROVAL
-  );
-
-  // 5. Từ khóa tìm kiếm học sinh
-  const [searchQuery, setSearchQuery] = useState<string>("");
-
-  // 6. Học sinh / Bài nộp đang được active trong Studio
-  const [selectedSubmissionId, setSelectedSubmissionId] = useState<
-    string | null
-  >(() => targetSubmissionFromUrl?.id || urlStudentId || null);
-
-  // 7. Trang ảnh đang soi (0-based index: 0..4)
+  // Trang ảnh đang soi (0-based index)
   const [activePhotoIndex, setActivePhotoIndex] = useState<number>(0);
 
   // Thống kê KPIs trên phạm vi bài tập đang chọn
@@ -100,84 +51,79 @@ export function useSubmissionFilters({
     let approvedCount = 0;
     let rejectedCount = 0;
     let lateCount = 0;
-    let validAiPendingCount = 0;
-    let totalCoinsAwarded = 0;
+    const validAiPendingIds: string[] = [];
+    let validAiPendingTotalCoins = 0;
 
-    for (const sub of missionScopedList) {
+    for (const sub of submissionsList) {
       if (sub.is_late) {
         lateCount += 1;
       }
       if (sub.approval_status === SubmissionApprovalStatus.PENDING_APPROVAL) {
         pendingCount += 1;
-        if (sub.readable && (sub.ai_score === null || sub.ai_score >= 8.0)) {
-          validAiPendingCount += 1;
+        if (
+          sub.readable &&
+          (sub.ai_score === null ||
+            sub.ai_score >=
+              SUBMISSION_GRADING_CONFIG.VALID_AI_BATCH_APPROVE_MIN_SCORE)
+        ) {
+          validAiPendingIds.push(sub.id);
+          validAiPendingTotalCoins += sub.ai_suggested_coins;
         }
       } else if (sub.approval_status === SubmissionApprovalStatus.APPROVED) {
         approvedCount += 1;
-        totalCoinsAwarded += sub.final_coins ?? sub.ai_suggested_coins;
       } else if (sub.approval_status === SubmissionApprovalStatus.REJECTED) {
         rejectedCount += 1;
       }
     }
 
     return {
-      totalCount: missionScopedList.length,
+      totalCount: submissionsList.length,
       pendingCount,
       approvedCount,
       rejectedCount,
       lateCount,
-      validAiPendingCount,
-      totalCoinsAwarded,
+      validAiPendingIds,
+      validAiPendingCount: validAiPendingIds.length,
+      validAiPendingTotalCoins,
     };
-  }, [missionScopedList]);
+  }, [submissionsList]);
 
-  // Danh sách bài nộp sau khi áp dụng Tab trạng thái + Tìm kiếm
-  const filteredSubmissions = useMemo(() => {
-    const query = normalizeText(searchQuery);
-
-    return missionScopedList.filter((item) => {
-      if (statusFilter !== "all" && item.approval_status !== statusFilter) {
-        return false;
-      }
-      if (query) {
-        const matchStudent = normalizeText(item.student_name).includes(query);
-        const matchMission = normalizeText(item.mission_title).includes(query);
-        if (!matchStudent && !matchMission) return false;
-      }
-      return true;
-    });
-  }, [missionScopedList, statusFilter, searchQuery]);
-
-  // Suy luận bài nộp đang chọn trực tiếp khi render (ưu tiên bài nộp theo URL studentId)
+  // Tìm bài nộp đích danh của học sinh trên URL
   const activeSubmission = useMemo(() => {
-    if (urlStudentId && targetSubmissionFromUrl) {
-      return targetSubmissionFromUrl;
-    }
-    if (selectedSubmissionId) {
-      const foundInScope = missionScopedList.find(
-        (s) =>
-          s.id === selectedSubmissionId || s.student_id === selectedSubmissionId
+    if (!urlStudentId) return null;
+    return (
+      submissionsList.find(
+        (s) => s.student_id === urlStudentId || s.id === urlStudentId
+      ) ?? null
+    );
+  }, [submissionsList, urlStudentId]);
+
+  // Tìm học sinh chờ duyệt kế tiếp (khác bài đang xem) để hiển thị nút "Chấm học sinh tiếp theo →"
+  const nextPendingSubmission = useMemo(() => {
+    const pendingList = submissionsList.filter(
+      (s) =>
+        s.approval_status === SubmissionApprovalStatus.PENDING_APPROVAL &&
+        s.id !== activeSubmission?.id
+    );
+    if (pendingList.length === 0) return null;
+
+    if (activeSubmission) {
+      const currentIdx = submissionsList.findIndex(
+        (s) => s.id === activeSubmission.id
       );
-      if (foundInScope) return foundInScope;
+      if (currentIdx >= 0) {
+        const afterCurrent = submissionsList
+          .slice(currentIdx + 1)
+          .find(
+            (s) =>
+              s.approval_status === SubmissionApprovalStatus.PENDING_APPROVAL
+          );
+        if (afterCurrent) return afterCurrent;
+      }
     }
-    if (filteredSubmissions.length === 0) return null;
-    return filteredSubmissions[0];
-  }, [
-    urlStudentId,
-    targetSubmissionFromUrl,
-    missionScopedList,
-    filteredSubmissions,
-    selectedSubmissionId,
-  ]);
 
-  const activeIndex = useMemo(() => {
-    if (!activeSubmission) return -1;
-    return filteredSubmissions.findIndex((s) => s.id === activeSubmission.id);
-  }, [filteredSubmissions, activeSubmission]);
-
-  const hasPrevSubmission = activeIndex > 0;
-  const hasNextSubmission =
-    activeIndex >= 0 && activeIndex < filteredSubmissions.length - 1;
+    return pendingList[0];
+  }, [submissionsList, activeSubmission]);
 
   // Đảm bảo activePhotoIndex luôn hợp lệ với số ảnh của bài đang xem
   const safePhotoIndex = useMemo(() => {
@@ -186,118 +132,11 @@ export function useSubmissionFilters({
     return activePhotoIndex > maxIdx ? 0 : activePhotoIndex;
   }, [activeSubmission, activePhotoIndex]);
 
-  const handleSelectSubmission = useCallback((id: string) => {
-    setSelectedSubmissionId(id);
-    setActivePhotoIndex(0);
-  }, []);
-
-  const handlePrevSubmission = useCallback(() => {
-    if (activeIndex > 0) {
-      setSelectedSubmissionId(filteredSubmissions[activeIndex - 1].id);
-      setActivePhotoIndex(0);
-    }
-  }, [activeIndex, filteredSubmissions]);
-
-  const handleNextSubmission = useCallback(() => {
-    if (activeIndex >= 0 && activeIndex < filteredSubmissions.length - 1) {
-      setSelectedSubmissionId(filteredSubmissions[activeIndex + 1].id);
-      setActivePhotoIndex(0);
-    }
-  }, [activeIndex, filteredSubmissions]);
-
-  // Chọn hoặc đổi Bài tập (null để quay về Danh sách bài tập Level 1)
-  const handleSelectMission = useCallback((missionId: string | null) => {
-    setInternalMissionId(missionId);
-    setSelectedSubmissionId(null);
-    setActivePhotoIndex(0);
-    setSearchQuery("");
-    setStatusFilter(SubmissionApprovalStatus.PENDING_APPROVAL);
-  }, []);
-
-  // Chấm bài siêu tốc: Nhảy thẳng vào Studio của bài tập đó và chọn bài chờ duyệt đầu tiên
-  const handleQuickGradeMission = useCallback(
-    (missionId: string) => {
-      setInternalMissionId(missionId);
-      setInternalViewMode("studio");
-      setStatusFilter(SubmissionApprovalStatus.PENDING_APPROVAL);
-      setSearchQuery("");
-      setActivePhotoIndex(0);
-
-      // Tìm bài chờ duyệt đầu tiên của bài tập này
-      const firstPending = submissionsList.find(
-        (sub) =>
-          sub.mission_id === missionId &&
-          sub.approval_status === SubmissionApprovalStatus.PENDING_APPROVAL
-      );
-      if (firstPending) {
-        setSelectedSubmissionId(firstPending.id);
-      } else {
-        setSelectedSubmissionId(null);
-      }
-    },
-    [submissionsList]
-  );
-
-  // Mở Studio chấm bài cho một học sinh cụ thể từ Danh sách Học sinh (Roster)
-  const handleOpenStudentGrading = useCallback(
-    (submissionOrStudentId: string) => {
-      const targetSubmission = submissionsList.find(
-        (sub) =>
-          sub.id === submissionOrStudentId ||
-          sub.student_id === submissionOrStudentId
-      );
-      if (targetSubmission) {
-        setStatusFilter(targetSubmission.approval_status);
-        setSearchQuery("");
-        setSelectedSubmissionId(targetSubmission.id);
-      } else {
-        setSelectedSubmissionId(submissionOrStudentId);
-      }
-      setInternalViewMode("studio");
-      setActivePhotoIndex(0);
-    },
-    [submissionsList]
-  );
-
-  const handleChangeStatusFilter = useCallback(
-    (nextStatus: SubmissionStatusFilter) => {
-      setStatusFilter(nextStatus);
-      setSelectedSubmissionId(null);
-      setActivePhotoIndex(0);
-    },
-    []
-  );
-
-  const handleResetFilters = useCallback(() => {
-    setStatusFilter("all");
-    setSearchQuery("");
-    setSelectedSubmissionId(null);
-    setActivePhotoIndex(0);
-  }, []);
-
   return {
     selectedMissionId,
-    setSelectedMissionId: setInternalMissionId,
-    missionIdFilter: selectedMissionId ?? "all",
-    setMissionIdFilter: handleSelectMission,
     viewMode,
-    setViewMode: setInternalViewMode,
-    statusFilter,
-    setStatusFilter: handleChangeStatusFilter,
-    searchQuery,
-    setSearchQuery,
-    filteredSubmissions,
     activeSubmission,
-    activeIndex,
-    hasPrevSubmission,
-    hasNextSubmission,
-    handleSelectSubmission,
-    handlePrevSubmission,
-    handleNextSubmission,
-    handleSelectMission,
-    handleQuickGradeMission,
-    handleOpenStudentGrading,
-    handleResetFilters,
+    nextPendingSubmission,
     activePhotoIndex: safePhotoIndex,
     setActivePhotoIndex,
     ...kpiStats,

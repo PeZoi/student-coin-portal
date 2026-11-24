@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useUserStore } from "@/stores/useUserStore";
 import { useTeacherWorkspaceStore } from "@/stores/useTeacherWorkspaceStore";
 import { UserRole } from "@/constants/auth";
+import { AppRoutes } from "@/constants/routes";
 import {
   Menu,
   LogOut,
@@ -24,6 +26,7 @@ interface TeacherHeaderProps {
 }
 
 export function TeacherHeader({ onToggleSidebar }: TeacherHeaderProps) {
+  const router = useRouter();
   const { student, logout } = useUserStore();
   const isAdmin = student?.role === UserRole.ADMIN;
   const isSuperTeacher = student?.role === UserRole.SUPER_TEACHER;
@@ -204,9 +207,21 @@ export function TeacherHeader({ onToggleSidebar }: TeacherHeaderProps) {
                         key={cls.id}
                         type="button"
                         onClick={() => {
+                          const isSwitchingClass = cls.id !== currentClass?.id;
                           setSelectedClassId(cls.id);
                           setIsClassDropdownOpen(false);
                           setClassSearch("");
+
+                          // Nếu đang ở trang chi tiết Duyệt bài tập (/teacher/submissions/[id]...) -> chuyển về danh sách tổng quan
+                          if (
+                            isSwitchingClass &&
+                            typeof window !== "undefined" &&
+                            window.location.pathname.startsWith(
+                              `${AppRoutes.TEACHER.SUBMISSIONS}/`
+                            )
+                          ) {
+                            router.push(AppRoutes.TEACHER.SUBMISSIONS);
+                          }
                         }}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all cursor-pointer ${
                           isSelected

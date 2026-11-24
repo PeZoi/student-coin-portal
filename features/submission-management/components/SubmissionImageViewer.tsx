@@ -18,6 +18,7 @@ import {
 import { formatDate } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import { Tooltip } from "@/components/ui/tooltip";
+import { SUBMISSION_MEDIA_PATHS } from "../constants";
 import { TeacherGradingSubmissionItem } from "../types";
 import { useManageSubmissionsContext } from "../contexts/ManageSubmissionsContext";
 import { useImageViewer } from "../hooks/useImageViewer";
@@ -53,7 +54,8 @@ function SubmissionImageViewerCanvas({
 }) {
   const photos = submission.proof_image_urls;
   const totalPhotos = photos.length;
-  const currentPhotoUrl = photos[activePhotoIndex] || "/book/book.svg";
+  const currentPhotoUrl =
+    photos[activePhotoIndex] || SUBMISSION_MEDIA_PATHS.FALLBACK_PROOF_IMAGE;
 
   const {
     zoom,

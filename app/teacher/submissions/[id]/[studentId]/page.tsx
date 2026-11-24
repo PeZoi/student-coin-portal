@@ -1,7 +1,12 @@
 import { Metadata } from "next";
 import { Suspense } from "react";
+import { requireTeacher } from "@/lib/auth/guard";
 import { ManageSubmissionsView } from "@/features/submission-management/components/ManageSubmissionsView";
-import { SubmissionDetailSkeleton } from "@/features/submission-management/components/SubmissionsSkeleton";
+import { SubmissionStudioSkeleton } from "@/features/submission-management/components/SubmissionsSkeleton";
+import {
+  getMissionSubmissionDetailServer,
+  resolveTeacherActiveClassIdServer,
+} from "@/features/submission-management/services/submissionServerService";
 
 export const metadata: Metadata = {
   title: "Studio Chấm Bài Học Sinh | Duyệt Bài Tập | Góc Giáo Viên",
@@ -16,7 +21,16 @@ interface StudentGradingPageProps {
 async function StudentGradingDataContainer({
   params,
 }: StudentGradingPageProps) {
-  const { id, studentId } = await params;
+  const [session, { id, studentId }] = await Promise.all([
+    requireTeacher(),
+    params,
+  ]);
+  const activeClassId = await resolveTeacherActiveClassIdServer(session);
+  const initialDetail = await getMissionSubmissionDetailServer(
+    id,
+    session,
+    activeClassId
+  );
 
   return (
     <ManageSubmissionsView
@@ -24,6 +38,8 @@ async function StudentGradingDataContainer({
       initialMissionId={id}
       initialStudentId={studentId}
       initialViewMode="studio"
+      initialDetail={initialDetail}
+      initialClassId={activeClassId}
     />
   );
 }
@@ -32,7 +48,7 @@ export default function StudentGradingPage({
   params,
 }: StudentGradingPageProps) {
   return (
-    <Suspense fallback={<SubmissionDetailSkeleton />}>
+    <Suspense fallback={<SubmissionStudioSkeleton />}>
       <StudentGradingDataContainer params={params} />
     </Suspense>
   );

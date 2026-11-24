@@ -2,10 +2,9 @@
 
 import { createContext, useContext, ReactNode } from "react";
 import {
-  TeacherGradingSubmissionItem,
-  MissionDetailViewMode,
-} from "../types";
-import { useManageSubmissions } from "../hooks/useManageSubmissions";
+  useManageSubmissions,
+  UseManageSubmissionsParams,
+} from "../hooks/useManageSubmissions";
 
 export type ManageSubmissionsContextType = ReturnType<
   typeof useManageSubmissions
@@ -14,27 +13,15 @@ export type ManageSubmissionsContextType = ReturnType<
 const ManageSubmissionsContext =
   createContext<ManageSubmissionsContextType | null>(null);
 
-interface ManageSubmissionsProviderProps {
+interface ManageSubmissionsProviderProps extends UseManageSubmissionsParams {
   children: ReactNode;
-  initialSubmissions?: TeacherGradingSubmissionItem[];
-  initialMissionId?: string;
-  initialStudentId?: string;
-  initialViewMode?: MissionDetailViewMode;
 }
 
 export function ManageSubmissionsProvider({
   children,
-  initialSubmissions,
-  initialMissionId,
-  initialStudentId,
-  initialViewMode,
+  ...params
 }: ManageSubmissionsProviderProps) {
-  const value = useManageSubmissions(
-    initialSubmissions,
-    initialMissionId,
-    initialViewMode,
-    initialStudentId
-  );
+  const value = useManageSubmissions(params);
 
   return (
     <ManageSubmissionsContext.Provider value={value}>

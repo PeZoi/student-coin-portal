@@ -12,8 +12,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AppRoutes } from "@/constants/routes";
+import { SUBMISSION_MEDIA_PATHS } from "../constants";
 import { MissionSubmissionSummary } from "../types";
 import { formatDate } from "@/lib/date";
+import { MissionThumbnail } from "./shared/MissionThumbnail";
 
 interface MissionOverviewCardProps {
   mission: MissionSubmissionSummary;
@@ -53,12 +55,6 @@ export function MissionOverviewCard({ mission }: MissionOverviewCardProps) {
   const submissionRate = Math.round((submitted / total) * 100);
   const hasPending = pending > 0;
 
-  // Lựa chọn ảnh thumbnail bài tập từ thư mục public/submissions/
-  const thumbnailSrc =
-    mission.submission_type === "platform_proof"
-      ? "/submissions/capture.webp"
-      : "/submissions/write.webp";
-
   return (
     <div
       className={cn(
@@ -69,17 +65,12 @@ export function MissionOverviewCard({ mission }: MissionOverviewCardProps) {
       {/* 1. Header Thẻ: Icon bài tập + Tiêu đề (Chiếm trọn hàng trên) */}
       <div className="p-5 pb-4 space-y-3">
         <div className="flex items-center gap-3">
-          {/* Ảnh minh họa bài tập từ folder submissions */}
-          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl overflow-hidden border border-slate-200/90 bg-white shrink-0 relative shadow-2xs group-hover:scale-105 transition-transform">
-            <Image
-              src={thumbnailSrc}
-              alt={mission.title}
-              width={48}
-              height={48}
-              style={{ height: "auto" }}
-              className="w-full h-full object-cover"
-            />
-          </div>
+          <MissionThumbnail
+            submissionType={mission.submission_type}
+            alt={mission.title}
+            size="md"
+            className="group-hover:scale-105 transition-transform"
+          />
 
           <div className="min-w-0 flex-1">
             <Link href={detailHref} className="block">
@@ -122,7 +113,7 @@ export function MissionOverviewCard({ mission }: MissionOverviewCardProps) {
           {/* Phần thưởng xu Heo Đất (Dùng icon xu thật /coin.webp) */}
           <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 text-amber-900 border border-amber-200/80 text-xs font-black shrink-0 whitespace-nowrap shadow-2xs">
             <Image
-              src="/coin.webp"
+              src={SUBMISSION_MEDIA_PATHS.COIN_ICON}
               alt="Xu Heo Đất"
               width={15}
               height={15}
