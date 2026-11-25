@@ -373,7 +373,7 @@ export function MissionStatusBadge({
 		return (
 			<span className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200/80 whitespace-nowrap'>
 				<span className='w-1.5 h-1.5 rounded-full bg-amber-500' />
-				<span>Qua hạn nộp</span>
+				<span>Quá hạn nộp</span>
 			</span>
 		);
 	}

@@ -4,7 +4,7 @@ export { normalizeText, getInitials, onlyNumberKeyDown } from "@/lib/utils";
 export { formatDate, parseDateTime };
 
 /**
- * Kiểm tra xem bài tập đã qua hạn nộp (`due_at`) hay chưa
+ * Kiểm tra xem bài tập đã quá hạn nộp (`due_at`) hay chưa
  */
 export function isMissionExpired(dueAt: string): boolean {
   const date = toValidDate(dueAt);
@@ -77,7 +77,7 @@ export function getMissionDeadlineMeta(
     return {
       formattedDate,
       formattedTime,
-      relativeLabel: "Đã qua hạn nộp",
+      relativeLabel: "Đã quá hạn nộp",
       urgency: "expired",
     };
   }

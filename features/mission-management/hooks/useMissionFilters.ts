@@ -29,6 +29,9 @@ export function useMissionFilters({
   missionsList,
   onFilterChange,
 }: UseMissionFiltersParams) {
+  // Snapshot mốc thời gian bằng state để đảm bảo tính Idempotent thuần khiết (tránh gọi Date.now() trong render)
+  const [currentSnapshotTime] = useState(() => Date.now());
+
   const [statusFilter, setStatusFilterState] =
     useState<MissionStatusFilter>("recent");
   const [typeFilter, setTypeFilterState] = useState<MissionTypeFilter>("all");
@@ -228,12 +231,8 @@ export function useMissionFilters({
       return true;
     });
 
-    // Sắp xếp
-    if (!sortField || sortDirection === "none") {
-      return filtered;
-    }
-
-    const factor = sortDirection === "asc" ? 1 : -1;
+    // Sắp xếp danh sách bài tập
+    const factor = sortDirection === "desc" ? -1 : 1;
 
     return [...filtered].sort((a, b) => {
       if (sortField === "title") {
@@ -249,15 +248,32 @@ export function useMissionFilters({
           b.total_students > 0 ? b.submitted_count / b.total_students : 0;
         return (rateA - rateB) * factor;
       }
-      if (sortField === "due_at") {
-        return (parseDateTime(a.due_at) - parseDateTime(b.due_at)) * factor;
-      }
       if (sortField === "created_at") {
         return (
           (parseDateTime(a.created_at) - parseDateTime(b.created_at)) * factor
         );
       }
-      return 0;
+
+      // Sắp xếp theo Hạn nộp (mặc định hoặc khi sortField === "due_at"):
+      // 1. Ưu tiên bài CÒN HẠN lên đầu, bài ĐÃ HẾT HẠN đưa xuống cuối
+      // 2. Trong các bài CÒN HẠN: ưu tiên bài CÒN ÍT HẠN HƠN lên đầu (hạn nộp gần nhất)
+      // 3. Trong các bài ĐÃ HẾT HẠN: bài mới quá hạn gần đây xếp trước bài quá hạn lâu hơn
+      const aTime = parseDateTime(a.due_at);
+      const bTime = parseDateTime(b.due_at);
+      const aExpired = aTime < currentSnapshotTime;
+      const bExpired = bTime < currentSnapshotTime;
+
+      // Còn hạn vs Quá hạn
+      if (!aExpired && bExpired) return -1;
+      if (aExpired && !bExpired) return 1;
+
+      // Cùng CÒN HẠN: asc thì aTime < bTime lên trước (còn ít hạn hơn lên trước)
+      if (!aExpired && !bExpired) {
+        return (aTime - bTime) * factor;
+      }
+
+      // Cùng ĐÃ QUÁ HẠN: asc thì bTime > aTime lên trước (mới quá hạn gần đây hơn lên trước)
+      return (bTime - aTime) * factor;
     });
   }, [
     missionsList,
@@ -267,6 +283,7 @@ export function useMissionFilters({
     searchQuery,
     sortField,
     sortDirection,
+    currentSnapshotTime,
   ]);
 
   // 3. Phân trang

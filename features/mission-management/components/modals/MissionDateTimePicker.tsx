@@ -173,7 +173,7 @@ export function MissionDateTimePicker({
 		const diffMs = currentDate.getTime() - now.getTime();
 		if (diffMs < 0) {
 			return {
-				label: "Đã qua hạn",
+				label: "Đã quá hạn",
 				variant: "expired" as const,
 			};
 		}

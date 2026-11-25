@@ -64,7 +64,7 @@ export function MissionsKpiCards() {
           </span>
           {expiredMissionsCount > 0 && (
             <span className="ml-auto text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200/80">
-              {expiredMissionsCount} qua hạn
+              {expiredMissionsCount} Quá hạn
             </span>
           )}
         </div>
@@ -105,11 +105,6 @@ export function MissionsKpiCards() {
             {pendingReviewTotal}
           </span>
           <span className="text-sm font-semibold text-slate-500">bài nộp</span>
-          {pendingReviewTotal > 0 && (
-            <span className="ml-auto text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200/80">
-              AI đã chấm gợi ý
-            </span>
-          )}
         </div>
       </div>
 
