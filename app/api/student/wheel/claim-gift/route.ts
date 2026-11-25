@@ -4,8 +4,8 @@ import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeStudentRequest } from "@/lib/auth/guard";
 import { getCurrentVietnamMonthYear } from "@/lib/date";
 import { HttpStatus } from "@/constants";
-import { claimWheelGiftSchema } from "@/features/wheel-management/schemas/wheelSchemas";
-import { ClaimWheelGiftResponseData } from "@/features/lucky-wheel/types";
+import { claimWheelGiftSchema } from "@/features/teacher/wheel-management/schemas/wheelSchemas";
+import { ClaimWheelGiftResponseData } from "@/features/student/lucky-wheel/types";
 
 /**
  * POST /api/student/wheel/claim-gift

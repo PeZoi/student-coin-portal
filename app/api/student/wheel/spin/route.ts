@@ -8,10 +8,10 @@ import {
   WHEEL_CONSTANTS,
   WHEEL_PRIZE_TYPES,
 } from "@/constants";
-import { studentSpinRequestSchema } from "@/features/wheel-management/schemas/wheelSchemas";
-import { getStudentWheelInitialDataServer } from "@/features/lucky-wheel/services/luckyWheelServerService";
-import { PrizeType, WheelPrize } from "@/features/lucky-wheel/types";
-import { defaultWheelConfig } from "@/features/lucky-wheel/data/wheelData";
+import { studentSpinRequestSchema } from "@/features/teacher/wheel-management/schemas/wheelSchemas";
+import { getStudentWheelInitialDataServer } from "@/features/student/lucky-wheel/services/luckyWheelServerService";
+import { PrizeType, WheelPrize } from "@/features/student/lucky-wheel/types";
+import { defaultWheelConfig } from "@/features/student/lucky-wheel/data/wheelData";
 
 interface ExecuteWheelSpinRpcResult {
   spin_id: string;

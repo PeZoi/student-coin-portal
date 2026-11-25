@@ -10,8 +10,8 @@ import {
   type AuthFailureReasonType,
   type UserRoleType,
 } from "@/constants";
-import { studentPinVerificationSchema } from "@/features/auth/schemas/authSchemas";
-import { StudentLoginResponseData, StudentSessionData } from "@/features/auth/types";
+import { studentPinVerificationSchema } from "@/features/shared/auth/schemas/authSchemas";
+import { StudentLoginResponseData, StudentSessionData } from "@/features/shared/auth/types";
 import { setAuthCookie, signAuthToken } from "@/lib/auth/jwt";
 import { getAuthSecurityConfig } from "@/lib/system/serverConfig";
 import { logAuthEvent } from "@/lib/auth/authLogger";

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Baloo_2, Nunito } from "next/font/google";
 import { Toaster } from "sonner";
-import { UserInitializer } from "@/features/auth/components/UserInitializer";
+import { UserInitializer } from "@/features/shared/auth/components/UserInitializer";
 import "./globals.css";
 
 // Font tiêu đề hoạt hình 3D (Variable Font, hỗ trợ 100% tiếng Việt)

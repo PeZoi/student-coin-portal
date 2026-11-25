@@ -3,9 +3,9 @@ import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus, HttpStatusCode } from "@/constants/http";
-import { approveSubmissionSchema } from "@/features/submission-management/schemas/submissionSchemas";
-import { assertTeacherCanGradeSubmissionsServer } from "@/features/submission-management/services/submissionServerService";
-import { ApproveSubmissionResult } from "@/features/submission-management/types";
+import { approveSubmissionSchema } from "@/features/teacher/submission-management/schemas/submissionSchemas";
+import { assertTeacherCanGradeSubmissionsServer } from "@/features/teacher/submission-management/services/submissionServerService";
+import { ApproveSubmissionResult } from "@/features/teacher/submission-management/types";
 
 interface RouteParams {
   params: Promise<{ id: string }>;

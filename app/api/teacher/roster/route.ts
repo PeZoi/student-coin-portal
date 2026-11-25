@@ -1,7 +1,7 @@
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { HttpStatus } from "@/constants/http";
-import { getTeacherStudentRosterServer } from "@/features/student-roster/services/studentRosterServerService";
+import { getTeacherStudentRosterServer } from "@/features/teacher/student-roster/services/studentRosterServerService";
 
 /**
  * GET /api/teacher/roster?classId=...

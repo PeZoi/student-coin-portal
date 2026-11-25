@@ -3,10 +3,10 @@ import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus } from "@/constants/http";
-import { rejectSubmissionSchema } from "@/features/submission-management/schemas/submissionSchemas";
-import { assertTeacherCanGradeSubmissionsServer } from "@/features/submission-management/services/submissionServerService";
-import { SUBMISSION_GRADING_CONFIG } from "@/features/submission-management/constants";
-import { RejectSubmissionResult } from "@/features/submission-management/types";
+import { rejectSubmissionSchema } from "@/features/teacher/submission-management/schemas/submissionSchemas";
+import { assertTeacherCanGradeSubmissionsServer } from "@/features/teacher/submission-management/services/submissionServerService";
+import { SUBMISSION_GRADING_CONFIG } from "@/features/teacher/submission-management/constants";
+import { RejectSubmissionResult } from "@/features/teacher/submission-management/types";
 
 interface RouteParams {
   params: Promise<{ id: string }>;

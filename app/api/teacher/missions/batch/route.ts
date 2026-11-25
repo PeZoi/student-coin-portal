@@ -3,8 +3,8 @@ import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { UserRole } from "@/constants";
-import { batchMissionActionSchema } from "@/features/mission-management/schemas/missionSchemas";
-import { safeDeleteMissionServer } from "@/features/mission-management/services/missionServerService";
+import { batchMissionActionSchema } from "@/features/teacher/mission-management/schemas/missionSchemas";
+import { safeDeleteMissionServer } from "@/features/teacher/mission-management/services/missionServerService";
 
 /**
  * POST /api/teacher/missions/batch

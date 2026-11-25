@@ -1,7 +1,7 @@
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { authorizeStudentRequest } from "@/lib/auth/guard";
 import { HttpStatus, WHEEL_CONSTANTS } from "@/constants";
-import { getStudentWheelHistoryPageServer } from "@/features/lucky-wheel/services/luckyWheelServerService";
+import { getStudentWheelHistoryPageServer } from "@/features/student/lucky-wheel/services/luckyWheelServerService";
 
 /**
  * GET /api/student/wheel/history

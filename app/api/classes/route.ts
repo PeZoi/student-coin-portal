@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
-import { ClassItem } from "@/features/auth/types";
+import { ClassItem } from "@/features/shared/auth/types";
 import { getAuthSessionFromRequest } from "@/lib/auth/jwt";
 import { UserRole } from "@/constants/auth";
 

@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { TeacherLeaderboardView } from "@/features/teacher/components/TeacherLeaderboardView";
+import { TeacherLeaderboardView } from "@/features/teacher/leaderboard/components/TeacherLeaderboardView";
 
 export const metadata: Metadata = {
   title: "Bảng Vàng Thi Đua | Góc Giáo Viên",

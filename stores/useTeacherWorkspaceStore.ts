@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { TeacherAssignedClassItem } from "@/features/class-management/types";
-import { teacherClassService } from "@/features/class-management/services/classService";
+import { TeacherAssignedClassItem } from "@/features/teacher/class-management/types";
+import { teacherClassService } from "@/features/teacher/class-management/services/classService";
 
 interface TeacherWorkspaceState {
   classes: TeacherAssignedClassItem[];

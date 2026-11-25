@@ -1,4 +1,4 @@
-import { RewardsView } from "@/features/rewards/components/RewardsView";
+import { RewardsView } from "@/features/student/rewards/components/RewardsView";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

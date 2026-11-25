@@ -12,8 +12,8 @@ import {
   type UserRoleType,
   AppRoutes,
 } from "@/constants";
-import { teacherLoginSchema } from "@/features/auth/schemas/authSchemas";
-import { StudentSessionData, AuthLockInfo } from "@/features/auth/types";
+import { teacherLoginSchema } from "@/features/shared/auth/schemas/authSchemas";
+import { StudentSessionData, AuthLockInfo } from "@/features/shared/auth/types";
 import { setAuthCookie, signAuthToken } from "@/lib/auth/jwt";
 import { getAuthSecurityConfig } from "@/lib/system/serverConfig";
 import { logAuthEvent } from "@/lib/auth/authLogger";

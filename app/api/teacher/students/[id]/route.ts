@@ -4,8 +4,8 @@ import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus, StudentMissionStatus } from "@/constants";
 import { UserRole } from "@/constants/auth";
-import { updateStudentSchema } from "@/features/student-management/schemas/studentSchemas";
-import { StudentItem } from "@/features/student-management/types";
+import { updateStudentSchema } from "@/features/teacher/student-management/schemas/studentSchemas";
+import { StudentItem } from "@/features/teacher/student-management/types";
 import { format } from "date-fns";
 
 interface RouteParams {

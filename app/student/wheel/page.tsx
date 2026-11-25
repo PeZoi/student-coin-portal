@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getAuthSession } from "@/lib/auth/jwt";
-import { LuckyWheelView } from "@/features/lucky-wheel/components/LuckyWheelView";
-import { getStudentWheelInitialDataServer } from "@/features/lucky-wheel/services/luckyWheelServerService";
+import { LuckyWheelView } from "@/features/student/lucky-wheel/components/LuckyWheelView";
+import { getStudentWheelInitialDataServer } from "@/features/student/lucky-wheel/services/luckyWheelServerService";
 
 export const metadata: Metadata = {
   title: "Vòng quay may mắn - Student Coin Portal",

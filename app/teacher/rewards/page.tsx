@@ -2,11 +2,11 @@ import { Suspense } from "react";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { requireTeacher } from "@/lib/auth/guard";
-import { getTeacherRewardRequestsServer } from "@/features/reward-management/services/rewardServerService";
-import { getMyAssignedClassesServer } from "@/features/class-management/services/classServerService";
+import { getTeacherRewardRequestsServer } from "@/features/teacher/reward-management/services/rewardServerService";
+import { getMyAssignedClassesServer } from "@/features/teacher/class-management/services/classServerService";
 import { TEACHER_WORKSPACE_COOKIE_NAME } from "@/stores/useTeacherWorkspaceStore";
-import { TeacherRewardsView } from "@/features/reward-management";
-import { RewardsSkeleton } from "@/features/reward-management/components/RewardsSkeleton";
+import { TeacherRewardsView } from "@/features/teacher/reward-management";
+import { RewardsSkeleton } from "@/features/teacher/reward-management/components/RewardsSkeleton";
 
 export const metadata: Metadata = {
   title: "Đổi Quà | Góc Giáo Viên",

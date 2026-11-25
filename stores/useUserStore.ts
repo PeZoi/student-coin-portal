@@ -1,9 +1,9 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { Mission, StudentProfile } from "@/features/dashboard/types";
-import { initialMissions } from "@/features/dashboard/data/initialData";
+import { Mission, StudentProfile } from "@/features/student/dashboard/types";
+import { initialMissions } from "@/features/student/dashboard/data/initialData";
 import { getDisplayName } from "@/lib/utils";
-import { authService } from "@/features/auth/services/authService";
+import { authService } from "@/features/shared/auth/services/authService";
 import { isPublicPage } from "@/lib/auth/routes";
 import { AppRoutes } from "@/constants/routes";
 import { useConfigStore } from "./useConfigStore";

@@ -2,12 +2,12 @@ import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
-import { updateMissionSchema } from "@/features/mission-management/schemas/missionSchemas";
+import { updateMissionSchema } from "@/features/teacher/mission-management/schemas/missionSchemas";
 import { StudentMissionStatus } from "@/constants";
 import {
   safeDeleteMissionServer,
   getTeacherMissionsServer,
-} from "@/features/mission-management/services/missionServerService";
+} from "@/features/teacher/mission-management/services/missionServerService";
 
 interface RouteParams {
   params: Promise<{ id: string }>;

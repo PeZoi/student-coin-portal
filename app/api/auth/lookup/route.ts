@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { HttpStatus, ApiResponse } from "@/types/api";
-import { studentLoginSchema } from "@/features/auth/schemas/authSchemas";
-import { StudentLookupData } from "@/features/auth/types";
+import { studentLoginSchema } from "@/features/shared/auth/schemas/authSchemas";
+import { StudentLookupData } from "@/features/shared/auth/types";
 import { getAuthSecurityConfig } from "@/lib/system/serverConfig";
 
 interface UserLookupDbRow {

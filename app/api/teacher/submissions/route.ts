@@ -1,6 +1,6 @@
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
-import { getSubmissionMissionsOverviewServer } from "@/features/submission-management/services/submissionServerService";
+import { getSubmissionMissionsOverviewServer } from "@/features/teacher/submission-management/services/submissionServerService";
 
 /**
  * GET /api/teacher/submissions?classId=...

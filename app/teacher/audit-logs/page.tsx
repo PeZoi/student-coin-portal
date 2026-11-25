@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { TeacherAuditLogsView } from "@/features/teacher/components/TeacherAuditLogsView";
+import { TeacherAuditLogsView } from "@/features/admin/audit-logs/components/TeacherAuditLogsView";
 
 export const metadata: Metadata = {
   title: "Nhật Ký An Ninh & Kiểm Toán | Quản Trị Tối Cao",

@@ -1,4 +1,4 @@
-import { MissionsView } from "@/features/missions/components/MissionsView";
+import { MissionsView } from "@/features/student/missions/components/MissionsView";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {

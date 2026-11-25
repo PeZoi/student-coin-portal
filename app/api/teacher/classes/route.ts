@@ -3,8 +3,8 @@ import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus, PostgresErrorCode } from "@/constants";
-import { createClassSchema } from "@/features/class-management/schemas/classSchemas";
-import { getTeacherClassesServer } from "@/features/class-management/services/classServerService";
+import { createClassSchema } from "@/features/teacher/class-management/schemas/classSchemas";
+import { getTeacherClassesServer } from "@/features/teacher/class-management/services/classServerService";
 import { format } from "date-fns";
 import { escapeSqlWildcards } from "@/lib/utils";
 

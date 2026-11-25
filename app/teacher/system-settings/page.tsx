@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { TeacherSystemSettingsView } from "@/features/teacher/components/TeacherSystemSettingsView";
+import { TeacherSystemSettingsView } from "@/features/admin/system-settings/components/TeacherSystemSettingsView";
 
 export const metadata: Metadata = {
   title: "Cấu Hình Hệ Thống & Bảo Mật | Quản Trị Tối Cao",

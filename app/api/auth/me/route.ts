@@ -3,7 +3,7 @@ import { unstable_rethrow } from "next/navigation";
 import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { HttpStatus, ApiResponse } from "@/types/api";
-import { StudentSessionData } from "@/features/auth/types";
+import { StudentSessionData } from "@/features/shared/auth/types";
 import { clearAuthCookie, getAuthSession } from "@/lib/auth/jwt";
 
 interface UserMeDbRow {

@@ -1,7 +1,7 @@
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus } from "@/constants/http";
-import { getMissionSubmissionDetailServer } from "@/features/submission-management/services/submissionServerService";
+import { getMissionSubmissionDetailServer } from "@/features/teacher/submission-management/services/submissionServerService";
 
 interface RouteParams {
   params: Promise<{ id: string }>;

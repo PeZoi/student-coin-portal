@@ -1,7 +1,7 @@
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
-import { getMyAssignedClassesServer } from "@/features/class-management/services/classServerService";
-import { TeacherAssignedClassItem } from "@/features/class-management/types";
+import { getMyAssignedClassesServer } from "@/features/teacher/class-management/services/classServerService";
+import { TeacherAssignedClassItem } from "@/features/teacher/class-management/types";
 
 /**
  * GET /api/teacher/my-classes

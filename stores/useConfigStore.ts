@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { SystemPublicConfigs } from "@/types/systemConfig";
-import { systemConfigService } from "@/features/system/services/systemConfigService";
+import { systemConfigService } from "@/features/shared/system/services/systemConfigService";
 import { isPublicPage } from "@/lib/auth/routes";
 
 interface ConfigState {

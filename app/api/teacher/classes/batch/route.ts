@@ -4,7 +4,7 @@ import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus, StudentMissionStatus } from "@/constants";
 import { UserRole } from "@/constants/auth";
-import { batchClassActionSchema } from "@/features/class-management/schemas/classSchemas";
+import { batchClassActionSchema } from "@/features/teacher/class-management/schemas/classSchemas";
 
 /**
  * POST /api/teacher/classes/batch

@@ -45,26 +45,32 @@ student-coin-portal/
 │   ├── globals.css             # CSS toàn cục
 │   └── layout.tsx              # Root Layout chung
 │
-├── features/                   # CHỨA LOGIC & GIAO DIỆN THEO DOMAIN TỪNG TÍNH NĂNG
-│   ├── auth/                   # Phân hệ Xác thực & Phân quyền
-│   ├── student-management/     # Quản lý Học sinh (Admin & Super Teacher)
-│   │   ├── components/         # Table, Cards, Toolbar, KPI, Skeleton
-│   │   │   └── modals/         # Toàn bộ hộp thoại Modal (7 modals)
-│   │   ├── contexts/           # ManageStudentsContext
-│   │   ├── hooks/              # useManageStudents, useStudentFilters...
-│   │   ├── services/           # studentService, studentServerService
-│   │   ├── schemas/            # studentSchemas (Zod)
-│   │   ├── types/              # types/index.ts
-│   │   └── constants/          # constants/index.ts
-│   ├── class-management/       # Quản lý Lớp học (Tương tự)
-│   ├── teacher-management/     # Quản lý Giáo viên / Nhân sự (Tương tự)
-│   ├── lucky-wheel/            # Module Vòng quay may mắn
-│   ├── missions/               # Module Nhiệm vụ & Điểm danh
-│   ├── rewards/                # Module Quà tặng học sinh
-│   ├── reward-management/      # Quản lý Đổi quà & Trả thưởng Heo Đất (Giáo viên)
-│   ├── leaderboard/            # Module Bảng xếp hạng
-│   ├── dashboard/              # Dashboard học sinh
-│   └── teacher/                # Portal Giáo viên: Shell, Sidebar, Header layout, Views chung
+├── features/                   # CHỨA LOGIC & GIAO DIỆN THEO DOMAIN TỪNG PHÂN HỆ
+│   ├── student/                # PHÂN HỆ DÀNH CHO HỌC SINH
+│   │   ├── dashboard/          # Trang chủ học sinh
+│   │   ├── missions/           # Sách bài tập / Nhiệm vụ ma thuật tích xu
+│   │   ├── lucky-wheel/        # Vòng quay may mắn
+│   │   ├── rewards/            # Đổi quà Heo Đất
+│   │   ├── leaderboard/        # Bảng xếp hạng học sinh
+│   │   └── test-ai/            # Thử nghiệm tính năng AI
+│   ├── teacher/                # PHÂN HỆ DÀNH CHO GIÁO VIÊN
+│   │   ├── shell/              # Portal Shell: Layout, Sidebar, Header dùng chung
+│   │   ├── dashboard/          # Trang chủ / Thống kê giáo viên
+│   │   ├── leaderboard/        # Bảng vàng thi đua giáo viên
+│   │   ├── class-management/   # Quản lý Lớp học
+│   │   ├── student-management/ # Quản lý Học sinh (Admin & Super Teacher)
+│   │   ├── student-roster/     # Danh sách Học sinh theo lớp (Student Roster)
+│   │   ├── teacher-management/ # Quản lý Giáo viên / Nhân sự (Admin & Super Teacher)
+│   │   ├── mission-management/ # Giao bài tập & cấu hình tiêu chí AI
+│   │   ├── submission-management/ # Chấm bài & duyệt bài tập học sinh
+│   │   ├── reward-management/  # Quản lý Đổi quà & Trả thưởng Heo Đất
+│   │   └── wheel-management/   # Quản lý cấu hình Vòng quay may mắn
+│   ├── admin/                  # PHÂN HỆ DÀNH RIÊNG CHO QUẢN TRỊ VIÊN
+│   │   ├── audit-logs/         # Nhật ký hệ thống / An ninh
+│   │   └── system-settings/    # Cài đặt cấu hình hệ thống
+│   └── shared/                 # CÁC MODULE DÙNG CHUNG CẢ 2 PHÍA
+│       ├── auth/               # Phân hệ Xác thực & Phân quyền
+│       └── system/             # Dịch vụ cấu hình hệ thống
 │
 ├── components/                 # COMPONENT DÙNG CHUNG TOÀN ỨNG DỤNG
 │   └── ui/                     # Button.tsx, Modal.tsx, Card.tsx, Input.tsx...
@@ -91,8 +97,8 @@ student-coin-portal/
 *Ví dụ chuẩn cho `app/(student)/wheel/page.tsx`:*
 ```tsx
 // ✅ ĐÚNG: page.tsx cực kỳ ngắn gọn, sạch sẽ
-import { getStudentPrizes } from "@/features/lucky-wheel/actions/getStudentPrizes";
-import { LuckyWheelView } from "@/features/lucky-wheel/components/LuckyWheelView";
+import { getStudentPrizes } from "@/features/student/lucky-wheel/actions/getStudentPrizes";
+import { LuckyWheelView } from "@/features/student/lucky-wheel/components/LuckyWheelView";
 
 export default async function WheelPage() {
   const prizes = await getStudentPrizes();
@@ -339,9 +345,9 @@ export function CustomSelect({ value: controlledValue, defaultValue, onChange }:
      ```tsx
      // ✅ ĐÚNG: app/teacher/classes/page.tsx (Server Component + Streaming Suspense)
      import { Suspense } from "react";
-     import { TeacherClassesView } from "@/features/teacher/components/TeacherClassesView";
-     import { ClassesSkeleton } from "@/features/teacher/components/classes/ClassesSkeleton";
-     import { getTeacherClassesServer } from "@/features/teacher/services/teacherClassServerService";
+     import { TeacherClassesView } from "@/features/teacher/shell/components/TeacherClassesView";
+     import { ClassesSkeleton } from "@/features/teacher/shell/components/classes/ClassesSkeleton";
+     import { getTeacherClassesServer } from "@/features/teacher/shell/services/teacherClassServerService";
 
      async function ClassesDataContainer() {
        const initialClasses = await getTeacherClassesServer();

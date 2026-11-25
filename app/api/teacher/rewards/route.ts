@@ -1,6 +1,6 @@
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
-import { getTeacherRewardRequestsServer } from "@/features/reward-management/services/rewardServerService";
+import { getTeacherRewardRequestsServer } from "@/features/teacher/reward-management/services/rewardServerService";
 
 /**
  * GET /api/teacher/rewards

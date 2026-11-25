@@ -1,7 +1,7 @@
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { authorizeRequest } from "@/lib/auth/guard";
 import { UserRole } from "@/constants";
-import { getStudentWheelInitialDataServer } from "@/features/lucky-wheel/services/luckyWheelServerService";
+import { getStudentWheelInitialDataServer } from "@/features/student/lucky-wheel/services/luckyWheelServerService";
 
 /**
  * GET /api/student/wheel

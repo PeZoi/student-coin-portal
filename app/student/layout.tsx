@@ -1,5 +1,5 @@
 import React from "react";
-import { StudentNavbar } from "@/features/dashboard/components/StudentNavbar";
+import { StudentNavbar } from "@/features/student/dashboard/components/StudentNavbar";
 
 export default function StudentLayout({
   children,

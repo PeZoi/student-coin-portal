@@ -1,7 +1,7 @@
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus, WHEEL_CONSTANTS } from "@/constants";
-import { getWheelSpinHistoryPageServer } from "@/features/wheel-management/services/wheelServerService";
+import { getWheelSpinHistoryPageServer } from "@/features/teacher/wheel-management/services/wheelServerService";
 
 /**
  * GET /api/teacher/wheel-config/spins

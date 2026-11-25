@@ -5,8 +5,8 @@ import { authorizeStudentRequest } from "@/lib/auth/guard";
 import { getCurrentVietnamMonthYear } from "@/lib/date";
 import { getExchangeSettingConfig } from "@/lib/system/serverConfig";
 import { HttpStatus, formatExchangeHoldTxDescription } from "@/constants";
-import { studentRewardExchangeSchema } from "@/features/rewards/schemas/rewardSchemas";
-import { SubmitRewardExchangeResponseData } from "@/features/rewards/types";
+import { studentRewardExchangeSchema } from "@/features/student/rewards/schemas/rewardSchemas";
+import { SubmitRewardExchangeResponseData } from "@/features/student/rewards/types";
 
 /**
  * POST /api/student/rewards/exchange

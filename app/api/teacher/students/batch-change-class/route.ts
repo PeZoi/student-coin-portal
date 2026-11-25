@@ -10,7 +10,7 @@ import {
   StudentMissionStatus,
 } from "@/constants";
 import { UserRole } from "@/constants/auth";
-import { batchChangeStudentClassSchema } from "@/features/student-management/schemas/studentSchemas";
+import { batchChangeStudentClassSchema } from "@/features/teacher/student-management/schemas/studentSchemas";
 
 /**
  * POST /api/teacher/students/batch-change-class

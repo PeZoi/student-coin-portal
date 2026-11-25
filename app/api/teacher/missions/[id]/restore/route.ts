@@ -1,6 +1,6 @@
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
-import { restoreMissionServer } from "@/features/mission-management/services/missionServerService";
+import { restoreMissionServer } from "@/features/teacher/mission-management/services/missionServerService";
 
 interface RouteParams {
   params: Promise<{ id: string }>;

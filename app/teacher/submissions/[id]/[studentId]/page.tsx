@@ -1,12 +1,12 @@
 import { Metadata } from "next";
 import { Suspense } from "react";
 import { requireTeacher } from "@/lib/auth/guard";
-import { ManageSubmissionsView } from "@/features/submission-management/components/ManageSubmissionsView";
-import { SubmissionStudioSkeleton } from "@/features/submission-management/components/SubmissionsSkeleton";
+import { ManageSubmissionsView } from "@/features/teacher/submission-management/components/ManageSubmissionsView";
+import { SubmissionStudioSkeleton } from "@/features/teacher/submission-management/components/SubmissionsSkeleton";
 import {
   getMissionSubmissionDetailServer,
   resolveTeacherActiveClassIdServer,
-} from "@/features/submission-management/services/submissionServerService";
+} from "@/features/teacher/submission-management/services/submissionServerService";
 
 export const metadata: Metadata = {
   title: "Studio Chấm Bài Học Sinh | Duyệt Bài Tập | Góc Giáo Viên",

@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { TeacherLayoutShell } from "@/features/teacher/components/layout/TeacherLayoutShell";
+import { TeacherLayoutShell } from "@/features/teacher/shell/components/layout/TeacherLayoutShell";
 
 export const metadata: Metadata = {
   title: "Góc Giáo Viên | Student Coin Portal",

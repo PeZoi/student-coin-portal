@@ -10,8 +10,8 @@ import {
   UserRole,
   PostgresErrorCode,
 } from "@/constants";
-import { studentRegisterSchema } from "@/features/auth/schemas/authSchemas";
-import { RegisteredStudentData } from "@/features/auth/types";
+import { studentRegisterSchema } from "@/features/shared/auth/schemas/authSchemas";
+import { RegisteredStudentData } from "@/features/shared/auth/types";
 import { logAuthEvent } from "@/lib/auth/authLogger";
 
 export async function POST(

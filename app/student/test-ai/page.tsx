@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { TestAiSubmissionView } from "@/features/test-ai/components/TestAiSubmissionView";
+import { TestAiSubmissionView } from "@/features/student/test-ai/components/TestAiSubmissionView";
 
 export const metadata: Metadata = {
   title: "Nộp bài tập về nhà - AI Chấm điểm | Student Coin Portal",

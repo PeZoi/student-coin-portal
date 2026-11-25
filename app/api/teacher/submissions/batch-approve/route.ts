@@ -2,10 +2,10 @@ import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
-import { batchApproveSubmissionsSchema } from "@/features/submission-management/schemas/submissionSchemas";
-import { assertTeacherCanGradeSubmissionsServer } from "@/features/submission-management/services/submissionServerService";
-import { SUBMISSION_GRADING_CONFIG } from "@/features/submission-management/constants";
-import { BatchApproveSubmissionsResult } from "@/features/submission-management/types";
+import { batchApproveSubmissionsSchema } from "@/features/teacher/submission-management/schemas/submissionSchemas";
+import { assertTeacherCanGradeSubmissionsServer } from "@/features/teacher/submission-management/services/submissionServerService";
+import { SUBMISSION_GRADING_CONFIG } from "@/features/teacher/submission-management/constants";
+import { BatchApproveSubmissionsResult } from "@/features/teacher/submission-management/types";
 
 /**
  * POST /api/teacher/submissions/batch-approve

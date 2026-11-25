@@ -2,11 +2,11 @@ import { supabase } from "@/lib/supabase/db";
 import { apiError, apiSuccess } from "@/lib/api/response";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus, WHEEL_CONSTANTS } from "@/constants";
-import { getInitialWheelConfigServer } from "@/features/wheel-management/services/wheelServerService";
+import { getInitialWheelConfigServer } from "@/features/teacher/wheel-management/services/wheelServerService";
 import {
   saveWheelSlotsSchema,
   wheelGeneralSettingsSchema,
-} from "@/features/wheel-management/schemas/wheelSchemas";
+} from "@/features/teacher/wheel-management/schemas/wheelSchemas";
 
 /**
  * GET /api/teacher/wheel-config

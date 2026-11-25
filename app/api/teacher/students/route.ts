@@ -13,9 +13,9 @@ import {
   getManageStudentsServer,
   getPaginatedManageStudentsServer,
   PaginatedStudentsResult,
-} from "@/features/student-management/services/studentServerService";
-import { createStudentSchema } from "@/features/student-management/schemas/studentSchemas";
-import { StudentItem } from "@/features/student-management/types";
+} from "@/features/teacher/student-management/services/studentServerService";
+import { createStudentSchema } from "@/features/teacher/student-management/schemas/studentSchemas";
+import { StudentItem } from "@/features/teacher/student-management/types";
 import { format } from "date-fns";
 
 /**

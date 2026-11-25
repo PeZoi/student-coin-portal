@@ -1,13 +1,13 @@
 import { Metadata } from "next";
 import { Suspense } from "react";
 import { requireTeacher } from "@/lib/auth/guard";
-import { ManageSubmissionsView } from "@/features/submission-management/components/ManageSubmissionsView";
-import { SubmissionsSkeleton } from "@/features/submission-management/components/SubmissionsSkeleton";
+import { ManageSubmissionsView } from "@/features/teacher/submission-management/components/ManageSubmissionsView";
+import { SubmissionsSkeleton } from "@/features/teacher/submission-management/components/SubmissionsSkeleton";
 import {
   getMissionSubmissionDetailServer,
   getSubmissionMissionsOverviewServer,
   resolveTeacherActiveClassIdServer,
-} from "@/features/submission-management/services/submissionServerService";
+} from "@/features/teacher/submission-management/services/submissionServerService";
 
 export const metadata: Metadata = {
   title: "Duyệt Bài Tập | Góc Giáo Viên",

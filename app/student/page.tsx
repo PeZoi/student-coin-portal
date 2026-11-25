@@ -1,4 +1,4 @@
-import { StudentDashboardView } from "@/features/dashboard/components/StudentDashboardView";
+import { StudentDashboardView } from "@/features/student/dashboard/components/StudentDashboardView";
 
 export default function StudentDashboardPage() {
   return <StudentDashboardView />;

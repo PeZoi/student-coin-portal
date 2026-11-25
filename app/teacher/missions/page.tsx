@@ -2,10 +2,10 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { requireTeacher } from "@/lib/auth/guard";
-import { ManageMissionsView } from "@/features/mission-management/components/ManageMissionsView";
-import { MissionsSkeleton } from "@/features/mission-management/components/MissionsSkeleton";
-import { getTeacherMissionsServer } from "@/features/mission-management/services/missionServerService";
-import { getMyAssignedClassesServer } from "@/features/class-management/services/classServerService";
+import { ManageMissionsView } from "@/features/teacher/mission-management/components/ManageMissionsView";
+import { MissionsSkeleton } from "@/features/teacher/mission-management/components/MissionsSkeleton";
+import { getTeacherMissionsServer } from "@/features/teacher/mission-management/services/missionServerService";
+import { getMyAssignedClassesServer } from "@/features/teacher/class-management/services/classServerService";
 import { TEACHER_WORKSPACE_COOKIE_NAME } from "@/stores/useTeacherWorkspaceStore";
 
 export const metadata: Metadata = {

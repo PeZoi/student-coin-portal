@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { AuthView } from "@/features/auth/components/AuthView";
+import { AuthView } from "@/features/shared/auth/components/AuthView";
 
 export default function LoginPage() {
   return (

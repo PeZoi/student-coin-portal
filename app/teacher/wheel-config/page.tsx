@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import { Metadata } from "next";
 import { requireTeacher } from "@/lib/auth/guard";
-import { WheelConfigView } from "@/features/wheel-management/components/WheelConfigView";
-import { WheelConfigSkeleton } from "@/features/wheel-management/components/WheelConfigSkeleton";
-import { getInitialWheelConfigServer } from "@/features/wheel-management/services/wheelServerService";
+import { WheelConfigView } from "@/features/teacher/wheel-management/components/WheelConfigView";
+import { WheelConfigSkeleton } from "@/features/teacher/wheel-management/components/WheelConfigSkeleton";
+import { getInitialWheelConfigServer } from "@/features/teacher/wheel-management/services/wheelServerService";
 
 export const metadata: Metadata = {
   title: "Cấu Hình Vòng Quay | Quản Trị Tối Cao",

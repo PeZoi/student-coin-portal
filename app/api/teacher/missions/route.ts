@@ -3,8 +3,8 @@ import { apiError, apiSuccess } from "@/lib/api/response";
 import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeTeacherRequest } from "@/lib/auth/guard";
 import { HttpStatus } from "@/constants";
-import { createMissionSchema } from "@/features/mission-management/schemas/missionSchemas";
-import { getTeacherMissionsServer } from "@/features/mission-management/services/missionServerService";
+import { createMissionSchema } from "@/features/teacher/mission-management/schemas/missionSchemas";
+import { getTeacherMissionsServer } from "@/features/teacher/mission-management/services/missionServerService";
 
 /**
  * GET /api/teacher/missions
