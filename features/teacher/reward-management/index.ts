@@ -17,4 +17,3 @@ export {
   RewardsListSkeleton,
 } from "./components/RewardsSkeleton";
 export { rewardService } from "./services/rewardService";
-export { getTeacherRewardRequestsServer } from "./services/rewardServerService";

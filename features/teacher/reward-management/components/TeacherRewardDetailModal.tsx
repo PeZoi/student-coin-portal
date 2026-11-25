@@ -27,20 +27,32 @@ import {
 import { ExchangeChoiceType, ExchangeRequestStatus } from "@/constants/rewards";
 import { formatDate } from "@/lib/date";
 import { toast } from "sonner";
-import { useTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
+import { useOptionalTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
+import { TeacherExchangeRequestItem } from "../types";
 
-export function TeacherRewardDetailModal() {
-  const {
-    isDetailModalOpen: isOpen,
-    handleCloseDetail: onClose,
-    selectedRequest: request,
-    handleApproveAndDeliver: onApproveAndDeliver,
-    handleOpenRejectModal: onReject,
-  } = useTeacherRewardsContext();
+export interface TeacherRewardDetailModalProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+  request?: TeacherExchangeRequestItem | null;
+  onApproveAndDeliver?: (req: TeacherExchangeRequestItem) => void;
+  onReject?: (req: TeacherExchangeRequestItem) => void;
+}
+
+export function TeacherRewardDetailModal(props?: TeacherRewardDetailModalProps) {
+  const context = useOptionalTeacherRewardsContext();
+
+  const isOpen =
+    props?.isOpen !== undefined ? props.isOpen : context?.isDetailModalOpen ?? false;
+  const onClose = props?.onClose ?? context?.handleCloseDetail ?? (() => {});
+  const request =
+    props?.request !== undefined ? props.request : context?.selectedRequest ?? null;
+  const onApproveAndDeliver =
+    props?.onApproveAndDeliver ?? context?.handleApproveAndDeliver;
+  const onReject = props?.onReject ?? context?.handleOpenRejectModal;
 
   const [copied, setCopied] = useState(false);
 
-  if (!request) return null;
+  if (!isOpen || !request) return null;
 
   const isCash = request.choice_type === ExchangeChoiceType.CASH;
   const isSpinGift = request.choice_type === ExchangeChoiceType.SPIN_GIFT;

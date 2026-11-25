@@ -314,7 +314,7 @@ export function StudentExchangeGiftsModal() {
                           }`}
                         >
                           {isCash
-                            ? "Đổi thành tiền mặt (Tiền thật)"
+                            ? "Đổi thành tiền mặt"
                             : "Đổi thành quà tặng theo link"}
                         </span>
 

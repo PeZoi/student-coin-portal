@@ -54,3 +54,10 @@ export function useTeacherRewardsContext(): TeacherRewardsContextType {
   }
   return context;
 }
+
+/**
+ * Hook truy xuất Context tùy chọn (trả về null nếu không nằm trong Provider, dùng khi tái sử dụng modal)
+ */
+export function useOptionalTeacherRewardsContext(): TeacherRewardsContextType | null {
+  return useContext(TeacherRewardsContext);
+}
