@@ -21,6 +21,8 @@ export function MissionDetailSide({ mission, onBack }: MissionDetailSideProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Snapshot mốc thời gian bằng state để đảm bảo Pure Component (không gọi Date.now() trong render)
+  const [currentSnapshotTime] = useState(() => Date.now());
 
   // Xử lý khi không có mission nào được chọn (ví dụ: tab rỗng)
   if (!mission) {
@@ -49,6 +51,12 @@ export function MissionDetailSide({ mission, onBack }: MissionDetailSideProps) {
 
   const isCompleted = mission.status === "completed" || Boolean(mission.isCompleted);
   const isOverdue = checkIsMissionOverdue(mission);
+  // Kiểm tra bài tập đã quá hạn 1 tuần (7 ngày) -> đã lưu trữ và đóng nhận bài hoàn toàn
+  const isArchived = Boolean(
+    mission.dueAt &&
+      new Date(mission.dueAt).getTime() > 0 &&
+      currentSnapshotTime - new Date(mission.dueAt).getTime() > 7 * 24 * 60 * 60 * 1000
+  );
 
   // Format ngày giờ ngắn gọn
   const assignedText = formatShortDateTime(mission.assignedAt);
@@ -76,6 +84,11 @@ export function MissionDetailSide({ mission, onBack }: MissionDetailSideProps) {
 
   // Nộp bài
   const handleSubmit = async () => {
+    if (isArchived) {
+      toast.error("Bài tập này đã lưu trữ và đóng nhận bài!");
+      return;
+    }
+
     if (!selectedFile) {
       toast.warning("Vui lòng tải lên ảnh chụp bài làm hoặc file bài tập trước khi nộp nhé!");
       fileInputRef.current?.click();
@@ -148,14 +161,22 @@ export function MissionDetailSide({ mission, onBack }: MissionDetailSideProps) {
                   "inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-bold border shadow-2xs",
                   isCompleted
                     ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                    : isArchived
+                    ? "bg-slate-100 text-slate-600 border-slate-300"
                     : isOverdue
                     ? "bg-rose-50 text-rose-700 border-rose-300 font-extrabold"
                     : "bg-sky-50 text-sky-700 border-sky-300"
                 )}
               >
-                {isOverdue && <AlertTriangle className="w-2.5 h-2.5 text-rose-600 flex-shrink-0" />}
-                <Clock className="w-2.5 h-2.5 flex-shrink-0" />
-                <span>{isOverdue ? `Quá hạn: ${dueText}` : `Hạn: ${dueText}`}</span>
+                {isArchived ? (
+                  <span>Đã lưu trữ (Đóng nhận bài)</span>
+                ) : (
+                  <>
+                    {isOverdue && <AlertTriangle className="w-2.5 h-2.5 text-rose-600 flex-shrink-0" />}
+                    <Clock className="w-2.5 h-2.5 flex-shrink-0" />
+                    <span>{isOverdue ? `Quá hạn: ${dueText}` : `Hạn: ${dueText}`}</span>
+                  </>
+                )}
               </span>
             </div>
 
@@ -196,11 +217,15 @@ export function MissionDetailSide({ mission, onBack }: MissionDetailSideProps) {
           <h4 className="font-heading font-black text-amber-950 text-[11px] sm:text-[11.5px] lg:text-[13.5px] [text-shadow:_0_1px_1px_rgba(255,255,255,0.9)]">
             Nộp minh chứng
           </h4>
-          {isOverdue && !isCompleted && (
+          {isArchived && !isCompleted ? (
+            <span className="text-[9px] sm:text-[10px] font-heading font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shadow-2xs">
+              Đã đóng nhận bài
+            </span>
+          ) : isOverdue && !isCompleted ? (
             <span className="text-[9px] sm:text-[10px] font-heading font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 shadow-2xs">
               Bài nộp muộn
             </span>
-          )}
+          ) : null}
         </div>
 
         {/* Input file ẩn */}
@@ -214,10 +239,24 @@ export function MissionDetailSide({ mission, onBack }: MissionDetailSideProps) {
 
         {/* Khung Dropzone chọn ảnh / file bài làm */}
         <div
-          onClick={() => fileInputRef.current?.click()}
-          className="w-full bg-[#FFFDF7] hover:bg-[#FFF9EA] border-[1.5px] border-dashed border-amber-300/90 rounded-xl lg:rounded-2xl p-2 sm:p-3 lg:p-4 flex flex-col items-center justify-center gap-1 sm:gap-1.5 cursor-pointer transition-all duration-150 shadow-inner group"
+          onClick={isArchived ? undefined : () => fileInputRef.current?.click()}
+          className={cn(
+            "w-full border-[1.5px] border-dashed rounded-xl lg:rounded-2xl p-2 sm:p-3 lg:p-4 flex flex-col items-center justify-center gap-1 sm:gap-1.5 transition-all duration-150 shadow-inner group",
+            isArchived
+              ? "bg-slate-50 border-slate-300/80 cursor-not-allowed opacity-80"
+              : "bg-[#FFFDF7] hover:bg-[#FFF9EA] border-amber-300/90 cursor-pointer"
+          )}
         >
-          {selectedFile ? (
+          {isArchived ? (
+            <div className="py-2 text-center select-none">
+              <p className="font-heading font-bold text-[11px] sm:text-xs text-slate-600">
+                Bài tập đã lưu trữ và đóng nhận bài
+              </p>
+              <p className="font-heading font-medium text-[9.5px] sm:text-[10.5px] text-slate-400 mt-0.5">
+                Không thể tải lên minh chứng cho bài tập này nữa.
+              </p>
+            </div>
+          ) : selectedFile ? (
             /* Khi đã chọn file */
             <div className="flex items-center gap-1.5 w-full justify-between bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg">
               <div className="flex items-center gap-1 min-w-0">
@@ -279,6 +318,14 @@ export function MissionDetailSide({ mission, onBack }: MissionDetailSideProps) {
           >
             <Check className="w-4 h-4 stroke-[3.5]" />
             <span>ĐÃ HOÀN THÀNH</span>
+          </Button3D>
+        ) : isArchived ? (
+          <Button3D
+            variant="slate"
+            size="sm"
+            className="flex-1 pointer-events-none opacity-70 cursor-not-allowed uppercase tracking-wider gap-1.5 text-xs sm:text-[13px] lg:text-sm py-2"
+          >
+            <span>ĐÃ ĐÓNG NHẬN BÀI</span>
           </Button3D>
         ) : (
           <Button3D

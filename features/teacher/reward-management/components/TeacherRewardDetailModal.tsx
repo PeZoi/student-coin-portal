@@ -24,7 +24,11 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
-import { ExchangeChoiceType, ExchangeRequestStatus } from "@/constants/rewards";
+import {
+  ExchangeChoiceType,
+  ExchangeRequestStatus,
+  getExchangeChoiceTypeLabel,
+} from "@/constants/rewards";
 import { formatDate } from "@/lib/date";
 import { toast } from "sonner";
 import { useOptionalTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
@@ -244,11 +248,7 @@ export function TeacherRewardDetailModal(props?: TeacherRewardDetailModalProps) 
               Hình thức nhận quà
             </span>
             <span className="text-xs font-extrabold text-[#0F172A]">
-              {isCash
-                ? "Tiền mặt / Chuyển khoản"
-                : isSpinGift
-                  ? "Quà tuỳ chọn (Spin)"
-                  : "Tự chọn quà"}
+              {getExchangeChoiceTypeLabel(request.choice_type)}
             </span>
           </div>
 

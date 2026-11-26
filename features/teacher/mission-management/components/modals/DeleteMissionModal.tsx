@@ -22,8 +22,7 @@ export function DeleteMissionModal() {
       onClose={handleCloseDeleteModal}
       onConfirm={handleConfirmDelete}
       isSubmitting={isSubmitting}
-      title="Chuyển bài tập vào thùng rác"
-      description="Cơ chế xóa thông minh (Smart Hybrid Delete) bảo vệ dữ liệu học sinh"
+      title="Xoá bài tập"
       warningText={
         hasSubmissions
           ? `Bài tập này đã có ${deletingMission.submitted_count} học sinh nộp bài (${deletingMission.total_coins_awarded} xu đã thưởng). Hệ thống sẽ chuyển bài tập vào thùng rác để bảo toàn 100% lịch sử bài nộp và số dư Heo Đất của học sinh.`

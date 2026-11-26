@@ -48,7 +48,7 @@ export function getMissionDeadlineMeta(
   formattedDate: string;
   formattedTime: string;
   relativeLabel: string;
-  urgency: "normal" | "soon" | "expired" | "inactive";
+  urgency: "normal" | "soon" | "expired" | "archived" | "inactive";
 } {
   const date = toValidDate(dueAt);
   if (!date) {
@@ -69,6 +69,16 @@ export function getMissionDeadlineMeta(
       formattedTime,
       relativeLabel: isDeleted ? "Đã xóa" : "Đang tạm đóng",
       urgency: "inactive",
+    };
+  }
+
+  // Nếu bài tập đã hết hạn quá 1 tuần: đã chuyển vào mục lưu trữ và đóng nhận bài
+  if (isMissionExpiredOverOneWeek(dueAt)) {
+    return {
+      formattedDate,
+      formattedTime,
+      relativeLabel: "Đã lưu trữ (Đóng nhận bài)",
+      urgency: "archived",
     };
   }
 

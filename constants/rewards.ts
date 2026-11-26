@@ -84,3 +84,16 @@ export const EXCHANGE_CHOICE_TYPE_LABELS: Record<ExchangeChoiceTypeValue, string
   [ExchangeChoiceType.GIFT]: "Quà tự chọn",
   [ExchangeChoiceType.SPIN_GIFT]: "Quà tuỳ chọn (Spin)",
 };
+
+/**
+ * Lấy nhãn hiển thị chuẩn cho hình thức đổi quà (hỗ trợ cả giá trị legacy "shopee")
+ */
+export function getExchangeChoiceTypeLabel(choiceType: string): string {
+  if (choiceType === ExchangeChoiceType.CASH) {
+    return EXCHANGE_CHOICE_TYPE_LABELS[ExchangeChoiceType.CASH];
+  }
+  if (choiceType === ExchangeChoiceType.SPIN_GIFT) {
+    return EXCHANGE_CHOICE_TYPE_LABELS[ExchangeChoiceType.SPIN_GIFT];
+  }
+  return EXCHANGE_CHOICE_TYPE_LABELS[ExchangeChoiceType.GIFT];
+}

@@ -178,24 +178,25 @@ export function StudentsTable() {
               <TableCell>
                 <div className="flex items-center gap-3">
                   {student.avatar_url ? (
-                    <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 shadow-2xs border border-slate-200 bg-slate-100 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 shadow-2xs border border-slate-200 bg-slate-100 flex items-center justify-center relative">
                       <Image
                         src={student.avatar_url}
                         alt={student.full_name}
-                        width={36}
-                        height={36}
-                        className="w-full h-full object-cover"
+                        width={40}
+                        height={40}
                         unoptimized
+                        style={{ height: "auto" }}
+                        className="w-full h-full object-cover"
                       />
                     </div>
                   ) : (
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                       {avatarLetter}
                     </div>
                   )}
                   <div className="min-w-0">
                     {student.is_deleted ? (
-                      <span className="font-bold text-[13px] text-slate-400 line-through block truncate">
+                      <span className="font-bold text-xs sm:text-sm text-slate-400 line-through block truncate">
                         {student.full_name}
                       </span>
                     ) : (
@@ -203,16 +204,18 @@ export function StudentsTable() {
                         <button
                           type="button"
                           onClick={() => onEdit?.(student)}
-                          className="text-left font-bold text-[13px] text-[#0F172A] hover:text-[#0A62D6] hover:underline transition-colors block truncate cursor-pointer"
+                          className="text-left font-bold text-xs sm:text-sm text-[#0F172A] hover:text-[#0A62D6] hover:underline transition-colors block truncate cursor-pointer"
                         >
                           {student.full_name}
                         </button>
                       </Tooltip>
                     )}
-                    <div className="text-[11px] text-[#64748B] flex items-center gap-1 font-mono mt-0.5">
-                      <Phone className="w-3 h-3 text-slate-400 shrink-0" />
-                      <span>{student.phone_zalo}</span>
-                    </div>
+                    {student.phone_zalo ? (
+                      <div className="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
+                        <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                        <span>{student.phone_zalo}</span>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               </TableCell>

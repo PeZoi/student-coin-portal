@@ -10,6 +10,11 @@ import {
   Clock,
   Sparkles,
   Loader2,
+  Phone,
+  Banknote,
+  Gift,
+  ShoppingBag,
+  XCircle,
 } from "lucide-react";
 import {
   Modal,
@@ -19,9 +24,15 @@ import {
 } from "@/components/ui/modal";
 import { studentRosterService } from "../../services/studentRosterService";
 import { useStudentRosterContext } from "../../contexts/StudentRosterContext";
-import { CACHE_KEYS, ExchangeChoiceType, ExchangeRequestStatus } from "@/constants";
+import {
+  CACHE_KEYS,
+  ExchangeChoiceType,
+  EXCHANGE_CHOICE_TYPE_LABELS,
+  ExchangeRequestStatus,
+  getExchangeChoiceTypeLabel,
+} from "@/constants";
 
-type GiftFilterTab = "all" | "cash" | "gift";
+type GiftFilterTab = "all" | "cash" | "gift" | "spin_gift";
 
 /**
  * Modal hiển thị chi tiết lịch sử đổi quà của học sinh
@@ -64,6 +75,11 @@ export function StudentExchangeGiftsModal() {
       ),
     [requests]
   );
+  const spinGiftRequests = useMemo(
+    () =>
+      requests.filter((r) => r.choice_type === ExchangeChoiceType.SPIN_GIFT),
+    [requests]
+  );
 
   const totalCashVnd = useMemo(
     () => cashRequests.reduce((sum, r) => sum + r.amount_vnd, 0),
@@ -78,8 +94,9 @@ export function StudentExchangeGiftsModal() {
   const filteredRequests = useMemo(() => {
     if (filterTab === "cash") return cashRequests;
     if (filterTab === "gift") return giftRequests;
+    if (filterTab === "spin_gift") return spinGiftRequests;
     return requests;
-  }, [filterTab, requests, cashRequests, giftRequests]);
+  }, [filterTab, requests, cashRequests, giftRequests, spinGiftRequests]);
 
   if (!student) return null;
 
@@ -141,16 +158,17 @@ export function StudentExchangeGiftsModal() {
               <h3 className="text-sm sm:text-base font-bold text-[#0F172A]">
                 {student.full_name}
               </h3>
+              {student.phone_zalo && (
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
+                  <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <span>{student.phone_zalo}</span>
+                </div>
+              )}
               <p className="text-xs text-slate-500 mt-0.5">
                 Số dư hiện có:{" "}
                 <strong className="text-amber-600 font-bold">
                   {student.current_coins.toLocaleString("vi-VN")} xu
                 </strong>
-                {student.phone_zalo && (
-                  <span className="ml-2 text-slate-400 font-normal">
-                    • PH: {student.phone_zalo}
-                  </span>
-                )}
               </p>
             </div>
           </div>
@@ -170,7 +188,7 @@ export function StudentExchangeGiftsModal() {
                 Quà tự chọn
               </span>
               <span className="text-xs sm:text-sm font-black text-[#0A62D6]">
-                {giftRequests.length} món
+                {giftRequests.length + spinGiftRequests.length} món
               </span>
             </div>
             <div className="px-3 py-2 rounded-xl bg-white/90 border border-blue-100 shadow-2xs">
@@ -185,21 +203,21 @@ export function StudentExchangeGiftsModal() {
         </div>
 
         {/* Thanh tiêu đề & Bộ lọc Tabs */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-          <div className="flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-[#0A62D6]" />
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-              Lịch sử các lần đổi quà ({requests.length})
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Sparkles className="w-4 h-4 text-[#0A62D6] shrink-0" />
+            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider whitespace-nowrap">
+              Lịch sử đổi quà ({requests.length})
             </h4>
           </div>
 
-          {/* Tabs bộ lọc: Tất cả | Tiền mặt | Quà tự chọn */}
+          {/* Tabs bộ lọc: Tất cả | Tiền mặt | Quà tặng | Quà Spin */}
           {requests.length > 0 && (
-            <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 border border-slate-200/80 self-start sm:self-auto text-xs font-semibold">
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 border border-slate-200/80 self-start sm:self-auto text-xs font-semibold overflow-x-auto [scrollbar-width:none] max-w-full">
               <button
                 type="button"
                 onClick={() => setFilterTab("all")}
-                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   filterTab === "all"
                     ? "bg-white text-[#0F172A] shadow-2xs font-bold"
                     : "text-slate-600 hover:text-slate-900"
@@ -210,7 +228,7 @@ export function StudentExchangeGiftsModal() {
               <button
                 type="button"
                 onClick={() => setFilterTab("cash")}
-                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   filterTab === "cash"
                     ? "bg-white text-emerald-700 shadow-2xs font-bold"
                     : "text-slate-600 hover:text-slate-900"
@@ -221,14 +239,27 @@ export function StudentExchangeGiftsModal() {
               <button
                 type="button"
                 onClick={() => setFilterTab("gift")}
-                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   filterTab === "gift"
-                    ? "bg-white text-[#0A62D6] shadow-2xs font-bold"
+                    ? "bg-white text-orange-700 shadow-2xs font-bold"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Quà tự chọn ({giftRequests.length})
+                Quà tặng ({giftRequests.length})
               </button>
+              {spinGiftRequests.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setFilterTab("spin_gift")}
+                  className={`px-2.5 sm:px-3 py-1 rounded-lg transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                    filterTab === "spin_gift"
+                      ? "bg-white text-purple-700 shadow-2xs font-bold"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  Quà Spin ({spinGiftRequests.length})
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -260,13 +291,20 @@ export function StudentExchangeGiftsModal() {
                 ? "Học sinh chưa có yêu cầu đổi lấy tiền mặt nào."
                 : filterTab === "gift"
                 ? "Học sinh chưa có yêu cầu đổi quà tặng tự chọn nào."
+                : filterTab === "spin_gift"
+                ? "Học sinh chưa có phần thưởng đổi quà từ Vòng quay may mắn."
                 : "Học sinh chưa thực hiện đổi quà trong các kỳ vừa qua."}
             </p>
           </div>
         ) : (
           <div className="space-y-3">
             {filteredRequests.map((item, index) => {
-              const isCash = item.choice_type === "cash";
+              const isCash = item.choice_type === ExchangeChoiceType.CASH;
+              const isSpinGift = item.choice_type === ExchangeChoiceType.SPIN_GIFT;
+              const isGift =
+                item.choice_type === ExchangeChoiceType.GIFT ||
+                (item.choice_type as string) === "shopee";
+              const isGiftLike = isGift || isSpinGift;
 
               return (
                 <div
@@ -274,7 +312,9 @@ export function StudentExchangeGiftsModal() {
                   className={`p-4 rounded-2xl border transition-all shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4 ${
                     isCash
                       ? "bg-white hover:bg-emerald-50/20 border-slate-200/90 hover:border-emerald-300/80"
-                      : "bg-white hover:bg-blue-50/25 border-slate-200/90 hover:border-blue-300/80"
+                      : isSpinGift
+                        ? "bg-white hover:bg-purple-50/20 border-slate-200/90 hover:border-purple-300/80"
+                        : "bg-white hover:bg-orange-50/20 border-slate-200/90 hover:border-orange-300/80"
                   }`}
                 >
                   {/* Khối bên trái: Icon đồ họa + Thông tin */}
@@ -284,7 +324,9 @@ export function StudentExchangeGiftsModal() {
                       className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border p-1 shadow-2xs ${
                         isCash
                           ? "bg-emerald-50/90 border-emerald-200/80"
-                          : "bg-blue-50/90 border-blue-200/80"
+                          : isSpinGift
+                            ? "bg-purple-50/90 border-purple-200/80"
+                            : "bg-orange-50/90 border-orange-200/80"
                       }`}
                     >
                       <Image
@@ -293,7 +335,7 @@ export function StudentExchangeGiftsModal() {
                             ? "/rewards/cash_reward.webp"
                             : "/rewards/shopee_gift.webp"
                         }
-                        alt={isCash ? "Tiền mặt" : "Quà tặng"}
+                        alt={getExchangeChoiceTypeLabel(item.choice_type)}
                         width={48}
                         height={48}
                         unoptimized
@@ -306,17 +348,22 @@ export function StudentExchangeGiftsModal() {
                     <div className="min-w-0 flex-1 space-y-1.5">
                       {/* Badge loại hình + Kỳ đánh giá */}
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span
-                          className={`text-xs font-bold px-2.5 py-0.5 rounded-lg border ${
-                            isCash
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                              : "bg-[#EAF2FF] text-[#0A62D6] border-[#BFDBFE]"
-                          }`}
-                        >
-                          {isCash
-                            ? "Đổi thành tiền mặt"
-                            : "Đổi thành quà tặng theo link"}
-                        </span>
+                        {isCash ? (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-lg border bg-emerald-50 text-emerald-700 border-emerald-200/80">
+                            <Banknote className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <span>{EXCHANGE_CHOICE_TYPE_LABELS[ExchangeChoiceType.CASH]}</span>
+                          </span>
+                        ) : isSpinGift ? (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-lg border bg-purple-50 text-purple-700 border-purple-200/80">
+                            <Gift className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                            <span>{EXCHANGE_CHOICE_TYPE_LABELS[ExchangeChoiceType.SPIN_GIFT]}</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-lg border bg-orange-50 text-orange-700 border-orange-200/80">
+                            <ShoppingBag className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+                            <span>{EXCHANGE_CHOICE_TYPE_LABELS[ExchangeChoiceType.GIFT]}</span>
+                          </span>
+                        )}
 
                         <span className="text-xs text-slate-300">•</span>
                         <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500">
@@ -325,8 +372,8 @@ export function StudentExchangeGiftsModal() {
                         </span>
                       </div>
 
-                      {/* Khi là quà tặng theo link (Shopee) */}
-                      {!isCash && (
+                      {/* Khi là quà tặng theo link (Quà tuỳ chọn hoặc Quà Spin) */}
+                      {isGiftLike && (
                         <>
                           <p className="text-xs font-bold text-[#0F172A] leading-relaxed line-clamp-2">
                             Món quà đã chọn:{" "}
@@ -343,7 +390,7 @@ export function StudentExchangeGiftsModal() {
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1.5 font-bold text-[#0A62D6] hover:text-[#0850B0] bg-blue-50/80 px-2.5 py-0.5 rounded-md border border-blue-100 transition-colors"
                               >
-                                <span>Mở link sản phẩm Shopee học sinh gửi cô</span>
+                                <span>Mở link sản phẩm</span>
                                 <ExternalLink className="w-3 h-3" />
                               </a>
                             ) : (
@@ -354,6 +401,13 @@ export function StudentExchangeGiftsModal() {
                           </div>
                         </>
                       )}
+
+                      {/* Khi là tiền mặt và có ghi chú */}
+                      {isCash && item.shopee_note && (
+                        <p className="text-xs text-slate-500 italic">
+                          {item.shopee_note}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -363,9 +417,20 @@ export function StudentExchangeGiftsModal() {
                       <span className="text-sm sm:text-base font-black text-[#0F172A] block tracking-tight">
                         {item.amount_vnd.toLocaleString("vi-VN")} đ
                       </span>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/80 mt-0.5">
-                        <span>-{item.coins_to_exchange.toLocaleString("vi-VN")} xu</span>
-                      </span>
+                      {!isSpinGift && item.coins_to_exchange > 0 && (
+                        <div className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 mt-0.5 tabular-nums">
+                          <Image
+                            src="/wheel/coin.webp"
+                            alt="Xu"
+                            width={14}
+                            height={14}
+                            unoptimized
+                            style={{ height: "auto" }}
+                            className="w-3.5 h-3.5 object-contain shrink-0 drop-shadow-2xs"
+                          />
+                          <span>-{item.coins_to_exchange.toLocaleString("vi-VN")} xu</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="mt-1">
@@ -375,6 +440,11 @@ export function StudentExchangeGiftsModal() {
                           <span>
                             {isCash ? "Đã trao tiền mặt" : "Đã trao quà"}
                           </span>
+                        </span>
+                      ) : item.status === ExchangeRequestStatus.REJECTED ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                          <XCircle className="w-3.5 h-3.5 text-rose-600" />
+                          <span>Đã từ chối</span>
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">

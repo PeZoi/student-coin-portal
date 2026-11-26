@@ -22,6 +22,7 @@ import {
   ExchangeChoiceType,
   ExchangeRequestStatus,
   ExchangeRequestStatusType,
+  getExchangeChoiceTypeLabel,
 } from "@/constants/rewards";
 import { formatDate } from "@/lib/date";
 import { useTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
@@ -215,11 +216,7 @@ export function TeacherRewardsGrid() {
                   </div>
                   <div className="min-w-0">
                     <span className="text-[10px] font-extrabold uppercase tracking-wider block text-slate-500">
-                      {isCash
-                        ? "Tiền mặt"
-                        : isSpinGift
-                          ? "Quà tuỳ chọn (Spin)"
-                          : "Quà tự chọn"}
+                      {getExchangeChoiceTypeLabel(req.choice_type)}
                     </span>
                     <span className="text-base font-black text-[#0F172A] tracking-tight truncate block">
                       {req.amount_vnd.toLocaleString("vi-VN")} đ

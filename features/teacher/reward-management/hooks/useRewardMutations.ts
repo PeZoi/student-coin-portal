@@ -6,7 +6,11 @@ import { toast } from "sonner";
 import { CACHE_KEYS } from "@/constants/cacheKeys";
 import { TeacherExchangeRequestItem } from "../types";
 import { rewardService } from "../services/rewardService";
-import { ExchangeRequestStatus, ExchangeChoiceType } from "@/constants/rewards";
+import {
+  ExchangeRequestStatus,
+  ExchangeChoiceType,
+  getExchangeChoiceTypeLabel,
+} from "@/constants/rewards";
 
 export interface UseRewardMutationsProps {
   requests: TeacherExchangeRequestItem[];
@@ -64,12 +68,9 @@ export function useRewardMutations({
 
         await rewardService.approveReward(req.id);
 
-        const choiceLabel =
-          req.choice_type === ExchangeChoiceType.CASH
-            ? "tiền mặt"
-            : req.choice_type === ExchangeChoiceType.SPIN_GIFT
-              ? "quà tặng (Spin)"
-              : "quà tặng";
+        const choiceLabel = getExchangeChoiceTypeLabel(
+          req.choice_type
+        ).toLowerCase();
 
         toast.success(
           `Đã duyệt thành công yêu cầu ${choiceLabel} của học sinh ${req.student_name}!`

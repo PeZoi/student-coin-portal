@@ -133,3 +133,20 @@ export function getCurrentVietnamMonthYear(
   return { month, year };
 }
 
+/**
+ * Lấy mốc thời gian bắt đầu tháng (00:00:00 ngày 1 theo múi giờ Việt Nam GMT+7 = 17:00:00 ngày cuối tháng trước UTC)
+ * Trả về chuỗi ISO string chuẩn để truy vấn Database và thông tin tháng/năm hiện tại
+ */
+export function getStartOfMonthVietnamISO(
+  dateInput: Date = new Date()
+): { startOfMonthISO: string; month: number; year: number } {
+  const { month, year } = getCurrentVietnamMonthYear(dateInput);
+  // 00:00:00 ngày 1 tại GMT+7 = 17:00:00 ngày cuối tháng trước theo UTC (lùi 7 giờ)
+  const utcMillis = Date.UTC(year, month - 1, 1, 0, 0, 0, 0) - 7 * 60 * 60 * 1000;
+  return {
+    startOfMonthISO: new Date(utcMillis).toISOString(),
+    month,
+    year,
+  };
+}
+

@@ -2,18 +2,16 @@
 
 import Image from "next/image";
 import { FileCheck2, BookOpen, Gift } from "lucide-react";
-import { TeacherDashboardKpiStats } from "../types";
-
-interface TeacherDashboardKpisProps {
-  kpis: TeacherDashboardKpiStats;
-}
+import { useTeacherDashboardContext } from "../contexts/TeacherDashboardContext";
+import { DASHBOARD_ASSETS } from "../constants";
 
 /**
- * 4 Thẻ KPI cao cấp trên Dashboard giáo viên
- * - Đồng bộ 100% ngôn ngữ thiết kế với MissionsKpiCards
- * - Kèm mini-progress bar và badge tăng trưởng sống động
+ * 4 Thẻ KPI trên Dashboard giáo viên
+ * - Đọc trực tiếp từ TeacherDashboardContext
  */
-export function TeacherDashboardKpis({ kpis }: TeacherDashboardKpisProps) {
+export function TeacherDashboardKpis() {
+  const { kpis } = useTeacherDashboardContext();
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {/* 1. Bài chờ cô duyệt */}
@@ -87,7 +85,7 @@ export function TeacherDashboardKpis({ kpis }: TeacherDashboardKpisProps) {
           </span>
           <div className="w-10 h-10 rounded-xl bg-amber-50/90 border border-amber-200/60 flex items-center justify-center shrink-0">
             <Image
-              src="/wheel/coin.webp"
+              src={DASHBOARD_ASSETS.COIN_ICON}
               alt="Xu thưởng"
               width={24}
               height={24}
@@ -99,10 +97,10 @@ export function TeacherDashboardKpis({ kpis }: TeacherDashboardKpisProps) {
 
         <div className="mt-3">
           <div className="flex items-baseline gap-1.5 flex-wrap">
-            <span className="text-3xl font-heading font-extrabold text-amber-500 tracking-tight tabular-nums">
+            <span className="text-3xl font-heading font-extrabold text-amber-600 tracking-tight tabular-nums">
               {kpis.monthly_awarded_coins.toLocaleString("vi-VN")}
             </span>
-            <span className="text-sm font-semibold text-amber-600/80">xu</span>
+            <span className="text-sm font-bold text-amber-600">xu</span>
           </div>
         </div>
       </div>

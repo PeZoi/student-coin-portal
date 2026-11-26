@@ -11,6 +11,7 @@ import { useManageMissionsContext } from "../contexts/ManageMissionsContext";
 export function MissionsKpiCards() {
   const {
     activeMissionsCount,
+    recentMissionsCount,
     totalMissions,
     expiredMissionsCount,
     averageCompletionPercent,
@@ -60,7 +61,7 @@ export function MissionsKpiCards() {
             {activeMissionsCount}
           </span>
           <span className="text-sm font-semibold text-slate-500">
-            / {totalMissions} bài tập
+            / {recentMissionsCount ?? totalMissions} bài tập
           </span>
           {expiredMissionsCount > 0 && (
             <span className="ml-auto text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200/80">

@@ -270,7 +270,7 @@ export function StudentRosterCard({
                     title={student.teacher_feedback || undefined}
                   >
                     {student.teacher_feedback ||
-                      "Đã yêu cầu học sinh nộp lại bài"}
+                      "Đã yêu cầu nộp lại bài"}
                   </p>
                 </div>
 

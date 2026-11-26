@@ -10,6 +10,7 @@ import {
 	formatRewardCoinsLabel,
 	getMissionDeadlineMeta,
 	isMissionExpired,
+	isMissionExpiredOverOneWeek,
 } from "../utils";
 
 /**
@@ -318,7 +319,9 @@ export function MissionDeadlineCell({
 				? "bg-amber-50 text-amber-800 border-amber-200/80"
 				: meta.urgency === "normal"
 					? "bg-emerald-50 text-emerald-700 border-emerald-200/80"
-					: "bg-slate-100 text-slate-500 border-slate-200";
+					: meta.urgency === "archived"
+						? "bg-slate-100 text-slate-600 border-slate-200/90"
+						: "bg-slate-100 text-slate-500 border-slate-200";
 
 	return (
 		<div className='space-y-1 whitespace-nowrap'>
@@ -365,6 +368,15 @@ export function MissionStatusBadge({
 			<span className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap'>
 				<span className='w-1.5 h-1.5 rounded-full bg-slate-400' />
 				<span>Tạm ẩn</span>
+			</span>
+		);
+	}
+
+	if (isMissionExpiredOverOneWeek(dueAt)) {
+		return (
+			<span className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap'>
+				<span className='w-1.5 h-1.5 rounded-full bg-slate-400' />
+				<span>Đã lưu trữ</span>
 			</span>
 		);
 	}

@@ -231,7 +231,7 @@ function SubmissionGradingFormContent({
             ) : (
               <div className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm font-bold">
                 <RotateCcw className="w-4 h-4 text-rose-600 shrink-0" />
-                <span>Đã yêu cầu học sinh nộp lại bài</span>
+                <span>Đã yêu cầu nộp lại bài</span>
               </div>
             )}
 

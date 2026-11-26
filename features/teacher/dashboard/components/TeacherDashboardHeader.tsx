@@ -1,9 +1,6 @@
-"use client";
-
 /**
  * Header của trang Teacher Dashboard
- * - Style Title phẳng đồng bộ với các trang khác trong hệ thống Teacher Portal
- * - Chỉ giữ tiêu đề trang và mô tả phụ gọn gàng
+ * - Pure Server / Presentational Component, đồng bộ phong cách toàn hệ thống Teacher Portal
  */
 export function TeacherDashboardHeader() {
   return (

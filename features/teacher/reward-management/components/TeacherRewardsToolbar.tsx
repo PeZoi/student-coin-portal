@@ -20,7 +20,11 @@ import {
   ExchangeFilterStatus,
   ExchangeFilterChoiceType,
 } from "../types";
-import { ExchangeChoiceType, ExchangeRequestStatus } from "@/constants/rewards";
+import {
+	ExchangeChoiceType,
+	EXCHANGE_CHOICE_TYPE_LABELS,
+	ExchangeRequestStatus,
+} from "@/constants/rewards";
 import { useTeacherRewardsContext } from "../contexts/TeacherRewardsContext";
 
 /**
@@ -77,9 +81,9 @@ export function TeacherRewardsToolbar() {
 	const choiceTypeOptions: TeacherSelectOption[] = useMemo(
 		() => [
 			{ label: "Tất cả hình thức", value: "all" },
-			{ label: "Tiền mặt", value: ExchangeChoiceType.CASH },
-			{ label: "Quà tự chọn", value: ExchangeChoiceType.GIFT },
-			{ label: "Quà tuỳ chọn (Spin)", value: ExchangeChoiceType.SPIN_GIFT },
+			{ label: EXCHANGE_CHOICE_TYPE_LABELS[ExchangeChoiceType.CASH], value: ExchangeChoiceType.CASH },
+			{ label: EXCHANGE_CHOICE_TYPE_LABELS[ExchangeChoiceType.GIFT], value: ExchangeChoiceType.GIFT },
+			{ label: EXCHANGE_CHOICE_TYPE_LABELS[ExchangeChoiceType.SPIN_GIFT], value: ExchangeChoiceType.SPIN_GIFT },
 		],
 		[],
 	);

@@ -110,6 +110,8 @@ export const CACHE_KEYS = {
 
   // 9. Quản lý Đổi quà & Heo Đất (Reward Management)
   REWARDS: {
+    /** Prefix định danh cache danh sách yêu cầu đổi quà (dùng cho globalMutate) */
+    LIST_PREFIX: "teacher-rewards",
     /** Danh sách yêu cầu đổi quà tháng của giáo viên (hỗ trợ lọc theo lớp, tháng, năm) */
     LIST: (
       classId?: string | null,
@@ -141,6 +143,15 @@ export const CACHE_KEYS = {
         : "teacher-sidebar-badges",
     /** Prefix định danh cache sidebar badges để revalidate toàn bộ */
     TEACHER_BADGES_PREFIX: "teacher-sidebar-badges",
+  },
+
+  // 12. Trang Tổng quan Giáo viên (Teacher Dashboard)
+  DASHBOARD: {
+    /** Prefix định danh cache dashboard để revalidate toàn bộ */
+    TEACHER_PREFIX: "teacher-dashboard",
+    /** Dữ liệu tổng quan dashboard giáo viên (lọc theo lớp workspace đang chọn) */
+    TEACHER: (classId?: string | null) =>
+      ["teacher-dashboard", classId ?? "all"] as const,
   },
 } as const;
 

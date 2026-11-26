@@ -1,6 +1,10 @@
 import * as XLSX from "xlsx-js-style";
 import { TeacherExchangeRequestItem } from "../types";
-import { ExchangeChoiceType, ExchangeRequestStatus } from "@/constants/rewards";
+import {
+  ExchangeChoiceType,
+  ExchangeRequestStatus,
+  getExchangeChoiceTypeLabel,
+} from "@/constants/rewards";
 import { formatDate } from "@/lib/date";
 
 export interface ExportRewardsExcelOptions {
@@ -83,12 +87,7 @@ export const rewardExcelService = {
       totalCoins += req.coins_to_exchange || 0;
       totalAmountVnd += req.amount_vnd || 0;
 
-      const choiceLabel =
-        req.choice_type === ExchangeChoiceType.CASH
-          ? "Tiền mặt"
-          : req.choice_type === ExchangeChoiceType.SPIN_GIFT
-            ? "Quà tuỳ chọn (Spin)"
-            : "Quà tự chọn";
+      const choiceLabel = getExchangeChoiceTypeLabel(req.choice_type);
 
       const isGiftLike =
         req.choice_type === ExchangeChoiceType.GIFT ||

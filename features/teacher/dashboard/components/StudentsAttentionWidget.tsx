@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { toast } from "sonner";
 import { AppRoutes } from "@/constants/routes";
 import {
   BellRing,
@@ -12,24 +11,19 @@ import {
   Eye,
   AlertTriangle,
   Copy,
+  CheckCircle2,
 } from "lucide-react";
-import { DashboardStudentAttentionItem } from "../types";
+import { useTeacherDashboardContext } from "../contexts/TeacherDashboardContext";
 
-interface StudentsAttentionWidgetProps {
-  items: DashboardStudentAttentionItem[];
-}
-
-export function StudentsAttentionWidget({
-  items,
-}: StudentsAttentionWidgetProps) {
-  const handleCopyPhone = (studentName: string, phone: string) => {
-    navigator.clipboard.writeText(phone);
-    toast.success(`Đã sao chép SĐT phụ huynh em ${studentName}: ${phone}`);
-  };
+export function StudentsAttentionWidget() {
+  const {
+    attentionStudents: items,
+    handleCopyParentPhone: handleCopyPhone,
+  } = useTeacherDashboardContext();
 
   return (
     <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 sm:p-6 shadow-2xs">
-      {/* Header khối: Đồng bộ 100% kích thước với RecentSubmissionsQueue */}
+      {/* Header khối */}
       <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold border border-rose-200/80 shrink-0">
@@ -57,11 +51,12 @@ export function StudentsAttentionWidget({
       {/* Danh sách học sinh cần theo dõi */}
       {items.length === 0 ? (
         <div className="py-10 text-center text-slate-400">
+          <CheckCircle2 className="w-11 h-11 mx-auto text-emerald-500/60 mb-2" />
           <p className="text-sm font-semibold text-slate-600">
-            Tuyệt vời! Tất cả học sinh đều đã hoàn thành bài tập đúng hạn.
+            Hiện chưa có học sinh nào cần nhắc nhở.
           </p>
           <p className="text-xs text-slate-400 mt-1">
-            Không có học sinh nào cần nhắc nhở vào lúc này.
+            Các em chưa nộp bài sắp hết hạn hoặc có bài cần làm lại sẽ hiển thị tại đây.
           </p>
         </div>
       ) : (
@@ -81,7 +76,6 @@ export function StudentsAttentionWidget({
                 className="p-3.5 sm:p-4 rounded-xl border bg-slate-50/60 hover:bg-white border-slate-200 hover:border-slate-300 hover:shadow-xs transition-all"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
-                  {/* Phần trái: Avatar + Tên + Lý do + Bài tập + Thời hạn */}
                   <div className="flex items-start gap-3 min-w-0">
                     <div className="relative shrink-0">
                       <Image
@@ -95,13 +89,12 @@ export function StudentsAttentionWidget({
                     </div>
 
                     <div className="min-w-0">
-                      {/* Hàng 1: Tên học sinh + SĐT + Badge cảnh báo */}
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold text-sm text-[#0F172A]">
                           {item.student_name}
                         </span>
 
-                        {item.student_phone && (
+                        {item.student_phone && handleCopyPhone && (
                           <button
                             type="button"
                             onClick={() =>
@@ -131,12 +124,10 @@ export function StudentsAttentionWidget({
                         </span>
                       </div>
 
-                      {/* Hàng 2: Tên bài tập liên quan */}
                       <p className="text-xs font-semibold text-slate-700 mt-0.5 line-clamp-1">
                         {item.mission_title}
                       </p>
 
-                      {/* Hàng 3: Thời hạn nộp */}
                       <div className="flex items-center gap-1.5 text-[11px] mt-1.5">
                         <Clock
                           className={`w-3.5 h-3.5 shrink-0 ${
@@ -156,7 +147,6 @@ export function StudentsAttentionWidget({
                     </div>
                   </div>
 
-                  {/* Phần phải: Nút Xem / Kiểm tra */}
                   <div className="shrink-0 flex items-center gap-2 self-end sm:self-center">
                     <Link
                       href={targetHref}

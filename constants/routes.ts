@@ -63,6 +63,7 @@ export const AppRoutes = {
       REWARDS_EXCHANGE: "/api/student/rewards/exchange",
     },
     TEACHER: {
+      DASHBOARD: "/api/teacher/dashboard",
       CLASSES: "/api/teacher/classes",
       MY_CLASSES: "/api/teacher/my-classes",
       TEACHERS: "/api/teacher/teachers",

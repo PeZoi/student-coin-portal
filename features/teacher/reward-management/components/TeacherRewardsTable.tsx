@@ -34,6 +34,7 @@ import {
 } from "../types";
 import {
   ExchangeChoiceType,
+  EXCHANGE_CHOICE_TYPE_LABELS,
   ExchangeRequestStatus,
 } from "@/constants/rewards";
 import { formatDate } from "@/lib/date";
@@ -266,17 +267,17 @@ export function TeacherRewardsTable() {
                 {isCash ? (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-xs font-bold whitespace-nowrap">
                     <Banknote className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>Tiền mặt</span>
+                    <span>{EXCHANGE_CHOICE_TYPE_LABELS[ExchangeChoiceType.CASH]}</span>
                   </span>
                 ) : isSpinGift ? (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-50 text-purple-700 border border-purple-200/80 text-xs font-bold whitespace-nowrap">
                     <Gift className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-                    <span>Quà tuỳ chọn (Spin)</span>
+                    <span>{EXCHANGE_CHOICE_TYPE_LABELS[ExchangeChoiceType.SPIN_GIFT]}</span>
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-50 text-orange-700 border border-orange-200/80 text-xs font-bold whitespace-nowrap">
                     <ShoppingBag className="w-3.5 h-3.5 text-orange-600 shrink-0" />
-                    <span>Quà tuỳ chọn</span>
+                    <span>{EXCHANGE_CHOICE_TYPE_LABELS[ExchangeChoiceType.GIFT]}</span>
                   </span>
                 )}
               </TableCell>

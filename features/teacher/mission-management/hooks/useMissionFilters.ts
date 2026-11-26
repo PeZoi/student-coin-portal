@@ -120,9 +120,9 @@ export function useMissionFilters({
 
     let recentCount = 0;
     let archivedCount = 0;
-    let activeCount = 0;
-    let expiredCount = 0;
-    let inactiveCount = 0;
+    let recentActiveCount = 0;
+    let recentExpiredCount = 0;
+    let recentInactiveCount = 0;
     let pendingReviewTotal = 0;
     let totalCoinsAwardedAll = 0;
     let totalAssignedStudentsSum = 0;
@@ -134,22 +134,26 @@ export function useMissionFilters({
 
       if (expiredOverOneWeek) {
         archivedCount += 1;
+        // Bài đã hết hạn quá 1 tuần: Đã lưu trữ và ĐÓNG NHẬN BÀI hoàn toàn, không tính vào số bài đang mở
       } else {
         recentCount += 1;
-      }
-
-      if (!m.is_active) {
-        inactiveCount += 1;
-      } else if (expired) {
-        expiredCount += 1;
-      } else {
-        activeCount += 1;
+        // Hoạt động gần đây: theo dõi trực tiếp các bài tập đang hiển thị
+        if (!m.is_active) {
+          recentInactiveCount += 1;
+        } else {
+          // Bài đang mở nhận bài (bao gồm bài còn hạn và bài quá hạn trong 1 tuần nhận trễ)
+          recentActiveCount += 1;
+          if (expired) {
+            recentExpiredCount += 1;
+          }
+        }
       }
 
       pendingReviewTotal += m.pending_review_count || 0;
       totalCoinsAwardedAll += m.total_coins_awarded || 0;
 
-      if (m.is_active) {
+      // Tiến độ nộp bài bám sát theo các bài tập đang hoạt động gần đây
+      if (m.is_active && !expiredOverOneWeek) {
         totalAssignedStudentsSum += m.total_students || 0;
         totalSubmittedSum += m.submitted_count || 0;
       }
@@ -164,9 +168,9 @@ export function useMissionFilters({
       totalMissions: nonDeleted.length,
       recentMissionsCount: recentCount,
       archivedMissionsCount: archivedCount,
-      activeMissionsCount: activeCount,
-      expiredMissionsCount: expiredCount,
-      inactiveMissionsCount: inactiveCount,
+      activeMissionsCount: recentActiveCount,
+      expiredMissionsCount: recentExpiredCount,
+      inactiveMissionsCount: recentInactiveCount,
       deletedMissionsCount: deletedCount,
       pendingReviewTotal,
       totalCoinsAwardedAll,

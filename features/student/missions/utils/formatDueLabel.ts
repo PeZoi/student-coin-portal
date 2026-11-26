@@ -6,7 +6,7 @@ import {
 } from "date-fns";
 import { toValidDate } from "@/lib/date";
 
-export type MissionUrgency = "overdue" | "urgent" | "soon" | "normal" | "done";
+export type MissionUrgency = "archived" | "overdue" | "urgent" | "soon" | "normal" | "done";
 
 export interface DueLabelResult {
   text: string;
@@ -26,6 +26,12 @@ export const URGENCY_STYLES: Record<
     hex: string;
   }
 > = {
+  archived: {
+    bg: "bg-slate-100",
+    text: "text-slate-600",
+    border: "border-slate-300",
+    hex: "#64748B", // Xám khi đã hết hạn quá 1 tuần và lưu trữ
+  },
   overdue: {
     bg: "bg-rose-100",
     text: "text-rose-700",
@@ -98,6 +104,13 @@ export function formatDueLabel(
 
   if (isOverdueStatus || isPastDueTime) {
     const diffDays = differenceInCalendarDays(nowDate, dueDate);
+    // Hết hạn quá 7 ngày: Đã chuyển sang Lưu trữ và ĐÓNG NHẬN BÀI
+    if (diffDays > 7) {
+      return {
+        text: "Đã lưu trữ (Đóng nhận bài)",
+        urgency: "archived",
+      };
+    }
     if (diffDays <= 0) {
       return {
         text: "Quá hạn hôm nay",

@@ -1,72 +1,84 @@
 "use client";
 
-import { useTeacherDashboard } from "../hooks/useTeacherDashboard";
+import {
+  TeacherDashboardProvider,
+  useTeacherDashboardContext,
+} from "../contexts/TeacherDashboardContext";
+import { TeacherDashboardPayload } from "../types";
 import { CoinBreakdownWidget } from "./CoinBreakdownWidget";
 import { PendingRewardsWidget } from "./PendingRewardsWidget";
 import { RecentSubmissionsQueue } from "./RecentSubmissionsQueue";
 import { StudentsAttentionWidget } from "./StudentsAttentionWidget";
 import { TeacherDashboardHeader } from "./TeacherDashboardHeader";
 import { TeacherDashboardKpis } from "./TeacherDashboardKpis";
+import {
+  DashboardBodySkeleton,
+  DashboardKpisSkeleton,
+} from "./TeacherDashboardSkeleton";
 import { TopStudentsMonthlyCard } from "./TopStudentsMonthlyCard";
 
-/**
- * ==============================================================================
- * TEACHER DASHBOARD VIEW (BÀN LÀM VIỆC GIÁO VIÊN & QUẢN TRỊ)
- * ==============================================================================
- * Tinh gọn, hiện đại và tập trung hành động (Action-Oriented):
- * - Header tiêu đề phẳng đồng bộ toàn hệ thống.
- * - 4 Thẻ KPI thống kê số liệu tổng quan.
- * - Cột chính (2/3): Hàng đợi duyệt bài nộp + Học sinh cần nhắc nhở học tập.
- * - Cột phụ (1/3): Top 5 nhận xu tháng này + Quà chờ trao + Cơ cấu nguồn xu.
- * ==============================================================================
- */
-export function TeacherDashboardView() {
-  const {
-    kpis,
-    recentSubmissions,
-    attentionStudents,
-    topStudents,
-    pendingRewards,
-    handleHandoverReward,
-    handleRejectReward,
-    coinBreakdown,
-  } = useTeacherDashboard();
+export interface TeacherDashboardViewProps {
+  initialData?: TeacherDashboardPayload;
+  initialClassId?: string;
+}
+
+function TeacherDashboardContent() {
+  const { isLoading } = useTeacherDashboardContext();
 
   return (
     <div className="space-y-6">
       {/* 1. PAGE TITLE */}
       <TeacherDashboardHeader />
 
-      {/* 2. STATS KPI CARDS (Đồng bộ với MissionsKpiCards) */}
-      <TeacherDashboardKpis kpis={kpis} />
+      {isLoading ? (
+        <>
+          <DashboardKpisSkeleton />
+          <DashboardBodySkeleton />
+        </>
+      ) : (
+        <>
+          {/* 2. STATS KPI CARDS */}
+          <TeacherDashboardKpis />
 
-      {/* 3. MAIN BENTO GRID (2 CỘT CÂN ĐỐI) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* Cột trái (2 cols): Hàng đợi duyệt bài nộp & Học sinh cần nhắc nhở */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Hàng đợi bài nộp cần duyệt */}
-          <RecentSubmissionsQueue submissions={recentSubmissions} />
+          {/* 3. MAIN BENTO GRID (2 CỘT CÂN ĐỐI) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            {/* Cột trái (2 cols): Hàng đợi duyệt bài nộp & Học sinh cần nhắc nhở */}
+            <div className="lg:col-span-2 space-y-6">
+              <RecentSubmissionsQueue />
+              <StudentsAttentionWidget />
+            </div>
 
-          {/* Học sinh chưa nộp bài sắp hết hạn hoặc bài bị trả về cần sửa */}
-          <StudentsAttentionWidget items={attentionStudents} />
-        </div>
-
-        {/* Cột phải (1 col): Top 5 + Quà chờ trao + Cơ cấu nguồn xu & Quỹ thưởng */}
-        <div className="space-y-6">
-          {/* Cơ cấu nguồn xu & Quỹ quy đổi tháng này */}
-          <CoinBreakdownWidget stats={coinBreakdown} />
-
-          {/* Top 5 học sinh nhận nhiều xu nhất tháng */}
-          <TopStudentsMonthlyCard topStudents={topStudents} />
-
-          {/* Quà Heo Đất chờ trao tận tay tại lớp */}
-          <PendingRewardsWidget
-            rewards={pendingRewards}
-            onHandoverReward={handleHandoverReward}
-            onRejectReward={handleRejectReward}
-          />
-        </div>
-      </div>
+            {/* Cột phải (1 col): Cơ cấu nguồn xu + Top 3 + Quà chờ duyệt */}
+            <div className="space-y-6">
+              <CoinBreakdownWidget />
+              <TopStudentsMonthlyCard />
+              <PendingRewardsWidget />
+            </div>
+          </div>
+        </>
+      )}
     </div>
+  );
+}
+
+/**
+ * ==============================================================================
+ * TEACHER DASHBOARD VIEW (BÀN LÀM VIỆC GIÁO VIÊN & QUẢN TRỊ)
+ * - Áp dụng Feature Context Pattern (Quy tắc 10 AGENTS.md): 0 dòng Prop Drilling
+ * - Nhận initialData từ Server Component để render tức thì 0ms
+ * - Tự động hiển thị Skeleton mượt mà khi chuyển lớp học trên Header
+ * ==============================================================================
+ */
+export function TeacherDashboardView({
+  initialData,
+  initialClassId,
+}: TeacherDashboardViewProps) {
+  return (
+    <TeacherDashboardProvider
+      initialData={initialData}
+      initialClassId={initialClassId}
+    >
+      <TeacherDashboardContent />
+    </TeacherDashboardProvider>
   );
 }

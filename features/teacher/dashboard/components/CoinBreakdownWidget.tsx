@@ -2,13 +2,12 @@
 
 import Image from "next/image";
 import { PieChart, Sparkles, Banknote } from "lucide-react";
-import { DashboardCoinBreakdownStats } from "../types";
+import { useTeacherDashboardContext } from "../contexts/TeacherDashboardContext";
+import { DASHBOARD_ASSETS } from "../constants";
 
-interface CoinBreakdownWidgetProps {
-  stats: DashboardCoinBreakdownStats;
-}
+export function CoinBreakdownWidget() {
+  const { coinBreakdown: stats } = useTeacherDashboardContext();
 
-export function CoinBreakdownWidget({ stats }: CoinBreakdownWidgetProps) {
   return (
     <div className="bg-white rounded-2xl border border-[#E2E8F0] p-5 shadow-2xs">
       {/* Header khối */}
@@ -31,16 +30,16 @@ export function CoinBreakdownWidget({ stats }: CoinBreakdownWidgetProps) {
         <span className="text-xs font-semibold text-slate-500">
           Tổng xu đã phát hành
         </span>
-        <div className="inline-flex items-center gap-1.5 font-black text-base text-[#0F172A] font-heading tabular-nums">
+        <div className="inline-flex items-center gap-1.5 font-black text-base text-amber-600 font-heading tabular-nums">
           <Image
-            src="/wheel/coin.webp"
+            src={DASHBOARD_ASSETS.COIN_ICON}
             alt="Xu"
             width={16}
             height={16}
             style={{ height: "auto" }}
             className="w-4 h-4 select-none"
           />
-          <span>+{stats.total_coins_awarded.toLocaleString("vi-VN")} xu</span>
+          <span>{stats.total_coins_awarded.toLocaleString("vi-VN")} xu</span>
         </div>
       </div>
 
@@ -73,8 +72,8 @@ export function CoinBreakdownWidget({ stats }: CoinBreakdownWidgetProps) {
             </div>
 
             <div className="flex items-center gap-2 shrink-0 tabular-nums">
-              <span className="font-bold text-[#0F172A]">
-                +{src.coins.toLocaleString("vi-VN")} xu
+              <span className="font-bold text-amber-600">
+                {src.coins.toLocaleString("vi-VN")} xu
               </span>
               <span className="text-[11px] font-semibold text-slate-400 w-8 text-right">
                 {src.percent}%

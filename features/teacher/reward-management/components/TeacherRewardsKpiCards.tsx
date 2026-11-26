@@ -94,7 +94,7 @@ export function TeacherRewardsKpiCards() {
             </span>
             <span className="text-sm font-bold text-slate-500">đ</span>
           </div>
-          <div className="flex items-center gap-1.5 mt-1 text-xs font-semibold text-amber-700">
+          <div className="flex items-center gap-1.5 mt-1 text-xs font-bold text-amber-600">
             <Image
               src="/coin.webp"
               alt="Xu"
@@ -104,7 +104,7 @@ export function TeacherRewardsKpiCards() {
               style={{ height: "auto" }}
               className="w-4"
             />
-            <span>{totalCoinsExchanged.toLocaleString("vi-VN")} xu Heo Đất</span>
+            <span>{totalCoinsExchanged.toLocaleString("vi-VN")} xu</span>
           </div>
         </div>
       </div>
