@@ -2,8 +2,9 @@ import { Metadata } from "next";
 import { TeacherSystemSettingsView } from "@/features/admin/system-settings/components/TeacherSystemSettingsView";
 
 export const metadata: Metadata = {
-  title: "Cấu Hình Hệ Thống & Bảo Mật | Quản Trị Tối Cao",
-  description: "Cấu hình bảo mật mã PIN, tỷ giá kinh tế xu và động cơ AI chấm bài",
+  title: "Cài đặt hệ thống | Góc Giáo Viên",
+  description:
+    "Thiết lập bảo mật đăng nhập, quy đổi xu Heo Đất, lịch mở đổi quà và hỗ trợ chấm bài AI.",
 };
 
 export default function SystemSettingsPage() {
