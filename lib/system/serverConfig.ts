@@ -2,11 +2,13 @@ import { supabase } from "@/lib/supabase/db";
 import {
   AuthSecurityConfig,
   ExchangeSettingConfig,
+  MaintenanceSettingConfig,
   SystemPublicConfigs,
 } from "@/types/systemConfig";
 import {
   DEFAULT_AUTH_SECURITY_CONFIG,
   DEFAULT_CACHE_TTL_MS,
+  DEFAULT_MAINTENANCE_SETTING_CONFIG,
 } from "@/constants/system";
 import { normalizeExchangeConfig } from "@/lib/system/exchangeRules";
 
@@ -114,6 +116,41 @@ export async function getExchangeSettingConfig(): Promise<ExchangeSettingConfig>
 }
 
 /**
+ * Chuẩn hóa cấu hình chế độ bảo trì cổng học sinh (maintenance_setting)
+ */
+function normalizeMaintenanceConfig(
+  rawConfig?: Partial<MaintenanceSettingConfig> | null
+): MaintenanceSettingConfig {
+  const is_maintenance_mode =
+    typeof rawConfig?.is_maintenance_mode === "boolean"
+      ? rawConfig.is_maintenance_mode
+      : DEFAULT_MAINTENANCE_SETTING_CONFIG.is_maintenance_mode;
+
+  const trimmedMessage =
+    typeof rawConfig?.maintenance_message === "string"
+      ? rawConfig.maintenance_message.trim()
+      : "";
+
+  return {
+    is_maintenance_mode,
+    maintenance_message:
+      trimmedMessage || DEFAULT_MAINTENANCE_SETTING_CONFIG.maintenance_message,
+  };
+}
+
+/**
+ * Lấy cấu hình chế độ bảo trì cổng học sinh (maintenance_setting) có sẵn Server In-Memory Cache
+ */
+export async function getMaintenanceSettingConfig(): Promise<MaintenanceSettingConfig> {
+  const rawConfig =
+    await getSystemSetting<Partial<MaintenanceSettingConfig>>(
+      "maintenance_setting"
+    );
+
+  return normalizeMaintenanceConfig(rawConfig);
+}
+
+/**
  * Lấy toàn bộ danh sách cấu hình công khai (is_public = true) có Server In-Memory Cache
  * - Dùng cho API GET /api/system/config phục vụ Client
  */
@@ -146,9 +183,14 @@ export async function getPublicSystemConfigs(
       }
     }
 
-    // Luôn chuẩn hóa exchange_setting để client luôn nhận đủ 7 trường (kể cả khi DB cũ chưa có trường mới)
+    // Luôn chuẩn hóa exchange_setting và maintenance_setting để client luôn nhận đủ trường hợp lệ
     configMap.exchange_setting = normalizeExchangeConfig(
       configMap.exchange_setting as Partial<ExchangeSettingConfig> | undefined
+    );
+    configMap.maintenance_setting = normalizeMaintenanceConfig(
+      configMap.maintenance_setting as
+        | Partial<MaintenanceSettingConfig>
+        | undefined
     );
 
     const result = configMap as unknown as SystemPublicConfigs;

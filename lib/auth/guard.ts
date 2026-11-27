@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import { getAuthSession, getAuthSessionFromRequest, AuthTokenPayload } from "./jwt";
 import { apiError } from "@/lib/api/response";
+import { getMaintenanceSettingConfig } from "@/lib/system/serverConfig";
 import { HttpStatus, UserRole, AppRoutes } from "@/constants";
 
 /**
@@ -110,12 +111,29 @@ export async function authorizeTeacherRequest(
 /**
  * Helper xác thực quyền Học sinh trong Route Handlers
  * - Áp dụng cho: STUDENT
+ * - Tự động chặn các thao tác API của học sinh (503) khi chế độ bảo trì cổng học sinh đang bật
  */
 export async function authorizeStudentRequest(
   req: Request,
   forbiddenMessage = "Tính năng này chỉ dành cho tài khoản học sinh."
 ): Promise<ApiAuthResult> {
-  return authorizeRequest(req, [UserRole.STUDENT], forbiddenMessage);
+  const auth = await authorizeRequest(req, [UserRole.STUDENT], forbiddenMessage);
+  if (!auth.success) {
+    return auth;
+  }
+
+  const maintenance = await getMaintenanceSettingConfig();
+  if (maintenance.is_maintenance_mode) {
+    return {
+      success: false,
+      response: apiError(
+        maintenance.maintenance_message,
+        HttpStatus.SERVICE_UNAVAILABLE
+      ),
+    };
+  }
+
+  return auth;
 }
 
 

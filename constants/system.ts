@@ -1,4 +1,7 @@
-import { AuthSecurityConfig } from "@/types/systemConfig";
+import {
+  AuthSecurityConfig,
+  MaintenanceSettingConfig,
+} from "@/types/systemConfig";
 
 /**
  * ==============================================================================
@@ -18,4 +21,13 @@ export const DEFAULT_AUTH_SECURITY_CONFIG: AuthSecurityConfig = {
   max_failed_attempts: 5,
   lockout_minutes: 15,
   auto_reset_on_success: true,
+};
+
+/**
+ * Giá trị cấu hình chế độ bảo trì cổng học sinh mặc định
+ */
+export const DEFAULT_MAINTENANCE_SETTING_CONFIG: MaintenanceSettingConfig = {
+  is_maintenance_mode: false,
+  maintenance_message:
+    "Hệ thống đang tạm nghỉ để tổng kết xu cuối tháng và nâng cấp tính năng mới. Các con vui lòng quay lại sau nhé!",
 };

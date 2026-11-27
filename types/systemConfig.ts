@@ -26,6 +26,11 @@ export interface MonthlyRewardSettingConfig {
   progress_reward_mode: "all_qualifying" | "top_rank_only";
 }
 
+export interface MaintenanceSettingConfig {
+  is_maintenance_mode: boolean;
+  maintenance_message: string;
+}
+
 /**
  * Toàn bộ cấu hình hệ thống công khai trả về cho client
  */
@@ -34,5 +39,6 @@ export interface SystemPublicConfigs {
   wheel_setting: WheelSettingConfig;
   exchange_setting: ExchangeSettingConfig;
   monthly_reward_setting: MonthlyRewardSettingConfig;
+  maintenance_setting: MaintenanceSettingConfig;
   [key: string]: unknown;
 }

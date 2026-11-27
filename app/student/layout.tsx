@@ -1,5 +1,25 @@
-import React from "react";
+import React, { Suspense } from "react";
+import { connection } from "next/server";
 import { StudentNavbar } from "@/features/student/dashboard/components/StudentNavbar";
+import { StudentMaintenanceView } from "@/features/student/dashboard/components/StudentMaintenanceView";
+import { getMaintenanceSettingConfig } from "@/lib/system/serverConfig";
+
+/**
+ * Server Overlay kiểm tra chế độ bảo trì cổng học sinh (0ms từ RAM cache server)
+ * - Đặt song song với {children} để Next.js 16 giữ trọn Instant Navigation (không drop segment)
+ * - Khi bật bảo trì: phủ kín toàn màn hình với thông báo thân thiện
+ * - Cổng giáo viên (/teacher/*) hoàn toàn không bị ảnh hưởng
+ */
+async function StudentMaintenanceOverlay() {
+  await connection();
+  const maintenance = await getMaintenanceSettingConfig();
+
+  if (!maintenance.is_maintenance_mode) {
+    return null;
+  }
+
+  return <StudentMaintenanceView message={maintenance.maintenance_message} />;
+}
 
 export default function StudentLayout({
   children,
@@ -23,7 +43,14 @@ export default function StudentLayout({
       </div>
 
       {/* Main Content Area - Hỗ trợ scroll dọc mượt mà cho Dashboard và các trang dài, ngăn hoàn toàn scroll ngang */}
-      <div className="flex-1 w-full overflow-y-auto overflow-x-hidden flex flex-col min-h-0 [scrollbar-width:thin]">{children}</div>
+      <div className="flex-1 w-full overflow-y-auto overflow-x-hidden flex flex-col min-h-0 [scrollbar-width:thin]">
+        {children}
+      </div>
+
+      {/* Lớp phủ bảo trì cổng học sinh (chỉ render khi Admin bật chế độ bảo trì) */}
+      <Suspense fallback={null}>
+        <StudentMaintenanceOverlay />
+      </Suspense>
     </div>
   );
 }
