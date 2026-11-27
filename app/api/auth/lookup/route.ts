@@ -114,6 +114,7 @@ export async function POST(
 
     // 4. Kiểm tra trạng thái khóa tài khoản hiện tại
     let isLocked = false;
+    let isLockExpired = false;
     let remainingMinutes = 0;
     const now = new Date();
 
@@ -123,12 +124,17 @@ export async function POST(
         isLocked = true;
         const diffMs = lockUntilDate.getTime() - now.getTime();
         remainingMinutes = Math.max(1, Math.ceil(diffMs / (60 * 1000)));
+      } else {
+        isLockExpired = true;
       }
     }
 
+    const effectiveFailed = isLockExpired
+      ? 0
+      : (userRow.failed_login_attempts ?? 0);
     const remainingAttempts = isLocked
       ? 0
-      : Math.max(0, maxFailedAttempts - (userRow.failed_login_attempts ?? 0));
+      : Math.max(0, maxFailedAttempts - effectiveFailed);
 
     const studentInfo: StudentLookupData = {
       id: userRow.id,

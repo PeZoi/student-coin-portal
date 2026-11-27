@@ -40,6 +40,7 @@ export function StudentRosterTable() {
     handleViewHistory: onViewHistory,
     handleViewRedeemedRewards: onViewRedeemedRewards,
     handleViewMissions: onViewMissions,
+    maxFailedAttempts,
   } = useStudentRosterContext();
 
   const isAllChecked =
@@ -328,7 +329,7 @@ export function StudentRosterTable() {
                     </span>
                   ) : st.pin_status === "locked" ? (
                     <Tooltip
-                      content="Tài khoản tạm khóa do nhập sai PIN quá 5 lần. Bấm Đặt lại PIN để cấp mã mới."
+                      content={`Tài khoản tạm khóa do nhập sai PIN quá ${maxFailedAttempts} lần. Bấm Đặt lại PIN để cấp mã mới.`}
                       side="top"
                     >
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 whitespace-nowrap cursor-default">
@@ -338,12 +339,14 @@ export function StudentRosterTable() {
                     </Tooltip>
                   ) : (
                     <Tooltip
-                      content={`Đã nhập sai ${st.failed_login_attempts || 3}/5 lần`}
+                      content={`Đã nhập sai ${st.failed_login_attempts || 1}/${maxFailedAttempts} lần`}
                       side="top"
                     >
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap cursor-default">
                         <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
-                        <span>Sai {st.failed_login_attempts || 3}/5 lần</span>
+                        <span>
+                          Sai {st.failed_login_attempts || 1}/{maxFailedAttempts} lần
+                        </span>
                       </span>
                     </Tooltip>
                   )}

@@ -30,6 +30,7 @@ interface StudentStatusBadgeProps {
 	isActive: boolean;
 	isDeleted?: boolean;
 	failedAttempts?: number;
+	maxFailedAttempts?: number;
 	lockedUntil?: string | null;
 	lockRemainingText?: string | null;
 }
@@ -39,14 +40,15 @@ interface StudentStatusBadgeProps {
  * Gộp trạng thái tài khoản và bảo mật PIN theo thứ tự ưu tiên:
  * 1. Đã xóa (is_deleted = true) -> Huy hiệu đỏ
  * 2. Tạm ngưng (!isActive) -> Huy hiệu xám
- * 3. Thời gian khóa (lockedUntil còn hạn hoặc failedAttempts >= 5) -> Huy hiệu đỏ / hổ phách "Khóa PIN (còn X phút)"
- * 4. Sai mã PIN (failedAttempts >= 1 và < 5) -> Huy hiệu vàng "Sai X/5 lần"
+ * 3. Thời gian khóa (lockedUntil còn hạn hoặc failedAttempts >= maxFailedAttempts) -> Huy hiệu đỏ "Khóa PIN (còn X phút)"
+ * 4. Sai mã PIN (failedAttempts >= 1 và < maxFailedAttempts) -> Huy hiệu vàng "Sai X/N lần"
  * 5. Đang học (mặc định) -> Huy hiệu xanh lá
  */
 export function StudentStatusBadge({
 	isActive,
 	isDeleted,
 	failedAttempts = 0,
+	maxFailedAttempts = 5,
 	lockRemainingText,
 }: StudentStatusBadgeProps) {
 	// 1. Ưu tiên cao nhất: Đã xóa
@@ -75,7 +77,7 @@ export function StudentStatusBadge({
 	if (lockRemainingText) {
 		return (
 			<Tooltip
-				content={`Tài khoản đang bị tạm khóa do nhập sai mã PIN quá 5 lần. Tự động mở ${lockRemainingText}. Giáo viên có thể bấm Thao tác > Đặt lại mã PIN để mở khóa ngay.`}
+				content={`Tài khoản đang bị tạm khóa do nhập sai mã PIN quá ${maxFailedAttempts} lần. Tự động mở ${lockRemainingText}.`}
 				side='top'
 			>
 				<span className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 whitespace-nowrap cursor-default'>
@@ -86,31 +88,35 @@ export function StudentStatusBadge({
 		);
 	}
 
-	// 4. Nếu số lần sai >= 5 (nhưng không đang trong thời gian đếm ngược khóa) -> Màu ĐỎ cảnh báo nghiêm trọng
-	if (failedAttempts >= 5) {
+	// 4. Nếu số lần sai >= ngưỡng khóa (nhưng không đang trong thời gian đếm ngược khóa) -> Màu ĐỎ cảnh báo nghiêm trọng
+	if (failedAttempts >= maxFailedAttempts) {
 		return (
 			<Tooltip
-				content={`Đã nhập sai mã PIN ${failedAttempts}/5 lần. Vui lòng bấm Thao tác > Đặt lại mã PIN để cấp lại mã PIN mới cho học sinh.`}
+				content={`Đã nhập sai mã PIN ${failedAttempts}/${maxFailedAttempts} lần. Vui lòng đặt lại mã PIN mới cho học sinh.`}
 				side='top'
 			>
 				<span className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 whitespace-nowrap cursor-default'>
 					<ShieldAlert className='w-3.5 h-3.5 text-rose-600 shrink-0' />
-					<span>Sai {failedAttempts}/5 lần</span>
+					<span>
+						Sai {failedAttempts}/{maxFailedAttempts} lần
+					</span>
 				</span>
 			</Tooltip>
 		);
 	}
 
-	// 5. Nếu số lần sai từ 1 đến 4 -> Màu VÀNG cảnh báo nhắc nhở
+	// 5. Nếu số lần sai từ 1 đến dưới ngưỡng khóa -> Màu VÀNG cảnh báo nhắc nhở
 	if (failedAttempts > 0) {
 		return (
 			<Tooltip
-				content={`Đã nhập sai mã PIN ${failedAttempts} lần. Nếu nhập sai đủ 5 lần tài khoản sẽ bị tạm khóa.`}
+				content={`Đã nhập sai mã PIN ${failedAttempts} lần. Nếu nhập sai đủ ${maxFailedAttempts} lần tài khoản sẽ bị tạm khóa.`}
 				side='top'
 			>
 				<span className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap cursor-default'>
 					<ShieldAlert className='w-3.5 h-3.5 text-amber-600 shrink-0' />
-					<span>Sai {failedAttempts}/5 lần</span>
+					<span>
+						Sai {failedAttempts}/{maxFailedAttempts} lần
+					</span>
 				</span>
 			</Tooltip>
 		);

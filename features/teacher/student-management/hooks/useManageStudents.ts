@@ -6,6 +6,8 @@ import { useTableSelection } from "@/hooks/useTableSelection";
 import { useUserStore } from "@/stores/useUserStore";
 import { UserRole } from "@/constants/auth";
 import { CACHE_KEYS } from "@/constants/cacheKeys";
+import { DEFAULT_AUTH_SECURITY_CONFIG } from "@/constants/system";
+import { AuthSecurityConfig } from "@/types/systemConfig";
 import { StudentItem } from "@/features/teacher/student-management/types";
 import { AvailableClassItem } from "@/features/teacher/teacher-management/types";
 import { teacherStudentService } from "@/features/teacher/student-management/services/studentService";
@@ -22,13 +24,17 @@ import { useStudentMutations } from "./useStudentMutations";
  */
 export function useManageStudents(
   initialStudents?: StudentItem[],
-  userRole?: string
+  userRole?: string,
+  authSecurity: AuthSecurityConfig = DEFAULT_AUTH_SECURITY_CONFIG
 ) {
   const { student } = useUserStore();
   const currentRole = userRole || student?.role || UserRole.TEACHER;
   const isAdmin = currentRole === UserRole.ADMIN;
   const canSoftDelete =
     currentRole === UserRole.SUPER_TEACHER || currentRole === UserRole.ADMIN;
+  const maxFailedAttempts =
+    authSecurity.max_failed_attempts ??
+    DEFAULT_AUTH_SECURITY_CONFIG.max_failed_attempts;
 
   // 1. Quản lý danh sách học sinh qua SWR (Quy tắc 9): Tự động cache, 0ms mạng client
   const {
@@ -93,6 +99,7 @@ export function useManageStudents(
   return {
     isAdmin,
     canSoftDelete,
+    maxFailedAttempts,
     userRole: currentRole,
     studentsList,
     availableClasses,

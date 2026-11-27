@@ -39,6 +39,7 @@ export function StudentsTable() {
     handleSelectAll,
     isSelected,
     isAllSelected,
+    maxFailedAttempts,
   } = useManageStudentsContext();
 
   const allVisibleIds = items.map((i) => i.id);
@@ -240,6 +241,7 @@ export function StudentsTable() {
                   isActive={student.is_active}
                   isDeleted={student.is_deleted}
                   failedAttempts={student.failed_login_attempts}
+                  maxFailedAttempts={maxFailedAttempts}
                   lockedUntil={student.locked_until}
                   lockRemainingText={student.lock_remaining_text}
                 />

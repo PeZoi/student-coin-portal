@@ -148,11 +148,6 @@ export async function getAdminSystemSettingsServer(): Promise<SystemSettingsPayl
           "auto_reset_on_success",
           DEFAULT_SYSTEM_SETTINGS.security.autoResetOnSuccess
         ),
-        allowTeacherPinReset: readBoolean(
-          authRaw,
-          "allow_teacher_pin_reset",
-          DEFAULT_SYSTEM_SETTINGS.security.allowTeacherPinReset
-        ),
       },
       exchange: {
         stepCoins: readNumber(
@@ -328,7 +323,6 @@ export async function updateAdminSystemSettingsServer(
         max_failed_attempts: settings.security.maxFailedAttempts,
         lockout_minutes: settings.security.lockoutMinutes,
         auto_reset_on_success: settings.security.autoResetOnSuccess,
-        allow_teacher_pin_reset: settings.security.allowTeacherPinReset,
       },
       description:
         "Cấu hình bảo mật mã PIN: Số lần nhập sai tối đa và thời gian khóa tài khoản (phút)",

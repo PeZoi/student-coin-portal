@@ -6,6 +6,7 @@ import { StudentRosterView } from "@/features/teacher/student-roster/components/
 import { StudentRosterSkeleton } from "@/features/teacher/student-roster/components/StudentRosterSkeleton";
 import { getTeacherStudentRosterServer } from "@/features/teacher/student-roster/services/studentRosterServerService";
 import { getMyAssignedClassesServer } from "@/features/teacher/class-management/services/classServerService";
+import { getAuthSecurityConfig } from "@/lib/system/serverConfig";
 import { TEACHER_WORKSPACE_COOKIE_NAME } from "@/stores/useTeacherWorkspaceStore";
 
 export const metadata: Metadata = {
@@ -23,8 +24,11 @@ async function StudentsDataContainer() {
   const cookieStore = await cookies();
   const cookieClassId = cookieStore.get(TEACHER_WORKSPACE_COOKIE_NAME)?.value;
 
-  // 1. Tải danh sách lớp giáo viên được phân công phụ trách
-  const teacherClasses = await getMyAssignedClassesServer(session);
+  // 1. Tải song song danh sách lớp phụ trách và cấu hình bảo mật đăng nhập
+  const [teacherClasses, authSecurity] = await Promise.all([
+    getMyAssignedClassesServer(session),
+    getAuthSecurityConfig(),
+  ]);
 
   // 2. Xác định lớp học đang chọn: Ưu tiên cookie nếu hợp lệ, nếu không thì lấy lớp đầu tiên
   const isValidClass =
@@ -53,6 +57,7 @@ async function StudentsDataContainer() {
       initialClasses={initialClasses}
       initialClassId={activeClassId}
       userRole={session.role}
+      authSecurity={authSecurity}
     />
   );
 }

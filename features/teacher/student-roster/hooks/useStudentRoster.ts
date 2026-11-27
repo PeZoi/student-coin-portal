@@ -3,7 +3,8 @@
 import useSWR from "swr";
 import { useTeacherWorkspaceStore } from "@/stores/useTeacherWorkspaceStore";
 import { useTableSelection } from "@/hooks/useTableSelection";
-import { CACHE_KEYS } from "@/constants";
+import { CACHE_KEYS, DEFAULT_AUTH_SECURITY_CONFIG } from "@/constants";
+import { AuthSecurityConfig } from "@/types/systemConfig";
 import { TeacherRosterStudent } from "../types";
 import { studentRosterService } from "../services/studentRosterService";
 import { useStudentRosterFilters } from "./useStudentRosterFilters";
@@ -20,6 +21,7 @@ interface UseStudentRosterProps {
   }>;
   initialClassId?: string;
   userRole?: string;
+  authSecurity?: AuthSecurityConfig;
 }
 
 /**
@@ -34,7 +36,11 @@ export function useStudentRoster({
   initialClasses = [],
   initialClassId,
   userRole,
+  authSecurity = DEFAULT_AUTH_SECURITY_CONFIG,
 }: UseStudentRosterProps = {}) {
+  const maxFailedAttempts =
+    authSecurity.max_failed_attempts ??
+    DEFAULT_AUTH_SECURITY_CONFIG.max_failed_attempts;
   // 1. Xác định lớp học đang chọn từ Header Workspace
   const selectedWorkspaceClassId = useTeacherWorkspaceStore(
     (state) => state.selectedClassId
@@ -101,6 +107,7 @@ export function useStudentRoster({
     activeClassId,
     initialClassId,
     isTeacherWithNoClasses,
+    maxFailedAttempts,
     students,
     isLoading,
     mutate,

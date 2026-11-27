@@ -97,8 +97,8 @@ export function SecuritySettingsCard() {
         </SettingsSectionRow>
 
         <SettingsSectionRow
-          title="Quyền hỗ trợ & Đặt lại mã PIN"
-          description="Cấu hình tự động xóa lỗi sau khi đăng nhập đúng và quyền mở khóa cho giáo viên chủ nhiệm."
+          title="Đặt lại bộ đếm khi đăng nhập đúng"
+          description="Cấu hình tự động xóa số lần nhập sai mã PIN khi học sinh đăng nhập thành công."
         >
           <SettingsToggleRow
             label="Tự động xóa số lần nhập sai sau khi đăng nhập đúng"
@@ -106,15 +106,6 @@ export function SecuritySettingsCard() {
             checked={value.autoResetOnSuccess}
             onChange={(checked) =>
               onChange({ ...value, autoResetOnSuccess: checked })
-            }
-          />
-
-          <SettingsToggleRow
-            label="Cho phép giáo viên chủ nhiệm cấp lại mã PIN"
-            description="Giáo viên có thể mở khóa và đặt lại mã PIN cho học sinh thuộc lớp phụ trách."
-            checked={value.allowTeacherPinReset}
-            onChange={(checked) =>
-              onChange({ ...value, allowTeacherPinReset: checked })
             }
           />
         </SettingsSectionRow>

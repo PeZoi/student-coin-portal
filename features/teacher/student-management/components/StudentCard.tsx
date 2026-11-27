@@ -21,6 +21,7 @@ export function StudentCard({ item }: StudentCardProps) {
     handleToggleSelect: onToggleSelect,
     handleOpenEditStudent: onEdit,
     handleOpenTransactions: onOpenTransactions,
+    maxFailedAttempts,
   } = useManageStudentsContext();
   const isSelected = checkSelected(item.id);
   const avatarLetter = getStudentInitial(item.full_name);
@@ -80,6 +81,7 @@ export function StudentCard({ item }: StudentCardProps) {
             isActive={item.is_active}
             isDeleted={item.is_deleted}
             failedAttempts={item.failed_login_attempts}
+            maxFailedAttempts={maxFailedAttempts}
             lockedUntil={item.locked_until}
             lockRemainingText={item.lock_remaining_text}
           />

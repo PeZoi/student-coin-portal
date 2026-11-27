@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase/db";
 import { AuthTokenPayload } from "@/lib/auth/jwt";
+import { getAuthSecurityConfig } from "@/lib/system/serverConfig";
 import { UserRole } from "@/constants/auth";
 import { StudentMissionStatus, ExchangeRequestStatus } from "@/constants";
 import { TeacherRosterStudent } from "../types";
@@ -140,6 +141,8 @@ export async function getTeacherStudentRosterServer(
     }
 
     // 5. Chuẩn hóa sang TeacherRosterStudent[]
+    const { max_failed_attempts: maxFailedAttempts } =
+      await getAuthSecurityConfig();
     const now = new Date();
 
     return studentsData.map((s) => {
@@ -152,11 +155,11 @@ export async function getTeacherStudentRosterServer(
       };
       const redeemedCount = redeemedCountsMap.get(s.id) || 0;
 
-      // Xác định trạng thái mã PIN
+      // Xác định trạng thái mã PIN theo ngưỡng động của hệ thống
       let pinStatus: "ok" | "locked" | "failed_attempts" = "ok";
       if (s.locked_until && new Date(s.locked_until) > now) {
         pinStatus = "locked";
-      } else if ((s.failed_login_attempts ?? 0) >= 5) {
+      } else if ((s.failed_login_attempts ?? 0) >= maxFailedAttempts) {
         pinStatus = "locked";
       } else if ((s.failed_login_attempts ?? 0) > 0) {
         pinStatus = "failed_attempts";

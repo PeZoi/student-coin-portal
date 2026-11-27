@@ -65,9 +65,12 @@ const PermanentDeleteStudentModal = dynamic(
   { ssr: false }
 );
 
+import { AuthSecurityConfig } from "@/types/systemConfig";
+
 interface TeacherManageStudentsViewProps {
   initialStudents?: StudentItem[];
   userRole?: string;
+  authSecurity?: AuthSecurityConfig;
 }
 
 /**
@@ -78,11 +81,13 @@ interface TeacherManageStudentsViewProps {
 export function TeacherManageStudentsView({
   initialStudents,
   userRole,
+  authSecurity,
 }: TeacherManageStudentsViewProps) {
   return (
     <ManageStudentsProvider
       initialStudents={initialStudents}
       userRole={userRole}
+      authSecurity={authSecurity}
     >
       <ManageStudentsContent />
     </ManageStudentsProvider>

@@ -4,6 +4,7 @@ import { requireTeacher } from "@/lib/auth/guard";
 import { TeacherManageStudentsView } from "@/features/teacher/student-management/components/ManageStudentsView";
 import { StudentsSkeleton } from "@/features/teacher/student-management/components/StudentsSkeleton";
 import { getManageStudentsServer } from "@/features/teacher/student-management/services/studentServerService";
+import { getAuthSecurityConfig } from "@/lib/system/serverConfig";
 
 export const metadata: Metadata = {
   title: "Quản Lý Học Sinh Toàn Trường | Quản Trị Trường",
@@ -12,12 +13,16 @@ export const metadata: Metadata = {
 
 async function StudentsDataContainer() {
   const session = await requireTeacher();
-  const initialStudents = await getManageStudentsServer(session);
+  const [initialStudents, authSecurity] = await Promise.all([
+    getManageStudentsServer(session),
+    getAuthSecurityConfig(),
+  ]);
 
   return (
     <TeacherManageStudentsView
       initialStudents={initialStudents}
       userRole={session.role}
+      authSecurity={authSecurity}
     />
   );
 }

@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { School } from "lucide-react";
 import { Pagination } from "@/components/ui/Pagination";
 import { useTeacherWorkspaceStore } from "@/stores/useTeacherWorkspaceStore";
+import { AuthSecurityConfig } from "@/types/systemConfig";
 import { TeacherRosterStudent } from "../types";
 import { ROSTER_PAGE_SIZE_OPTIONS } from "../constants";
 import {
@@ -69,6 +70,7 @@ interface StudentRosterViewProps {
   }>;
   initialClassId?: string;
   userRole?: string;
+  authSecurity?: AuthSecurityConfig;
 }
 
 /**
@@ -82,6 +84,7 @@ export function StudentRosterView({
   initialClasses = [],
   initialClassId,
   userRole,
+  authSecurity,
 }: StudentRosterViewProps) {
   // Lấy lớp đang chọn từ Header Workspace (tự động chuyển đổi khi giáo viên chọn lớp khác trên Header)
   const selectedWorkspaceClassId = useTeacherWorkspaceStore(
@@ -96,6 +99,7 @@ export function StudentRosterView({
       initialClasses={initialClasses}
       initialClassId={initialClassId}
       userRole={userRole}
+      authSecurity={authSecurity}
     >
       <StudentRosterContent />
     </StudentRosterProvider>

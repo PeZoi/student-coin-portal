@@ -1,6 +1,7 @@
 export interface AuthSecurityConfig {
   max_failed_attempts: number;
   lockout_minutes: number;
+  auto_reset_on_success: boolean;
 }
 
 export interface WheelSettingConfig {

@@ -29,8 +29,7 @@ export const DEFAULT_SYSTEM_SETTINGS: SystemSettingsFormState = {
   security: {
     maxFailedAttempts: DEFAULT_AUTH_SECURITY_CONFIG.max_failed_attempts,
     lockoutMinutes: DEFAULT_AUTH_SECURITY_CONFIG.lockout_minutes,
-    autoResetOnSuccess: true,
-    allowTeacherPinReset: true,
+    autoResetOnSuccess: DEFAULT_AUTH_SECURITY_CONFIG.auto_reset_on_success,
   },
   exchange: {
     stepCoins: REWARD_CONFIG.DEFAULT_COIN_STEP,

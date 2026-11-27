@@ -17,7 +17,6 @@ export interface SecuritySettingsFormState {
   maxFailedAttempts: number;
   lockoutMinutes: number;
   autoResetOnSuccess: boolean;
-  allowTeacherPinReset: boolean;
 }
 
 export interface ExchangeSettingsFormState {

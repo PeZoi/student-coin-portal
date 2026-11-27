@@ -90,12 +90,16 @@ export async function getAuthSecurityConfig(): Promise<AuthSecurityConfig> {
   return {
     max_failed_attempts:
       typeof rawConfig.max_failed_attempts === "number" && rawConfig.max_failed_attempts > 0
-        ? rawConfig.max_failed_attempts
+        ? Math.trunc(rawConfig.max_failed_attempts)
         : DEFAULT_AUTH_SECURITY_CONFIG.max_failed_attempts,
     lockout_minutes:
       typeof rawConfig.lockout_minutes === "number" && rawConfig.lockout_minutes > 0
-        ? rawConfig.lockout_minutes
+        ? Math.trunc(rawConfig.lockout_minutes)
         : DEFAULT_AUTH_SECURITY_CONFIG.lockout_minutes,
+    auto_reset_on_success:
+      typeof rawConfig.auto_reset_on_success === "boolean"
+        ? rawConfig.auto_reset_on_success
+        : DEFAULT_AUTH_SECURITY_CONFIG.auto_reset_on_success,
   };
 }
 

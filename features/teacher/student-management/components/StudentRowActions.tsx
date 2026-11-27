@@ -40,6 +40,7 @@ export function StudentRowActions({
   const {
     isAdmin,
     canSoftDelete,
+    maxFailedAttempts,
     restoringId,
     handleOpenChangeClass: onChangeClass,
     handleOpenEditStudent: onEdit,
@@ -198,7 +199,7 @@ export function StudentRowActions({
   const isLocked = Boolean(
     item.lock_remaining_text ||
       (item.failed_login_attempts !== undefined &&
-        item.failed_login_attempts >= 5)
+        item.failed_login_attempts >= maxFailedAttempts)
   );
 
   return (

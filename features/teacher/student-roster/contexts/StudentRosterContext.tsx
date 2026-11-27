@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, ReactNode } from "react";
+import { AuthSecurityConfig } from "@/types/systemConfig";
 import { useStudentRoster } from "../hooks/useStudentRoster";
 import { TeacherRosterStudent } from "../types";
 
@@ -19,6 +20,7 @@ interface StudentRosterProviderProps {
   }>;
   initialClassId?: string;
   userRole?: string;
+  authSecurity?: AuthSecurityConfig;
 }
 
 /**
@@ -32,12 +34,14 @@ export function StudentRosterProvider({
   initialClasses,
   initialClassId,
   userRole,
+  authSecurity,
 }: StudentRosterProviderProps) {
   const value = useStudentRoster({
     initialStudents,
     initialClasses,
     initialClassId,
     userRole,
+    authSecurity,
   });
 
   return (

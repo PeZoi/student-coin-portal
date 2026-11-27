@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, ReactNode } from "react";
+import { AuthSecurityConfig } from "@/types/systemConfig";
 import { useManageStudents } from "../hooks/useManageStudents";
 import { StudentItem } from "@/features/teacher/student-management/types";
 
@@ -12,6 +13,7 @@ interface ManageStudentsProviderProps {
   children: ReactNode;
   initialStudents?: StudentItem[];
   userRole?: string;
+  authSecurity?: AuthSecurityConfig;
 }
 
 /**
@@ -23,8 +25,9 @@ export function ManageStudentsProvider({
   children,
   initialStudents,
   userRole,
+  authSecurity,
 }: ManageStudentsProviderProps) {
-  const value = useManageStudents(initialStudents, userRole);
+  const value = useManageStudents(initialStudents, userRole, authSecurity);
 
   return (
     <ManageStudentsContext.Provider value={value}>

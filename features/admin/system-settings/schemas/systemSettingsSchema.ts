@@ -12,7 +12,6 @@ export const securitySettingsSchema = z.object({
     .min(1, "Thời gian tạm khóa phải ít nhất 1 phút.")
     .max(1440, "Thời gian tạm khóa tối đa 1.440 phút (24 giờ)."),
   autoResetOnSuccess: z.boolean(),
-  allowTeacherPinReset: z.boolean(),
 });
 
 export const exchangeSettingsSchema = z

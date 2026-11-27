@@ -164,11 +164,17 @@ export async function POST(
     }
 
     // 4. Đọc cấu hình bảo mật từ Server In-Memory Cache
-    const { max_failed_attempts: maxFailedAttempts, lockout_minutes: lockoutMinutes } =
-      await getAuthSecurityConfig();
+    const {
+      max_failed_attempts: maxFailedAttempts,
+      lockout_minutes: lockoutMinutes,
+      auto_reset_on_success: autoResetOnSuccess,
+    } = await getAuthSecurityConfig();
 
     // 5. Kiểm tra xem tài khoản có đang bị tạm khóa không
     const now = new Date();
+    const isLockExpired = Boolean(
+      userRow.locked_until && new Date(userRow.locked_until) <= now
+    );
     if (userRow.locked_until) {
       const lockUntilDate = new Date(userRow.locked_until);
       if (lockUntilDate > now) {
@@ -190,7 +196,10 @@ export async function POST(
 
     // 6. Đối soát mật khẩu
     if (userRow.password !== normalizedPassword) {
-      const newFailed = (userRow.failed_login_attempts ?? 0) + 1;
+      const baseFailedAttempts = isLockExpired
+        ? 0
+        : (userRow.failed_login_attempts ?? 0);
+      const newFailed = baseFailedAttempts + 1;
 
       // Nếu nhập sai đạt ngưỡng giới hạn -> Tạm khóa tài khoản
       if (newFailed >= maxFailedAttempts) {
@@ -226,6 +235,7 @@ export async function POST(
         .from("users")
         .update({
           failed_login_attempts: newFailed,
+          locked_until: isLockExpired ? null : userRow.locked_until,
           updated_at: new Date().toISOString(),
         })
         .eq("id", userRow.id);
@@ -244,13 +254,15 @@ export async function POST(
       );
     }
 
-    // 7. Nhập ĐÚNG Mật khẩu -> Reset số lần nhập sai, trạng thái khóa và cập nhật thời gian đăng nhập
+    // 7. Nhập ĐÚNG Mật khẩu -> Áp dụng cấu hình auto_reset_on_success và cập nhật thời gian đăng nhập
     // Lưu ý: Không cập nhật updated_at ở đây vì login là sự kiện hệ thống, chỉ updated_at khi thay đổi thông tin hồ sơ
     const nowIso = new Date().toISOString();
     await supabase
       .from("users")
       .update({
-        failed_login_attempts: 0,
+        failed_login_attempts: autoResetOnSuccess
+          ? 0
+          : (userRow.failed_login_attempts ?? 0),
         locked_until: null,
         last_login_at: nowIso,
       })
