@@ -119,6 +119,10 @@ export const AppRoutes = {
     SYSTEM: {
       CONFIG: "/api/system/config",
     },
+    ADMIN: {
+      SYSTEM_SETTINGS: "/api/admin/system-settings",
+      AUDIT_LOGS: "/api/admin/audit-logs",
+    },
     TEST_AI: {
       GRADE: "/api/test-ai/grade",
     },

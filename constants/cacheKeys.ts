@@ -134,6 +134,26 @@ export const CACHE_KEYS = {
     CONFIG: "system-config",
     /** Toàn bộ cấu hình quản trị hệ thống (bao gồm cả cấu hình nội bộ) */
     ADMIN_SETTINGS: "admin-system-settings",
+    /** Nhật ký an ninh & thao tác dữ liệu (phân trang server theo tab và bộ lọc) */
+    AUDIT_LOGS: (params: {
+      tab: string;
+      page: number;
+      pageSize: number;
+      search: string;
+      status: string;
+      role: string;
+      scope: string;
+    }) =>
+      [
+        "admin-audit-logs",
+        params.tab,
+        params.page,
+        params.pageSize,
+        params.search,
+        params.status,
+        params.role,
+        params.scope,
+      ] as const,
   },
 
   // 11. Layout & Sidebar Badges
