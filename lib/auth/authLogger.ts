@@ -76,7 +76,7 @@ export function getClientLocation(req: Request): string {
 
   const ip = getClientIp(req);
   if (ip === "127.0.0.1" || ip === "::1" || ip.startsWith("192.168.") || ip.startsWith("10.")) {
-    return "Localhost (Môi trường phát triển)";
+    return "Localhost";
   }
 
   return "Không xác định";

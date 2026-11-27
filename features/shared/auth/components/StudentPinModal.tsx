@@ -42,6 +42,7 @@ export function StudentPinModal({
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const modalRef = useRef<HTMLDivElement | null>(null);
+  const shouldFocusFirstAfterErrorRef = useRef<boolean>(false);
 
   // Bộ đếm ngược tự động giảm số phút khóa theo thời gian thực
   useEffect(() => {
@@ -77,6 +78,24 @@ export function StudentPinModal({
       clearTimeout(timer);
     };
   }, [isOpen, isLocked]);
+
+  // Tự động focus lại ô đầu tiên ngay sau khi kết thúc xác thực lỗi (lúc input đã hết disabled)
+  useEffect(() => {
+    if (!isOpen || isVerifying || isLocked || !shouldFocusFirstAfterErrorRef.current) {
+      return;
+    }
+
+    shouldFocusFirstAfterErrorRef.current = false;
+    const rafId = window.requestAnimationFrame(() => {
+      const firstInput = inputRefs.current[0];
+      firstInput?.focus();
+      firstInput?.select();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+    };
+  }, [isOpen, isVerifying, isLocked]);
 
   // Lắng nghe phím ESC để đóng modal
   useEffect(() => {
@@ -122,9 +141,11 @@ export function StudentPinModal({
       setErrorMessage("");
       await onConfirmPin(fullPin);
     } catch (err: unknown) {
+      let nextIsLocked = false;
       if (err instanceof PinVerificationError) {
         setErrorMessage(err.message);
         if (err.isLocked) {
+          nextIsLocked = true;
           setIsLocked(true);
           setLockRemainingMinutes(err.remainingMinutes || 15);
           setRemainingAttempts(0);
@@ -136,8 +157,8 @@ export function StudentPinModal({
         setErrorMessage(error.message);
       }
       setPinDigits(["", "", "", ""]);
-      if (!isLocked) {
-        inputRefs.current[0]?.focus();
+      if (!nextIsLocked) {
+        shouldFocusFirstAfterErrorRef.current = true;
         setFocusedIndex(0);
       }
     }
