@@ -1,22 +1,15 @@
 "use client";
 
-import { RotateCcw, Save } from "lucide-react";
-
-interface SystemSettingsHeaderProps {
-  hasChanges: boolean;
-  onReset: () => void;
-  onSave: () => void;
-}
+import { Loader2, RotateCcw, Save } from "lucide-react";
+import { useSystemSettingsContext } from "../contexts/SystemSettingsContext";
 
 /**
- * Header trang Cài đặt hệ thống
- * - Đồng bộ 100% phong cách với các trang Giáo viên / Quản trị (Đổi quà, Vòng quay, Giao bài tập)
+ * Header trang Cài đặt hệ thống (đọc trực tiếp state từ SystemSettingsContext)
  */
-export function SystemSettingsHeader({
-  hasChanges,
-  onReset,
-  onSave,
-}: SystemSettingsHeaderProps) {
+export function SystemSettingsHeader() {
+  const { hasChanges, isSaving, handleResetToDefault, handleSave } =
+    useSystemSettingsContext();
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
@@ -32,15 +25,16 @@ export function SystemSettingsHeader({
           )}
         </div>
         <p className="text-sm sm:text-[15px] text-[#475569] mt-1">
-          Thiết lập bảo mật đăng nhập, quy đổi xu Heo Đất, lịch mở đổi quà, thưởng thi đua tháng và hỗ trợ chấm bài AI.
+          Thiết lập bảo mật đăng nhập, quy định nộp bài, quy đổi xu Heo Đất, lịch mở đổi quà và hỗ trợ chấm bài AI.
         </p>
       </div>
 
       <div className="flex items-center gap-2.5 shrink-0">
         <button
           type="button"
-          onClick={onReset}
-          className="inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs sm:text-sm font-semibold transition-all shadow-2xs cursor-pointer active:scale-98"
+          disabled={isSaving}
+          onClick={handleResetToDefault}
+          className="inline-flex items-center justify-center gap-1.5 h-10 px-4 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs sm:text-sm font-semibold transition-all shadow-2xs cursor-pointer active:scale-98 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <RotateCcw className="w-4 h-4 text-slate-500" />
           <span>Đặt lại mặc định</span>
@@ -48,11 +42,16 @@ export function SystemSettingsHeader({
 
         <button
           type="button"
-          onClick={onSave}
-          className="inline-flex items-center justify-center gap-1.5 h-10 px-5 rounded-xl bg-[#0A62D6] hover:bg-[#084FB0] text-white text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer active:scale-98"
+          disabled={isSaving}
+          onClick={handleSave}
+          className="inline-flex items-center justify-center gap-1.5 h-10 px-5 rounded-xl bg-[#0A62D6] hover:bg-[#084FB0] text-white text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer active:scale-98 disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          <Save className="w-4 h-4" />
-          <span>Lưu cài đặt</span>
+          {isSaving ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Save className="w-4 h-4" />
+          )}
+          <span>{isSaving ? "Đang lưu..." : "Lưu cài đặt"}</span>
         </button>
       </div>
     </div>

@@ -8,6 +8,7 @@ import {
   ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
+import { cn } from "@/lib/utils";
 
 export type TooltipSide = "top" | "bottom" | "left" | "right";
 export type TooltipAlign = "start" | "center" | "end";
@@ -243,7 +244,10 @@ export function Tooltip({
             }`}
           >
             <div
-              className={`relative px-2.5 py-1.5 text-xs font-medium text-white bg-slate-900/95 backdrop-blur-xs rounded-xl shadow-xl border border-slate-700/60 leading-tight whitespace-nowrap max-w-xs ${className}`}
+              className={cn(
+                "relative px-3 py-1.5 text-xs font-medium text-white bg-slate-900/95 backdrop-blur-xs rounded-xl shadow-xl border border-slate-700/60 leading-relaxed w-max max-w-[min(280px,calc(100vw-24px))] whitespace-normal break-words text-left",
+                className
+              )}
             >
               {content}
 

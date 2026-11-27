@@ -132,6 +132,8 @@ export const CACHE_KEYS = {
     CURRENT_USER: "auth-me",
     /** Cấu hình hệ thống chung (Heo đất, tỷ giá xu, bảo trì) */
     CONFIG: "system-config",
+    /** Toàn bộ cấu hình quản trị hệ thống (bao gồm cả cấu hình nội bộ) */
+    ADMIN_SETTINGS: "admin-system-settings",
   },
 
   // 11. Layout & Sidebar Badges

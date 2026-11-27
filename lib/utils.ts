@@ -35,6 +35,23 @@ export function onlyNumberKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
 }
 
 /**
+ * Format số nguyên theo định dạng Việt Nam có dấu chấm phân cách hàng nghìn (ví dụ: 5000 -> "5.000")
+ */
+export function formatNumberInput(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return "0";
+  return Math.trunc(value).toLocaleString("vi-VN");
+}
+
+/**
+ * Phân tích chuỗi nhập liệu có dấu phân cách thành số nguyên không âm (ví dụ: "25.000" -> 25000)
+ */
+export function parseFormattedNumber(raw: string): number {
+  const digitsOnly = raw.replace(/\D/g, "");
+  if (!digitsOnly) return 0;
+  return Number(digitsOnly);
+}
+
+/**
  * Trích xuất tên gọi ngắn gọn từ họ và tên đầy đủ của học sinh
  * - Ví dụ: "Phạm Ngọc Viễn Đông" -> "Đông"
  * - "Nguyễn Văn A" -> "A"
