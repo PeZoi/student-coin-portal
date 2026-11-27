@@ -2,22 +2,52 @@
 
 import { useUserStore } from "@/stores/useUserStore";
 import { useConfigStore } from "@/stores/useConfigStore";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { COIN_STEP, VND_PER_STEP, ExchangeChoiceType } from "@/constants/rewards";
+import {
+  COIN_STEP,
+  VND_PER_STEP,
+  ExchangeChoiceType,
+} from "@/constants/rewards";
+import {
+  calculateFirstValidCashCoins,
+  evaluateExchangeEligibility,
+  normalizeExchangeConfig,
+} from "@/lib/system/exchangeRules";
+import { ExchangeSettingConfig } from "@/types/systemConfig";
 import { rewardExchangeService } from "../services/rewardExchangeService";
 
 export { COIN_STEP, VND_PER_STEP };
 
-export function useRewardExchange() {
+interface UseRewardExchangeOptions {
+  initialExchangeConfig?: ExchangeSettingConfig;
+  currentVietnamDay?: number;
+}
+
+export function useRewardExchange(options: UseRewardExchangeOptions = {}) {
+  const { initialExchangeConfig, currentVietnamDay } = options;
   const { student, setStudent } = useUserStore();
   const { configs } = useConfigStore();
 
-  // Lấy cấu hình động từ exchange_setting (tải từ API /api/system/config mỗi lần F5)
-  const stepCoins = configs?.exchange_setting?.step_coins ?? COIN_STEP;
-  const vndPerStep = configs?.exchange_setting?.vnd_per_step ?? VND_PER_STEP;
-  const minExchangeCoins =
-    configs?.exchange_setting?.min_exchange_coins ?? stepCoins;
+  // Ưu tiên cấu hình tươi từ SSR, fallback sang client store nếu render không qua SSR
+  const exchangeConfig = useMemo(
+    () =>
+      normalizeExchangeConfig(
+        initialExchangeConfig ?? configs?.exchange_setting
+      ),
+    [initialExchangeConfig, configs?.exchange_setting]
+  );
+
+  const {
+    step_coins: stepCoins,
+    vnd_per_step: vndPerStep,
+    min_exchange_coins: minExchangeCoins,
+  } = exchangeConfig;
+
+  const firstValidCashCoins = useMemo(
+    () => calculateFirstValidCashCoins(exchangeConfig),
+    [exchangeConfig]
+  );
 
   // State điều khiển mở popup / modal
   const [isCashModalOpen, setIsCashModalOpen] = useState(false);
@@ -26,23 +56,42 @@ export function useRewardExchange() {
   // Trạng thái đang gửi yêu cầu
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Học sinh có đủ số xu tối thiểu để đổi thưởng không
+  // Đánh giá toàn diện điều kiện mở cổng đổi quà (khung ngày + số xu tối thiểu)
   const currentCoins = student?.current_coins ?? 0;
-  const canExchange = currentCoins >= minExchangeCoins;
+  const eligibility = useMemo(
+    () =>
+      evaluateExchangeEligibility(
+        exchangeConfig,
+        currentCoins,
+        currentVietnamDay
+      ),
+    [exchangeConfig, currentCoins, currentVietnamDay]
+  );
+
+  // Điều kiện riêng cho đổi tiền mặt: cần đạt mốc bội số hợp lệ đầu tiên
+  const canExchangeCash =
+    eligibility.canExchange && currentCoins >= firstValidCashCoins;
 
   // Xác nhận đổi tiền mặt trong popup
   const handleConfirmCashExchange = useCallback(
     async (coinsToExchange: number) => {
-      if (coinsToExchange < minExchangeCoins) {
+      if (!eligibility.isWindowOpen) {
         toast.error(
-          `Số xu tối thiểu để đổi là ${minExchangeCoins.toLocaleString("vi-VN")} xu!`
+          eligibility.blockReason || "Cổng đổi quà hiện đang đóng!"
+        );
+        return false;
+      }
+
+      if (currentCoins < minExchangeCoins || coinsToExchange < minExchangeCoins) {
+        toast.error(
+          `Số xu tối thiểu để mở cổng đổi quà là ${minExchangeCoins.toLocaleString("vi-VN")} xu!`
         );
         return false;
       }
 
       if (coinsToExchange % stepCoins !== 0) {
         toast.error(
-          `Số xu đổi phải là bội số của ${stepCoins.toLocaleString("vi-VN")} xu!`
+          `Số xu đổi tiền mặt phải là bội số của ${stepCoins.toLocaleString("vi-VN")} xu!`
         );
         return false;
       }
@@ -78,10 +127,17 @@ export function useRewardExchange() {
         setIsSubmitting(false);
       }
     },
-    [currentCoins, minExchangeCoins, setStudent, stepCoins]
+    [
+      currentCoins,
+      eligibility.blockReason,
+      eligibility.isWindowOpen,
+      minExchangeCoins,
+      setStudent,
+      stepCoins,
+    ]
   );
 
-  // Xác nhận đổi quà tự chọn trong popup (tự động tính số xu theo config động)
+  // Xác nhận đổi quà tự chọn trong popup (tự động tính số xu theo tỷ giá động)
   const handleConfirmShopeeExchange = useCallback(
     async (
       link: string,
@@ -89,6 +145,21 @@ export function useRewardExchange() {
       itemPriceVnd?: number,
       coinsToExchange?: number
     ) => {
+      if (!eligibility.isWindowOpen) {
+        toast.error(
+          eligibility.blockReason || "Cổng đổi quà hiện đang đóng!"
+        );
+        return false;
+      }
+
+      if (!eligibility.hasEnoughCoins) {
+        toast.error(
+          eligibility.blockReason ||
+            `Con cần có ít nhất ${minExchangeCoins.toLocaleString("vi-VN")} xu để mở cổng đổi quà!`
+        );
+        return false;
+      }
+
       const trimmedLink = link.trim();
 
       if (!trimmedLink) {
@@ -101,7 +172,7 @@ export function useRewardExchange() {
         return false;
       }
 
-      // Tính số xu cần chính xác theo tỷ giá (không làm tròn theo step để không gây thiệt cho học sinh)
+      // Tính số xu cần chính xác theo tỷ giá (không làm tròn theo mốc tiền mặt)
       const coinsNeeded =
         coinsToExchange && coinsToExchange > 0
           ? coinsToExchange
@@ -144,12 +215,29 @@ export function useRewardExchange() {
         setIsSubmitting(false);
       }
     },
-    [currentCoins, setStudent, stepCoins, vndPerStep]
+    [
+      currentCoins,
+      eligibility.blockReason,
+      eligibility.hasEnoughCoins,
+      eligibility.isWindowOpen,
+      minExchangeCoins,
+      setStudent,
+      stepCoins,
+      vndPerStep,
+    ]
   );
 
   return {
     student,
-    canExchange,
+    exchangeConfig,
+    canExchange: eligibility.canExchange,
+    canExchangeCash,
+    isWindowOpen: eligibility.isWindowOpen,
+    hasEnoughCoins: eligibility.hasEnoughCoins,
+    missingCoins: eligibility.missingCoins,
+    windowLabel: eligibility.windowLabel,
+    blockReason: eligibility.blockReason,
+    firstValidCashCoins,
     isSubmitting,
     isCashModalOpen,
     setIsCashModalOpen,

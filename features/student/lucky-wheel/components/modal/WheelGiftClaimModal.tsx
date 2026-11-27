@@ -5,16 +5,19 @@ import Image from "next/image";
 import { AlertCircle, Gift, Link2, Sparkles, Tag, X } from "lucide-react";
 import { Button3D } from "@/components/ui/Button3D";
 import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
+import { useConfigStore } from "@/stores/useConfigStore";
 import {
-  MAX_SPIN_GIFT_VND,
-  SPIN_GIFT_EQUIVALENT_COINS,
-} from "@/constants/rewards";
+  calculateSpinGiftEquivalentCoins,
+  normalizeExchangeConfig,
+} from "@/lib/system/exchangeRules";
+import { ExchangeSettingConfig } from "@/types/systemConfig";
 import { WHEEL_ASSETS } from "@/constants/wheel";
 
 interface WheelGiftClaimModalProps {
   isOpen: boolean;
   onClose: () => void;
   unclaimedGiftsCount: number;
+  exchangeConfig?: ExchangeSettingConfig;
   isSubmitting: boolean;
   onConfirm: (link: string, note: string, priceVnd: number) => Promise<boolean>;
 }
@@ -22,6 +25,8 @@ interface WheelGiftClaimModalProps {
 interface WheelGiftClaimFormProps {
   onClose: () => void;
   unclaimedGiftsCount: number;
+  maxSpinGiftVnd: number;
+  equivalentCoins: number;
   isSubmitting: boolean;
   onConfirm: (link: string, note: string, priceVnd: number) => Promise<boolean>;
 }
@@ -29,6 +34,8 @@ interface WheelGiftClaimFormProps {
 function WheelGiftClaimForm({
   onClose,
   unclaimedGiftsCount,
+  maxSpinGiftVnd,
+  equivalentCoins,
   isSubmitting,
   onConfirm,
 }: WheelGiftClaimFormProps) {
@@ -48,7 +55,7 @@ function WheelGiftClaimForm({
 
   const rawDigits = priceInput.replace(/\D/g, "");
   const numericPrice = rawDigits ? parseInt(rawDigits, 10) : 0;
-  const isOverLimit = numericPrice > MAX_SPIN_GIFT_VND;
+  const isOverLimit = numericPrice > maxSpinGiftVnd;
   const isValidPrice = numericPrice > 0 && !isOverLimit;
   const canSubmit =
     unclaimedGiftsCount > 0 &&
@@ -92,7 +99,7 @@ function WheelGiftClaimForm({
               Mở Hộp Quà Vòng Quay
             </h3>
             <p className="text-xs sm:text-sm font-heading font-semibold text-purple-700">
-              Chọn món quà tối đa {MAX_SPIN_GIFT_VND.toLocaleString("vi-VN")}đ (Miễn phí 0 xu)!
+              Chọn món quà tối đa {maxSpinGiftVnd.toLocaleString("vi-VN")}đ (Miễn phí 0 xu)!
             </p>
           </div>
         </div>
@@ -119,7 +126,7 @@ function WheelGiftClaimForm({
             </span>
             <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 text-[11px] font-bold">
               <Sparkles className="w-3 h-3" />
-              Max {MAX_SPIN_GIFT_VND.toLocaleString("vi-VN")}đ
+              Max {maxSpinGiftVnd.toLocaleString("vi-VN")}đ
             </span>
           </div>
         </div>
@@ -144,14 +151,14 @@ function WheelGiftClaimForm({
             </div>
           </div>
 
-          {/* 2. Ô nhập số tiền của món quà (tối đa 25.000đ) */}
+          {/* 2. Ô nhập số tiền của món quà (tối đa theo hạn mức hệ thống) */}
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="block text-xs sm:text-sm font-heading font-bold text-slate-700">
                 Số tiền của món quà (VNĐ): <span className="text-red-500">*</span>
               </label>
               <span className="text-[11px] font-heading font-bold text-purple-700">
-                Tối đa {MAX_SPIN_GIFT_VND.toLocaleString("vi-VN")}đ
+                Tối đa {maxSpinGiftVnd.toLocaleString("vi-VN")}đ
               </span>
             </div>
             <div className="relative flex items-center rounded-xl border border-slate-300 bg-white focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-200 transition-all px-3 py-2 shadow-sm">
@@ -162,7 +169,7 @@ function WheelGiftClaimForm({
                 required
                 value={priceInput}
                 onChange={handlePriceChange}
-                placeholder="Nhập giá tiền món quà (ví dụ: 15.000, 20.000, 25.000...)"
+                placeholder={`Nhập giá tiền món quà (tối đa ${maxSpinGiftVnd.toLocaleString("vi-VN")}đ)...`}
                 className="w-full text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none"
               />
               <span className="text-xs sm:text-sm font-heading font-bold text-slate-400 ml-1">
@@ -171,7 +178,7 @@ function WheelGiftClaimForm({
             </div>
           </div>
 
-          {/* 3. Khung tóm tắt giá trị & kiểm tra hạn mức 25.000đ */}
+          {/* 3. Khung tóm tắt giá trị & kiểm tra hạn mức */}
           {numericPrice > 0 && (
             <div className="bg-gradient-to-r from-purple-50 to-fuchsia-50/70 border-2 border-purple-200/90 rounded-2xl p-3 sm:p-3.5 space-y-2 animate-in fade-in slide-in-from-top-1 duration-150 shadow-2xs">
               <div className="flex items-center justify-between text-xs sm:text-sm font-heading font-bold text-purple-950">
@@ -191,8 +198,8 @@ function WheelGiftClaimForm({
                 <span>Chi phí xu Heo Đất:</span>
                 <span className="font-bold text-emerald-700">
                   Miễn phí 0 xu (Hạn mức tối đa{" "}
-                  {MAX_SPIN_GIFT_VND.toLocaleString("vi-VN")}đ ={" "}
-                  {SPIN_GIFT_EQUIVALENT_COINS.toLocaleString("vi-VN")} xu)
+                  {maxSpinGiftVnd.toLocaleString("vi-VN")}đ ={" "}
+                  {equivalentCoins.toLocaleString("vi-VN")} xu)
                 </span>
               </div>
 
@@ -201,8 +208,8 @@ function WheelGiftClaimForm({
                   <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                   <span>
                     Món quà vượt quá hạn mức{" "}
-                    {MAX_SPIN_GIFT_VND.toLocaleString("vi-VN")}đ của Hộp quà vòng quay! Con vui lòng chọn món quà có giá từ{" "}
-                    {MAX_SPIN_GIFT_VND.toLocaleString("vi-VN")}đ trở xuống nhé.
+                    {maxSpinGiftVnd.toLocaleString("vi-VN")}đ của Hộp quà vòng quay! Con vui lòng chọn món quà có giá từ{" "}
+                    {maxSpinGiftVnd.toLocaleString("vi-VN")}đ trở xuống nhé.
                   </span>
                 </div>
               )}
@@ -260,18 +267,28 @@ export function WheelGiftClaimModal({
   isOpen,
   onClose,
   unclaimedGiftsCount,
+  exchangeConfig,
   isSubmitting,
   onConfirm,
 }: WheelGiftClaimModalProps) {
   useBodyScrollLock(isOpen);
+  const { configs } = useConfigStore();
 
   if (!isOpen) return null;
 
+  const effectiveConfig = normalizeExchangeConfig(
+    exchangeConfig ?? configs?.exchange_setting
+  );
+  const maxSpinGiftVnd = effectiveConfig.max_spin_gift_vnd;
+  const equivalentCoins = calculateSpinGiftEquivalentCoins(effectiveConfig);
+
   return (
     <WheelGiftClaimForm
-      key={`gift-claim-${unclaimedGiftsCount}`}
+      key={`gift-claim-${unclaimedGiftsCount}-${maxSpinGiftVnd}`}
       onClose={onClose}
       unclaimedGiftsCount={unclaimedGiftsCount}
+      maxSpinGiftVnd={maxSpinGiftVnd}
+      equivalentCoins={equivalentCoins}
       isSubmitting={isSubmitting}
       onConfirm={onConfirm}
     />

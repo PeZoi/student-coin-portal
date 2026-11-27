@@ -4,6 +4,7 @@ import { AuthTokenPayload } from "@/lib/auth/jwt";
 import { unstable_rethrow } from "next/navigation";
 import { formatShortDateTime } from "@/lib/date";
 import { getDisplayName } from "@/lib/utils";
+import { getExchangeSettingConfig } from "@/lib/system/serverConfig";
 import {
   WHEEL_CONSTANTS,
   WHEEL_PRIZE_TYPES,
@@ -70,7 +71,7 @@ export async function getStudentWheelInitialDataServer(
   try {
     const studentId = session?.userId;
 
-    const [prizesRes, settingsRes, studentRes] = await Promise.all([
+    const [prizesRes, settingsRes, studentRes, exchangeConfig] = await Promise.all([
       supabase
         .from("wheel_prizes")
         .select(
@@ -93,6 +94,8 @@ export async function getStudentWheelInitialDataServer(
             .eq("id", studentId)
             .maybeSingle()
         : Promise.resolve({ data: null }),
+
+      getExchangeSettingConfig(),
     ]);
 
     const prizes: WheelPrize[] = (prizesRes.data || []).map((p) => ({
@@ -142,6 +145,7 @@ export async function getStudentWheelInitialDataServer(
       free_spins,
       current_coins,
       unclaimed_gifts,
+      exchange_config: exchangeConfig,
     };
   } catch (error) {
     unstable_rethrow(error);

@@ -13,6 +13,7 @@ import {
   LuckyWheelProvider,
   useLuckyWheelContext,
 } from "../contexts/LuckyWheelContext";
+import { ExchangeSettingConfig } from "@/types/systemConfig";
 import { StudentWheelInitialData, WheelConfig } from "../types";
 import { WheelSpinner } from "./WheelSpinner";
 import {
@@ -26,7 +27,11 @@ interface LuckyWheelViewProps {
   initialConfig?: Partial<WheelConfig>;
 }
 
-function LuckyWheelContent() {
+function LuckyWheelContent({
+  initialExchangeConfig,
+}: {
+  initialExchangeConfig?: ExchangeSettingConfig;
+}) {
   const {
     winningPrize,
     showPrizeModal,
@@ -172,12 +177,13 @@ function LuckyWheelContent() {
       />
 
       {/* ======================================================== */}
-      {/* POPUP MODAL MỞ HỘP QUÀ VÒNG QUAY (DÁN LINK QUÀ <= 25K) */}
+      {/* POPUP MODAL MỞ HỘP QUÀ VÒNG QUAY (DÁN LINK QUÀ THEO HẠN MỨC ĐỘNG) */}
       {/* ======================================================== */}
       <WheelGiftClaimModal
         isOpen={showGiftClaimModal}
         onClose={handleCloseGiftClaimModal}
         unclaimedGiftsCount={unclaimedGiftsLeft}
+        exchangeConfig={initialExchangeConfig}
         isSubmitting={isClaimingGift}
         onConfirm={handleConfirmClaimGift}
       />
@@ -199,7 +205,7 @@ export function LuckyWheelView({
 }: LuckyWheelViewProps = {}) {
   return (
     <LuckyWheelProvider initialData={initialData} initialConfig={initialConfig}>
-      <LuckyWheelContent />
+      <LuckyWheelContent initialExchangeConfig={initialData?.exchange_config} />
     </LuckyWheelProvider>
   );
 }

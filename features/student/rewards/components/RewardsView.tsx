@@ -1,8 +1,12 @@
 "use client";
 
+import { Button3D } from "@/components/ui/Button3D";
+import { WHEEL_ASSETS } from "@/constants/wheel";
 import { DashboardBackgroundDecor } from "@/features/student/dashboard/components/DashboardBackgroundDecor";
-import { PiggyBankCard } from "@/features/student/dashboard/components/PiggyBankCard";
+import { ExchangeSettingConfig } from "@/types/systemConfig";
+import { ArrowLeft } from "lucide-react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import React from "react";
 import { useRewardExchange } from "../hooks/useRewardExchange";
 import { CashRewardCard } from "./CashRewardCard";
@@ -20,10 +24,22 @@ const ShopeeExchangeModal = dynamic(
 	{ ssr: false }
 );
 
-export function RewardsView() {
+interface RewardsViewProps {
+	initialExchangeConfig?: ExchangeSettingConfig;
+	currentVietnamDay?: number;
+}
+
+export function RewardsView({
+	initialExchangeConfig,
+	currentVietnamDay,
+}: RewardsViewProps = {}) {
 	const {
 		student,
+		exchangeConfig,
 		canExchange,
+		canExchangeCash,
+		windowLabel,
+		blockReason,
 		isSubmitting,
 		isCashModalOpen,
 		setIsCashModalOpen,
@@ -33,22 +49,57 @@ export function RewardsView() {
 		handleConfirmShopeeExchange,
 		coinStep,
 		vndPerStep,
-	} = useRewardExchange();
+		minExchangeCoins,
+	} = useRewardExchange({ initialExchangeConfig, currentVietnamDay });
+
+	const currentCoins = student?.current_coins ?? 0;
 
 	return (
-		<div className='relative w-full flex-1 flex flex-col justify-start lg:justify-center items-center px-3 sm:px-6 lg:px-8 pt-8 pb-8 sm:pt-10 sm:pb-10 lg:py-4 min-h-full overflow-visible'>
+		<div className='relative w-full flex-1 flex flex-col items-center justify-start px-3 sm:px-6 lg:px-8 pt-2 pb-8 sm:pt-3 sm:pb-10 min-h-full overflow-visible'>
 			{/* Decorative Sky Clouds, Ambient Radiance & Floating Stars */}
 			<DashboardBackgroundDecor />
 
-			{/* Main Content Layout Container - Đồng bộ 100% tỉ lệ, vị trí và căn giữa với Dashboard */}
-			<main className='relative z-10 w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-stretch my-auto pt-3 lg:pt-0'>
-				{/* Cột trái: Heo Đất Của Gia Bảo (5 cols trên lg) */}
-				<section className='lg:col-span-5 flex flex-col pt-3 lg:pt-0'>
-					<PiggyBankCard />
-				</section>
+			{/* Thanh đỉnh: Nút Quay lại (Trái) & Số dư Heo Đất (Phải) - Đồng bộ 100% với trang Vòng quay */}
+			<div className='relative z-30 w-full max-w-5xl flex items-center justify-between gap-2 mb-4 sm:mb-6 flex-shrink-0 pt-0.5 px-1 sm:px-2'>
+				<Button3D
+					href='/student'
+					variant='yellow'
+					size='sm'
+					className='h-8 sm:h-9 gap-1 sm:gap-1.5 px-3 sm:px-3.5 text-xs sm:text-sm tracking-wide flex-shrink-0 inline-flex items-center justify-center'
+				>
+					<ArrowLeft className='w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]' />
+					<span>Quay lại</span>
+				</Button3D>
 
-				{/* Cột phải: Khung Đổi Quà Nhận Thưởng (7 cols trên lg) - Đồng bộ 100% style với Dashboard */}
-				<section className='lg:col-span-7 flex flex-col'>
+				<div className='h-8 sm:h-9 flex items-center gap-1.5 px-2.5 sm:px-3.5 rounded-full bg-gradient-to-b from-[#FFA238] via-[#FF6A00] to-[#E04F00] border-2 border-white/95 shadow-[0_3px_8px_rgba(224,79,0,0.35),0_1.5px_0_#8F2800,inset_0_1.5px_2px_rgba(255,255,255,0.85),inset_0_-1.5px_2px_rgba(143,40,0,0.4)] select-none flex-shrink-0'>
+					<div className='relative w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 drop-shadow-[0_1.5px_2px_rgba(100,25,0,0.45)]'>
+						<Image
+							src={WHEEL_ASSETS.COIN}
+							alt='Xu'
+							width={20}
+							height={20}
+							unoptimized
+							style={{ height: "auto" }}
+							className='w-full h-full object-contain'
+						/>
+					</div>
+					<div className='flex items-baseline gap-1 font-heading leading-none'>
+						<span className='hidden min-[420px]:inline text-[11px] sm:text-xs font-bold text-amber-100 [text-shadow:0_1px_1.5px_rgba(120,30,0,0.8)]'>
+							Số dư:
+						</span>
+						<span className='font-heading font-black text-xs sm:text-sm text-white tracking-tight drop-shadow-[0_1.5px_2px_rgba(100,20,0,0.8)]'>
+							{currentCoins.toLocaleString("vi-VN")}
+						</span>
+						<span className='text-[10px] sm:text-[11px] font-black text-[#FEF08A] uppercase [text-shadow:0_1px_1.5px_rgba(120,30,0,0.8)]'>
+							xu
+						</span>
+					</div>
+				</div>
+			</div>
+
+			{/* Main Content: Khung Đổi Quà Nhận Thưởng căn giữa gọn gàng */}
+			<main className='relative z-10 w-full max-w-3xl mx-auto flex flex-col my-auto'>
+				<section className='w-full flex flex-col'>
 					{/* Khung ngoài tạo viền gradient mờ dần từ trên xuống dưới giống hệt NavigationGrid ở Dashboard */}
 					<div className='relative w-full h-full rounded-[28px] sm:rounded-[32px] p-[2px] bg-gradient-to-b from-white/40 via-white/18 to-white/10 shadow-[0_16px_36px_rgba(0,35,90,0.22)] overflow-visible mb-10 sm:mb-0'>
 						{/* Huy hiệu Ngôi sao Vàng 3D may mắn góc trên bên trái */}
@@ -176,7 +227,7 @@ export function RewardsView() {
 							<div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5 flex-1 items-stretch'>
 								{/* Thẻ 1: Nhận tiền mặt */}
 								<CashRewardCard
-									canExchange={canExchange}
+									canExchange={canExchangeCash}
 									onOpenModal={() => setIsCashModalOpen(true)}
 								/>
 
@@ -187,12 +238,18 @@ export function RewardsView() {
 								/>
 							</div>
 
-							{/* Footer Note with rich text-shadow */}
+							{/* Trạng thái cổng đổi quà */}
 							<div className='w-full mt-2.5 pt-1 text-center select-none'>
-								<p className='font-heading font-bold text-white text-[11.5px] sm:text-[12.5px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] [text-shadow:_0_1.5px_2px_rgba(0,25,80,0.9),_0_2px_6px_rgba(0,10,50,0.7)] px-2 leading-tight tracking-wide'>
-									*Sau khi con gửi yêu cầu, cô sẽ kiểm tra và trao
-									quà/tiền cho con nhé!
-								</p>
+								{blockReason ? (
+									<p className='font-heading font-bold text-amber-200 text-[11.5px] sm:text-[12.5px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] [text-shadow:_0_1.5px_2px_rgba(0,25,80,0.9),_0_2px_6px_rgba(0,10,50,0.7)] px-2 leading-tight tracking-wide'>
+										{blockReason}
+									</p>
+								) : (
+									<p className='font-heading font-bold text-white text-[11.5px] sm:text-[12.5px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] [text-shadow:_0_1.5px_2px_rgba(0,25,80,0.9),_0_2px_6px_rgba(0,10,50,0.7)] px-2 leading-tight tracking-wide'>
+										Cổng đổi quà đang mở ({windowLabel} • Tối thiểu{" "}
+										{minExchangeCoins.toLocaleString("vi-VN")} xu)
+									</p>
+								)}
 							</div>
 						</div>
 					</div>
@@ -202,9 +259,11 @@ export function RewardsView() {
 			{/* Popup Modal Đổi Tiền Mặt */}
 			{isCashModalOpen && (
 				<CashExchangeModal
+					key={`cash-${exchangeConfig.step_coins}-${exchangeConfig.min_exchange_coins}`}
 					isOpen={isCashModalOpen}
 					onClose={() => setIsCashModalOpen(false)}
 					currentCoins={student?.current_coins ?? 0}
+					exchangeConfig={exchangeConfig}
 					isSubmitting={isSubmitting}
 					onConfirm={handleConfirmCashExchange}
 				/>
@@ -213,9 +272,11 @@ export function RewardsView() {
 			{/* Popup Modal Đổi Quà Shopee */}
 			{isShopeeModalOpen && (
 				<ShopeeExchangeModal
+					key={`gift-${exchangeConfig.step_coins}-${exchangeConfig.vnd_per_step}`}
 					isOpen={isShopeeModalOpen}
 					onClose={() => setIsShopeeModalOpen(false)}
 					currentCoins={student?.current_coins ?? 0}
+					exchangeConfig={exchangeConfig}
 					isSubmitting={isSubmitting}
 					onConfirm={handleConfirmShopeeExchange}
 				/>

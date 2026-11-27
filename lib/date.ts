@@ -134,6 +134,23 @@ export function getCurrentVietnamMonthYear(
 }
 
 /**
+ * Lấy ngày trong tháng hiện tại (1-31) theo múi giờ Việt Nam (Asia/Ho_Chi_Minh)
+ */
+export function getCurrentVietnamDayOfMonth(
+  dateInput: Date = new Date()
+): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    day: "numeric",
+  }).formatToParts(dateInput);
+
+  const day = Number(parts.find((p) => p.type === "day")?.value);
+  return Number.isFinite(day) && day >= 1 && day <= 31
+    ? day
+    : dateInput.getDate();
+}
+
+/**
  * Lấy mốc thời gian bắt đầu tháng (00:00:00 ngày 1 theo múi giờ Việt Nam GMT+7 = 17:00:00 ngày cuối tháng trước UTC)
  * Trả về chuỗi ISO string chuẩn để truy vấn Database và thông tin tháng/năm hiện tại
  */

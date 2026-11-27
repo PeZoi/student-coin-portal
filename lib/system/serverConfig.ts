@@ -8,7 +8,7 @@ import {
   DEFAULT_AUTH_SECURITY_CONFIG,
   DEFAULT_CACHE_TTL_MS,
 } from "@/constants/system";
-import { COIN_STEP, VND_PER_STEP } from "@/constants/rewards";
+import { normalizeExchangeConfig } from "@/lib/system/exchangeRules";
 
 export { DEFAULT_AUTH_SECURITY_CONFIG };
 
@@ -100,33 +100,13 @@ export async function getAuthSecurityConfig(): Promise<AuthSecurityConfig> {
 }
 
 /**
- * Lấy cấu hình tỷ giá đổi quà Heo Đất (exchange_setting) có sẵn Server In-Memory Cache
+ * Lấy cấu hình tỷ giá đổi quà Heo Đất & điều kiện mở cổng (exchange_setting) có sẵn Server In-Memory Cache
  */
 export async function getExchangeSettingConfig(): Promise<ExchangeSettingConfig> {
   const rawConfig =
     await getSystemSetting<Partial<ExchangeSettingConfig>>("exchange_setting");
 
-  const step_coins =
-    typeof rawConfig?.step_coins === "number" && rawConfig.step_coins > 0
-      ? rawConfig.step_coins
-      : COIN_STEP;
-
-  const vnd_per_step =
-    typeof rawConfig?.vnd_per_step === "number" && rawConfig.vnd_per_step > 0
-      ? rawConfig.vnd_per_step
-      : VND_PER_STEP;
-
-  const min_exchange_coins =
-    typeof rawConfig?.min_exchange_coins === "number" &&
-    rawConfig.min_exchange_coins > 0
-      ? rawConfig.min_exchange_coins
-      : step_coins;
-
-  return {
-    step_coins,
-    vnd_per_step,
-    min_exchange_coins,
-  };
+  return normalizeExchangeConfig(rawConfig);
 }
 
 /**
@@ -161,6 +141,11 @@ export async function getPublicSystemConfigs(
         configMap[row.key] = row.value;
       }
     }
+
+    // Luôn chuẩn hóa exchange_setting để client luôn nhận đủ 7 trường (kể cả khi DB cũ chưa có trường mới)
+    configMap.exchange_setting = normalizeExchangeConfig(
+      configMap.exchange_setting as Partial<ExchangeSettingConfig> | undefined
+    );
 
     const result = configMap as unknown as SystemPublicConfigs;
     memoryCache.set(cacheKey, {

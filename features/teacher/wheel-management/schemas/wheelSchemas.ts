@@ -1,9 +1,5 @@
 import { z } from "zod";
 import { WHEEL_CONSTANTS } from "@/constants/wheel";
-import {
-  MAX_SPIN_GIFT_VND,
-  SPIN_GIFT_EQUIVALENT_COINS,
-} from "@/constants/rewards";
 import { httpUrlSchema } from "@/features/student/rewards/schemas/rewardSchemas";
 
 export const wheelPrizeTypeSchema = z.enum([
@@ -107,11 +103,7 @@ export const claimWheelGiftSchema = z.object({
   priceVnd: z
     .number({ message: "Số tiền món quà phải là số hợp lệ." })
     .finite("Số tiền món quà không hợp lệ.")
-    .positive("Số tiền món quà phải lớn hơn 0đ.")
-    .max(
-      MAX_SPIN_GIFT_VND,
-      `Món quà từ Hộp quà vòng quay chỉ được có giá tối đa ${MAX_SPIN_GIFT_VND.toLocaleString("vi-VN")}đ (tương đương ${SPIN_GIFT_EQUIVALENT_COINS.toLocaleString("vi-VN")} xu).`
-    ),
+    .positive("Số tiền món quà phải lớn hơn 0đ."),
   note: z.string().trim().max(500, "Ghi chú tối đa 500 ký tự.").optional(),
 });
 

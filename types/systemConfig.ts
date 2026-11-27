@@ -12,6 +12,10 @@ export interface ExchangeSettingConfig {
   min_exchange_coins: number;
   step_coins: number;
   vnd_per_step: number;
+  max_spin_gift_vnd: number;
+  is_exchange_window_enabled: boolean;
+  exchange_open_day: number;
+  exchange_close_day: number;
 }
 
 export interface MonthlyRewardSettingConfig {

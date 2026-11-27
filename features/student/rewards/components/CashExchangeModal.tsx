@@ -6,12 +6,17 @@ import { Banknote, Minus, Plus, X } from "lucide-react";
 import Image from "next/image";
 import React, { useState } from "react";
 import { useConfigStore } from "@/stores/useConfigStore";
-import { COIN_STEP, VND_PER_STEP } from "@/constants/rewards";
+import {
+  calculateFirstValidCashCoins,
+  normalizeExchangeConfig,
+} from "@/lib/system/exchangeRules";
+import { ExchangeSettingConfig } from "@/types/systemConfig";
 
 interface CashExchangeModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentCoins: number;
+  exchangeConfig?: ExchangeSettingConfig;
   isSubmitting: boolean;
   onConfirm: (coins: number) => Promise<boolean>;
 }
@@ -20,31 +25,39 @@ export function CashExchangeModal({
   isOpen,
   onClose,
   currentCoins,
+  exchangeConfig,
   isSubmitting,
   onConfirm,
 }: CashExchangeModalProps) {
   useBodyScrollLock(isOpen);
 
-  // Lấy cấu hình hệ thống động (gọi từ API /api/system/config mỗi lần F5)
+  // Ưu tiên cấu hình từ props (SSR), fallback sang client store
   const { configs } = useConfigStore();
-  const stepCoins = configs?.exchange_setting?.step_coins ?? COIN_STEP;
-  const vndPerStep = configs?.exchange_setting?.vnd_per_step ?? VND_PER_STEP;
-  const minExchangeCoins = configs?.exchange_setting?.min_exchange_coins ?? stepCoins;
+  const effectiveConfig = normalizeExchangeConfig(
+    exchangeConfig ?? configs?.exchange_setting
+  );
+  const {
+    step_coins: stepCoins,
+    vnd_per_step: vndPerStep,
+    min_exchange_coins: minExchangeCoins,
+  } = effectiveConfig;
+  const firstValidCashCoins = calculateFirstValidCashCoins(effectiveConfig);
 
-  const [selectedCoins, setSelectedCoins] = useState(minExchangeCoins);
+  const [selectedCoins, setSelectedCoins] = useState(firstValidCashCoins);
 
   if (!isOpen) return null;
 
-  const rewardVnd = (selectedCoins / stepCoins) * vndPerStep;
+  const rewardVnd = Math.round((selectedCoins / stepCoins) * vndPerStep);
   const remainingCoins = currentCoins - selectedCoins;
-  const isAffordable = currentCoins >= selectedCoins;
+  const isAffordable =
+    currentCoins >= selectedCoins && currentCoins >= minExchangeCoins;
 
   const handleIncrease = () => {
     setSelectedCoins((prev) => prev + stepCoins);
   };
 
   const handleDecrease = () => {
-    setSelectedCoins((prev) => Math.max(minExchangeCoins, prev - stepCoins));
+    setSelectedCoins((prev) => Math.max(firstValidCashCoins, prev - stepCoins));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -112,7 +125,7 @@ export function CashExchangeModal({
               <button
                 type="button"
                 onClick={handleDecrease}
-                disabled={selectedCoins <= minExchangeCoins}
+                disabled={selectedCoins <= firstValidCashCoins}
                 className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 flex items-center justify-center border border-slate-300 transition-colors font-black cursor-pointer disabled:cursor-not-allowed"
               >
                 <Minus className="w-4 h-4" />

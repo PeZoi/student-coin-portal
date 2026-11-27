@@ -6,12 +6,14 @@ import { Link2, ShoppingBag, Tag, X, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import React, { useState } from "react";
 import { useConfigStore } from "@/stores/useConfigStore";
-import { COIN_STEP, VND_PER_STEP } from "@/constants/rewards";
+import { normalizeExchangeConfig } from "@/lib/system/exchangeRules";
+import { ExchangeSettingConfig } from "@/types/systemConfig";
 
 interface ShopeeExchangeModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentCoins: number;
+  exchangeConfig?: ExchangeSettingConfig;
   isSubmitting: boolean;
   onConfirm: (
     link: string,
@@ -25,15 +27,16 @@ export function ShopeeExchangeModal({
   isOpen,
   onClose,
   currentCoins,
+  exchangeConfig,
   isSubmitting,
   onConfirm,
 }: ShopeeExchangeModalProps) {
   useBodyScrollLock(isOpen);
 
-  // Lấy cấu hình hệ thống động (gọi từ API /api/system/config mỗi lần F5)
+  // Ưu tiên cấu hình từ props (SSR), fallback sang client store
   const { configs } = useConfigStore();
-  const stepCoins = configs?.exchange_setting?.step_coins ?? COIN_STEP;
-  const vndPerStep = configs?.exchange_setting?.vnd_per_step ?? VND_PER_STEP;
+  const { step_coins: stepCoins, vnd_per_step: vndPerStep } =
+    normalizeExchangeConfig(exchangeConfig ?? configs?.exchange_setting);
 
   const [link, setLink] = useState("");
   const [priceInput, setPriceInput] = useState("");

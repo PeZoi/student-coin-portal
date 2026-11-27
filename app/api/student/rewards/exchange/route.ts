@@ -4,6 +4,10 @@ import { validateRequestBody } from "@/lib/api/validation";
 import { authorizeStudentRequest } from "@/lib/auth/guard";
 import { getCurrentVietnamMonthYear } from "@/lib/date";
 import { getExchangeSettingConfig } from "@/lib/system/serverConfig";
+import {
+  formatExchangeWindowLabel,
+  isWithinExchangeWindow,
+} from "@/lib/system/exchangeRules";
 import { HttpStatus, formatExchangeHoldTxDescription } from "@/constants";
 import { studentRewardExchangeSchema } from "@/features/student/rewards/schemas/rewardSchemas";
 import { SubmitRewardExchangeResponseData } from "@/features/student/rewards/types";
@@ -33,8 +37,47 @@ export async function POST(req: Request) {
     }
 
     const body = validation.data;
-    const { step_coins, vnd_per_step, min_exchange_coins } =
-      await getExchangeSettingConfig();
+    const exchangeConfig = await getExchangeSettingConfig();
+    const { step_coins, vnd_per_step, min_exchange_coins } = exchangeConfig;
+
+    // 1. Kiểm tra lịch mở cổng đổi quà theo ngày trong tháng (giờ Việt Nam)
+    if (!isWithinExchangeWindow(exchangeConfig)) {
+      const windowLabel = formatExchangeWindowLabel(exchangeConfig);
+      return apiError(
+        `Cổng đổi quà hiện đang đóng! Con hãy quay lại vào ${windowLabel} nhé.`,
+        HttpStatus.FORBIDDEN
+      );
+    }
+
+    // 2. Kiểm tra điều kiện số xu tối thiểu để mở cổng đổi quà (áp dụng cho cả Tiền mặt và Quà tự chọn)
+    const { data: studentBalanceRow, error: studentBalanceError } = await supabase
+      .from("users")
+      .select("current_coins, is_active")
+      .eq("id", auth.session.userId)
+      .maybeSingle();
+
+    if (studentBalanceError || !studentBalanceRow) {
+      return apiError(
+        "Không thể kiểm tra số dư Heo Đất hiện tại của học sinh.",
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    if (studentBalanceRow.is_active === false) {
+      return apiError(
+        "Tài khoản học sinh hiện không hoạt động.",
+        HttpStatus.FORBIDDEN
+      );
+    }
+
+    const currentStudentCoins = Number(studentBalanceRow.current_coins ?? 0);
+    if (currentStudentCoins < min_exchange_coins) {
+      return apiError(
+        `Cổng đổi quà yêu cầu tối thiểu ${min_exchange_coins.toLocaleString("vi-VN")} xu trong Heo Đất! Hiện tại con đang có ${currentStudentCoins.toLocaleString("vi-VN")} xu.`,
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
     const { month, year } = getCurrentVietnamMonthYear();
 
     let coinsToExchange = 0;
@@ -51,7 +94,7 @@ export async function POST(req: Request) {
 
       if (body.coinsToExchange % step_coins !== 0) {
         return apiError(
-          `Số xu đổi phải là bội số của ${step_coins.toLocaleString("vi-VN")} xu!`,
+          `Số xu đổi tiền mặt phải là bội số của ${step_coins.toLocaleString("vi-VN")} xu!`,
           HttpStatus.BAD_REQUEST
         );
       }

@@ -1,3 +1,5 @@
+import { ExchangeSettingConfig } from "@/types/systemConfig";
+
 export type PrizeType =
   | "coin"
   | "gift"
@@ -94,4 +96,5 @@ export interface StudentWheelInitialData {
   free_spins: number;
   current_coins: number;
   unclaimed_gifts?: number;
+  exchange_config?: ExchangeSettingConfig;
 }
