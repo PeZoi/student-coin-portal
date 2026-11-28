@@ -1,3 +1,5 @@
+import { AppRoutes } from "@/constants/routes";
+
 export interface TeacherSidebarBadgesData {
   pendingRewards: number;
   pendingSubmissions: number;
@@ -12,8 +14,8 @@ export const teacherBadgeService = {
   ): Promise<TeacherSidebarBadgesData> {
     const url =
       classId && classId !== "all"
-        ? `/api/teacher/sidebar-badges?classId=${encodeURIComponent(classId)}`
-        : "/api/teacher/sidebar-badges";
+        ? `${AppRoutes.API.TEACHER.SIDEBAR_BADGES}?classId=${encodeURIComponent(classId)}`
+        : AppRoutes.API.TEACHER.SIDEBAR_BADGES;
 
     const res = await fetch(url, {
       method: "GET",

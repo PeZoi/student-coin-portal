@@ -115,12 +115,20 @@ export const AppRoutes = {
       SUBMISSION_REJECT: (submissionId: string) =>
         `/api/teacher/submissions/${submissionId}/reject`,
       SUBMISSION_BATCH_APPROVE: "/api/teacher/submissions/batch-approve",
+      // Quản lý Đổi quà & Heo Đất (Reward Management)
+      REWARDS: "/api/teacher/rewards",
+      REWARD_APPROVE: (id: string) => `/api/teacher/rewards/${id}/approve`,
+      REWARD_REJECT: (id: string) => `/api/teacher/rewards/${id}/reject`,
+      REWARD_BATCH_APPROVE: "/api/teacher/rewards/batch-approve",
+      // Sidebar Badges
+      SIDEBAR_BADGES: "/api/teacher/sidebar-badges",
     },
     SYSTEM: {
       CONFIG: "/api/system/config",
     },
     ADMIN: {
       SYSTEM_SETTINGS: "/api/admin/system-settings",
+      SYSTEM_SETTINGS_TEST_AI: "/api/admin/system-settings/test-ai",
       AUDIT_LOGS: "/api/admin/audit-logs",
     },
     TEST_AI: {

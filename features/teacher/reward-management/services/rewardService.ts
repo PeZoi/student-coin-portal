@@ -1,3 +1,4 @@
+import { AppRoutes } from "@/constants/routes";
 import {
   TeacherExchangeRequestItem,
   ExchangeFilterStatus,
@@ -40,7 +41,7 @@ export const rewardService = {
     }
 
     const query = searchParams.toString();
-    const url = `/api/teacher/rewards${query ? `?${query}` : ""}`;
+    const url = `${AppRoutes.API.TEACHER.REWARDS}${query ? `?${query}` : ""}`;
     const res = await fetch(url, { method: "GET" });
     const data = await res.json();
 
@@ -55,7 +56,7 @@ export const rewardService = {
    * Duyệt yêu cầu đổi quà của học sinh
    */
   async approveReward(id: string): Promise<void> {
-    const res = await fetch(`/api/teacher/rewards/${id}/approve`, {
+    const res = await fetch(AppRoutes.API.TEACHER.REWARD_APPROVE(id), {
       method: "POST",
     });
     const data = await res.json();
@@ -69,7 +70,7 @@ export const rewardService = {
    * Duyệt hàng loạt danh sách yêu cầu đổi quà
    */
   async batchApproveRewards(requestIds: string[]): Promise<{ approvedCount: number }> {
-    const res = await fetch("/api/teacher/rewards/batch-approve", {
+    const res = await fetch(AppRoutes.API.TEACHER.REWARD_BATCH_APPROVE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ requestIds }),
@@ -87,7 +88,7 @@ export const rewardService = {
    * Từ chối yêu cầu đổi quà & hoàn xu vào Heo Đất
    */
   async rejectReward(id: string, reason: string): Promise<void> {
-    const res = await fetch(`/api/teacher/rewards/${id}/reject`, {
+    const res = await fetch(AppRoutes.API.TEACHER.REWARD_REJECT(id), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ reason }),

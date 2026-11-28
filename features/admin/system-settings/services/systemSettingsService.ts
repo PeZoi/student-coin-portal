@@ -1,4 +1,5 @@
 import { http } from "@/lib/http/httpClient";
+import { AppRoutes } from "@/constants/routes";
 import { ApiResponse } from "@/types/api";
 import {
   SystemSettingsFormState,
@@ -13,7 +14,7 @@ import {
 export const systemSettingsService = {
   async getSettings(): Promise<SystemSettingsPayload> {
     const res = await http.get<ApiResponse<SystemSettingsPayload>>(
-      "/api/admin/system-settings"
+      AppRoutes.API.ADMIN.SYSTEM_SETTINGS
     );
     if (!res.success || !res.data) {
       throw new Error(res.message || "Không thể tải cài đặt hệ thống.");
@@ -25,7 +26,7 @@ export const systemSettingsService = {
     settings: SystemSettingsFormState
   ): Promise<SystemSettingsPayload> {
     const res = await http.put<ApiResponse<SystemSettingsPayload>>(
-      "/api/admin/system-settings",
+      AppRoutes.API.ADMIN.SYSTEM_SETTINGS,
       settings
     );
     if (!res.success || !res.data) {
@@ -38,7 +39,7 @@ export const systemSettingsService = {
     payload: TestAiConnectionPayload
   ): Promise<TestAiConnectionResult> {
     const res = await http.post<ApiResponse<TestAiConnectionResult>>(
-      "/api/admin/system-settings/test-ai",
+      AppRoutes.API.ADMIN.SYSTEM_SETTINGS_TEST_AI,
       payload
     );
     if (!res.success || !res.data) {

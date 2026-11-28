@@ -33,7 +33,7 @@ export const luckyWheelService = {
    */
   async getWheelData(): Promise<StudentWheelInitialData | null> {
     const res = await http.get<ApiResponse<StudentWheelInitialData>>(
-      "/api/student/wheel"
+      AppRoutes.API.STUDENT.WHEEL
     );
     return res.data ?? null;
   },
@@ -43,7 +43,7 @@ export const luckyWheelService = {
    */
   async spinWheel(clientSlotIds: string[]): Promise<SpinApiResponseData> {
     const res = await http.post<ApiResponse<SpinApiResponseData>>(
-      "/api/student/wheel/spin",
+      AppRoutes.API.STUDENT.WHEEL_SPIN,
       {
         client_slot_ids: clientSlotIds,
       }

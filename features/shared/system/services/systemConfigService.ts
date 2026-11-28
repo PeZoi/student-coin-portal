@@ -1,4 +1,5 @@
 import { http } from "@/lib/http/httpClient";
+import { AppRoutes } from "@/constants/routes";
 import { ApiResponse } from "@/types/api";
 import { SystemPublicConfigs } from "@/types/systemConfig";
 
@@ -15,7 +16,7 @@ export const systemConfigService = {
   async getPublicConfigs(): Promise<SystemPublicConfigs | null> {
     try {
       const response = await http.get<ApiResponse<SystemPublicConfigs>>(
-        "/api/system/config",
+        AppRoutes.API.SYSTEM.CONFIG,
         {
           skipUnauthorizedHandler: true, // Tránh gọi nhầm handler khi token vừa hết hạn
         }
