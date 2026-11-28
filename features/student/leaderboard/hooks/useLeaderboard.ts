@@ -1,93 +1,80 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr";
+import { CACHE_KEYS } from "@/constants/cacheKeys";
+import { studentLeaderboardService } from "../services/studentLeaderboardService";
 import {
-  currentMonthLeaderboard,
-  previousMonthLeaderboard,
-} from "../data/mockLeaderboardData";
-import { MonthlyLeaderboardData, PeriodType, TopCoinStudent, TopProgressStudent } from "../types";
+  PeriodType,
+  StudentLeaderboardBoardId,
+  StudentLeaderboardPayload,
+} from "../types";
 
-export function useLeaderboard() {
-  const [activePeriod, setActivePeriod] = useState<PeriodType>("current_month");
-  const [selectedClass, setSelectedClass] = useState<string>("all");
+interface UseLeaderboardOptions {
+  initialData: StudentLeaderboardPayload;
+}
 
-  // Dữ liệu thô theo chu kỳ tháng
-  const rawData: MonthlyLeaderboardData = useMemo(() => {
-    return activePeriod === "current_month"
-      ? currentMonthLeaderboard
-      : previousMonthLeaderboard;
-  }, [activePeriod]);
+/**
+ * Custom Hook quản lý Bảng xếp hạng học sinh (Mô hình 2 tầng SSR + SWR)
+ * - 0 duplicate fetch khi khớp dữ liệu khởi tạo từ Server Component
+ * - Hỗ trợ chuyển đổi kỳ (Tháng Hiện Tại / Tháng Trước), 3 Tab BXH, và chọn lớp (chỉ dành cho Admin)
+ */
+export function useLeaderboard({ initialData }: UseLeaderboardOptions) {
+  const [activePeriod, setActivePeriod] = useState<PeriodType>(
+    initialData.period
+  );
+  const [activeBoard, setActiveBoard] =
+    useState<StudentLeaderboardBoardId>("top_coins");
+  const [selectedClass, setSelectedClass] = useState<string>(
+    initialData.selectedClassId
+  );
+  const [isRuleModalOpen, setIsRuleModalOpen] = useState<boolean>(false);
 
-  // Danh sách các lớp có sẵn được trích xuất tự động và sắp xếp chuẩn
-  const availableClasses = useMemo(() => {
-    const classSet = new Set<string>();
-    rawData.topCoins.forEach((item) => classSet.add(item.classGroup));
-    rawData.topProgress.forEach((item) => classSet.add(item.classGroup));
+  const canSelectClass = initialData.canSelectClass;
+  const effectiveClassId = canSelectClass
+    ? selectedClass
+    : initialData.selectedClassId;
 
-    // Đảm bảo có đầy đủ các lớp tiêu biểu
-    ["Lớp 5A", "Lớp 5B", "Lớp 5C", "Lớp 5D", "Lớp 5E"].forEach((c) =>
-      classSet.add(c)
-    );
+  const isMatchingInitial =
+    activePeriod === initialData.period &&
+    (!canSelectClass || effectiveClassId === initialData.selectedClassId);
 
-    const sorted = Array.from(classSet).sort((a, b) =>
-      a.localeCompare(b, "vi")
-    );
+  const swrKey = CACHE_KEYS.LEADERBOARD.STUDENT(
+    activePeriod,
+    canSelectClass ? effectiveClassId || "all" : "self"
+  );
 
-    return [
-      { id: "all", label: "Tất cả các lớp" },
-      ...sorted.map((cls) => ({ id: cls, label: cls })),
-    ];
-  }, [rawData]);
-
-  // Dữ liệu bảng xếp hạng sau khi áp dụng bộ lọc theo lớp
-  const data: MonthlyLeaderboardData = useMemo(() => {
-    if (selectedClass === "all") {
-      return rawData;
+  const { data: swrData, isValidating, error } = useSWR(
+    swrKey,
+    () =>
+      studentLeaderboardService.getLeaderboard({
+        period: activePeriod,
+        classId: canSelectClass ? effectiveClassId : undefined,
+      }),
+    {
+      fallbackData: isMatchingInitial ? initialData : undefined,
+      revalidateOnMount: !isMatchingInitial,
+      revalidateIfStale: !isMatchingInitial,
+      revalidateOnFocus: false,
+      dedupingInterval: 20000,
     }
+  );
 
-    // Lọc và xếp lại thứ hạng cho Top Xu theo lớp được chọn
-    const filteredCoins: TopCoinStudent[] = rawData.topCoins
-      .filter((item) => item.classGroup === selectedClass)
-      .map((item, index) => ({
-        ...item,
-        rank: index + 1,
-        bonusCoins: index === 0 ? 150 : index === 1 ? 100 : index === 2 ? 50 : undefined,
-      }));
-
-    // Lọc và xếp lại thứ hạng cho Top Tiến Bộ theo lớp được chọn
-    const filteredProgress: TopProgressStudent[] = rawData.topProgress
-      .filter((item) => item.classGroup === selectedClass)
-      .map((item, index) => ({
-        ...item,
-        rank: index + 1,
-        bonusPoints: index === 0 ? 300 : index === 1 ? 200 : index === 2 ? 100 : undefined,
-      }));
-
-    return {
-      ...rawData,
-      topCoins: filteredCoins,
-      topProgress: filteredProgress,
-    };
-  }, [rawData, selectedClass]);
-
-  // Thông tin thứ hạng của học sinh hiện tại (Gia Bảo) trong Top Xu
-  const currentUserCoinRank = useMemo(() => {
-    return data.topCoins.find((item) => item.isCurrentUser);
-  }, [data.topCoins]);
-
-  // Thông tin thứ hạng của học sinh hiện tại (Gia Bảo) trong Top Tiến Bộ
-  const currentUserProgressRank = useMemo(() => {
-    return data.topProgress.find((item) => item.isCurrentUser);
-  }, [data.topProgress]);
+  const data = swrData ?? initialData;
 
   return {
     activePeriod,
     setActivePeriod,
-    selectedClass,
+    activeBoard,
+    setActiveBoard,
+    selectedClass: effectiveClassId,
     setSelectedClass,
-    availableClasses,
+    canSelectClass: data.canSelectClass,
+    availableClasses: data.availableClasses,
     data,
-    currentUserCoinRank,
-    currentUserProgressRank,
+    isLoading: isValidating && !isMatchingInitial,
+    isError: Boolean(error),
+    isRuleModalOpen,
+    setIsRuleModalOpen,
   };
 }

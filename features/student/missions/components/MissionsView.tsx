@@ -11,29 +11,16 @@ export function MissionsView() {
       {/* Background Decor: Mây thực tế bồng bềnh và ánh sáng bầu trời */}
       <DashboardBackgroundDecor />
 
-      {/* Nút 3D Desktop: Quay lại Trang chủ cố định góc trên bên trái */}
-      <div className="hidden lg:flex items-center justify-start absolute top-3 left-6 z-30">
+      {/* Thanh đỉnh: Nút Quay lại (Trái) - Đồng bộ 100% với trang Vòng quay & Đổi quà */}
+      <div className="relative z-30 w-full max-w-5xl flex items-center justify-between gap-2 mb-1 sm:mb-2 flex-shrink-0 pt-0.5 px-1 sm:px-2">
         <Button3D
           href="/student"
           variant="yellow"
           size="sm"
-          className="gap-1.5 py-1.5 px-3.5 text-sm tracking-wide"
+          className="h-8 sm:h-9 gap-1 sm:gap-1.5 px-3 sm:px-3.5 text-xs sm:text-sm tracking-wide flex-shrink-0 inline-flex items-center justify-center"
         >
-          <ArrowLeft className="w-4 h-4 stroke-[3]" />
-          <span>Quay lại Trang chủ</span>
-        </Button3D>
-      </div>
-
-      {/* Nút 3D Mobile: Icon mũi tên gọn gàng (vùng chạm 44x44) nằm ở góc trên bên trái, tiết kiệm ~40px chiều cao */}
-      <div className="lg:hidden absolute top-2 left-2 z-30">
-        <Button3D
-          href="/student"
-          variant="yellow"
-          size="sm"
-          aria-label="Quay lại Trang chủ"
-          className="w-11 h-11 p-0 rounded-full flex items-center justify-center shadow-md cursor-pointer"
-        >
-          <ArrowLeft className="w-5 h-5 stroke-[3]" />
+          <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
+          <span>Quay lại</span>
         </Button3D>
       </div>
 

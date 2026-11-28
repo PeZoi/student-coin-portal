@@ -61,6 +61,7 @@ export const AppRoutes = {
       WHEEL_HISTORY: "/api/student/wheel/history",
       WHEEL_CLAIM_GIFT: "/api/student/wheel/claim-gift",
       REWARDS_EXCHANGE: "/api/student/rewards/exchange",
+      LEADERBOARD: "/api/student/leaderboard",
     },
     TEACHER: {
       DASHBOARD: "/api/teacher/dashboard",

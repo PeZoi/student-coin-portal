@@ -103,9 +103,12 @@ export const CACHE_KEYS = {
 
   // 8. Bảng xếp hạng (Leaderboard)
   LEADERBOARD: {
-    /** Bảng xếp hạng theo chu kỳ tháng và theo lớp */
+    /** Bảng xếp hạng giáo viên theo chu kỳ tháng và theo lớp */
     MONTHLY: (period: string = "current_month", classId: string = "all") =>
       `leaderboard-${period}-${classId}`,
+    /** Bảng xếp hạng học sinh theo kỳ tháng và lớp (Admin có thể chọn lớp để test UI) */
+    STUDENT: (period: string = "current_month", classId: string = "default") =>
+      ["student-leaderboard", period, classId] as const,
   },
 
   // 9. Quản lý Đổi quà & Heo Đất (Reward Management)

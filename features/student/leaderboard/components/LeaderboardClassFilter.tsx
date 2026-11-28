@@ -3,51 +3,38 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { GraduationCap, ChevronDown, Check, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface ClassOption {
-  id: string;
-  label: string;
-}
+import { StudentClassOption } from "../types";
 
 interface LeaderboardClassFilterProps {
   selectedClass: string;
-  onChangeClass: (classGroup: string) => void;
-  classes?: ClassOption[];
+  onChangeClass: (classId: string) => void;
+  classes: StudentClassOption[];
 }
 
-const DEFAULT_CLASSES: ClassOption[] = [
-  { id: "all", label: "Tất cả các lớp" },
-  { id: "Lớp 5A", label: "Lớp 5A" },
-  { id: "Lớp 5B", label: "Lớp 5B" },
-  { id: "Lớp 5C", label: "Lớp 5C" },
-  { id: "Lớp 5D", label: "Lớp 5D" },
-  { id: "Lớp 5E", label: "Lớp 5E" },
-];
-
+/**
+ * Bộ lọc chọn lớp (chỉ hiển thị cho Admin để kiểm tra giao diện các lớp)
+ */
 export function LeaderboardClassFilter({
   selectedClass,
   onChangeClass,
-  classes = DEFAULT_CLASSES,
+  classes,
 }: LeaderboardClassFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Tên hiển thị của lớp đang chọn
   const activeLabel = useMemo(() => {
     const match = classes.find((c) => c.id === selectedClass);
-    return match ? match.label : "Tất cả các lớp";
+    return match ? match.label : classes[0]?.label ?? "Tất cả các lớp";
   }, [classes, selectedClass]);
 
-  // Lọc danh sách lớp theo ô tìm kiếm
   const filteredClasses = useMemo(() => {
     if (!searchQuery.trim()) return classes;
     const query = searchQuery.trim().toLowerCase();
     return classes.filter((cls) => cls.label.toLowerCase().includes(query));
   }, [classes, searchQuery]);
 
-  // Tự động focus vào ô search khi mở dropdown
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => {
@@ -57,13 +44,11 @@ export function LeaderboardClassFilter({
     }
   }, [isOpen]);
 
-  // Đóng dropdown và reset ô tìm kiếm trong event handler
   const handleCloseDropdown = () => {
     setIsOpen(false);
     setSearchQuery("");
   };
 
-  // Xử lý đóng Dropdown khi click ra ngoài hoặc bấm phím Escape
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -96,6 +81,8 @@ export function LeaderboardClassFilter({
     handleCloseDropdown();
   };
 
+  if (classes.length === 0) return null;
+
   return (
     <div
       ref={dropdownRef}
@@ -110,7 +97,8 @@ export function LeaderboardClassFilter({
         className={cn(
           "cursor-pointer transition-all duration-200 rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-heading tracking-wide flex items-center gap-2",
           "bg-[#0B4899]/85 hover:bg-[#0E54B0] active:scale-[0.98] backdrop-blur-md border border-sky-300/40 shadow-[0_8px_20px_rgba(0,25,75,0.35)] text-white font-black",
-          isOpen && "ring-2 ring-amber-400 border-transparent shadow-[0_0_15px_rgba(251,191,36,0.4)]"
+          isOpen &&
+            "ring-2 ring-amber-400 border-transparent shadow-[0_0_15px_rgba(251,191,36,0.4)]"
         )}
       >
         <GraduationCap className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-amber-300 flex-shrink-0" />
@@ -125,10 +113,9 @@ export function LeaderboardClassFilter({
         />
       </button>
 
-      {/* Menu thả xuống (Dropdown Panel) */}
+      {/* Menu thả xuống */}
       {isOpen && (
         <div className="absolute top-full mt-2 right-0 sm:right-auto sm:left-0 w-56 sm:w-64 bg-[#073F8A]/95 backdrop-blur-xl border-2 border-sky-300/60 rounded-2xl p-2 shadow-[0_16px_40px_rgba(0,20,60,0.55)] z-50 flex flex-col gap-1.5 animate-in fade-in zoom-in-95 duration-150">
-          {/* Ô tìm kiếm nhanh lớp học */}
           <div className="relative w-full">
             <Search className="w-3.5 h-3.5 text-sky-300 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
@@ -141,7 +128,6 @@ export function LeaderboardClassFilter({
             />
           </div>
 
-          {/* Danh sách lớp hỗ trợ cuộn nếu có nhiều lớp */}
           <div className="max-h-56 sm:max-h-64 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
             {filteredClasses.length > 0 ? (
               filteredClasses.map((cls) => {
