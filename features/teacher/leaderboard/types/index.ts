@@ -9,6 +9,13 @@ export type LeaderboardBoardId =
   | "progress_leaders"
   | "progress_risers";
 
+export interface LeaderboardMonthOption {
+  monthKey: string;
+  month: number;
+  year: number;
+  label: string;
+}
+
 export interface RawStudentMonthPerformance {
   studentId: string;
   fullName: string;
@@ -18,6 +25,8 @@ export interface RawStudentMonthPerformance {
   prevMonthCoins: number;
   completedMissionsCount: number;
   totalMissionsCount: number;
+  /** Học sinh mới tạo tài khoản trong tháng đang xem (chưa có dữ liệu tháng trước) */
+  isNewStudent?: boolean;
 }
 
 export interface MonthlyLeaderboardDataset {
@@ -39,6 +48,8 @@ export interface TopCoinsRankEntry {
   deltaCoins: number | null;
   completedMissionsCount: number;
   totalMissionsCount: number;
+  /** Học sinh mới tạo tài khoản trong tháng đang xem (chưa có dữ liệu tháng trước) */
+  isNewStudent?: boolean;
 }
 
 export interface ProgressRankEntry {
@@ -55,6 +66,8 @@ export interface ProgressRankEntry {
   completedMissionsCount: number;
   totalMissionsCount: number;
   isImproved: boolean;
+  /** Học sinh mới vào trong tháng -> xếp cuối Nhóm Vươn Lên */
+  isNewStudent?: boolean;
 }
 
 export interface ComputedLeaderboardData {
@@ -67,4 +80,17 @@ export interface ComputedLeaderboardData {
   topCoinsBoard: TopCoinsRankEntry[];
   progressLeadersBoard: ProgressRankEntry[];
   progressRisersBoard: ProgressRankEntry[];
+}
+
+export interface TeacherLeaderboardApiPayload {
+  classId: string;
+  monthKey: string;
+  month: number;
+  year: number;
+  monthLabel: string;
+  previousMonthLabel: string | null;
+  isClosed: boolean;
+  closedAt: string | null;
+  availableMonths: LeaderboardMonthOption[];
+  computed: ComputedLeaderboardData;
 }

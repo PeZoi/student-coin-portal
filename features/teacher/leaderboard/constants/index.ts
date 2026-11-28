@@ -1,365 +1,90 @@
-import { MonthlyLeaderboardDataset } from "../types";
+import {
+  ComputedLeaderboardData,
+  LeaderboardMonthOption,
+  TeacherLeaderboardApiPayload,
+} from "../types";
 
 /**
- * Dữ liệu mẫu 13 học sinh (số lẻ) để minh họa rõ cơ chế chia đôi:
- * - 13 / 2 = 6 học sinh thuộc Nhóm Dẫn Đầu (Top chăm chỉ tháng trước)
- * - 7 học sinh thuộc Nhóm Vươn Lên (Nửa sau tháng trước + 1 phần dư)
- * Kèm 3 kỳ tháng (trong đó Tháng 09/2026 là tháng khởi đầu chưa có dữ liệu tháng trước)
+ * Định dạng mã tháng chuẩn "YYYY-MM"
  */
-export const MOCK_MONTHLY_LEADERBOARD_DATASETS: MonthlyLeaderboardDataset[] = [
-  {
-    monthKey: "2026-11",
-    label: "Tháng 11/2026 (Hiện tại)",
-    hasPreviousMonthData: true,
-    previousMonthLabel: "Tháng 10/2026",
-    students: [
-      {
-        studentId: "st-1",
-        fullName: "Nguyễn Minh An",
-        avatarUrl: "/avatar-chibi/male-1.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 2450,
-        prevMonthCoins: 1850,
-        completedMissionsCount: 24,
-        totalMissionsCount: 24,
-      },
-      {
-        studentId: "st-2",
-        fullName: "Trần Bảo Ngọc",
-        avatarUrl: "/avatar-chibi/female-1.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 2280,
-        prevMonthCoins: 1520,
-        completedMissionsCount: 23,
-        totalMissionsCount: 24,
-      },
-      {
-        studentId: "st-3",
-        fullName: "Lê Hoàng Nam",
-        avatarUrl: "/avatar-chibi/male-2.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 1960,
-        prevMonthCoins: 1710,
-        completedMissionsCount: 21,
-        totalMissionsCount: 24,
-      },
-      {
-        studentId: "st-4",
-        fullName: "Phạm Tuấn Kiệt",
-        avatarUrl: "/avatar-chibi/male-3.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 1890,
-        prevMonthCoins: 1480,
-        completedMissionsCount: 20,
-        totalMissionsCount: 24,
-      },
-      {
-        studentId: "st-5",
-        fullName: "Đỗ Thùy Linh",
-        avatarUrl: "/avatar-chibi/female-2.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 1620,
-        prevMonthCoins: 1690,
-        completedMissionsCount: 19,
-        totalMissionsCount: 24,
-      },
-      {
-        studentId: "st-6",
-        fullName: "Vũ Gia Hưng",
-        avatarUrl: "/avatar-chibi/male-4.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 1540,
-        prevMonthCoins: 1420,
-        completedMissionsCount: 18,
-        totalMissionsCount: 24,
-      },
-      // --- Nửa sau tháng trước (7 bạn: gồm phần dư) ---
-      {
-        studentId: "st-7",
-        fullName: "Đặng Mai Phương",
-        avatarUrl: "/avatar-chibi/female-3.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 1480,
-        prevMonthCoins: 620,
-        completedMissionsCount: 20,
-        totalMissionsCount: 24,
-      },
-      {
-        studentId: "st-8",
-        fullName: "Hoàng Đức Anh",
-        avatarUrl: "/avatar-chibi/male-5.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 1320,
-        prevMonthCoins: 450,
-        completedMissionsCount: 18,
-        totalMissionsCount: 24,
-      },
-      {
-        studentId: "st-9",
-        fullName: "Bùi Khánh Vy",
-        avatarUrl: "/avatar-chibi/female-4.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 1210,
-        prevMonthCoins: 890,
-        completedMissionsCount: 17,
-        totalMissionsCount: 24,
-      },
-      {
-        studentId: "st-10",
-        fullName: "Ngô Quang Minh",
-        avatarUrl: "/avatar-chibi/male-1.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 980,
-        prevMonthCoins: 280,
-        completedMissionsCount: 15,
-        totalMissionsCount: 24,
-      },
-      {
-        studentId: "st-11",
-        fullName: "Lý Thảo Nhi",
-        avatarUrl: "/avatar-chibi/female-1.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 910,
-        prevMonthCoins: 760,
-        completedMissionsCount: 14,
-        totalMissionsCount: 24,
-      },
-      {
-        studentId: "st-12",
-        fullName: "Trịnh Quốc Bảo",
-        avatarUrl: "/avatar-chibi/male-2.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 740,
-        prevMonthCoins: 510,
-        completedMissionsCount: 12,
-        totalMissionsCount: 24,
-      },
-      {
-        studentId: "st-13",
-        fullName: "Mai Gia Hân",
-        avatarUrl: "/avatar-chibi/female-2.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 420,
-        prevMonthCoins: 490,
-        completedMissionsCount: 9,
-        totalMissionsCount: 24,
-      },
-    ],
-  },
-  {
-    monthKey: "2026-10",
-    label: "Tháng 10/2026",
-    hasPreviousMonthData: true,
-    previousMonthLabel: "Tháng 09/2026",
-    students: [
-      {
-        studentId: "st-1",
-        fullName: "Nguyễn Minh An",
-        avatarUrl: "/avatar-chibi/male-1.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 1850,
-        prevMonthCoins: 1400,
-        completedMissionsCount: 20,
-        totalMissionsCount: 22,
-      },
-      {
-        studentId: "st-3",
-        fullName: "Lê Hoàng Nam",
-        avatarUrl: "/avatar-chibi/male-2.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 1710,
-        prevMonthCoins: 1350,
-        completedMissionsCount: 19,
-        totalMissionsCount: 22,
-      },
-      {
-        studentId: "st-5",
-        fullName: "Đỗ Thùy Linh",
-        avatarUrl: "/avatar-chibi/female-2.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 1690,
-        prevMonthCoins: 1200,
-        completedMissionsCount: 19,
-        totalMissionsCount: 22,
-      },
-      {
-        studentId: "st-2",
-        fullName: "Trần Bảo Ngọc",
-        avatarUrl: "/avatar-chibi/female-1.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 1520,
-        prevMonthCoins: 1100,
-        completedMissionsCount: 18,
-        totalMissionsCount: 22,
-      },
-      {
-        studentId: "st-4",
-        fullName: "Phạm Tuấn Kiệt",
-        avatarUrl: "/avatar-chibi/male-3.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 1480,
-        prevMonthCoins: 950,
-        completedMissionsCount: 17,
-        totalMissionsCount: 22,
-      },
-      {
-        studentId: "st-6",
-        fullName: "Vũ Gia Hưng",
-        avatarUrl: "/avatar-chibi/male-4.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 1420,
-        prevMonthCoins: 880,
-        completedMissionsCount: 17,
-        totalMissionsCount: 22,
-      },
-      {
-        studentId: "st-9",
-        fullName: "Bùi Khánh Vy",
-        avatarUrl: "/avatar-chibi/female-4.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 890,
-        prevMonthCoins: 520,
-        completedMissionsCount: 14,
-        totalMissionsCount: 22,
-      },
-      {
-        studentId: "st-11",
-        fullName: "Lý Thảo Nhi",
-        avatarUrl: "/avatar-chibi/female-1.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 760,
-        prevMonthCoins: 600,
-        completedMissionsCount: 13,
-        totalMissionsCount: 22,
-      },
-      {
-        studentId: "st-7",
-        fullName: "Đặng Mai Phương",
-        avatarUrl: "/avatar-chibi/female-3.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 620,
-        prevMonthCoins: 420,
-        completedMissionsCount: 11,
-        totalMissionsCount: 22,
-      },
-      {
-        studentId: "st-12",
-        fullName: "Trịnh Quốc Bảo",
-        avatarUrl: "/avatar-chibi/male-2.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 510,
-        prevMonthCoins: 390,
-        completedMissionsCount: 10,
-        totalMissionsCount: 22,
-      },
-      {
-        studentId: "st-13",
-        fullName: "Mai Gia Hân",
-        avatarUrl: "/avatar-chibi/female-2.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 490,
-        prevMonthCoins: 350,
-        completedMissionsCount: 9,
-        totalMissionsCount: 22,
-      },
-      {
-        studentId: "st-8",
-        fullName: "Hoàng Đức Anh",
-        avatarUrl: "/avatar-chibi/male-5.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 450,
-        prevMonthCoins: 320,
-        completedMissionsCount: 9,
-        totalMissionsCount: 22,
-      },
-      {
-        studentId: "st-10",
-        fullName: "Ngô Quang Minh",
-        avatarUrl: "/avatar-chibi/male-1.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 280,
-        prevMonthCoins: 300,
-        completedMissionsCount: 7,
-        totalMissionsCount: 22,
-      },
-    ],
-  },
-  {
-    monthKey: "2026-09",
-    label: "Tháng 09/2026 (Tháng khởi đầu)",
-    hasPreviousMonthData: false,
+export function formatMonthKey(month: number, year: number): string {
+  return `${year}-${String(month).padStart(2, "0")}`;
+}
+
+/**
+ * Phân tích mã tháng "YYYY-MM" về { month, year }
+ */
+export function parseMonthKey(
+  monthKey: string
+): { month: number; year: number } | null {
+  const match = /^(\d{4})-(\d{2})$/.exec(monthKey.trim());
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  if (month < 1 || month > 12 || year < 2020 || year > 2100) return null;
+  return { month, year };
+}
+
+/**
+ * Tạo danh sách 6 tháng gần nhất tính từ tháng hiện tại (theo giờ Việt Nam)
+ */
+export function buildRecentMonthOptions(
+  currentMonth: number,
+  currentYear: number,
+  count: number = 6
+): LeaderboardMonthOption[] {
+  const options: LeaderboardMonthOption[] = [];
+  let m = currentMonth;
+  let y = currentYear;
+
+  for (let i = 0; i < count; i++) {
+    const padded = String(m).padStart(2, "0");
+    options.push({
+      monthKey: formatMonthKey(m, y),
+      month: m,
+      year: y,
+      label:
+        i === 0 ? `Tháng ${padded}/${y} (Hiện tại)` : `Tháng ${padded}/${y}`,
+    });
+    m -= 1;
+    if (m === 0) {
+      m = 12;
+      y -= 1;
+    }
+  }
+
+  return options;
+}
+
+export const EMPTY_COMPUTED_LEADERBOARD: ComputedLeaderboardData = {
+  hasPreviousMonthData: false,
+  totalStudents: 0,
+  totalEarnedCoins: 0,
+  improvedStudentsCount: 0,
+  leadersGroupCount: 0,
+  risersGroupCount: 0,
+  topCoinsBoard: [],
+  progressLeadersBoard: [],
+  progressRisersBoard: [],
+};
+
+export function createEmptyLeaderboardPayload(
+  classId: string,
+  month: number,
+  year: number,
+  availableMonths: LeaderboardMonthOption[]
+): TeacherLeaderboardApiPayload {
+  const padded = String(month).padStart(2, "0");
+  return {
+    classId,
+    monthKey: formatMonthKey(month, year),
+    month,
+    year,
+    monthLabel: `Tháng ${padded}/${year}`,
     previousMonthLabel: null,
-    students: [
-      {
-        studentId: "st-1",
-        fullName: "Nguyễn Minh An",
-        avatarUrl: "/avatar-chibi/male-1.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 1400,
-        prevMonthCoins: 0,
-        completedMissionsCount: 16,
-        totalMissionsCount: 18,
-      },
-      {
-        studentId: "st-3",
-        fullName: "Lê Hoàng Nam",
-        avatarUrl: "/avatar-chibi/male-2.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 1350,
-        prevMonthCoins: 0,
-        completedMissionsCount: 16,
-        totalMissionsCount: 18,
-      },
-      {
-        studentId: "st-5",
-        fullName: "Đỗ Thùy Linh",
-        avatarUrl: "/avatar-chibi/female-2.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 1200,
-        prevMonthCoins: 0,
-        completedMissionsCount: 15,
-        totalMissionsCount: 18,
-      },
-      {
-        studentId: "st-2",
-        fullName: "Trần Bảo Ngọc",
-        avatarUrl: "/avatar-chibi/female-1.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 1100,
-        prevMonthCoins: 0,
-        completedMissionsCount: 14,
-        totalMissionsCount: 18,
-      },
-      {
-        studentId: "st-4",
-        fullName: "Phạm Tuấn Kiệt",
-        avatarUrl: "/avatar-chibi/male-3.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 950,
-        prevMonthCoins: 0,
-        completedMissionsCount: 13,
-        totalMissionsCount: 18,
-      },
-      {
-        studentId: "st-6",
-        fullName: "Vũ Gia Hưng",
-        avatarUrl: "/avatar-chibi/male-4.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 880,
-        prevMonthCoins: 0,
-        completedMissionsCount: 12,
-        totalMissionsCount: 18,
-      },
-      {
-        studentId: "st-11",
-        fullName: "Lý Thảo Nhi",
-        avatarUrl: "/avatar-chibi/female-1.webp",
-        className: "Lớp 3A1",
-        currentMonthCoins: 600,
-        prevMonthCoins: 0,
-        completedMissionsCount: 10,
-        totalMissionsCount: 18,
-      },
-    ],
-  },
-];
+    isClosed: false,
+    closedAt: null,
+    availableMonths,
+    computed: EMPTY_COMPUTED_LEADERBOARD,
+  };
+}

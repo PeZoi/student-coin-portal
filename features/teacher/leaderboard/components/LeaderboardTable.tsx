@@ -8,6 +8,7 @@ import {
   Minus,
   Search,
   SearchX,
+  Trophy,
   X,
 } from "lucide-react";
 import { WHEEL_ASSETS } from "@/constants/wheel";
@@ -115,22 +116,38 @@ export function LeaderboardTable() {
         </div>
       </div>
 
-      {/* Trạng thái không tìm thấy */}
+      {/* Trạng thái trống: phân biệt rõ chưa có dữ liệu vs không khớp từ khóa tìm kiếm */}
       {isEmpty ? (
         <div className="py-12 px-4 text-center flex flex-col items-center justify-center">
-          <div className="w-11 h-11 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
-            <SearchX className="w-5 h-5" aria-hidden="true" />
-          </div>
-          <p className="text-sm font-bold text-[#0F172A]">
-            Không tìm thấy học sinh phù hợp
-          </p>
-          <button
-            type="button"
-            onClick={() => setSearchQuery("")}
-            className="mt-3 h-8 px-3.5 rounded-lg bg-[#EAF2FF] hover:bg-[#DCEAFE] text-[#0A62D6] text-xs font-semibold transition-colors cursor-pointer"
-          >
-            Xóa từ khóa tìm kiếm
-          </button>
+          {searchQuery.trim().length > 0 ? (
+            <>
+              <div className="w-11 h-11 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
+                <SearchX className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <p className="text-sm font-bold text-[#0F172A]">
+                Không tìm thấy học sinh phù hợp
+              </p>
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="mt-3 h-8 px-3.5 rounded-lg bg-[#EAF2FF] hover:bg-[#DCEAFE] text-[#0A62D6] text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Xóa từ khóa tìm kiếm
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="w-11 h-11 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
+                <Trophy className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <p className="text-sm font-bold text-[#0F172A]">
+                Chưa có dữ liệu
+              </p>
+              <p className="text-xs text-[#64748B] mt-1">
+                Tháng này chưa ghi nhận dữ liệu xếp hạng của học sinh.
+              </p>
+            </>
+          )}
         </div>
       ) : isTopCoins ? (
         /* BẢNG 1: TOP XU THÁNG NÀY */
@@ -158,9 +175,14 @@ export function LeaderboardTable() {
                 </span>
               </TableHead>
               <TableHead align="right">
-                <span className="text-xs font-bold text-slate-700 select-none">
-                  Xu kiếm được
-                </span>
+                <Tooltip
+                  content="Chỉ tính xu làm bài tập và thưởng phát biểu (không tính xu vòng quay may mắn)"
+                  side="top"
+                >
+                  <span className="text-xs font-bold text-slate-700 select-none cursor-help inline-flex items-center gap-1">
+                    <span>Xu học tập</span>
+                  </span>
+                </Tooltip>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -312,9 +334,15 @@ export function LeaderboardTable() {
                   </TableCell>
 
                   <TableCell className="whitespace-nowrap">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 tabular-nums">
-                      Hạng #{item.prevMonthRank}
-                    </span>
+                    {item.isNewStudent ? (
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-[#EAF2FF] text-[#0A62D6] border border-[#CFE1FB]">
+                        Học sinh mới
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 tabular-nums">
+                        Hạng #{item.prevMonthRank}
+                      </span>
+                    )}
                   </TableCell>
 
                   <TableCell className="whitespace-nowrap">
@@ -331,7 +359,11 @@ export function LeaderboardTable() {
 
                   <TableCell align="right" className="whitespace-nowrap">
                     <div className="inline-flex flex-col items-end">
-                      {item.deltaCoins === 0 ? (
+                      {item.isNewStudent ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                          Chưa xét tiến bộ
+                        </span>
+                      ) : item.deltaCoins === 0 ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
                           <Minus className="w-3 h-3" aria-hidden="true" />
                           <span>Giữ nguyên</span>

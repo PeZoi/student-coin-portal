@@ -8,7 +8,7 @@ import { useLeaderboardContext } from "../contexts/LeaderboardContext";
  * để chia nhóm và đối chiếu mức độ tiến bộ
  */
 export function ProgressBoardLockedState() {
-  const { activeBoard, currentDataset, setActiveBoard } =
+  const { activeBoard, currentMonthLabel, setActiveBoard } =
     useLeaderboardContext();
 
   const boardName =
@@ -36,7 +36,7 @@ export function ProgressBoardLockedState() {
       </h2>
 
       <p className="text-sm text-[#475569] mt-2 max-w-lg leading-relaxed">
-        <strong>{currentDataset.label}</strong> là tháng khởi đầu chưa có số liệu tích xu của tháng liền trước. Hệ thống cần dữ liệu tháng trước để chia đôi 2 nhóm thi đua (Nhóm Dẫn Đầu &amp; Nhóm Vươn Lên) và tính mức độ bứt phá công bằng cho các em.
+        <strong>{currentMonthLabel || "Tháng này"}</strong> là tháng chưa có dữ liệu tích xu của tháng liền trước. Hệ thống cần dữ liệu tháng trước để chia đôi 2 nhóm thi đua và tính mức độ bứt phá công bằng cho các em.
       </p>
 
       <div className="mt-6 w-full max-w-lg rounded-2xl bg-slate-50 border border-slate-200/80 p-4 text-left space-y-2">
@@ -48,7 +48,7 @@ export function ProgressBoardLockedState() {
             Kết quả <strong>Top Xu Tháng Này</strong> sẽ trở thành mốc chia 2 nhóm cho tháng sau.
           </li>
           <li>
-            Nửa trên vào bảng <strong>Nhóm Dẫn Đầu</strong>, nửa dưới (gồm phần dư nếu sĩ số lẻ) vào bảng <strong>Nhóm Vươn Lên</strong>.
+            Nửa trên vào bảng <strong>Nhóm Dẫn Đầu</strong>, nửa dưới vào bảng <strong>Nhóm Vươn Lên</strong>.
           </li>
         </ul>
       </div>

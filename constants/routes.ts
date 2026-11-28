@@ -122,6 +122,8 @@ export const AppRoutes = {
       REWARD_BATCH_APPROVE: "/api/teacher/rewards/batch-approve",
       // Sidebar Badges
       SIDEBAR_BADGES: "/api/teacher/sidebar-badges",
+      // Bảng xếp hạng thi đua (Leaderboard)
+      LEADERBOARD: "/api/teacher/leaderboard",
     },
     SYSTEM: {
       CONFIG: "/api/system/config",

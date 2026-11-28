@@ -67,19 +67,28 @@ export function computeThreeLeaderboards(
   }
 
   // 2. Xếp hạng THÁNG TRƯỚC để chia 2 nhóm công bằng
+  // Học sinh mới vào trong tháng luôn xếp sau cùng để đẩy vào Nhóm Vươn Lên
   const sortedByPrevCoins = [...students].sort((a, b) => {
+    const aNew = Boolean(a.isNewStudent);
+    const bNew = Boolean(b.isNewStudent);
+    if (aNew !== bNew) return aNew ? 1 : -1;
     if (b.prevMonthCoins !== a.prevMonthCoins) {
       return b.prevMonthCoins - a.prevMonthCoins;
     }
     return b.currentMonthCoins - a.currentMonthCoins;
   });
 
-  // Chia đôi: nửa trên = floor(N/2), phần dư đẩy qua bảng thứ 2 (Nhóm Vươn Lên)
-  const leadersSplitIndex = Math.floor(totalStudents / 2);
+  // Chia đôi: nửa trên = floor(N/2) (không lấy học sinh mới vào Nhóm Dẫn Đầu),
+  // phần còn lại + học sinh mới đẩy qua Nhóm Vươn Lên
+  const existingStudentsCount = students.filter((s) => !s.isNewStudent).length;
+  const leadersSplitIndex = Math.min(
+    Math.floor(totalStudents / 2),
+    existingStudentsCount
+  );
 
   const prevRankMap = new Map<string, number>();
   sortedByPrevCoins.forEach((s, idx) => {
-    prevRankMap.set(s.studentId, idx + 1);
+    prevRankMap.set(s.studentId, s.isNewStudent ? 0 : idx + 1);
   });
 
   const leadersRaw = sortedByPrevCoins.slice(0, leadersSplitIndex);
@@ -89,7 +98,8 @@ export function computeThreeLeaderboards(
     s: RawStudentMonthPerformance,
     group: "leaders" | "risers"
   ): Omit<ProgressRankEntry, "rank"> => {
-    const deltaCoins = s.currentMonthCoins - s.prevMonthCoins;
+    const isNewStudent = Boolean(s.isNewStudent);
+    const deltaCoins = isNewStudent ? 0 : s.currentMonthCoins - s.prevMonthCoins;
     return {
       group,
       studentId: s.studentId,
@@ -102,17 +112,24 @@ export function computeThreeLeaderboards(
       deltaCoins,
       completedMissionsCount: s.completedMissionsCount,
       totalMissionsCount: s.totalMissionsCount,
-      isImproved: deltaCoins > 0,
+      isImproved: !isNewStudent && deltaCoins > 0,
+      isNewStudent,
     };
   };
 
   // Cả 2 bảng Tiến bộ đều đồng nhất sắp xếp thuần theo Số xu tăng thêm (deltaCoins) giảm dần
+  // Học sinh mới vào trong tháng mặc định luôn xếp cuối bảng (sắp theo xu tháng này giữa các bạn mới)
   const sortProgressEntries = (
     entries: Omit<ProgressRankEntry, "rank">[]
   ): ProgressRankEntry[] =>
     entries
       .sort((a, b) => {
-        if (b.deltaCoins !== a.deltaCoins) return b.deltaCoins - a.deltaCoins;
+        const aNew = Boolean(a.isNewStudent);
+        const bNew = Boolean(b.isNewStudent);
+        if (aNew !== bNew) return aNew ? 1 : -1;
+        if (!aNew && b.deltaCoins !== a.deltaCoins) {
+          return b.deltaCoins - a.deltaCoins;
+        }
         if (b.currentMonthCoins !== a.currentMonthCoins) {
           return b.currentMonthCoins - a.currentMonthCoins;
         }
@@ -129,7 +146,7 @@ export function computeThreeLeaderboards(
   );
 
   const improvedStudentsCount = students.filter(
-    (s) => s.currentMonthCoins > s.prevMonthCoins
+    (s) => !s.isNewStudent && s.currentMonthCoins > s.prevMonthCoins
   ).length;
 
   return {

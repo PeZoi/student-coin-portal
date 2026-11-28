@@ -5,13 +5,24 @@ import {
   useTeacherLeaderboard,
   UseTeacherLeaderboardReturn,
 } from "../hooks/useTeacherLeaderboard";
+import { TeacherLeaderboardApiPayload } from "../types";
 
 const LeaderboardContext = createContext<UseTeacherLeaderboardReturn | null>(
   null
 );
 
-export function LeaderboardProvider({ children }: { children: ReactNode }) {
-  const value = useTeacherLeaderboard();
+interface LeaderboardProviderProps {
+  children: ReactNode;
+  initialData?: TeacherLeaderboardApiPayload;
+  initialClassId?: string;
+}
+
+export function LeaderboardProvider({
+  children,
+  initialData,
+  initialClassId,
+}: LeaderboardProviderProps) {
+  const value = useTeacherLeaderboard({ initialData, initialClassId });
   return (
     <LeaderboardContext.Provider value={value}>
       {children}

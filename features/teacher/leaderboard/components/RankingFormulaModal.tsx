@@ -69,8 +69,11 @@ export function RankingFormulaModal({
               <span>Bảng 1: Top Xu Tháng Này</span>
             </div>
             <p className="text-xs sm:text-sm text-slate-700 mt-1.5 leading-relaxed">
-              Xếp hạng toàn bộ học sinh theo <strong>tổng số xu kiếm được trong tháng hiện tại</strong> (từ làm bài tập, thưởng nóng, vòng quay...). Nếu bằng xu nhau, ưu tiên bạn hoàn thành nhiều bài tập hơn.
+              Xếp hạng toàn bộ học sinh theo <strong>tổng xu học tập &amp; rèn luyện</strong> kiếm được trong tháng. Nếu bằng xu nhau, ưu tiên bạn hoàn thành nhiều bài tập hơn.
             </p>
+            <div className="mt-2.5 p-2.5 rounded-lg bg-white border border-[#CFE1FB] text-xs text-slate-600 leading-relaxed">
+              <span className="font-bold text-[#0A62D6]">Quy chuẩn tính xu thi đua:</span> Chỉ tính <strong>Xu làm bài tập</strong> + <strong>Xu thưởng giáo viên khen ngợi/phát biểu</strong>. Hoàn toàn <em>không tính xu may rủi từ Vòng quay may mắn</em> để đảm bảo công bằng cho nỗ lực học tập thực chất.
+            </div>
           </div>
 
           {/* 2. Cách chia 2 nhóm Tiến bộ */}
